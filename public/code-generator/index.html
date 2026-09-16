@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dream Education — Any Code Generator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <div id="app">
+
+    <!-- PASSWORD GATE -->
+    <section id="lock-screen" class="screen">
+      <div class="lock-card">
+        <div class="brand">DREAM EDUCATION</div>
+        <div class="lock-icon">🔐</div>
+        <h1>Any Code Generator</h1>
+        <p>Private owner workspace</p>
+
+        <form id="unlock-form">
+          <input
+            id="password-input"
+            type="password"
+            placeholder="Enter owner password"
+            autocomplete="current-password"
+            required
+          >
+
+          <button type="submit">Unlock Generator</button>
+        </form>
+
+        <p id="lock-message" class="message"></p>
+      </div>
+    </section>
+
+
+    <!-- GENERATOR -->
+    <section id="generator-screen" class="screen hidden">
+
+      <header class="topbar">
+        <div>
+          <div class="brand">DREAM EDUCATION</div>
+          <h1>Any Code Generator</h1>
+        </div>
+
+        <button id="lock-button" class="secondary-button">
+          🔒 Lock
+        </button>
+      </header>
+
+
+      <main class="workspace">
+
+        <section class="request-panel">
+
+          <div class="panel-heading">
+            <div>
+              <h2>What do you want to create?</h2>
+              <p>Describe anything you want the generator to build.</p>
+            </div>
+          </div>
+
+          <textarea
+            id="request-input"
+            placeholder="Example:
+
+Create a complete Python program that reads a CSV file, analyzes the data, calculates statistics, and generates a report.
+
+Or:
+
+Build a complete responsive school website with HTML, CSS and JavaScript."
+          ></textarea>
+
+
+          <div class="controls">
+
+            <label>
+              Language
+              <select id="language-select">
+                <option value="auto">Auto Detect</option>
+                <option value="html">HTML</option>
+                <option value="css">CSS</option>
+                <option value="javascript">JavaScript</option>
+                <option value="typescript">TypeScript</option>
+                <option value="python">Python</option>
+                <option value="java">Java</option>
+                <option value="c">C</option>
+                <option value="cpp">C++</option>
+                <option value="csharp">C#</option>
+                <option value="php">PHP</option>
+                <option value="go">Go</option>
+                <option value="rust">Rust</option>
+                <option value="kotlin">Kotlin</option>
+                <option value="swift">Swift</option>
+                <option value="sql">SQL</option>
+                <option value="bash">Bash</option>
+                <option value="json">JSON</option>
+                <option value="other">Other</option>
+              </select>
+            </label>
+
+            <label>
+              Output
+              <select id="output-mode">
+                <option value="pure">Pure Code</option>
+                <option value="explained">Code + Explanation</option>
+              </select>
+            </label>
+
+            <label>
+              Project Type
+              <select id="project-type">
+                <option value="single-file">Single File</option>
+                <option value="multi-file">Complete Project</option>
+              </select>
+            </label>
+
+          </div>
+
+
+          <div class="action-row">
+            <button id="generate-button" class="primary-button">
+              ⚡ Generate Code
+            </button>
+
+            <button id="clear-button" class="secondary-button">
+              Clear
+            </button>
+          </div>
+
+        </section>
+
+
+        <section class="code-panel">
+
+          <div class="code-header">
+            <div>
+              <h2>Generated Code</h2>
+              <span id="status">Ready</span>
+            </div>
+
+            <div class="code-actions">
+              <button id="copy-button">Copy</button>
+              <button id="download-button">Download</button>
+            </div>
+          </div>
+
+          <pre id="code-output"><code>// Your generated code will appear here.</code></pre>
+
+        </section>
+
+
+        <section class="history-panel">
+
+          <div class="history-header">
+            <div>
+              <h2>Generation History</h2>
+              <p>Stored locally on this device.</p>
+            </div>
+
+            <button id="clear-history-button" class="secondary-button">
+              Clear History
+            </button>
+          </div>
+
+          <div id="history-list">
+            <p class="empty-history">No generations yet.</p>
+          </div>
+
+        </section>
+
+      </main>
+
+    </section>
+
+  </div>
+
+  <script src="generation-engine.js"></script>
+  <script src="project-engine.js"></script>
+  <script src="code-provider.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

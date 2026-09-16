@@ -1,0 +1,1511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dream Education</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+<header class="header">
+  <div class="header-inner">
+
+    <div class="brand">
+      <div class="brand-mark">D</div>
+
+      <div class="brand-text">
+        <strong>Dream Education</strong>
+        <span>Learn. Understand. Grow.</span>
+      </div>
+    </div>
+
+    <div class="header-pill">
+      <span class="status-dot"></span>
+      Your learning journey
+    </div>
+
+  </div>
+</header>
+
+<main class="container">
+
+  <section class="welcome">
+
+    <div class="hero-glow"></div>
+
+    <div class="welcome-badge">
+      THE WAY YOU LEARN MATTERS
+    </div>
+
+    <h2>
+      Don't just get the answer.
+      <span>Understand it.</span>
+    </h2>
+
+    <p>
+      Dream Education helps you learn step by step, discover what you understand,
+      and build from what you already know.
+    </p>
+
+    <div class="learning-path">
+
+      <div class="path-item">
+        <div class="path-number">01</div>
+        <div>
+          <strong>Learn</strong>
+          <span>Explore the idea</span>
+        </div>
+      </div>
+
+      <div class="path-line"></div>
+
+      <div class="path-item">
+        <div class="path-number">02</div>
+        <div>
+          <strong>Think</strong>
+          <span>Explain it yourself</span>
+        </div>
+      </div>
+
+      <div class="path-line"></div>
+
+      <div class="path-item">
+        <div class="path-number">03</div>
+        <div>
+          <strong>Grow</strong>
+          <span>Take the next step</span>
+        </div>
+      </div>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- LEARNER SETUP -->
+  <section class="card">
+
+    <div class="section-label">LEARNING SESSION</div>
+    <h2>What do you want to understand?</h2>
+    <p class="muted">
+      Ask a question, learn the idea, then show Dream Education what you understand.
+    </p>
+
+    <label for="name">Your name</label>
+    <input id="name" type="text" placeholder="Enter your name">
+
+    <label for="learnerId">Learner ID</label>
+    <input id="learnerId" type="text" placeholder="e.g. student001">
+
+    <label for="level">Learning level</label>
+    <select id="level">
+      <option value="Junior Secondary">Junior Secondary</option>
+      <option value="Primary">Primary</option>
+      <option value="Secondary">Secondary</option>
+      <option value="University">University</option>
+    </select>
+
+    <label for="subject">Subject</label>
+    <select id="subject">
+      <option value="Mathematics">Mathematics</option>
+      <option value="Biology">Biology</option>
+      <option value="Physics">Physics</option>
+      <option value="Chemistry">Chemistry</option>
+      <option value="Integrated Science">Integrated Science</option>
+      <option value="English">English</option>
+      <option value="General">General</option>
+    </select>
+
+    <label for="topic">Topic</label>
+    <input
+      id="topic"
+      type="text"
+      placeholder="e.g. Photosynthesis"
+    >
+
+    <label for="question">Your question</label>
+    <textarea
+      id="question"
+      placeholder="Ask anything you want to understand..."
+    ></textarea>
+
+    <button id="learnButton" onclick="startLearning()">
+      Start Learning
+    </button>
+
+    <div id="status" class="status"></div>
+
+  </section>
+
+
+  <!-- LESSON -->
+  <section id="lessonCard" class="card lesson-card hidden">
+
+    <div class="section-label">STEP 1 · LEARN</div>
+
+    <h2>Let's understand the idea</h2>
+
+    <p class="lesson-intro">
+      Start by understanding the main idea. You don't need to memorize everything.
+    </p>
+
+    <div class="lesson-content">
+      <div class="lesson-icon">💡</div>
+
+      <div id="lessonAnswer" class="lesson-answer"></div>
+    </div>
+
+    <div class="lesson-tip">
+      <strong>Think about it</strong>
+      <p>
+        Try to connect this idea to something you already know or see in everyday life.
+      </p>
+    </div>
+
+  </section>
+
+
+  <!-- ADAPTIVE LEARNING -->
+  <section id="learningCard" class="card learning-session hidden">
+
+    <div class="learning-step">
+      <span class="step-number">02</span>
+      <span>THINK</span>
+    </div>
+
+    <h2>Now show what you understand</h2>
+
+    <p class="learning-prompt">
+      There is no need to use complicated words. Explain the idea in your own words.
+    </p>
+
+    <div class="question-box">
+      <div class="question-label">YOUR CHALLENGE</div>
+      <div id="nextQuestion" class="question"></div>
+    </div>
+
+    <div class="answer-area">
+      <label for="learnerAnswer">Your explanation</label>
+
+      <textarea
+        id="learnerAnswer"
+        placeholder="Write what you understand here..."
+      ></textarea>
+
+      <div class="answer-hint">
+        <span>💭</span>
+        <span>Think first. Then explain.</span>
+      </div>
+    </div>
+
+    <button id="submitAnswerButton" class="primary learning-submit" onclick="submitLearningAnswer()">
+      Check My Understanding →
+    </button>
+
+  </section>
+
+
+  <!-- ASSESSMENT -->
+  <section id="assessmentCard" class="card assessment-card hidden">
+
+    <div class="learning-step">
+      <span class="step-number">03</span>
+      <span>UNDERSTAND</span>
+    </div>
+
+    <div class="result-heading">
+      <div class="result-icon">✦</div>
+
+      <div>
+        <h2 id="understandingTitle">Let's see what you understand</h2>
+        <p id="understandingSubtitle">
+          Your answer helps Dream Education decide what you should learn next.
+        </p>
+      </div>
+    </div>
+
+    <div class="score-row">
+
+      <div class="score-box">
+        <span id="score">0</span>
+        <small>Understanding score</small>
+      </div>
+
+      <div class="understanding-box">
+        <span id="understanding">-</span>
+        <small>Current understanding</small>
+      </div>
+
+    </div>
+
+    <div class="feedback-box">
+      <h3>What I noticed</h3>
+      <p id="feedback"></p>
+    </div>
+
+    <div class="learning-details">
+
+      <div class="learning-detail">
+        <strong>✓ What you did well</strong>
+        <p id="strengths"></p>
+      </div>
+
+      <div class="learning-detail">
+        <strong>↗ What to improve</strong>
+        <p id="gaps"></p>
+      </div>
+
+      <div class="learning-detail">
+        <strong>💡 Important idea</strong>
+        <p id="misconceptions"></p>
+      </div>
+
+    </div>
+
+    <div class="teaching-box">
+
+      <div class="next-step-label">YOUR NEXT STEP</div>
+
+      <p id="teachingExplanation"></p>
+
+      <div class="next-question-box">
+        <strong>Next challenge</strong>
+        <p id="adaptiveQuestion"></p>
+      </div>
+
+    </div>
+
+    <button id="continueButton" class="primary" onclick="continueLearning()">
+      Continue Learning →
+    </button>
+
+  </section>
+
+
+  <!-- PROGRESS -->
+  <section class="card dashboard-card">
+
+    <div class="dashboard-heading">
+
+      <div>
+        <div class="section-label">YOUR JOURNEY</div>
+        <h2>Your Learning</h2>
+        <p class="muted">
+          See how your understanding is developing over time.
+        </p>
+      </div>
+
+      <button class="dashboard-refresh" onclick="loadProgress()">
+        ↻
+      </button>
+
+    </div>
+
+    <div id="progress" class="hidden">
+
+      <div class="learning-summary">
+        <div class="summary-icon">✦</div>
+
+        <div>
+          <strong>Your learning is building</strong>
+          <p>
+            Every question helps Dream Education understand what you know
+            and what you should work on next.
+          </p>
+        </div>
+      </div>
+
+      <div class="stats">
+
+        <div class="stat">
+          <span>Questions</span>
+          <strong id="totalQuestions">0</strong>
+        </div>
+
+        <div class="stat">
+          <span>Subjects</span>
+          <strong id="subjectCount">0</strong>
+        </div>
+
+        <div class="stat">
+          <span>Average understanding</span>
+          <strong id="averageScore">0%</strong>
+        </div>
+
+        <div class="stat">
+          <span>Current level</span>
+          <strong id="learningDifficulty">-</strong>
+        </div>
+
+      </div>
+
+      <div class="dashboard-section">
+
+        <div class="dashboard-section-title">
+          <span>YOUR NEXT STEP</span>
+        </div>
+
+        <div
+        id="learningRecommendation"
+        class="recommendation dashboard-recommendation"
+      >
+        <div class="recommendation-content">
+          <strong id="recommendationTitle">Keep building your understanding</strong>
+          <p id="recommendationText">
+            Your next learning step will appear here.
+          </p>
+        </div>
+
+        <button
+          id="recommendationButton"
+          class="recommendation-action"
+          onclick="continueFromDashboard()"
+        >
+          Continue →
+        </button>
+      </div>
+
+      </div>
+
+      <div class="dashboard-section">
+
+        <div class="dashboard-section-title">
+          <span>MASTERY MAP</span>
+        </div>
+
+        <div id="topicMastery" class="topic-mastery">
+
+          <div class="mastery-empty">
+            Complete a few learning questions to build your mastery map.
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="dashboard-section">
+
+        <div class="dashboard-section-title">
+          <span>SUBJECTS</span>
+        </div>
+
+        <div id="subjects"></div>
+
+      </div>
+
+      <div class="dashboard-section">
+
+        <div class="dashboard-section-title">
+          <span>RECENT LEARNING</span>
+        </div>
+
+        <div id="recentLearning"></div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+</main>
+
+<script>
+
+let currentLearning = null;
+let nextLearning = null;
+
+
+/* =========================
+   START LEARNING
+========================= */
+
+async function startLearning() {
+
+  const button =
+    document.getElementById("learnButton");
+
+  const status =
+    document.getElementById("status");
+
+  const lessonCard =
+    document.getElementById("lessonCard");
+
+  const learningCard =
+    document.getElementById("learningCard");
+
+  const assessmentCard =
+    document.getElementById("assessmentCard");
+
+  const name =
+    document.getElementById("name").value.trim();
+
+  const learnerId =
+    document.getElementById("learnerId").value.trim();
+
+  const level =
+    document.getElementById("level").value;
+
+  const subject =
+    document.getElementById("subject").value;
+
+  const topic =
+    document.getElementById("topic").value.trim();
+
+  const question =
+    document.getElementById("question").value.trim();
+
+
+  if (!learnerId) {
+    status.textContent =
+      "Please enter your Learner ID.";
+    return;
+  }
+
+  if (!question) {
+    status.textContent =
+      "Please enter a question.";
+    return;
+  }
+
+
+  button.disabled = true;
+  button.textContent =
+    "Dream Education is thinking...";
+
+  status.textContent = "";
+
+  lessonCard.classList.add("hidden");
+  learningCard.classList.add("hidden");
+  assessmentCard.classList.add("hidden");
+
+
+  try {
+
+    /*
+      First create the teaching explanation.
+    */
+
+    const response =
+      await fetch("/api/learn", {
+
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+
+          learner_id: learnerId,
+
+          learner_name:
+            name || null,
+
+          question,
+
+          subject,
+
+          level,
+
+          topic:
+            topic || null
+        })
+
+      });
+
+
+    const data =
+      await response.json();
+
+
+    if (!response.ok || !data.success) {
+
+      throw new Error(
+        data.message ||
+        data.error ||
+        "Could not create the lesson."
+      );
+
+    }
+
+
+    document.getElementById("lessonAnswer")
+      .textContent =
+      data.answer || data.message || "";
+
+
+    lessonCard.classList.remove("hidden");
+
+
+    /*
+      The learner must now demonstrate
+      understanding of the lesson.
+    */
+
+    document.getElementById("nextQuestion")
+      .textContent =
+      "Explain what you understand from the lesson in your own words.";
+
+
+    document.getElementById("learnerAnswer")
+      .value = "";
+
+
+    learningCard.classList.remove("hidden");
+
+
+    currentLearning = {
+
+      learnerId,
+
+      name,
+
+      level,
+
+      subject,
+
+      topic,
+
+      question,
+
+      teachingAnswer:
+        data.answer || data.message || ""
+
+    };
+
+
+    status.textContent =
+      "Lesson ready. Now show me what you learned.";
+
+
+    learningCard.scrollIntoView({
+      behavior: "smooth"
+    });
+
+
+  } catch (error) {
+
+    status.textContent =
+      error.message;
+
+  } finally {
+
+    button.disabled = false;
+
+    button.textContent =
+      "Start Learning";
+
+  }
+
+}
+
+
+/* =========================
+   SUBMIT LEARNING ANSWER
+========================= */
+
+async function submitLearningAnswer() {
+
+  const button =
+    document.getElementById("submitAnswerButton");
+
+  const status =
+    document.getElementById("status");
+
+  const answer =
+    document.getElementById("learnerAnswer")
+      .value.trim();
+
+
+  if (!currentLearning) {
+
+    status.textContent =
+      "Start a lesson first.";
+
+    return;
+
+  }
+
+
+  if (!answer) {
+
+    status.textContent =
+      "Please write your answer first.";
+
+    return;
+
+  }
+
+
+  button.disabled = true;
+
+  button.textContent =
+    "Assessing your understanding...";
+
+
+  try {
+
+    /*
+      This is now the main learning engine.
+
+      It performs:
+
+      evidence analysis
+      assessment
+      misconception detection
+      mastery calculation
+      trajectory analysis
+      teaching decision
+      adaptive next question
+    */
+
+    const response =
+      await fetch("/api/session", {
+
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+
+          learner_id:
+            currentLearning.learnerId,
+
+          name:
+            currentLearning.name || null,
+
+          question:
+            currentLearning.question,
+
+          learner_answer:
+            answer,
+
+          subject:
+            currentLearning.subject,
+
+          topic:
+            currentLearning.topic ||
+            currentLearning.question,
+
+          level:
+            currentLearning.level,
+
+          teaching_move:
+            nextLearning.teaching_move || null,
+
+          teaching_target:
+            nextLearning.teaching_target || null,
+
+          teaching_explanation:
+            nextLearning.teaching_explanation || null,
+
+          mastery_status:
+            nextLearning.mastery_status || null,
+
+          average_score:
+            nextLearning.average_score ?? null,
+
+          trajectory:
+            nextLearning.trajectory || null,
+
+          previous_score:
+            nextLearning.previous_score ?? null,
+
+          learning_state:
+            nextLearning.learning_state || null,
+
+          decision_action:
+            nextLearning.decision_action || null,
+
+          decision_topic:
+            nextLearning.decision_topic || null,
+
+          difficulty:
+            nextLearning.difficulty || null,
+
+          difficulty_direction:
+            nextLearning.difficulty_direction || null,
+
+          difficulty_reason:
+            nextLearning.difficulty_reason || null
+
+        })
+
+      });
+
+
+    const data =
+      await response.json();
+
+
+    if (!response.ok || !data.success) {
+
+      throw new Error(
+        data.message ||
+        data.error ||
+        "Assessment failed."
+      );
+
+    }
+
+
+    /*
+      Assessment
+    */
+
+    const assessment =
+      data.assessment || {};
+
+
+    document.getElementById("score")
+      .textContent =
+      (assessment.score ?? 0) + "/100";
+
+
+    const understandingLabels = {
+      misconception: "Let's correct this idea",
+      strong: "You're understanding this well",
+      partial: "You're getting there",
+      basic: "Let's strengthen this",
+      no_understanding: "Let's build this from the basics",
+      needs_practice: "Let's strengthen this"
+    };
+
+    document.getElementById("understanding")
+      .textContent =
+      understandingLabels[
+        String(assessment.understanding || "").toLowerCase()
+      ] ||
+      "Let's keep building your understanding";
+
+
+    document.getElementById("feedback")
+      .textContent =
+      assessment.feedback ||
+      "Keep working on the idea.";
+
+
+    document.getElementById("strengths")
+      .textContent =
+      assessment.strengths ||
+      "The learner attempted the question.";
+
+
+    document.getElementById("gaps")
+      .textContent =
+      assessment.gaps ||
+      "No additional gap information available.";
+
+
+    document.getElementById("misconceptions")
+      .textContent =
+      assessment.misconceptions ||
+      "No clear misconception detected.";
+
+
+    /*
+      Teaching decision
+    */
+
+    const teaching =
+      data.teaching || {};
+
+
+    document.getElementById("teachingExplanation")
+      .textContent =
+      teaching.explanation ||
+      "Let's continue building your understanding.";
+
+
+    const nextQuestion =
+      data.next_question || {};
+
+
+    document.getElementById("adaptiveQuestion")
+      .textContent =
+      nextQuestion.question ||
+      "Let's continue exploring this topic.";
+
+
+    nextLearning = {
+      question:
+        nextQuestion.question,
+
+      subject:
+        nextQuestion.subject ||
+        currentLearning.subject,
+
+      topic:
+        nextQuestion.topic ||
+        currentLearning.topic,
+
+      level:
+        nextQuestion.level ||
+        currentLearning.level,
+
+      teaching_move:
+        teaching.move || null,
+
+      teaching_target:
+        teaching.target || null,
+
+      teaching_explanation:
+        teaching.explanation || null,
+
+      mastery_status:
+        data.mastery?.status || null,
+
+      average_score:
+        data.mastery?.average_score ?? null,
+
+      trajectory:
+        data.trajectory?.status || null,
+
+      previous_score:
+        data.trajectory?.previous_score ?? null,
+
+      learning_state:
+        data.learning_state || null,
+
+      decision_action:
+        data.decision?.action || null,
+
+      decision_topic:
+        data.decision?.topic || null,
+
+      difficulty:
+        data.difficulty?.level || null,
+
+      difficulty_direction:
+        data.difficulty?.direction || null,
+
+      difficulty_reason:
+        data.difficulty?.reason || null
+    };
+
+
+    document.getElementById("assessmentCard")
+      .classList.remove("hidden");
+
+
+    status.textContent =
+      "Your understanding has been assessed and your next learning step is ready.";
+
+
+    document.getElementById("assessmentCard")
+      .scrollIntoView({
+        behavior: "smooth"
+      });
+
+
+  } catch (error) {
+
+    status.textContent =
+      error.message;
+
+  } finally {
+
+    button.disabled = false;
+
+    button.textContent =
+      "Submit Answer";
+
+  }
+
+}
+
+
+/* =========================
+   CONTINUE LEARNING
+========================= */
+
+async function continueLearning() {
+
+  if (!nextLearning || !currentLearning) {
+    return;
+  }
+
+
+  const status =
+    document.getElementById("status");
+
+  const lessonCard =
+    document.getElementById("lessonCard");
+
+  const learningCard =
+    document.getElementById("learningCard");
+
+  const assessmentCard =
+    document.getElementById("assessmentCard");
+
+
+  try {
+
+    status.textContent =
+      "Preparing your next lesson...";
+
+
+    /*
+      Move the adaptive question
+      into the current learning session.
+    */
+
+    currentLearning = {
+
+      ...currentLearning,
+
+      subject:
+        nextLearning.subject,
+
+      topic:
+        nextLearning.topic,
+
+      level:
+        nextLearning.level,
+
+      question:
+        nextLearning.question
+
+    };
+
+
+    const response =
+      await fetch("/api/learn", {
+
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+
+          learner_id:
+            currentLearning.learnerId,
+
+          learner_name:
+            currentLearning.name || null,
+
+          question:
+            currentLearning.question,
+
+          subject:
+            currentLearning.subject,
+
+          topic:
+            currentLearning.topic,
+
+          level:
+            currentLearning.level,
+
+          teaching_move:
+            nextLearning.teaching_move || null,
+
+          teaching_target:
+            nextLearning.teaching_target || null,
+
+          teaching_explanation:
+            nextLearning.teaching_explanation || null,
+
+          mastery_status:
+            nextLearning.mastery_status || null,
+
+          average_score:
+            nextLearning.average_score ?? null,
+
+          trajectory:
+            nextLearning.trajectory || null,
+
+          previous_score:
+            nextLearning.previous_score ?? null,
+
+          learning_state:
+            nextLearning.learning_state || null,
+
+          decision_action:
+            nextLearning.decision_action || null,
+
+          decision_topic:
+            nextLearning.decision_topic || null,
+
+          difficulty:
+            nextLearning.difficulty || null,
+
+          difficulty_direction:
+            nextLearning.difficulty_direction || null,
+
+          difficulty_reason:
+            nextLearning.difficulty_reason || null
+
+        })
+
+      });
+
+
+    const data =
+      await response.json();
+
+
+    if (!response.ok || !data.success) {
+
+      throw new Error(
+        data.message ||
+        data.error ||
+        "Could not prepare the next lesson."
+      );
+
+    }
+
+
+    document.getElementById("lessonAnswer")
+      .textContent =
+      data.answer || data.message || "";
+
+
+    document.getElementById("nextQuestion")
+      .textContent =
+      "Explain what you understand from this lesson.";
+
+
+    document.getElementById("learnerAnswer")
+      .value = "";
+
+
+    lessonCard.classList.remove("hidden");
+
+    learningCard.classList.remove("hidden");
+
+    assessmentCard.classList.add("hidden");
+
+
+    nextLearning = null;
+
+
+    status.textContent =
+      "Your next lesson is ready. Show me what you learned.";
+
+
+    learningCard.scrollIntoView({
+      behavior: "smooth"
+    });
+
+
+  } catch (error) {
+
+    status.textContent =
+      error.message;
+
+  }
+
+}
+
+
+/* =========================
+   PROGRESS
+========================= */
+
+async function loadProgress() {
+
+  const learnerId =
+    document.getElementById("learnerId")
+      .value.trim();
+
+
+  if (!learnerId) {
+
+    alert(
+      "Enter your Learner ID first."
+    );
+
+    return;
+
+  }
+
+
+  try {
+
+    const response =
+      await fetch(
+        "/api/progress/" +
+        encodeURIComponent(learnerId)
+      );
+
+
+    const data =
+      await response.json();
+
+
+    if (!response.ok || !data.success) {
+
+      throw new Error(
+        data.message ||
+        data.error ||
+        "Could not load progress."
+      );
+
+    }
+
+
+    document.getElementById("totalQuestions")
+      .textContent =
+      data.total_questions || 0;
+
+
+    const subjects =
+      data.subjects || {};
+
+
+    document.getElementById("subjectCount")
+      .textContent =
+      Object.keys(subjects).length;
+
+
+    const subjectsBox =
+      document.getElementById("subjects");
+
+
+    subjectsBox.innerHTML = "";
+
+
+    Object.entries(subjects)
+      .forEach(([subject, count]) => {
+
+        const div =
+          document.createElement("div");
+
+        div.className =
+          "subject";
+
+        div.textContent =
+          subject +
+          ": " +
+          count +
+          " question(s)";
+
+        subjectsBox.appendChild(div);
+
+      });
+
+
+    const recentBox =
+      document.getElementById("recentLearning");
+
+
+    recentBox.innerHTML = "";
+
+
+    (data.recent_learning || [])
+      .forEach(item => {
+
+        const div =
+          document.createElement("div");
+
+        div.className =
+          "recent";
+
+
+        const strong =
+          document.createElement("strong");
+
+        strong.textContent =
+          item.subject ||
+          "General";
+
+
+        const text =
+          document.createElement("div");
+
+        text.textContent =
+          item.question;
+
+
+        div.appendChild(strong);
+
+        div.appendChild(text);
+
+        recentBox.appendChild(div);
+
+      });
+
+
+    /*
+      Learner intelligence
+    */
+
+    const intelligenceResponse =
+      await fetch(
+        "/api/intelligence/" +
+        encodeURIComponent(learnerId)
+      );
+
+
+    const intelligence =
+      await intelligenceResponse.json();
+
+
+    if (intelligence.success) {
+
+      const profile =
+        intelligence.learning_profile || {};
+
+
+      document.getElementById("averageScore")
+        .textContent =
+        (profile.average_score || 0) +
+        "%";
+
+
+      document.getElementById("learningDifficulty")
+        .textContent =
+        profile.difficulty ||
+        "beginner";
+
+
+      const recommendation =
+        intelligence.recommendation || {};
+
+      const recommendationTitle =
+        document.getElementById("recommendationTitle");
+
+      const recommendationText =
+        document.getElementById("recommendationText");
+
+      if (recommendationTitle) {
+
+        const action =
+          recommendation.action || "learn";
+
+        const titles = {
+          assess: "Let's understand where you are",
+          practice: "Strengthen your foundations",
+          develop: "Keep developing your understanding",
+          challenge: "You're ready for a challenge"
+        };
+
+        recommendationTitle.textContent =
+          titles[action] ||
+          "Keep building your understanding";
+
+      }
+
+      if (recommendationText) {
+
+        recommendationText.textContent =
+          recommendation.message ||
+          "Keep learning and building your understanding.";
+
+      }
+
+      /*
+        TOPIC MASTERY MAP
+
+        topic_performance is already calculated
+        by the learner intelligence engine.
+      */
+
+      const topicMastery =
+        document.getElementById("topicMastery");
+
+      if (topicMastery) {
+
+        topicMastery.innerHTML = "";
+
+        const topics =
+          intelligence.topic_performance || {};
+
+        const topicEntries =
+          Object.entries(topics);
+
+        if (topicEntries.length === 0) {
+
+          topicMastery.innerHTML =
+            '<div class="mastery-empty">' +
+            'Complete a few learning questions to build your mastery map.' +
+            '</div>';
+
+        } else {
+
+          topicEntries.forEach(
+            ([topic, performance]) => {
+
+              const score =
+                Number(
+                  performance.average_score ??
+                  performance.average ??
+                  performance.score ??
+                  0
+                );
+
+              let status =
+                "Needs practice";
+
+              if (score >= 80) {
+                status = "Strong";
+              } else if (score >= 50) {
+                status = "Developing";
+              }
+
+              const item =
+                document.createElement("div");
+
+              item.className =
+                "mastery-item";
+
+              const top =
+                document.createElement("div");
+
+              top.className =
+                "mastery-top";
+
+              const name =
+                document.createElement("strong");
+
+              name.textContent =
+                topic;
+
+              const value =
+                document.createElement("span");
+
+              value.textContent =
+                Math.round(score) + "%";
+
+              top.appendChild(name);
+              top.appendChild(value);
+
+              const track =
+                document.createElement("div");
+
+              track.className =
+                "mastery-track";
+
+              const bar =
+                document.createElement("div");
+
+              bar.className =
+                "mastery-bar";
+
+              bar.style.width =
+                Math.max(0, Math.min(100, score)) + "%";
+
+              track.appendChild(bar);
+
+              const statusText =
+                document.createElement("small");
+
+              statusText.textContent =
+                status;
+
+              item.appendChild(top);
+              item.appendChild(track);
+              item.appendChild(statusText);
+
+              topicMastery.appendChild(item);
+
+            }
+          );
+
+        }
+
+      }
+
+      if (recommendationText) {
+        recommendationText.textContent =
+          recommendation.message ||
+          "Your next learning step will appear here.";
+      }
+
+      if (recommendationButton) {
+        recommendationButton.textContent =
+          "Continue →";
+      }
+
+    }
+
+
+    document.getElementById("progress")
+      .classList.remove("hidden");
+
+
+  } catch (error) {
+
+    alert(error.message);
+
+  }
+
+}
+
+</script>
+
+
+
+<script>
+
+/* =========================
+   DASHBOARD CONTINUE
+========================= */
+
+function continueFromDashboard() {
+
+  const progress =
+    document.getElementById("progress");
+
+  const learningCard =
+    document.getElementById("learningCard");
+
+  const assessmentCard =
+    document.getElementById("assessmentCard");
+
+  if (progress) {
+    progress.classList.add("hidden");
+  }
+
+  if (assessmentCard) {
+    assessmentCard.classList.add("hidden");
+  }
+
+  /*
+    If the current learning cycle already has
+    a next lesson prepared, use the existing
+    learning engine.
+  */
+
+  if (nextLearning && currentLearning) {
+
+    continueLearning();
+
+    return;
+
+  }
+
+  /*
+    No prepared lesson exists yet.
+    Return the learner to the learning setup
+    instead of creating a fake lesson.
+  */
+
+  const learnerSetup =
+    document.getElementById("learnerSetup");
+
+  if (learnerSetup) {
+    learnerSetup.scrollIntoView({
+      behavior: "smooth"
+    });
+  } else {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+  }
+
+}
+
+</script>
+</body>
+</html>
+
+

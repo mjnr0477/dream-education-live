@@ -1,0 +1,207 @@
+{
+  "schema_version": "1.0",
+  "country": "Kenya",
+  "curriculum": "CBC",
+  "content": [
+    {
+      "id": "ke-pp2-language-listening-greetings",
+      "level": "Pre-Primary",
+      "grade_or_year": "PP2",
+      "subject_or_discipline": "Language Activities",
+      "domain_or_strand": "Listening",
+      "topic": "Greetings and Farewell",
+      "subtopic": "Greetings related to relationships",
+      "concept": "Responding to greetings and farewell",
+      "knowledge": {
+        "definition": "Responding appropriately to greetings and farewell according to the relationship between people.",
+        "key_ideas": [
+          "Greetings are used when meeting people.",
+          "Farewell expressions are used when leaving.",
+          "The way we greet or say farewell can depend on the relationship.",
+          "Greetings can use verbal and non-verbal communication."
+        ],
+        "examples": [
+          "Greeting family members at home.",
+          "Greeting teachers and visitors at school.",
+          "Saying farewell when leaving school or home."
+        ],
+        "skills": [
+          "Listening",
+          "Speaking",
+          "Communication",
+          "Social interaction"
+        ],
+        "applications": [
+          "Responding politely to people at home.",
+          "Responding appropriately to people at school."
+        ],
+        "misconceptions": [],
+        "questions": [
+          "How do you respond when someone greets you?",
+          "Why do we say farewell?",
+          "Whose greetings do you respond to at home and school?"
+        ],
+        "assessments": [
+          "Oral questions",
+          "Observation",
+          "Role play",
+          "Portfolio"
+        ]
+      },
+      "source": {
+        "authority": "KICD",
+        "document": "PP2 Curriculum Designs",
+        "version": "2017"
+      }
+    },
+    {
+      "id": "ke-pp2-language-listening-comprehension",
+      "level": "Pre-Primary",
+      "grade_or_year": "PP2",
+      "subject_or_discipline": "Language Activities",
+      "domain_or_strand": "Listening",
+      "topic": "Listening for Comprehension",
+      "subtopic": "Understanding spoken information",
+      "concept": "Listening and understanding",
+      "knowledge": {
+        "definition": "Listening carefully to spoken information and showing understanding through appropriate responses.",
+        "key_ideas": [
+          "Good listening requires attention.",
+          "A learner can show understanding by answering questions.",
+          "Stories, songs, riddles and poems can develop listening skills.",
+          "Listening can help a learner follow simple instructions."
+        ],
+        "examples": [
+          "Listening to a story and answering questions.",
+          "Listening to simple instructions.",
+          "Listening to a riddle and attempting to solve it."
+        ],
+        "skills": [
+          "Listening",
+          "Comprehension",
+          "Answering questions",
+          "Problem solving"
+        ],
+        "applications": [
+          "Following instructions in class.",
+          "Understanding stories and conversations."
+        ],
+        "misconceptions": [],
+        "questions": [
+          "How does a child develop comprehension skills?",
+          "How can you show that you understand what you hear?",
+          "Why is listening important?"
+        ],
+        "assessments": [
+          "Oral questions",
+          "Observation",
+          "Story retelling",
+          "Portfolio"
+        ]
+      },
+      "source": {
+        "authority": "KICD",
+        "document": "PP2 Curriculum Designs",
+        "version": "2017"
+      }
+    },
+    {
+      "id": "ke-pp2-language-listening-active",
+      "level": "Pre-Primary",
+      "grade_or_year": "PP2",
+      "subject_or_discipline": "Language Activities",
+      "domain_or_strand": "Listening",
+      "topic": "Active Listening",
+      "subtopic": "Paying attention during communication",
+      "concept": "Active listening",
+      "knowledge": {
+        "definition": "Giving attention to what another person is saying and responding appropriately.",
+        "key_ideas": [
+          "Active listening involves paying attention.",
+          "A good listener responds appropriately.",
+          "Listening and speaking take turns during conversations.",
+          "Questions can be answered after listening."
+        ],
+        "examples": [
+          "Listening while another learner tells a story.",
+          "Waiting for someone to finish speaking.",
+          "Answering questions about something you heard."
+        ],
+        "skills": [
+          "Attention",
+          "Listening",
+          "Communication",
+          "Conversation"
+        ],
+        "applications": [
+          "Classroom conversations.",
+          "Listening to family members.",
+          "Participating in group activities."
+        ],
+        "misconceptions": [],
+        "questions": [
+          "How do you show interest during a conversation?",
+          "When should you speak during a conversation?"
+        ],
+        "assessments": [
+          "Observation",
+          "Oral questions",
+          "Role play"
+        ]
+      },
+      "source": {
+        "authority": "KICD",
+        "document": "PP2 Curriculum Designs",
+        "version": "2017"
+      }
+    },
+    {
+      "id": "ke-pp2-language-listening-information",
+      "level": "Pre-Primary",
+      "grade_or_year": "PP2",
+      "subject_or_discipline": "Language Activities",
+      "domain_or_strand": "Listening",
+      "topic": "Passing Information",
+      "subtopic": "Delivering information to others",
+      "concept": "Passing information",
+      "knowledge": {
+        "definition": "Receiving information carefully and communicating it accurately to another person.",
+        "key_ideas": [
+          "Information should be listened to carefully.",
+          "Important information should be communicated clearly.",
+          "A learner can pass information through speaking or other appropriate communication."
+        ],
+        "examples": [
+          "Taking a message from a teacher to another learner.",
+          "Telling a parent information received at school.",
+          "Passing a simple message during a group activity."
+        ],
+        "skills": [
+          "Listening",
+          "Speaking",
+          "Communication",
+          "Memory"
+        ],
+        "applications": [
+          "Passing messages at home.",
+          "Communicating information at school."
+        ],
+        "misconceptions": [],
+        "questions": [
+          "Why is it important to listen carefully when receiving information?",
+          "How can you pass information clearly?"
+        ],
+        "assessments": [
+          "Observation",
+          "Oral questions",
+          "Practical communication activity"
+        ]
+      },
+      "source": {
+        "authority": "KICD",
+        "document": "PP2 Curriculum Designs",
+        "version": "2017"
+      }
+    }
+  ]
+}

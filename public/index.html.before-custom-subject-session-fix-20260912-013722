@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b1020">
+  <title>Dream Education — Learn in a way that understands you</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+  <section id="role-entry" class="role-entry">
+    <div class="role-entry-card">
+      <div class="section-label">DREAM EDUCATION</div>
+      <h1>Learn in the way that works for you.</h1>
+      <p>Welcome. Choose your role to enter your dashboard and continue from where you left off.</p>
+
+      <div class="role-options">
+        <button type="button" class="role-option" data-role="learner">
+          <strong>I'm a Learner</strong>
+          <span>Learn, practise, track progress and build mastery.</span>
+        </button>
+
+        <button type="button" class="role-option" data-role="teacher">
+          <strong>I'm a Teacher</strong>
+          <span>Support learners and understand class performance.</span>
+        </button>
+
+        <button type="button" class="role-option" data-role="parent">
+          <strong>I'm a Parent</strong>
+          <span>Follow your child's learning and progress.</span>
+        </button>
+
+        <button type="button" class="role-option" data-role="school">
+          <strong>I'm a School</strong>
+          <span>Manage learners, classes, results and analytics.</span>
+        </button>
+      </div>
+    </div>
+  </section>
+  
+  
+  <section id="learner-dashboard" class="role-entry hidden">
+    <div class="learner-dashboard-card">
+
+      <div class="dashboard-header">
+        <div>
+          <div class="section-label">LEARNER DASHBOARD</div>
+          <h1 id="dashboard-welcome">Welcome back.</h1>
+          <p id="dashboard-education"></p>
+        <p id="dashboard-school"></p>
+        </div>
+      </div>
+
+      <div id="dashboard-continue" class="dashboard-card">
+        <div class="dashboard-card-label">CONTINUE LEARNING</div>
+        <h2 id="dashboard-topic">Your learning</h2>
+        <p id="dashboard-state"></p>
+        <button id="dashboard-continue-btn" type="button">Continue Learning</button>
+      </div>
+
+      <div class="dashboard-card">
+        <div class="dashboard-card-label">YOUR PROGRESS</div>
+
+        <div class="dashboard-stats">
+          <div>
+            <strong id="dashboard-topics">0</strong>
+            <span>Topics started</span>
+          </div>
+
+          <div>
+            <strong id="dashboard-mastery">—</strong>
+            <span>Mastery</span>
+          </div>
+
+          <div>
+            <strong id="dashboard-average">0%</strong>
+            <span>Average</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="dashboard-subjects-panel" class="dashboard-card hidden">
+        <div class="dashboard-card-label">SUBJECTS</div>
+        <h2>What do you want to learn?</h2>
+        <div class="dashboard-subject-list">
+          <button type="button" data-dashboard-subject="Biology">Biology</button>
+          <button type="button" data-dashboard-subject="Integrated Science">Integrated Science</button>
+          <button type="button" data-dashboard-subject="Mathematics">Mathematics</button>
+          <button type="button" data-dashboard-subject="Physics">Physics</button>
+        </div>
+      </div>
+
+      <div id="dashboard-topics-panel" class="dashboard-card hidden">
+      <div class="dashboard-card-label">TOPICS</div>
+      <h2 id="dashboard-topics-title">Choose a topic</h2>
+      <p id="dashboard-topics-description">Choose what you want to learn.</p>
+      <div id="dashboard-topic-list" class="dashboard-topic-list"></div>
+    </div>
+
+    <div id="dashboard-concepts-panel" class="dashboard-card hidden">
+      <div class="dashboard-card-label">CONCEPTS</div>
+      <h2 id="dashboard-concepts-title">Choose a concept</h2>
+      <p id="dashboard-concepts-description">Choose what you want to understand.</p>
+      <div id="dashboard-concept-list" class="dashboard-concept-list"></div>
+    </div>
+
+    <div id="dashboard-history-panel" class="dashboard-card hidden">
+      <div class="dashboard-card-label">LEARNING HISTORY</div>
+      <h2>Your recent learning</h2>
+      <div id="dashboard-history-content">
+        <p>Loading your learning history...</p>
+      </div>
+    </div>
+
+    <div id="dashboard-progress-panel" class="dashboard-card hidden">
+      <div class="dashboard-card-label">PROGRESS</div>
+      <h2>Your learning progress</h2>
+      <div id="dashboard-progress-content">
+        <p>Loading your progress...</p>
+      </div>
+    </div>
+
+    <div class="dashboard-actions">
+        <button type="button" id="dashboard-subjects-btn">Subjects</button>
+        <button type="button" id="dashboard-history-btn">Learning History</button>
+        <button type="button" id="dashboard-progress-btn">Progress</button>
+      </div>
+
+    </div>
+  
+
+  <!-- DREAM EDUCATION LIVE LEARNING EXPERIENCE -->
+<section id="live-learning" class="live-learning-panel hidden">
+  <div class="live-learning-header">
+    <div>
+      <span class="section-label">LEARN</span>
+      <h2>Choose how you learn</h2>
+      <p>Tell Dream Education how you want this concept explained.</p>
+    </div>
+    <div id="learning-state-badge" class="learning-state-badge">READY</div>
+  </div>
+
+  <div id="selected-concept-context" class="selected-concept-context hidden">
+    <span class="section-label">CONCEPT</span>
+    <strong id="selected-concept-name"></strong>
+  </div>
+
+  <div class="learning-controls">
+    <label>
+      Subject
+      <select id="learn-subject">
+        <option value="">Choose subject</option>
+        <option value="Biology">Biology</option>
+        <option value="Integrated Science">Integrated Science</option>
+        <option value="Mathematics">Mathematics</option>
+        <option value="Physics">Physics</option>
+        <option value="__custom__">Other / Type your subject</option>
+      </select>
+    </label>
+
+    <label id="custom-subject-wrap" class="hidden">
+      Your subject
+      <input id="custom-subject" type="text" placeholder="e.g. Computer Science">
+    </label>
+
+    <label>
+      Topic
+      <input id="learn-topic" type="text" placeholder="e.g. Photosynthesis">
+    </label>
+
+    <label>
+      How should I teach you?
+      <select id="learn-method">
+        <option value="auto">Choose automatically</option>
+        <option value="explanation">Explain it simply</option>
+        <option value="examples">Use examples</option>
+        <option value="step_by_step">Step by step</option>
+        <option value="discussion">Discuss it with me</option>
+        <option value="problem_solving">Problem solving</option>
+        <option value="custom">My own method</option>
+      </select>
+    </label>
+
+    <label id="custom-method-wrap" class="hidden">
+      Your method
+      <input id="custom-method" type="text" placeholder="Describe how you want to learn">
+    </label>
+  </div>
+
+  <div class="learning-question-box">
+    <label for="learn-question">What do you want to learn?</label>
+    <textarea id="learn-question" rows="3" placeholder="Ask a question..."></textarea>
+    <button id="start-learning-btn" type="button">Start Learning</button>
+  </div>
+
+  <div id="learning-response" class="learning-response hidden">
+    <div class="response-meta">
+      <span id="response-topic"></span>
+      <span id="response-method"></span>
+    </div>
+
+    <div id="teaching-answer" class="teaching-answer"></div>
+
+    <div id="answer-area" class="answer-area">
+      <label for="learner-answer">Your answer</label>
+      <textarea id="learner-answer" rows="4" placeholder="Show me what you understand..."></textarea>
+      <button id="submit-answer-btn" type="button">Check My Answer</button>
+    </div>
+
+    <div id="adaptive-result" class="adaptive-result hidden"></div>
+
+    <button id="continue-learning-btn" class="hidden" type="button">
+      Continue Learning
+    </button>
+  </div>
+</section>
+</section>
+
+
+<section id="parent-dashboard" class="role-entry hidden">
+  <div class="learner-dashboard-card">
+    <div class="dashboard-header">
+      <div>
+        <div class="dashboard-card-label">PARENT DASHBOARD</div>
+        <h1 id="parent-dashboard-welcome">Welcome.</h1>
+        <p id="parent-dashboard-info"></p>
+      </div>
+    </div>
+
+    <div class="dashboard-card">
+      <div class="dashboard-card-label">YOUR CHILDREN</div>
+      <div id="parent-children-list">
+        <p>Connect a learner to see their progress.</p>
+      </div>
+    </div>
+
+    <div class="dashboard-card">
+      <div class="dashboard-card-label">LEARNING PROGRESS</div>
+      <div id="parent-progress-content">
+        <p>Select a child to view progress, history and improvement areas.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="teacher-dashboard" class="role-entry hidden">
+  <div class="learner-dashboard-card">
+    <div class="dashboard-header">
+      <div>
+        <div class="dashboard-card-label">TEACHER DASHBOARD</div>
+        <h1 id="teacher-dashboard-welcome">Welcome.</h1>
+        <p id="teacher-dashboard-info"></p>
+      </div>
+    </div>
+
+    <div class="dashboard-card">
+      <div class="dashboard-card-label">YOUR CLASSES</div>
+      <div id="teacher-classes-list">
+        <p>Your classes and learners will appear here.</p>
+      </div>
+    </div>
+
+    <div class="dashboard-card">
+      <div class="dashboard-card-label">LEARNER PROGRESS</div>
+      <div id="teacher-progress-content">
+        <p>View learner performance, weak areas and improvement suggestions.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="school-dashboard" class="role-entry hidden">
+  <div class="learner-dashboard-card">
+    <div class="dashboard-header">
+      <div>
+        <div class="dashboard-card-label">SCHOOL DASHBOARD</div>
+        <h1 id="school-dashboard-welcome">Welcome.</h1>
+        <p id="school-dashboard-info"></p>
+      </div>
+    </div>
+
+    <div class="dashboard-stats">
+      <div class="dashboard-card">
+        <div class="dashboard-card-label">LEARNERS</div>
+        <strong id="school-total-learners">0</strong>
+      </div>
+      <div class="dashboard-card">
+        <div class="dashboard-card-label">CLASSES</div>
+        <strong id="school-total-classes">0</strong>
+      </div>
+      <div class="dashboard-card">
+        <div class="dashboard-card-label">TEACHERS</div>
+        <strong id="school-total-teachers">0</strong>
+      </div>
+    </div>
+
+    <div class="dashboard-card">
+      <div class="dashboard-card-label">SCHOOL PROGRESS</div>
+      <div id="school-progress-content">
+        <p>School-wide learner performance and subject analytics will appear here.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="auth-entry" class="role-entry hidden">
+    <div class="role-entry-card">
+      <div class="section-label">LEARNER ACCOUNT</div>
+      <h1 id="auth-title">Welcome to Dream Education.</h1>
+      <p id="auth-description">Log in to continue your learning journey, or create an account if you're new here.</p>
+
+      <div class="learning-controls">
+        <label for="auth-email">Email</label>
+        <input id="auth-email" type="email" placeholder="Enter your email" autocomplete="email">
+
+        <label for="auth-password">Password</label>
+        <input id="auth-password" type="password" placeholder="Enter your password" autocomplete="current-password">
+
+        <div id="auth-name-wrap" class="hidden">
+          <label for="auth-name">Your name</label>
+          <input id="auth-name" type="text" placeholder="Enter your name" autocomplete="name">
+
+          <label for="auth-level">Learning level</label>
+          <select id="auth-level">
+            <option value="Pre-Primary">Pre-Primary</option>
+            <option value="Primary">Primary</option>
+            <option value="Junior Secondary">Junior Secondary</option>
+            <option value="Senior Secondary">Senior Secondary</option>
+            <option value="Tertiary">Tertiary / University</option>
+          </select>
+
+          <label for="auth-grade">Grade / Year</label>
+          <input id="auth-grade" type="text" placeholder="e.g. Grade 7">
+
+          <label for="auth-school">School <span>(optional)</span></label>
+          <input id="auth-school" type="text" placeholder="Enter your school">
+        </div>
+
+        <button id="auth-submit-btn" type="button">Log In</button>
+        <button id="auth-toggle-btn" type="button">Create an account</button>
+        <button id="auth-back-btn" type="button">Back</button>
+
+        <p id="auth-message" class="hidden"></p>
+      </div>
+    </div>
+  </section>
+
+
+
+
+
+<header class="header">
+  <div class="header-inner">
+
+    <a class="brand" href="#" aria-label="Dream Education home">
+      <div class="brand-mark">D</div>
+
+      <div class="brand-text">
+        <strong>Dream Education</strong>
+        <span>Learn. Understand. Grow.</span>
+      </div>
+    </a>
+
+    <div class="header-pill">
+      <span class="status-dot"></span>
+      Learning with you
+    </div>
+
+  </div>
+</header>
+
+<main class="container">
+
+  <!-- =====================================================
+       HERO
+       ===================================================== -->
+
+  <section class="welcome">
+
+    <div class="hero-glow hero-glow-one"></div>
+    <div class="hero-glow hero-glow-two"></div>
+
+    <div class="welcome-badge">
+      <span class="badge-dot"></span>
+      THE WAY YOU LEARN MATTERS
+    </div>
+
+    <h1>
+      Learn in a way
+      <span>that understands you.</span>
+    </h1>
+
+    <p>
+      Dream Education helps you understand ideas, discover what you know,
+      and build from where you are.
+    </p>
+
+    <div class="hero-promise">
+      <div class="promise-mark">✦</div>
+
+      <div>
+        <strong>Not just answers.</strong>
+        <span>Understanding that grows with you.</span>
+      </div>
+    </div>
+
+    <a class="hero-scroll" href="#learnerSetup">
+      <span>Start your learning journey</span>
+      <span class="scroll-arrow">↓</span>
+    </a>
+
+  </section>
+
+
+
+
+<script>
+(function () {
+  const learnerId =
+    localStorage.getItem("dream_education_learner_id") ||
+    `learner_${crypto.randomUUID()}`;
+localStorage.setItem("dream_education_learner_id", learnerId);
+
+  const subject = document.getElementById("learn-subject");
+  const topic = document.getElementById("learn-topic");
+  const method = document.getElementById("learn-method");
+  const customMethod = document.getElementById("custom-method");
+  const customSubject = document.getElementById("custom-subject");
+  const customSubjectWrap = document.getElementById("custom-subject-wrap");
+  const customWrap = document.getElementById("custom-method-wrap");
+  const question = document.getElementById("learn-question");
+
+  const startBtn = document.getElementById("start-learning-btn");
+  const submitBtn = document.getElementById("submit-answer-btn");
+  const continueBtn = document.getElementById("continue-learning-btn");
+
+  const response = document.getElementById("learning-response");
+  const answer = document.getElementById("teaching-answer");
+  const learnerAnswer = document.getElementById("learner-answer");
+  const adaptiveResult = document.getElementById("adaptive-result");
+  const stateBadge = document.getElementById("learning-state-badge");
+  const responseTopic = document.getElementById("response-topic");
+  const responseMethod = document.getElementById("response-method");
+
+  let currentSession = null;
+
+  method.addEventListener("change", function () {
+    customWrap.classList.toggle("hidden", method.value !== "custom");
+  });
+
+  subject.addEventListener("change", function () {
+    const isCustom = subject.value === "__custom__";
+
+    customSubjectWrap.classList.toggle("hidden", !isCustom);
+
+    if (isCustom) {
+      customSubject.focus();
+    }
+  });
+
+  function setLoading(button, loading, normalText) {
+    button.disabled = loading;
+    button.textContent = loading ? "Working..." : normalText;
+  }
+
+  function showResponse() {
+    response.classList.remove("hidden");
+    response.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function displayTeaching(data) {
+    answer.innerHTML = String(data.answer || data.message || "Let's begin learning.").replace(/\\n/g, "<br>").replace(/\n/g, "<br>");
+    responseTopic.textContent =
+      data.topic ? "Topic: " + data.topic : "";
+    responseMethod.textContent =
+      method.value === "custom"
+        ? "Method: " + (customMethod.value || "Custom")
+        : "Method: " + method.value;
+    showResponse();
+  }
+
+  async function startLearning() {
+    const selectedSubject =
+      subject.value === "__custom__"
+        ? customSubject.value.trim()
+        : subject.value;
+
+    if (!selectedSubject || !question.value.trim()) {
+      alert("Choose or enter a subject and enter what you want to learn.");
+      return;
+    }
+
+    setLoading(startBtn, true, "Start Learning");
+
+    try {
+      const payload = {
+        learner_id: learnerId,
+        question: question.value.trim(),
+        subject:
+          subject.value === "__custom__"
+            ? customSubject.value.trim()
+            : subject.value,
+        topic: topic.value.trim() || null,
+        level: "Junior Secondary",
+        learning_method: method.value,
+        custom_learning_method:
+          method.value === "custom"
+            ? customMethod.value.trim()
+            : null
+      };
+
+      const res = await fetch("/api/learn", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        throw new Error(data.error || "Learning request failed");
+      }
+
+      currentSession = {
+        subject: subject.value,
+        topic: topic.value.trim() || data.topic || null
+      };
+
+      displayTeaching(data);
+      learnerAnswer.value = "";
+      adaptiveResult.classList.add("hidden");
+      continueBtn.classList.add("hidden");
+    } catch (error) {
+      answer.textContent = "I couldn't start the lesson: " + error.message;
+      showResponse();
+    } finally {
+      setLoading(startBtn, false, "Start Learning");
+    }
+  }
+
+  async function submitAnswer() {
+    if (!learnerAnswer.value.trim()) {
+      alert("Write your answer first.");
+      return;
+    }
+
+    setLoading(submitBtn, true, "Check My Answer");
+
+    try {
+      const payload = {
+        learner_id: learnerId,
+        name: "Demo Learner",
+        question: question.value.trim(),
+        learner_answer: learnerAnswer.value.trim(),
+        subject: currentSession?.subject || subject.value,
+        topic: currentSession?.topic || topic.value.trim() || null,
+        level: "Junior Secondary",
+        learning_method: method.value,
+        custom_learning_method:
+          method.value === "custom"
+            ? customMethod.value.trim()
+            : null
+      };
+
+      const res = await fetch("/api/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        throw new Error(data.error || "Assessment failed");
+      }
+
+      stateBadge.textContent = data.learning_state || "UPDATED";
+
+      adaptiveResult.innerHTML = "";
+
+      const score = document.createElement("strong");
+      score.textContent =
+        "Score: " + (data.assessment?.score ?? 0) + "%";
+
+      const state = document.createElement("div");
+      state.textContent =
+        "Learning state: " + (data.learning_state || "UPDATED");
+
+      const feedback = document.createElement("div");
+      feedback.textContent =
+        data.assessment?.feedback || "Your answer has been assessed.";
+
+      adaptiveResult.append(score, state, feedback);
+
+      if (data.next_question?.question) {
+        const nextLabel = document.createElement("div");
+        nextLabel.textContent = "NEXT LEARNING TASK";
+        nextLabel.style.marginTop = "18px";
+        nextLabel.style.fontSize = "10px";
+        nextLabel.style.fontWeight = "800";
+        nextLabel.style.letterSpacing = "1.2px";
+        nextLabel.style.opacity = ".55";
+
+        const next = document.createElement("div");
+        next.textContent = data.next_question.question;
+        next.style.marginTop = "7px";
+        next.style.fontSize = "17px";
+        next.style.fontWeight = "700";
+        next.style.lineHeight = "1.5";
+
+        adaptiveResult.append(nextLabel, next);
+      }
+
+      adaptiveResult.classList.remove("hidden");
+      continueBtn.classList.remove("hidden");
+
+      currentSession = {
+        ...currentSession,
+        nextQuestion: data.next_question,
+        learningState: data.learning_state,
+        assessment: data.assessment
+      };
+
+      showResponse();
+
+    } catch (error) {
+      adaptiveResult.textContent =
+        "I couldn't check the answer: " + error.message;
+      adaptiveResult.classList.remove("hidden");
+    } finally {
+      setLoading(submitBtn, false, "Check My Answer");
+    }
+  }
+
+  function continueLearning() {
+    if (!currentSession?.nextQuestion?.question) return;
+
+    question.value = currentSession.nextQuestion.question;
+
+    topic.value =
+      currentSession.nextQuestion.topic ||
+      topic.value;
+
+    if (currentSession.nextQuestion.subject) {
+      subject.value = currentSession.nextQuestion.subject;
+    }
+
+    learnerAnswer.value = "";
+
+    adaptiveResult.classList.add("hidden");
+    continueBtn.classList.add("hidden");
+
+    response.classList.remove("hidden");
+
+    question.focus();
+
+    window.scrollTo({
+      top: question.getBoundingClientRect().top +
+        window.scrollY -
+        120,
+      behavior: "smooth"
+    });
+  }
+
+  startBtn.addEventListener("click", startLearning);
+  submitBtn.addEventListener("click", submitAnswer);
+  continueBtn.addEventListener("click", continueLearning);
+})();
+
+  
+  let learnerId =
+  localStorage.getItem("dream_education_learner_id") ||
+  `learner_${crypto.randomUUID()}`;
+localStorage.setItem("dream_education_learner_id", learnerId);
+
+const roleEntry = document.getElementById("role-entry");
+
+  const authEntry = document.getElementById("auth-entry");
+  const authTitle = document.getElementById("auth-title");
+  const authDescription = document.getElementById("auth-description");
+  const authEmail = document.getElementById("auth-email");
+  const authPassword = document.getElementById("auth-password");
+  const authNameWrap = document.getElementById("auth-name-wrap");
+  const authSubmitBtn = document.getElementById("auth-submit-btn");
+  const authToggleBtn = document.getElementById("auth-toggle-btn");
+  const authBackBtn = document.getElementById("auth-back-btn");
+  const authMessage = document.getElementById("auth-message");
+  let authMode = "login";
+
+  function updateAuthMode() {
+    const registering = authMode === "register";
+    authTitle.textContent = registering
+      ? "Create your Dream Education account."
+      : "Welcome back.";
+    authDescription.textContent = registering
+      ? "Create your account to save your learning journey."
+      : "Log in to continue your learning journey.";
+    authNameWrap.classList.toggle("hidden", !registering);
+    authSubmitBtn.textContent = registering ? "Create Account" : "Log In";
+    authToggleBtn.textContent = registering
+      ? "I already have an account"
+      : "Create an account";
+    authMessage.classList.add("hidden");
+  }
+
+
+
+  async function submitAuth() {
+    const email = authEmail.value.trim();
+    const password = authPassword.value;
+
+    if (!email || !password) {
+      authMessage.textContent = "Email and password are required.";
+      authMessage.classList.remove("hidden");
+      return;
+    }
+
+    if (authMode === "register") {
+      const name = document.getElementById("auth-name").value.trim();
+      const level = document.getElementById("auth-level").value;
+      const grade = document.getElementById("auth-grade").value.trim();
+      const school = document.getElementById("auth-school").value.trim();
+
+      if (!name) {
+        authMessage.textContent = "Please enter your name.";
+        authMessage.classList.remove("hidden");
+        return;
+      }
+
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          name,
+          level,
+          grade,
+          school: school || null
+        })
+      });
+
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.error || "Registration failed.");
+      }
+
+      learnerId = data.learner.learner_id;
+      localStorage.setItem("dream_education_learner_id", learnerId);
+
+      if (data.account?.account_id) {
+        localStorage.setItem(
+          "dream_education_account_id",
+          data.account.account_id
+        );
+      }
+
+      if (data.session) {
+        localStorage.setItem(
+          "dream_education_access_token",
+          data.session.access_token
+        );
+        localStorage.setItem(
+          "dream_education_refresh_token",
+          data.session.refresh_token
+        );
+      }
+    } else {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email,
+          password
+        })
+      });
+
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.error || "Login failed.");
+      }
+
+      learnerId = data.learner?.learner_id || data.account?.learner_id;
+
+      if (learnerId) {
+        localStorage.setItem("dream_education_learner_id", learnerId);
+      }
+
+      if (data.account?.account_id) {
+        localStorage.setItem(
+          "dream_education_account_id",
+          data.account.account_id
+        );
+      }
+
+      if (data.session) {
+        localStorage.setItem(
+          "dream_education_access_token",
+          data.session.access_token
+        );
+        localStorage.setItem(
+          "dream_education_refresh_token",
+          data.session.refresh_token
+        );
+      }
+    }
+
+    authEntry.classList.add("hidden");
+    learnerDashboard.classList.remove("hidden");
+    loadLearnerDashboard();
+
+    learnerDashboard.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+  }
+
+  authSubmitBtn.addEventListener("click", async function () {
+    try {
+      authSubmitBtn.disabled = true;
+      await submitAuth();
+    } catch (error) {
+      authMessage.textContent = error.message;
+      authMessage.classList.remove("hidden");
+      console.error("Authentication error:", error);
+    } finally {
+      authSubmitBtn.disabled = false;
+    }
+  });
+
+  authToggleBtn.addEventListener("click", function () {
+    authMode = authMode === "login" ? "register" : "login";
+    updateAuthMode();
+  });
+
+  authBackBtn.addEventListener("click", function () {
+    authEntry.classList.add("hidden");
+    roleEntry.classList.remove("hidden");
+  });
+
+  document.querySelectorAll(".role-option").forEach(function (button) {
+    button.addEventListener("click", function () {
+      const selectedRole = button.dataset.role;
+
+      roleEntry.classList.add("hidden");
+
+      if (selectedRole === "learner") {
+        authEntry.classList.remove("hidden");
+        authMode = "login";
+        updateAuthMode();
+        authEmail.focus();
+        return;
+      }
+
+      if (selectedRole === "parent") {
+        document.getElementById("parent-dashboard").classList.remove("hidden");
+        document.getElementById("parent-dashboard-welcome").textContent =
+          "Parent Dashboard";
+        return;
+      }
+
+      if (selectedRole === "teacher") {
+        document.getElementById("teacher-dashboard").classList.remove("hidden");
+        document.getElementById("teacher-dashboard-welcome").textContent =
+          "Teacher Dashboard";
+        return;
+      }
+
+      if (selectedRole === "school") {
+        document.getElementById("school-dashboard").classList.remove("hidden");
+        document.getElementById("school-dashboard-welcome").textContent =
+          "School Dashboard";
+        return;
+      }
+    });
+  });
+
+
+  
+  const learnerDashboard = document.getElementById("learner-dashboard");
+  const dashboardWelcome = document.getElementById("dashboard-welcome");
+  const dashboardEducation = document.getElementById("dashboard-education");
+  const dashboardSchool = document.getElementById("dashboard-school");
+  const dashboardTopic = document.getElementById("dashboard-topic");
+  const dashboardState = document.getElementById("dashboard-state");
+  const dashboardTopics = document.getElementById("dashboard-topics");
+  const dashboardMastery = document.getElementById("dashboard-mastery");
+  const dashboardAverage = document.getElementById("dashboard-average");
+  const dashboardContinueBtn = document.getElementById("dashboard-continue-btn");
+  const dashboardSubjectsBtn = document.getElementById("dashboard-subjects-btn");
+  const dashboardSubjectsPanel = document.getElementById("dashboard-subjects-panel");
+
+  let learnerDashboardData = null;
+
+async function loadLearnerDashboard() {
+    try {
+      const accessToken =
+        localStorage.getItem("dream_education_access_token");
+
+      const res = await fetch(
+        "/api/product/learner/" + encodeURIComponent(learnerId) + "/dashboard",
+        {
+          headers: accessToken
+            ? {
+                "Authorization": "Bearer " + accessToken
+              }
+            : {}
+        }
+      );
+
+      const data = await res.json();
+
+      if (!data.success) {
+        throw new Error(data.message || "Could not load dashboard.");
+      }
+
+      learnerDashboardData = data;
+
+    const learner = data.learner || {};
+      const learning = data.learning || {};
+      const progress = learning.progress || {};
+      const schools = data.education?.schools || [];
+
+      dashboardWelcome.textContent =
+        "Welcome back, " + (learner.name || "Learner") + ".";
+
+      dashboardEducation.textContent =
+      [learner.level, learner.grade]
+        .filter(Boolean)
+        .join(" · ");
+
+    dashboardSchool.textContent =
+        schools.length ? schools[0].name : "";
+
+      dashboardTopic.textContent =
+        learning.active_topic || data.next?.topic || "Start learning";
+
+      dashboardState.textContent =
+        learning.learning_state
+          ? "Learning state: " + learning.learning_state
+          : "Ready for your next learning step.";
+
+      dashboardTopics.textContent =
+        progress.topics_started ?? 0;
+
+      dashboardMastery.textContent =
+        learning.mastery_status || "—";
+
+      dashboardAverage.textContent =
+        Math.round(progress.average_score || 0) + "%";
+
+    } catch (error) {
+      dashboardWelcome.textContent = "Welcome back.";
+      dashboardState.textContent =
+        "We couldn't load your latest progress.";
+      console.error("Dashboard error:", error);
+    }
+  }
+
+  const dashboardHistoryBtn =
+    document.getElementById("dashboard-history-btn");
+  const dashboardProgressBtn =
+    document.getElementById("dashboard-progress-btn");
+  const dashboardHistoryPanel =
+    document.getElementById("dashboard-history-panel");
+  const dashboardProgressPanel =
+    document.getElementById("dashboard-progress-panel");
+  const dashboardHistoryContent =
+    document.getElementById("dashboard-history-content");
+  const dashboardProgressContent =
+    document.getElementById("dashboard-progress-content");
+
+  function hideDashboardPanels() {
+  dashboardSubjectsPanel.classList.add("hidden");
+  document.getElementById("dashboard-topics-panel")?.classList.add("hidden");
+  document.getElementById("dashboard-concepts-panel")?.classList.add("hidden");
+  dashboardHistoryPanel?.classList.add("hidden");
+  dashboardProgressPanel?.classList.add("hidden");
+}
+
+dashboardSubjectsBtn.addEventListener("click", function () {
+  hideDashboardPanels();
+
+  dashboardSubjectsPanel.classList.remove("hidden");
+  dashboardSubjectsPanel.scrollIntoView({
+    behavior: "smooth",
+    block: "center"
+  });
+});
+
+dashboardHistoryBtn?.addEventListener("click", function () {
+    const data = learnerDashboardData || {};
+    const results = data.results || {};
+    const recent = Array.isArray(results.recent)
+      ? results.recent
+      : [];
+
+    hideDashboardPanels();
+
+    if (!recent.length) {
+      dashboardHistoryContent.innerHTML =
+        "<p>You haven't completed any learning activities yet.</p>";
+    } else {
+      dashboardHistoryContent.innerHTML = recent
+        .slice()
+        .reverse()
+        .map(function (result) {
+          const topic =
+            result.topic ||
+            result.subject ||
+            "Learning activity";
+
+          const score =
+            Number.isFinite(Number(result.score))
+              ? Math.round(Number(result.score)) + "%"
+              : "Score not recorded";
+
+          const date = result.created_at
+            ? new Date(result.created_at).toLocaleString()
+            : "";
+
+          return (
+            '<div class="dashboard-history-item">' +
+            "<strong>" + topic + "</strong>" +
+            "<span>" + score + "</span>" +
+            (date ? "<small>" + date + "</small>" : "") +
+            "</div>"
+          );
+        })
+        .join("");
+    }
+
+    dashboardHistoryPanel.classList.remove("hidden");
+    dashboardHistoryPanel.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
+  });
+
+  dashboardProgressBtn?.addEventListener("click", function () {
+    const data = learnerDashboardData || {};
+    const results = data.results || {};
+    const learning = data.learning || {};
+    const bySubject = results.by_subject || {};
+    const byTopic = results.by_topic || {};
+
+    hideDashboardPanels();
+
+    let html =
+      '<div class="dashboard-progress-summary">' +
+      "<p><strong>Average score:</strong> " +
+      (Number.isFinite(Number(results.average_score))
+        ? Math.round(Number(results.average_score)) + "%"
+        : "0%") +
+      "</p>" +
+      "<p><strong>Mastery:</strong> " +
+      (learning.mastery_status || "Not started") +
+      "</p>" +
+      "<p><strong>Learning state:</strong> " +
+      (learning.learning_state || "Ready") +
+      "</p>" +
+      "</div>";
+
+    const subjectNames = Object.keys(bySubject);
+
+    if (subjectNames.length) {
+      html += "<h3>By subject</h3><ul>";
+
+      subjectNames.forEach(function (subject) {
+        const item = bySubject[subject] || {};
+        const average =
+          Number.isFinite(Number(item.average_score))
+            ? Math.round(Number(item.average_score)) + "%"
+            : "—";
+
+        html +=
+          "<li><strong>" +
+          subject +
+          "</strong>: " +
+          average +
+          "</li>";
+      });
+
+      html += "</ul>";
+    }
+
+    const topicNames = Object.keys(byTopic);
+
+    if (topicNames.length) {
+      html += "<h3>By topic</h3><ul>";
+
+      topicNames.forEach(function (topic) {
+        const item = byTopic[topic] || {};
+        const average =
+          Number.isFinite(Number(item.average_score))
+            ? Math.round(Number(item.average_score)) + "%"
+            : "—";
+
+        html +=
+          "<li><strong>" +
+          topic +
+          "</strong>: " +
+          average +
+          "</li>";
+      });
+
+      html += "</ul>";
+    }
+
+    if (!subjectNames.length && !topicNames.length) {
+      html +=
+        "<p>Your detailed progress will appear here as you learn.</p>";
+    }
+
+    dashboardProgressContent.innerHTML = html;
+
+    dashboardProgressPanel.classList.remove("hidden");
+    dashboardProgressPanel.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
+  });
+
+  document.querySelectorAll("[data-dashboard-subject]").forEach(function (button) {
+  button.addEventListener("click", async function () {
+    const selectedSubject = button.dataset.dashboardSubject;
+
+    const learningSubject = document.getElementById("learn-subject");
+    const learningTopic = document.getElementById("learn-topic");
+    const learningQuestion = document.getElementById("learn-question");
+
+    const topicsPanel = document.getElementById("dashboard-topics-panel");
+    const topicsTitle = document.getElementById("dashboard-topics-title");
+    const topicList = document.getElementById("dashboard-topic-list");
+
+    if (learningSubject) learningSubject.value = selectedSubject;
+    if (learningTopic) learningTopic.value = "";
+    if (learningQuestion) learningQuestion.value = "";
+
+    topicsTitle.textContent = selectedSubject + " topics";
+    topicList.innerHTML = "<p>Loading topics...</p>";
+
+    dashboardSubjectsPanel.classList.add("hidden");
+    topicsPanel.classList.remove("hidden");
+
+    try {
+      const currentLevel =
+        learnerDashboardData?.learner?.level ||
+        "Junior Secondary";
+
+      const response = await fetch(
+        "/api/product/curriculum/topics?subject=" +
+        encodeURIComponent(selectedSubject) +
+        "&level=" +
+        encodeURIComponent(currentLevel)
+      );
+
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.error || "Could not load topics.");
+      }
+
+      const topics = [];
+
+      (data.strands || []).forEach(function (strand) {
+        (strand.topics || []).forEach(function (topicName) {
+          topics.push({
+            strand: strand.strand,
+            topic: topicName
+          });
+        });
+      });
+
+      if (!topics.length) {
+        topicList.innerHTML = "<p>No topics are available for this level yet.</p>";
+        return;
+      }
+
+      topicList.innerHTML = topics.map(function (item) {
+        return (
+          '<button type="button" class="dashboard-topic-option" ' +
+          'data-dashboard-topic="' + item.topic.replace(/"/g, "&quot;") + '">' +
+          '<strong>' + item.topic + '</strong>' +
+          '<span>' + item.strand + '</span>' +
+          '</button>'
+        );
+      }).join("");
+
+      topicList.querySelectorAll("[data-dashboard-topic]").forEach(function (topicButton) {
+        topicButton.addEventListener("click", async function () {
+          const selectedTopic = topicButton.dataset.dashboardTopic;
+
+          const conceptsPanel =
+            document.getElementById("dashboard-concepts-panel");
+          const conceptsTitle =
+            document.getElementById("dashboard-concepts-title");
+          const conceptList =
+            document.getElementById("dashboard-concept-list");
+
+          if (learningTopic) learningTopic.value = selectedTopic;
+          if (learningQuestion) learningQuestion.value = "";
+
+          conceptsTitle.textContent = selectedTopic + " concepts";
+          conceptList.innerHTML = "<p>Loading concepts...</p>";
+
+          topicsPanel.classList.add("hidden");
+          conceptsPanel.classList.remove("hidden");
+
+          try {
+            const currentLevel =
+              learnerDashboardData?.learner?.level ||
+              "Junior Secondary";
+
+            const selectedSubject =
+              document.getElementById("learn-subject")?.value ||
+              "";
+
+            const response = await fetch(
+              "/api/product/curriculum/concepts?subject=" +
+              encodeURIComponent(selectedSubject) +
+              "&level=" +
+              encodeURIComponent(currentLevel) +
+              "&topic=" +
+              encodeURIComponent(selectedTopic)
+            );
+
+            const data = await response.json();
+
+            if (!data.success) {
+              throw new Error(data.error || "Could not load concepts.");
+            }
+
+            const concepts = data.concepts || [];
+
+            if (!concepts.length) {
+              conceptList.innerHTML =
+                "<p>No concepts are available for this topic yet.</p>";
+              return;
+            }
+
+            conceptList.innerHTML = concepts.map(function (concept) {
+              return (
+                '<button type="button" class="dashboard-concept-option" ' +
+                'data-dashboard-concept="' +
+                concept.name.replace(/"/g, "&quot;") +
+                '">' +
+                '<strong>' + concept.name + '</strong>' +
+                '<span class="concept-definition">' +
+                (concept.definition || "Explore this concept.") +
+                '</span>' +
+                '</button>'
+              );
+            }).join("");
+
+            conceptList
+              .querySelectorAll("[data-dashboard-concept]")
+              .forEach(function (conceptButton) {
+                conceptButton.addEventListener("click", async function () {
+                  const selectedConcept =
+                    conceptButton.dataset.dashboardConcept;
+
+                  const learningSubject =
+                    document.getElementById("learn-subject");
+                  const learningTopic =
+                    document.getElementById("learn-topic");
+                  const learningQuestion =
+                    document.getElementById("learn-question");
+                  const conceptContext =
+  document.getElementById("selected-concept-context");
+
+const conceptName =
+  document.getElementById("selected-concept-name");
+
+if (conceptName) {
+  conceptName.textContent = selectedConcept;
+}
+
+if (conceptContext) {
+  conceptContext.classList.remove("hidden");
+}
+
+if (learningSubject) {
+                    learningSubject.value = selectedSubject;
+                  }
+
+                  if (learningTopic) {
+                    learningTopic.value = selectedTopic;
+                  }
+
+                  if (learningQuestion) {
+                    learningQuestion.value =
+                      "Teach me about " + selectedConcept + ".";
+                  }
+
+                  conceptsPanel.classList.add("hidden");
+
+                  const learningPanel =
+                    document.querySelector(".live-learning-panel");
+
+                  if (learningPanel) {
+                    learningPanel.classList.remove("hidden");
+                    learningPanel.scrollIntoView({
+                      behavior: "smooth",
+                      block: "start"
+                    });
+                  }
+                });
+              });
+
+            conceptsPanel.scrollIntoView({
+              behavior: "smooth",
+              block: "center"
+            });
+
+          } catch (error) {
+            conceptList.innerHTML =
+              "<p>We couldn't load the concepts: " +
+              error.message +
+              "</p>";
+
+            console.error("Curriculum concept error:", error);
+          }
+        });
+      });
+
+      topicsPanel.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+
+    } catch (error) {
+      topicList.innerHTML =
+        "<p>We couldn't load the topics: " + error.message + "</p>";
+      console.error("Curriculum topic error:", error);
+    }
+  });
+});
+
+dashboardContinueBtn.addEventListener("click", function () {
+    const learningPanel =
+      document.querySelector(".live-learning-panel");
+
+    if (learningPanel) {
+      learningPanel.classList.remove("hidden");
+      learningPanel.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    }
+  });
+
+</script>
+
+
+</body>
+</html>

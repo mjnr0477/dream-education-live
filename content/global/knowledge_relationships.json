@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0",
+  "name": "Dream Education Global Knowledge Relationships",
+  "relationships": [
+    {
+      "id": "rel-natural-integers",
+      "from": "math-integers",
+      "relationship": "prerequisite",
+      "to": "math-natural-numbers",
+      "strength": "strong",
+      "reason": "Understanding natural numbers provides a foundation for understanding integers.",
+      "sources": [],
+      "version": "1.0",
+      "status": "verified"
+    },
+    {
+      "id": "rel-integers-rational",
+      "from": "math-rational-numbers",
+      "relationship": "prerequisite",
+      "to": "math-integers",
+      "strength": "strong",
+      "reason": "Understanding integers provides a foundation for understanding rational numbers.",
+      "sources": [],
+      "version": "1.0",
+      "status": "verified"
+    },
+    {
+      "id": "rel-variable-equations",
+      "from": "math-equations",
+      "relationship": "prerequisite",
+      "to": "math-variable",
+      "strength": "strong",
+      "reason": "Understanding variables is fundamental to representing unknown quantities in equations.",
+      "sources": [],
+      "version": "1.0",
+      "status": "verified"
+    },
+    {
+      "id": "rel-equations-variable",
+      "from": "math-equations",
+      "relationship": "builds_on",
+      "to": "math-variable",
+      "strength": "strong",
+      "reason": "Equations commonly use variables to represent unknown or changing quantities.",
+      "sources": [],
+      "version": "1.0",
+      "status": "verified"
+    }
+  ]
+}

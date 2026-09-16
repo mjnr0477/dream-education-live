@@ -1,0 +1,58 @@
+{
+  "schema_version": "1.0",
+  "name": "Dream Education Global Knowledge Base",
+  "purpose": "Universal knowledge layer used to build learning paths and curriculum levels.",
+  "scope": "Global",
+  "hierarchy": [
+    "field",
+    "domain",
+    "topic",
+    "subtopic",
+    "concept",
+    "principle",
+    "skill",
+    "application",
+    "advanced_knowledge"
+  ],
+  "knowledge_record": {
+    "id": "unique_knowledge_id",
+    "title": "Human-readable knowledge title",
+    "field": "Major field of knowledge",
+    "domain": "Domain within the field",
+    "topic": "Topic",
+    "subtopic": "Subtopic",
+    "concept": "Core concept",
+    "definition": "",
+    "key_ideas": [],
+    "principles": [],
+    "relationships": [],
+    "prerequisites": [],
+    "examples": [],
+    "applications": [],
+    "skills": [],
+    "misconceptions": [],
+    "questions": [],
+    "assessment_ideas": [],
+    "difficulty": {
+      "min": 1,
+      "max": 10
+    },
+    "depth_levels": [
+      "foundational",
+      "intermediate",
+      "advanced",
+      "research"
+    ],
+    "sources": [],
+    "source_type": [],
+    "version": "1.0",
+    "status": "draft"
+  },
+  "source_policy": {
+    "prefer_authoritative_sources": true,
+    "prefer_primary_sources": true,
+    "use_multiple_sources_when_possible": true,
+    "record_provenance": true,
+    "do_not_present_unverified_claims_as_facts": true
+  }
+}

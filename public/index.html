@@ -1,0 +1,3601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b1020">
+  <title>Dream Education — Learn in a way that understands you</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+  <section id="role-entry" class="role-entry">
+    <div class="role-entry-card">
+      <div class="section-label">DREAM EDUCATION</div>
+      <h1>Learn in the way that works for you.</h1>
+      <p>Welcome. Choose your role to enter your dashboard and continue from where you left off.</p>
+
+      <div class="role-options">
+        <button type="button" class="role-option" data-role="learner">
+          <strong>I'm a Learner</strong>
+          <span>Learn, practise, track progress and build mastery.</span>
+        </button>
+
+        <button type="button" class="role-option" data-role="teacher">
+          <strong>I'm a Teacher</strong>
+          <span>Support learners and understand class performance.</span>
+        </button>
+
+        <button type="button" class="role-option" data-role="parent">
+          <strong>I'm a Parent</strong>
+          <span>Follow your child's learning and progress.</span>
+        </button>
+
+        <button type="button" class="role-option" data-role="school">
+          <strong>I'm a School</strong>
+          <span>Manage learners, classes, results and analytics.</span>
+        </button>
+
+        
+        <button type="button" class="role-option meeting-role-option" data-role="meeting">
+          <strong>I'm here for a Meeting</strong>
+          <span>Create or join a private group meeting on Dream Education.</span>
+        </button>
+      </div>
+    </div>
+  </section>
+  
+  
+  <section id="learner-dashboard" class="role-entry hidden">
+    <div class="learner-dashboard-card">
+
+      <div class="dashboard-header">
+        <div>
+          <div class="section-label">LEARNER DASHBOARD</div>
+          <h1 id="dashboard-welcome">Welcome back.</h1>
+          <p id="dashboard-education"></p>
+        <p id="dashboard-school"></p>
+        </div>
+      </div>
+
+      <div id="dashboard-access-status" class="dashboard-card">
+        <div class="dashboard-card-label">YOUR ACCESS</div>
+        <h2 id="dashboard-access-title">Checking your access...</h2>
+        <p id="dashboard-access-description">Checking your trial and subscription status.</p>
+      </div>
+
+      <div id="dashboard-continue" class="dashboard-card">
+        <div class="dashboard-card-label">CONTINUE LEARNING</div>
+        <h2 id="dashboard-topic">Your learning</h2>
+        <p id="dashboard-state"></p>
+        <button id="dashboard-continue-btn" type="button">Continue Learning</button>
+      </div>
+
+      <div class="dashboard-card">
+        <div class="dashboard-card-label">YOUR PROGRESS</div>
+
+        <div class="dashboard-stats">
+          <div>
+            <strong id="dashboard-topics">0</strong>
+            <span>Topics started</span>
+          </div>
+
+          <div>
+            <strong id="dashboard-mastery">—</strong>
+            <span>Mastery</span>
+          </div>
+
+          <div>
+            <strong id="dashboard-average">0%</strong>
+            <span>Average</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="dashboard-subjects-panel" class="dashboard-card hidden">
+        <div class="dashboard-card-label">SUBJECTS</div>
+        <h2>What do you want to learn?</h2>
+        <div class="dashboard-subject-list">
+          <button type="button" data-dashboard-subject="Biology">Biology</button>
+          <button type="button" data-dashboard-subject="Integrated Science">Integrated Science</button>
+          <button type="button" data-dashboard-subject="Mathematics">Mathematics</button>
+          <button type="button" data-dashboard-subject="Physics">Physics</button>
+        </div>
+      </div>
+
+      <div id="dashboard-topics-panel" class="dashboard-card hidden">
+      <div class="dashboard-card-label">TOPICS</div>
+      <h2 id="dashboard-topics-title">Choose a topic</h2>
+      <p id="dashboard-topics-description">Choose what you want to learn.</p>
+      <div id="dashboard-topic-list" class="dashboard-topic-list"></div>
+    </div>
+
+    <div id="dashboard-concepts-panel" class="dashboard-card hidden">
+      <div class="dashboard-card-label">CONCEPTS</div>
+      <h2 id="dashboard-concepts-title">Choose a concept</h2>
+      <p id="dashboard-concepts-description">Choose what you want to understand.</p>
+      <div id="dashboard-concept-list" class="dashboard-concept-list"></div>
+    </div>
+
+    <div id="dashboard-history-panel" class="dashboard-card hidden">
+      <div class="dashboard-card-label">LEARNING HISTORY</div>
+      <h2>Your recent learning</h2>
+      <div id="dashboard-history-content">
+        <p>Loading your learning history...</p>
+      </div>
+    </div>
+
+    <div id="dashboard-progress-panel" class="dashboard-card hidden">
+      <div class="dashboard-card-label">PROGRESS</div>
+      <h2>Your learning progress</h2>
+      <div id="dashboard-progress-content">
+        <p>Loading your progress...</p>
+      </div>
+    </div>
+    <div class="learning-intelligence-panel connections-panel" id="learner-connections-panel">
+      <div class="intelligence-panel-header">
+        <div>
+          <span class="panel-eyebrow">CONNECTIONS</span>
+          <h3>Your connections</h3>
+          <p>Manage trusted learning connections with teachers.</p>
+        </div>
+      </div>
+      <div id="learner-connections-content">
+        <p>Loading connections...</p>
+      </div>
+    </div>
+
+    <div class="dashboard-actions">
+        <button type="button" id="dashboard-subjects-btn">Subjects</button>
+        <button type="button" id="dashboard-history-btn">Learning History</button>
+        <button type="button" id="dashboard-progress-btn">Progress</button>
+        <button type="button" id="dashboard-code-btn">Code Dashboard</button>
+      </div>
+
+    </div>
+  
+
+  <!-- DREAM EDUCATION LIVE LEARNING EXPERIENCE -->
+<section id="live-learning" class="live-learning-panel hidden">
+  <div class="live-learning-header">
+    <div>
+      <span class="section-label">LEARN</span>
+      <h2>Choose how you learn</h2>
+      <p>Tell Dream Education how you want this concept explained.</p>
+    </div>
+    <div id="learning-state-badge" class="learning-state-badge">READY</div>
+  </div>
+
+  <div id="selected-concept-context" class="selected-concept-context hidden">
+    <span class="section-label">CONCEPT</span>
+    <strong id="selected-concept-name"></strong>
+  </div>
+
+  <div class="learning-controls">
+    <label>
+      Subject
+      <select id="learn-subject">
+        <option value="">Choose subject</option>
+        <option value="Biology">Biology</option>
+        <option value="Integrated Science">Integrated Science</option>
+        <option value="Mathematics">Mathematics</option>
+        <option value="Physics">Physics</option>
+        <option value="__custom__">Other / Type your subject</option>
+      </select>
+    </label>
+
+    <label id="custom-subject-wrap" class="hidden">
+      Your subject
+      <input id="custom-subject" type="text" placeholder="e.g. Computer Science">
+    </label>
+
+    <label>
+      Topic
+      <input id="learn-topic" type="text" placeholder="e.g. Photosynthesis">
+    </label>
+
+    <label>
+      How should I teach you?
+      <select id="learn-method">
+        <option value="auto">Choose automatically</option>
+        <option value="explanation">Explain it simply</option>
+        <option value="examples">Use examples</option>
+        <option value="step_by_step">Step by step</option>
+        <option value="discussion">Discuss it with me</option>
+        <option value="problem_solving">Problem solving</option>
+        <option value="custom">My own method</option>
+      </select>
+    </label>
+
+    <label id="custom-method-wrap" class="hidden">
+      Your method
+      <input id="custom-method" type="text" placeholder="Describe how you want to learn">
+    </label>
+  </div>
+
+  <div class="learning-question-box">
+    <label for="learn-question">What would you like to learn or do?</label>
+    <textarea id="learn-question" rows="3" placeholder="Tell Dream Education what you want to learn or do..."></textarea>
+    <button id="start-learning-btn" type="button">Start Learning</button>
+  </div>
+
+  <div id="learning-response" class="learning-response hidden">
+    <div class="response-meta">
+      <span id="response-topic"></span>
+      <span id="response-method"></span>
+    </div>
+
+    <div id="teaching-answer" class="teaching-answer"></div>
+
+    <div id="answer-area" class="answer-area">
+      <label for="learner-answer">Your answer</label>
+      <textarea id="learner-answer" rows="4" placeholder="Show me what you understand..."></textarea>
+      <button id="submit-answer-btn" type="button">Check My Answer</button>
+    </div>
+
+    <div id="adaptive-result" class="adaptive-result hidden"></div>
+
+    <button id="continue-learning-btn" class="hidden" type="button">
+      Continue Learning
+    </button>
+  </div>
+</section>
+</section>
+
+
+<section id="parent-dashboard" class="role-entry hidden">
+  <div class="learner-dashboard-card">
+    <div class="dashboard-header">
+      <div>
+        <div class="dashboard-card-label">PARENT DASHBOARD</div>
+        <h1 id="parent-dashboard-welcome">Welcome.</h1>
+        <p id="parent-dashboard-info"></p>
+      </div>
+    </div>
+
+    <div class="learning-intelligence-panel" id="parent-insight-panel">
+  <div class="intelligence-panel-header">
+    <div>
+      <span class="panel-eyebrow">LEARNING INTELLIGENCE</span>
+      <h3>Learning insight</h3>
+      <p>Evidence from your child's current learning profile and assessment history.</p>
+    </div>
+  </div>
+  <div id="parent-insight-content">
+    <p>Loading learning insight...</p>
+  </div>
+</div>
+
+<div class="dashboard-intelligence-grid" aria-label="Parent learning overview">
+      <div class="intelligence-card">
+        <span>CHILDREN</span>
+        <strong id="parent-total-children">0</strong>
+        <small>Connected learners</small>
+      </div>
+      <div class="intelligence-card">
+        <span>ASSESSMENTS</span>
+        <strong id="parent-total-assessments">0</strong>
+        <small>Assessments recorded</small>
+      </div>
+      <div class="intelligence-card intelligence-card-highlight">
+        <span>AVERAGE SCORE</span>
+        <strong id="parent-average-score">0%</strong>
+        <small>Current learning performance</small>
+      </div>
+    </div>
+
+    <div class="learning-intelligence-panel connections-panel" id="parent-connections-panel">
+      <div class="intelligence-panel-header">
+        <div>
+          <span class="panel-eyebrow">CONNECTIONS</span>
+          <h3>Your connections</h3>
+          <p>Manage trusted learning connections with learners.</p>
+        </div>
+      </div>
+      <div id="parent-connections-content">
+        <p>Loading connections...</p>
+      </div>
+    </div>
+
+    <div class="dashboard-card">
+      <div class="dashboard-card-label">YOUR CHILDREN</div>
+      <div id="parent-children-list">
+        <p>Connect a learner to see their progress.</p>
+      </div>
+    </div>
+
+    <div class="dashboard-card">
+      <div class="dashboard-card-label">LEARNING PROGRESS</div>
+      <div id="parent-progress-content">
+        <p>Select a child to view progress, history and improvement areas.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="teacher-dashboard" class="role-entry hidden">
+  <div class="learner-dashboard-card">
+    <div class="dashboard-header">
+      <div>
+        <div class="dashboard-card-label">TEACHER DASHBOARD</div>
+        <h1 id="teacher-dashboard-welcome">Welcome.</h1>
+        <p id="teacher-dashboard-info"></p>
+      </div>
+    </div>
+
+    <div class="learning-intelligence-panel" id="teacher-attention-panel">
+  <div class="intelligence-panel-header">
+    <div>
+      <span class="panel-eyebrow">LEARNING INTELLIGENCE</span>
+      <h3>Learners needing attention</h3>
+      <p>Based on current learning state, mastery and assessment evidence.</p>
+    </div>
+  </div>
+  <div id="teacher-attention-content">
+    <p>Loading learner intelligence...</p>
+  </div>
+</div>
+
+<div class="dashboard-intelligence-grid" aria-label="Teacher performance overview">
+      <div class="intelligence-card">
+        <span>CLASSES</span>
+        <strong id="teacher-total-classes">0</strong>
+        <small>Classes connected</small>
+      </div>
+      <div class="intelligence-card">
+        <span>LEARNERS</span>
+        <strong id="teacher-total-learners">0</strong>
+        <small>Learners monitored</small>
+      </div>
+      <div class="intelligence-card">
+        <span>ASSESSMENTS</span>
+        <strong id="teacher-total-assessments">0</strong>
+        <small>Assessments recorded</small>
+      </div>
+      <div class="intelligence-card intelligence-card-highlight">
+        <span>AVERAGE SCORE</span>
+        <strong id="teacher-average-score">0%</strong>
+        <small>Current class performance</small>
+      </div>
+    </div>
+
+    <div class="learning-intelligence-panel connections-panel" id="teacher-connections-panel">
+      <div class="intelligence-panel-header">
+        <div>
+          <span class="panel-eyebrow">CONNECTIONS</span>
+          <h3>Your connections</h3>
+          <p>Connect with learners and manage learning relationships.</p>
+        </div>
+      </div>
+      <div id="teacher-connections-content">
+        <p>Loading connections...</p>
+      </div>
+    </div>
+
+    <div class="dashboard-card">
+      <div class="dashboard-card-label">YOUR CLASSES</div>
+      <div id="teacher-classes-list">
+        <p>Your classes and learners will appear here.</p>
+      </div>
+    </div>
+
+    <div class="dashboard-card">
+      <div class="dashboard-card-label">LEARNER PROGRESS</div>
+      <div id="teacher-progress-content">
+        <p>View learner performance, weak areas and improvement suggestions.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =====================================================
+     CHAT DASHBOARD
+     ===================================================== -->
+
+
+<!-- =====================================================
+     MEETING DASHBOARD
+     ===================================================== -->
+<section id="meeting-dashboard" class="role-entry hidden">
+  <div class="meeting-dashboard-card">
+    <div class="meeting-dashboard-header">
+      <div>
+        <span class="meeting-dashboard-badge">GROUP MEETINGS</span>
+        <h2>Meeting Dashboard</h2>
+        <p>Create or join a group video meeting inside Dream Education.</p>
+      </div>
+    </div>
+
+    <div class="meeting-dashboard-actions">
+      <button type="button" id="create-meeting-btn">
+        Create Meeting
+      </button>
+
+      <button type="button" id="join-meeting-btn">
+        Join Meeting
+      </button>
+    </div>
+
+    <div id="meeting-room-box" class="hidden">
+      <h3 id="meeting-room-title">Meeting Room</h3>
+      <div id="jitsi-meeting"></div>
+    </div>
+  </div>
+</section>
+
+<section id="school-dashboard" class="role-entry hidden">
+  <div class="learner-dashboard-card">
+    <div class="dashboard-header">
+      <div>
+        <div class="dashboard-card-label">SCHOOL DASHBOARD</div>
+        <h1 id="school-dashboard-welcome">Welcome.</h1>
+        <p id="school-dashboard-info"></p>
+      </div>
+    </div>
+
+    <div class="dashboard-stats">
+      <div class="dashboard-card">
+        <div class="dashboard-card-label">LEARNERS</div>
+        <strong id="school-total-learners">0</strong>
+      </div>
+      <div class="dashboard-card">
+        <div class="dashboard-card-label">CLASSES</div>
+        <strong id="school-total-classes">0</strong>
+      </div>
+      <div class="dashboard-card">
+        <div class="dashboard-card-label">TEACHERS</div>
+        <strong id="school-total-teachers">0</strong>
+      </div>
+    </div>
+
+    <div class="dashboard-card">
+      <div class="dashboard-card-label">SCHOOL PROGRESS</div>
+      <div id="school-progress-content">
+        <p>School-wide learner performance and subject analytics will appear here.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="auth-entry" class="role-entry hidden">
+    <div class="role-entry-card">
+      <div class="section-label">LEARNER ACCOUNT</div>
+      <h1 id="auth-title">Welcome to Dream Education.</h1>
+      <p id="auth-description">Log in to continue your learning journey, or create an account if you're new here.</p>
+
+      <div class="learning-controls">
+        <label for="auth-email">Email</label>
+        <input id="auth-email" type="email" placeholder="Enter your email" autocomplete="email">
+
+        <label for="auth-password">Password</label>
+        <input id="auth-password" type="password" placeholder="Enter your password" autocomplete="current-password">
+
+        <div id="auth-name-wrap" class="hidden">
+          <label for="auth-name">Your name</label>
+          <input id="auth-name" type="text" placeholder="Enter your name" autocomplete="name">
+
+          <label for="auth-phone">Phone number <span>(optional)</span></label>
+          <input id="auth-phone" type="tel" placeholder="e.g. 0712345678" autocomplete="tel">
+
+          <label for="auth-level">Learning level</label>
+          <select id="auth-level">
+            <option value="Pre-Primary">Pre-Primary</option>
+            <option value="Primary">Primary</option>
+            <option value="Junior Secondary">Junior Secondary</option>
+            <option value="Senior Secondary">Senior Secondary</option>
+            <option value="Tertiary">Tertiary / University</option>
+          </select>
+
+          <label for="auth-grade">Grade / Year</label>
+          <input id="auth-grade" type="text" placeholder="e.g. Grade 7">
+
+          <label for="auth-school">School <span>(optional)</span></label>
+          <input id="auth-school" type="text" placeholder="Enter your school">
+        </div>
+
+        <button id="auth-submit-btn" type="button">Log In</button>
+        <button id="auth-toggle-btn" type="button">Create an account</button>
+        <button id="auth-back-btn" type="button">Back</button>
+
+        <p id="auth-message" class="hidden"></p>
+      </div>
+    </div>
+  </section>
+
+
+
+
+
+<header class="header">
+  <div class="header-inner">
+
+    <a class="brand" href="#" aria-label="Dream Education home">
+      <div class="brand-mark">D</div>
+
+      <div class="brand-text">
+        <strong>Dream Education</strong>
+        <span>Learn. Understand. Grow.</span>
+      </div>
+    </a>
+
+    <div class="header-pill">
+      <span class="status-dot"></span>
+      Learning with you
+    </div>
+
+  </div>
+</header>
+
+<main class="container">
+
+  <!-- =====================================================
+       HERO
+       ===================================================== -->
+
+  <section class="welcome dream-signature-hero" id="dream-landing-hero">
+
+  <div class="dream-atmosphere dream-atmosphere-one"></div>
+  <div class="dream-atmosphere dream-atmosphere-two"></div>
+  <div class="dream-grid"></div>
+
+  <div class="dream-core">
+
+    <div class="dream-orbit dream-orbit-one">
+      <span>LEARN</span>
+    </div>
+
+    <div class="dream-orbit dream-orbit-two">
+      <span>UNDERSTAND</span>
+    </div>
+
+    <div class="dream-orbit dream-orbit-three">
+      <span>PRACTICE</span>
+    </div>
+
+    <div class="dream-orbit dream-orbit-four">
+      <span>GROW</span>
+    </div>
+
+    <div class="dream-core-ring dream-ring-one"></div>
+    <div class="dream-core-ring dream-ring-two"></div>
+
+    <div class="dream-brand-core">
+      <div class="dream-brand-small">WELCOME TO</div>
+      <div class="dream-brand-name">
+        <span>DREAM</span>
+        <span>EDUCATION</span>
+      </div>
+      <div class="dream-brand-line"></div>
+      <div class="dream-brand-subtitle">
+        Learning that understands you.
+      </div>
+    </div>
+
+  </div>
+
+  <div class="dream-hero-message">
+    <span class="dream-live-dot"></span>
+    <span>YOUR LEARNING JOURNEY STARTS HERE</span>
+  </div>
+
+</section>
+
+
+
+
+<script>
+(function () {
+  const learnerId =
+    localStorage.getItem("dream_education_learner_id") ||
+    `learner_${crypto.randomUUID()}`;
+localStorage.setItem("dream_education_learner_id", learnerId);
+
+  const subject = document.getElementById("learn-subject");
+  const topic = document.getElementById("learn-topic");
+  const method = document.getElementById("learn-method");
+  const customMethod = document.getElementById("custom-method");
+  const customSubject = document.getElementById("custom-subject");
+  const customSubjectWrap = document.getElementById("custom-subject-wrap");
+  const customWrap = document.getElementById("custom-method-wrap");
+  const question = document.getElementById("learn-question");
+
+  const startBtn = document.getElementById("start-learning-btn");
+  const submitBtn = document.getElementById("submit-answer-btn");
+  const continueBtn = document.getElementById("continue-learning-btn");
+
+  const response = document.getElementById("learning-response");
+  const answer = document.getElementById("teaching-answer");
+  const learnerAnswer = document.getElementById("learner-answer");
+  const adaptiveResult = document.getElementById("adaptive-result");
+  const stateBadge = document.getElementById("learning-state-badge");
+  const responseTopic = document.getElementById("response-topic");
+  const responseMethod = document.getElementById("response-method");
+
+  let currentSession = null;
+
+  method.addEventListener("change", function () {
+    customWrap.classList.toggle("hidden", method.value !== "custom");
+  });
+
+  subject.addEventListener("change", function () {
+    const isCustom = subject.value === "__custom__";
+
+    customSubjectWrap.classList.toggle("hidden", !isCustom);
+
+    if (isCustom) {
+      customSubject.focus();
+    }
+  });
+
+  function setLoading(button, loading, normalText) {
+    button.disabled = loading;
+    button.textContent = loading ? "Working..." : normalText;
+  }
+
+  function showResponse() {
+    response.classList.remove("hidden");
+    response.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function displayTeaching(data) {
+    answer.innerHTML = String(data.answer || data.message || "Let's begin learning.").replace(/\\n/g, "<br>").replace(/\n/g, "<br>");
+    responseTopic.textContent =
+      data.topic ? "Topic: " + data.topic : "";
+    responseMethod.textContent =
+      method.value === "custom"
+        ? "Method: " + (customMethod.value || "Custom")
+        : "Method: " + method.value;
+    showResponse();
+  }
+
+  async function startLearning() {
+    const selectedSubject =
+      subject.value === "__custom__"
+        ? customSubject.value.trim()
+        : subject.value;
+
+    if (!question.value.trim()) {
+      alert("Enter what you would like to learn or do.");
+      return;
+    }
+
+    setLoading(startBtn, true, "Start Learning");
+
+    try {
+      const payload = {
+        learner_id: learnerId,
+        question: question.value.trim(),
+        subject:
+          subject.value === "__custom__"
+            ? customSubject.value.trim()
+            : subject.value,
+        topic: topic.value.trim() || null,
+        level: "Junior Secondary",
+        learning_method: method.value,
+        custom_learning_method:
+          method.value === "custom"
+            ? customMethod.value.trim()
+            : null
+      };
+
+      const res = await fetch("/api/learn", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...getDashboardAuthHeaders()
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        throw new Error(data.error || "Learning request failed");
+      }
+
+      currentSession = {
+        subject: selectedSubject,
+        topic: topic.value.trim() || data.topic || null
+      };
+
+      displayTeaching(data);
+      learnerAnswer.value = "";
+      adaptiveResult.classList.add("hidden");
+      continueBtn.classList.add("hidden");
+    } catch (error) {
+      answer.textContent = "I couldn't start the lesson: " + error.message;
+      showResponse();
+    } finally {
+      setLoading(startBtn, false, "Start Learning");
+    }
+  }
+
+  async function submitAnswer() {
+    if (!learnerAnswer.value.trim()) {
+      alert("Write your answer first.");
+      return;
+    }
+
+    setLoading(submitBtn, true, "Check My Answer");
+
+    try {
+      const payload = {
+        learner_id: learnerId,
+        name: "Demo Learner",
+        question: question.value.trim(),
+        learner_answer: learnerAnswer.value.trim(),
+        subject: currentSession?.subject || subject.value,
+        topic: currentSession?.topic || topic.value.trim() || null,
+        level: "Junior Secondary",
+        learning_method: method.value,
+        custom_learning_method:
+          method.value === "custom"
+            ? customMethod.value.trim()
+            : null
+      };
+
+      const res = await fetch("/api/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        throw new Error(data.error || "Assessment failed");
+      }
+
+      stateBadge.textContent = data.learning_state || "UPDATED";
+
+      adaptiveResult.innerHTML = "";
+
+      const score = document.createElement("strong");
+      score.textContent =
+        "Score: " + (data.assessment?.score ?? 0) + "%";
+
+      const state = document.createElement("div");
+      state.textContent =
+        "Learning state: " + (data.learning_state || "UPDATED");
+
+      const feedback = document.createElement("div");
+      feedback.textContent =
+        data.assessment?.feedback || "Your answer has been assessed.";
+
+      adaptiveResult.append(score, state, feedback);
+
+      if (data.next_question?.question) {
+        const nextLabel = document.createElement("div");
+        nextLabel.textContent = "NEXT LEARNING TASK";
+        nextLabel.style.marginTop = "18px";
+        nextLabel.style.fontSize = "10px";
+        nextLabel.style.fontWeight = "800";
+        nextLabel.style.letterSpacing = "1.2px";
+        nextLabel.style.opacity = ".55";
+
+        const next = document.createElement("div");
+        next.textContent = data.next_question.question;
+        next.style.marginTop = "7px";
+        next.style.fontSize = "17px";
+        next.style.fontWeight = "700";
+        next.style.lineHeight = "1.5";
+
+        adaptiveResult.append(nextLabel, next);
+      }
+
+      adaptiveResult.classList.remove("hidden");
+      continueBtn.classList.remove("hidden");
+
+      currentSession = {
+        ...currentSession,
+        nextQuestion: data.next_question,
+        learningState: data.learning_state,
+        assessment: data.assessment
+      };
+
+      showResponse();
+
+    } catch (error) {
+      adaptiveResult.textContent =
+        "I couldn't check the answer: " + error.message;
+      adaptiveResult.classList.remove("hidden");
+    } finally {
+      setLoading(submitBtn, false, "Check My Answer");
+    }
+  }
+
+  function continueLearning() {
+    if (!currentSession?.nextQuestion?.question) return;
+
+    question.value = currentSession.nextQuestion.question;
+
+    topic.value =
+      currentSession.nextQuestion.topic ||
+      topic.value;
+
+    if (currentSession.nextQuestion.subject) {
+      subject.value = currentSession.nextQuestion.subject;
+    }
+
+    learnerAnswer.value = "";
+
+    adaptiveResult.classList.add("hidden");
+    continueBtn.classList.add("hidden");
+
+    response.classList.remove("hidden");
+
+    question.focus();
+
+    window.scrollTo({
+      top: question.getBoundingClientRect().top +
+        window.scrollY -
+        120,
+      behavior: "smooth"
+    });
+  }
+
+  startBtn.addEventListener("click", startLearning);
+  submitBtn.addEventListener("click", submitAnswer);
+  continueBtn.addEventListener("click", continueLearning);
+})();
+
+  
+  let learnerId =
+  localStorage.getItem("dream_education_learner_id") ||
+  `learner_${crypto.randomUUID()}`;
+localStorage.setItem("dream_education_learner_id", learnerId);
+
+const roleEntry = document.getElementById("role-entry");
+
+  const authEntry = document.getElementById("auth-entry");
+  const authTitle = document.getElementById("auth-title");
+  const authDescription = document.getElementById("auth-description");
+  const authEmail = document.getElementById("auth-email");
+  const authPassword = document.getElementById("auth-password");
+  const authNameWrap = document.getElementById("auth-name-wrap");
+  const authSubmitBtn = document.getElementById("auth-submit-btn");
+  const authToggleBtn = document.getElementById("auth-toggle-btn");
+  const authBackBtn = document.getElementById("auth-back-btn");
+  const authMessage = document.getElementById("auth-message");
+  let authMode = "login";
+let selectedRole = "learner";
+
+  function updateAuthMode() {
+    const registering = authMode === "register";
+    authTitle.textContent = registering
+      ? "Create your Dream Education account."
+      : "Welcome back.";
+    authDescription.textContent = registering
+      ? "Create your account to save your learning journey."
+      : "Log in to continue your learning journey.";
+    authNameWrap.classList.toggle("hidden", !registering);
+    authSubmitBtn.textContent = registering ? "Create Account" : "Log In";
+    authToggleBtn.textContent = registering
+      ? "I already have an account"
+      : "Create an account";
+    authMessage.classList.add("hidden");
+  }
+
+
+
+  async function submitAuth() {
+  const email = authEmail.value.trim();
+  const password = authPassword.value;
+
+  if (!email || !password) {
+    authMessage.textContent = "Email and password are required.";
+    authMessage.classList.remove("hidden");
+    return;
+  }
+
+  const body = {
+    email,
+    password
+  };
+
+  if (authMode === "register") {
+    const name = document.getElementById("auth-name").value.trim();
+    const level = document.getElementById("auth-level").value;
+    const grade = document.getElementById("auth-grade").value.trim();
+    const school = document.getElementById("auth-school").value.trim();
+    const phone = document.getElementById("auth-phone").value.trim();
+
+    if (!name) {
+      authMessage.textContent = "Please enter your name.";
+      authMessage.classList.remove("hidden");
+      return;
+    }
+
+    body.name = name;
+    body.role = selectedRole;
+    body.level = level;
+    body.grade = grade;
+    body.school = school || null;
+    body.phone = phone || null;
+  }
+
+  const endpoint =
+    authMode === "register"
+      ? "/api/auth/register"
+      : "/api/auth/login";
+
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(body)
+  });
+
+  const data = await response.json();
+
+  if (!data.success) {
+    throw new Error(
+      data.error ||
+      (authMode === "register"
+        ? "Registration failed."
+        : "Login failed.")
+    );
+  }
+
+  const accountRole =
+    String(
+      data.role ||
+      data.account?.role ||
+      selectedRole ||
+      "learner"
+    ).trim().toLowerCase();
+
+  localStorage.setItem(
+    "dream_education_role",
+    accountRole
+  );
+
+  if (data.learner?.learner_id) {
+    learnerId = data.learner.learner_id;
+    localStorage.setItem(
+      "dream_education_learner_id",
+      learnerId
+    );
+  }
+
+  if (data.profile?.learner_id) {
+    learnerId = data.profile.learner_id;
+    localStorage.setItem(
+      "dream_education_learner_id",
+      learnerId
+    );
+  }
+
+  if (data.account?.learner_id) {
+    learnerId = data.account.learner_id;
+    localStorage.setItem(
+      "dream_education_learner_id",
+      learnerId
+    );
+  }
+
+  if (data.account?.account_id) {
+    localStorage.setItem(
+      "dream_education_account_id",
+      data.account.account_id
+    );
+  }
+
+  if (data.account?.teacher_id) {
+    localStorage.setItem(
+      "dream_education_teacher_id",
+      data.account.teacher_id
+    );
+  }
+
+  if (data.account?.parent_id) {
+    localStorage.setItem(
+      "dream_education_parent_id",
+      data.account.parent_id
+    );
+  }
+
+  if (data.account?.school_id) {
+    localStorage.setItem(
+      "dream_education_school_id",
+      data.account.school_id
+    );
+  }
+
+  if (data.session) {
+    localStorage.setItem(
+      "dream_education_access_token",
+      data.session.access_token
+    );
+
+    localStorage.setItem(
+      "dream_education_refresh_token",
+      data.session.refresh_token
+    );
+  }
+
+  authEntry.classList.add("hidden");
+
+  await loadAccountAccessStatus();
+
+  showRoleDashboard(accountRole);
+
+  const dashboard =
+    accountRole === "teacher"
+      ? document.getElementById("teacher-dashboard")
+      : accountRole === "parent"
+        ? document.getElementById("parent-dashboard")
+        : accountRole === "school"
+          ? document.getElementById("school-dashboard")
+          : learnerDashboard;
+
+  dashboard?.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
+}
+
+authSubmitBtn.addEventListener("click", async function () {
+    try {
+      authSubmitBtn.disabled = true;
+      await submitAuth();
+    } catch (error) {
+      authMessage.textContent = error.message;
+      authMessage.classList.remove("hidden");
+      console.error("Authentication error:", error);
+    } finally {
+      authSubmitBtn.disabled = false;
+    }
+  });
+
+  authToggleBtn.addEventListener("click", function () {
+    authMode = authMode === "login" ? "register" : "login";
+    updateAuthMode();
+  });
+
+  authBackBtn.addEventListener("click", function () {
+    authEntry.classList.add("hidden");
+    roleEntry.classList.remove("hidden");
+  });
+
+  document.querySelectorAll(".role-option").forEach(function (button) {
+  button.addEventListener("click", function () {
+    selectedRole = String(
+      button.dataset.role || "learner"
+    ).trim().toLowerCase();
+
+    if (selectedRole === "meeting") {
+      roleEntry.classList.add("hidden");
+      authEntry.classList.add("hidden");
+      showRoleDashboard("meeting");
+      document.getElementById("meeting-dashboard")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+      return;
+    }
+
+    roleEntry.classList.add("hidden");
+    authEntry.classList.remove("hidden");
+    authMode = "login";
+
+    if (selectedRole === "teacher") {
+      authTitle.textContent = "Welcome, Teacher.";
+      authDescription.textContent =
+        "Log in to manage your learners and classes, or create a teacher account.";
+    } else if (selectedRole === "parent") {
+      authTitle.textContent = "Welcome, Parent.";
+      authDescription.textContent =
+        "Log in to follow your child's learning journey, or create a parent account.";
+    } else if (selectedRole === "school") {
+      authTitle.textContent = "Welcome, School.";
+      authDescription.textContent =
+        "Log in to manage your school's learning community, or create a school account.";
+    } else {
+      updateAuthMode();
+    }
+
+    authEmail.focus();
+  });
+});
+
+
+function getDashboardAuthHeaders() {
+  const token =
+    localStorage.getItem("dream_education_access_token") ||
+    localStorage.getItem("dream_education_token") ||
+    "";
+
+  return token
+    ? { Authorization: `Bearer ${token}` }
+    : {};
+}
+
+async function loadAccountAccessStatus() {
+  try {
+    const response = await fetch("/api/account/access", {
+      headers: getDashboardAuthHeaders()
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      console.warn("Account access status unavailable:", data);
+      return null;
+    }
+
+    window.dreamEducationAccess = data.access;
+    renderAccountAccessStatus(data.access);
+
+    console.log("Dream Education access status:", data.access);
+
+    return data.access;
+  } catch (error) {
+    console.error("Account access status request failed:", error);
+    return null;
+  }
+}
+
+function renderAccountAccessStatus(access) {
+  const title = document.getElementById("dashboard-access-title");
+  const description = document.getElementById("dashboard-access-description");
+
+  if (!title || !description || !access) return;
+
+  if (access.status === "owner" && access.free_forever === true) {
+    title.textContent = "Free forever";
+    description.textContent =
+      "Your Dream Education account has permanent free access.";
+    return;
+  }
+
+  if (access.status === "trial") {
+    const expiresAt = access.expires_at
+      ? new Date(access.expires_at)
+      : null;
+
+    const expiryText =
+      expiresAt && !Number.isNaN(expiresAt.getTime())
+        ? expiresAt.toLocaleString()
+        : "soon";
+
+    title.textContent = "7-day free trial";
+    description.textContent =
+      `Your free trial is active and expires on ${expiryText}.`;
+    return;
+  }
+
+  if (access.status === "active") {
+    const expiresAt = access.expires_at
+      ? new Date(access.expires_at)
+      : null;
+
+    const expiryText =
+      expiresAt && !Number.isNaN(expiresAt.getTime())
+        ? expiresAt.toLocaleString()
+        : "the end of your current plan";
+
+    title.textContent = "Subscription active";
+    description.textContent =
+      `Your ${access.plan_type || "paid"} plan is active until ${expiryText}.`;
+    return;
+  }
+
+  if (access.status === "expired") {
+    title.textContent = "Trial ended";
+    description.textContent =
+      "Your free access has ended. Choose a paid plan to continue learning.";
+    return;
+  }
+
+  title.textContent = "Access unavailable";
+  description.textContent =
+    access.reason || "We could not determine your current access status.";
+}
+
+async function loadTeacherDashboard() {
+  const teacherId =
+    localStorage.getItem("dream_education_teacher_id");
+
+  if (!teacherId) {
+    document.getElementById("teacher-dashboard-info").textContent =
+      "Teacher account is not linked to a teacher profile yet.";
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `/api/product/teacher/${encodeURIComponent(teacherId)}/dashboard`,
+      {
+        headers: getDashboardAuthHeaders()
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || "Could not load teacher dashboard.");
+    }
+
+    const teacher = data.teacher || {};
+    const analytics = data.analytics || {};
+    const classes = Array.isArray(data.classes) ? data.classes : [];
+    const learners = Array.isArray(data.learners) ? data.learners : [];
+
+    document.getElementById("teacher-dashboard-welcome").textContent =
+      `Welcome, ${teacher.name || "Teacher"}.`;
+
+    document.getElementById("teacher-dashboard-info").textContent =
+      `${analytics.total_classes || 0} classes · ${analytics.total_learners || 0} learners · ${analytics.total_assessments || 0} assessments · Average score ${analytics.average_score || 0}%`;
+
+    document.getElementById("teacher-total-classes").textContent =
+      analytics.total_classes || 0;
+
+    document.getElementById("teacher-total-learners").textContent =
+      analytics.total_learners || 0;
+
+    document.getElementById("teacher-total-assessments").textContent =
+      analytics.total_assessments || 0;
+
+    document.getElementById("teacher-average-score").textContent =
+      `${analytics.average_score || 0}%`;
+
+    const classesList = document.getElementById("teacher-classes-list");
+
+    if (!classes.length) {
+      classesList.innerHTML =
+        "<p>Your classes and learners will appear here once classes are connected.</p>";
+    } else {
+      classesList.innerHTML = classes.map(classData => `
+        <div class="dashboard-list-item">
+          <strong>${classData.name || classData.class_name || "Class"}</strong>
+          <span>${Array.isArray(classData.learners) ? classData.learners.length : 0} learners</span>
+        </div>
+      `).join("");
+    }
+
+    const attention = document.getElementById("teacher-attention-content");
+
+    const attentionLearners = learners.map(learner => {
+      const assessments = Array.isArray(learner.assessments)
+        ? learner.assessments
+        : [];
+
+      const latest = assessments.length
+        ? [...assessments].sort(
+            (a, b) =>
+              new Date(b.recorded_at || 0) -
+              new Date(a.recorded_at || 0)
+          )[0]
+        : null;
+
+      const average = Number(learner.progress?.average_score);
+      const mastery = String(learner.mastery_status || "").toLowerCase();
+      const understanding = String(latest?.understanding || "").toLowerCase();
+
+      let priority = 0;
+      let reason = "Learning profile available.";
+
+      if (mastery === "needs_practice") {
+        priority = 4;
+        reason = "Needs more practice.";
+      } else if (understanding === "no_understanding") {
+        priority = 4;
+        reason = "Latest assessment shows no understanding.";
+      } else if (understanding === "partial") {
+        priority = 3;
+        reason = "Latest assessment shows partial understanding.";
+      } else if (Number.isFinite(average) && average < 50) {
+        priority = 3;
+        reason = `Average score is ${average}%.`;
+      } else if (Number.isFinite(average) && average < 70) {
+        priority = 2;
+        reason = `Average score is ${average}%.`;
+      }
+
+      return { learner, latest, priority, reason };
+    })
+    .filter(item => item.priority > 0)
+    .sort((a, b) => b.priority - a.priority);
+
+    if (!attentionLearners.length) {
+      attention.innerHTML =
+        '<div class="intelligence-empty">No immediate learning concern is identified from the available learner data.</div>';
+    } else {
+      attention.innerHTML = attentionLearners.map(item => {
+        const learner = item.learner;
+        const subject = learner.active_subject || item.latest?.subject || "";
+        const topic = learner.active_topic || item.latest?.topic || "Current learning";
+        const action = learner.next_action || "Review";
+        const actionButton = `
+          <button
+            type="button"
+            class="intelligence-action-btn teacher-review-learner"
+            data-learner-id="${learner.learner_id || ""}">
+            Review learner
+          </button>
+        `;
+
+
+        return `
+          <div class="intelligence-learner-item">
+            <div class="intelligence-learner-main">
+              <strong>${learner.name || "Learner"}</strong>
+              <span>${[subject, topic].filter(Boolean).join(" · ")}</span>
+            </div>
+            <div class="intelligence-learner-reason">${item.reason}</div>
+            <div class="intelligence-learner-action"><span>${action}</span>${actionButton}</div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    const progress = document.getElementById("teacher-progress-content");
+
+    if (!learners.length) {
+      progress.innerHTML =
+        "<p>No learner performance data is available yet.</p>";
+    } else {
+      progress.innerHTML = learners.map(learner => `
+        <div class="dashboard-list-item" data-learner-id="${learner.learner_id || ""}">
+          <strong>${learner.name || "Learner"}</strong>
+          <span>${learner.level || ""}${learner.grade ? ` · ${learner.grade}` : ""}</span>
+        </div>
+      `).join("");
+    }
+  } catch (error) {
+    console.error("Teacher dashboard load error:", error);
+
+    document.getElementById("teacher-dashboard-info").textContent =
+      `Dashboard error: ${error.message || "Unable to load teacher dashboard data."}`;
+  }
+}
+
+
+// Teacher learner review action: targets the existing teacher progress row.
+document.addEventListener("click", function teacherReviewLearnerHandler(event) {
+  const button = event.target.closest(".teacher-review-learner");
+  if (!button) return;
+
+  const learnerId = button.dataset.learnerId;
+  if (!learnerId) return;
+
+  document
+    .querySelectorAll(".teacher-progress-selected")
+    .forEach(row => row.classList.remove("teacher-progress-selected"));
+
+  const row = document.querySelector(
+    `#teacher-progress-content [data-learner-id="${CSS.escape(learnerId)}"]`
+  );
+
+  if (!row) return;
+
+  row.classList.add("teacher-progress-selected");
+  row.scrollIntoView({
+    behavior: "smooth",
+    block: "center"
+  });
+
+  setTimeout(() => {
+    row.classList.remove("teacher-progress-selected");
+  }, 3000);
+});
+
+// teacher-review-learner-handler
+
+async function loadParentDashboard() {
+  const parentId =
+    localStorage.getItem("dream_education_parent_id");
+
+  if (!parentId) {
+    document.getElementById("parent-dashboard-info").textContent =
+      "Parent account is not linked to a parent profile yet.";
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `/api/product/parent/${encodeURIComponent(parentId)}/dashboard`,
+      {
+        headers: getDashboardAuthHeaders()
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || "Could not load parent dashboard.");
+    }
+
+    const parent = data.parent || {};
+    const analytics = data.analytics || {};
+    const children = Array.isArray(data.children) ? data.children : [];
+
+    document.getElementById("parent-dashboard-welcome").textContent =
+      `Welcome, ${parent.name || "Parent"}.`;
+
+    document.getElementById("parent-dashboard-info").textContent =
+      `${analytics.total_children || 0} children · ${analytics.total_assessments || 0} assessments · Average score ${analytics.average_score || 0}%`;
+
+    document.getElementById("parent-total-children").textContent =
+      analytics.total_children || 0;
+
+    document.getElementById("parent-total-assessments").textContent =
+      analytics.total_assessments || 0;
+
+    document.getElementById("parent-average-score").textContent =
+      `${analytics.average_score || 0}%`;
+
+    const childrenList =
+      document.getElementById("parent-children-list");
+
+    if (!children.length) {
+      childrenList.innerHTML =
+        "<p>Connect a learner to see their progress.</p>";
+    } else {
+      childrenList.innerHTML = children.map(child => `
+        <div class="dashboard-list-item">
+          <strong>${child.name || "Learner"}</strong>
+          <span>${child.level || ""}${child.grade ? ` · ${child.grade}` : ""}</span>
+        </div>
+      `).join("");
+    }
+
+    const insight =
+      document.getElementById("parent-insight-content");
+
+    if (!children.length) {
+      insight.innerHTML =
+        '<div class="intelligence-empty">Connect a learner to receive evidence-based learning insights.</div>';
+    } else {
+      insight.innerHTML = children.map(child => {
+        const assessments = Array.isArray(child.assessments)
+          ? child.assessments
+          : [];
+
+        const latest = assessments.length
+          ? [...assessments].sort(
+              (a, b) =>
+                new Date(b.recorded_at || 0) -
+                new Date(a.recorded_at || 0)
+            )[0]
+          : null;
+
+        const average = Number(child.progress?.average_score);
+        const state = child.learning_state || "Learning profile available";
+        const mastery = child.mastery_status || "";
+        const subject = child.active_subject || latest?.subject || "";
+        const topic = child.active_topic || latest?.topic || "";
+        const action = child.next_action || "Continue learning";
+        const actionButton = `
+          <button
+            type="button"
+            class="intelligence-action-btn parent-view-progress"
+            data-learner-id="${child.learner_id || ""}">
+            View progress
+          </button>
+        `;
+        
+
+        let signal = "Learning is being tracked.";
+
+        if (mastery === "needs_practice") {
+          signal = "More practice is currently recommended.";
+        } else if (latest?.understanding === "no_understanding") {
+          signal = "The latest assessment indicates more support is needed.";
+        } else if (latest?.understanding === "partial") {
+          signal = "The latest assessment shows partial understanding.";
+        } else if (Number.isFinite(average)) {
+          signal = `Current recorded average is ${average}%.`;
+        }
+
+        return `
+          <div class="intelligence-learner-item">
+            <div class="intelligence-learner-main">
+              <strong>${child.name || "Learner"}</strong>
+              <span>${[subject, topic].filter(Boolean).join(" · ") || "Current learning"}</span>
+            </div>
+            <div class="intelligence-learner-reason">${signal}</div>
+            <div class="intelligence-learner-action"><span>${action}</span>${actionButton}</div>
+          </div>
+          <div class="intelligence-child-state">
+            Learning state: <strong>${state}</strong>${mastery ? ` · Mastery: <strong>${mastery}</strong>` : ""}
+          </div>
+        `;
+      }).join("");
+    }
+
+    const progress =
+      document.getElementById("parent-progress-content");
+
+    if (!children.length) {
+      progress.innerHTML =
+        "<p>Select a child to view progress, history and improvement areas.</p>";
+    } else {
+      progress.innerHTML = children.map(child => `
+        <div class="dashboard-list-item" data-learner-id="${child.learner_id || ""}">
+          <strong>${child.name || "Learner"}</strong>
+          <span>Learning profile available</span>
+        </div>
+      `).join("");
+    }
+  } catch (error) {
+    console.error("Parent dashboard load error:", error);
+
+    document.getElementById("parent-dashboard-info").textContent =
+      "Unable to load parent dashboard data.";
+  }
+}
+
+
+async function loadConnectionsDashboard(role) {
+  const content = document.getElementById(
+    `${role}-connections-content`
+  );
+
+  if (!content) return;
+
+  try {
+    const response = await fetch(
+      "/api/product/connections",
+      {
+        headers: getDashboardAuthHeaders()
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(
+        data.error || "Could not load connections."
+      );
+    }
+
+    const connections = Array.isArray(data.connections)
+      ? data.connections
+      : [];
+
+    if (!connections.length) {
+      content.innerHTML =
+        '<div class="connection-empty">No connections found.</div>';
+      return;
+    }
+
+    content.innerHTML = connections.map(connection => {
+      const isDestination =
+        connection.to_role === role;
+
+      const otherRole =
+        connection.from_role === role
+          ? connection.to_role
+          : connection.from_role;
+
+      const otherId =
+        connection.from_role === role
+          ? connection.to_id
+          : connection.from_id;
+
+      const status =
+        String(connection.status || "unknown")
+          .replace(/_/g, " ");
+
+      let actions = "";
+
+      if (isDestination && connection.status === "pending") {
+        actions = `
+          <div class="connection-actions">
+            <button
+              type="button"
+              class="connection-action-btn connection-approve-btn"
+              data-connection-id="${connection.connection_id}">
+              Approve
+            </button>
+            <button
+              type="button"
+              class="connection-action-btn connection-reject-btn"
+              data-connection-id="${connection.connection_id}">
+              Reject
+            </button>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="connection-item">
+          <div class="connection-main">
+            <strong>${otherRole}</strong>
+            <span>${otherId}</span>
+          </div>
+          <div>
+            <div class="connection-status">${status}</div>
+            ${actions}
+          </div>
+        </div>
+      `;
+    }).join("");
+  } catch (error) {
+    console.error(
+      `${role} connections load error:`,
+      error
+    );
+
+    content.innerHTML =
+      '<div class="connection-empty">Unable to load connections.</div>';
+  }
+}
+
+
+// Connection approval / rejection actions.
+document.addEventListener(
+  "click",
+  async function connectionActionHandler(event) {
+    const approveButton =
+      event.target.closest(".connection-approve-btn");
+
+    const rejectButton =
+      event.target.closest(".connection-reject-btn");
+
+    if (!approveButton && !rejectButton) return;
+
+    const button = approveButton || rejectButton;
+    const connectionId = button.dataset.connectionId;
+
+    if (!connectionId) return;
+
+    const status = approveButton
+      ? "active"
+      : "rejected";
+
+    button.disabled = true;
+
+    try {
+      const response = await fetch(
+        `/api/product/connections/${encodeURIComponent(connectionId)}/status`,
+        {
+          method: "POST",
+          headers: {
+            ...getDashboardAuthHeaders(),
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ status })
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(
+          data.error || "Connection update failed."
+        );
+      }
+
+      const role =
+        localStorage.getItem("dream_education_role");
+
+      if (role === "teacher" || role === "parent" || role === "learner") {
+        await loadConnectionsDashboard(role);
+      }
+    } catch (error) {
+      console.error(
+        "Connection action error:",
+        error
+      );
+
+      button.disabled = false;
+      alert(
+        error.message ||
+        "Unable to update the connection."
+      );
+    }
+  }
+);
+
+// Parent child progress action: targets the existing parent progress row.
+document.addEventListener("click", function parentViewProgressHandler(event) {
+  const button = event.target.closest(".parent-view-progress");
+  if (!button) return;
+
+  const learnerId = button.dataset.learnerId;
+  if (!learnerId) return;
+
+  document
+    .querySelectorAll(".parent-progress-selected")
+    .forEach(row => row.classList.remove("parent-progress-selected"));
+
+  const row = document.querySelector(
+    `#parent-progress-content [data-learner-id="${CSS.escape(learnerId)}"]`
+  );
+
+  if (!row) return;
+
+  row.classList.add("parent-progress-selected");
+  row.scrollIntoView({
+    behavior: "smooth",
+    block: "center"
+  });
+
+  setTimeout(() => {
+    row.classList.remove("parent-progress-selected");
+  }, 3000);
+});
+
+// parent-view-progress-handler
+
+async function loadSchoolDashboard() {
+  const schoolId =
+    localStorage.getItem("dream_education_school_id");
+
+  if (!schoolId) {
+    document.getElementById("school-dashboard-info").textContent =
+      "School account is not linked to a school profile yet.";
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `/api/product/school/${encodeURIComponent(schoolId)}/dashboard`,
+      {
+        headers: getDashboardAuthHeaders()
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || "Could not load school dashboard.");
+    }
+
+    const school = data.school || {};
+    const analytics = data.analytics || {};
+
+    document.getElementById("school-dashboard-welcome").textContent =
+      `Welcome, ${school.name || "School"}.`;
+
+    document.getElementById("school-dashboard-info").textContent =
+      `${analytics.total_learners || 0} learners · ${analytics.total_teachers || 0} teachers · ${analytics.total_classes || 0} classes · Average score ${analytics.average_score || 0}%`;
+
+    document.getElementById("school-total-learners").textContent =
+      analytics.total_learners || 0;
+
+    document.getElementById("school-total-classes").textContent =
+      analytics.total_classes || 0;
+
+    document.getElementById("school-total-teachers").textContent =
+      analytics.total_teachers || 0;
+
+    const progress =
+      document.getElementById("school-progress-content");
+
+    progress.innerHTML = `
+      <p>
+        ${analytics.total_assessments || 0} assessments recorded
+        across the school, with an average score of
+        ${analytics.average_score || 0}%.
+      </p>
+    `;
+  } catch (error) {
+    console.error("School dashboard load error:", error);
+
+    document.getElementById("school-dashboard-info").textContent =
+      "Unable to load school dashboard data.";
+  }
+}
+
+
+function showRoleDashboard(role) {
+  document.getElementById("dream-landing-hero")?.classList.add("hidden");
+
+  document.getElementById("learner-dashboard")?.classList.add("hidden");
+  document.getElementById("teacher-dashboard")?.classList.add("hidden");
+  document.getElementById("parent-dashboard")?.classList.add("hidden");
+  document.getElementById("school-dashboard")?.classList.add("hidden");
+  document.getElementById("meeting-dashboard")?.classList.add("hidden");
+
+  if (role === "teacher") {
+    document.getElementById("teacher-dashboard")?.classList.remove("hidden");
+    document.getElementById("teacher-dashboard-welcome").textContent =
+      "Welcome.";
+    loadTeacherDashboard();
+    loadConnectionsDashboard("teacher");
+    return;
+  }
+
+  if (role === "parent") {
+    document.getElementById("parent-dashboard")?.classList.remove("hidden");
+    document.getElementById("parent-dashboard-welcome").textContent =
+      "Welcome.";
+    loadParentDashboard();
+    loadConnectionsDashboard("parent");
+    return;
+  }
+
+  if (role === "school") {
+    document.getElementById("school-dashboard")?.classList.remove("hidden");
+    document.getElementById("school-dashboard-welcome").textContent =
+      "Welcome.";
+    loadSchoolDashboard();
+    return;
+  }
+
+  if (role === "meeting") {
+    document.getElementById("meeting-dashboard")?.classList.remove("hidden");
+    return;
+  }
+
+  document.getElementById("learner-dashboard")?.classList.remove("hidden");
+  loadLearnerDashboard();
+  loadConnectionsDashboard("learner");
+}
+
+/* FINAL INTEGRATED CHAT: old standalone chat click handler disabled.
+*/
+
+
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+const learnerDashboard = document.getElementById("learner-dashboard");
+  const dashboardWelcome = document.getElementById("dashboard-welcome");
+  const dashboardEducation = document.getElementById("dashboard-education");
+  const dashboardSchool = document.getElementById("dashboard-school");
+  const dashboardTopic = document.getElementById("dashboard-topic");
+  const dashboardState = document.getElementById("dashboard-state");
+  const dashboardTopics = document.getElementById("dashboard-topics");
+  const dashboardMastery = document.getElementById("dashboard-mastery");
+  const dashboardAverage = document.getElementById("dashboard-average");
+  const dashboardContinueBtn = document.getElementById("dashboard-continue-btn");
+  const dashboardSubjectsBtn = document.getElementById("dashboard-subjects-btn");
+  const dashboardCodeBtn = document.getElementById("dashboard-code-btn");
+  const dashboardSubjectsPanel = document.getElementById("dashboard-subjects-panel");
+
+  let learnerDashboardData = null;
+
+  dashboardCodeBtn?.addEventListener("click", function () {
+    window.location.href = "/code-generator/";
+  });
+
+async function loadLearnerDashboard() {
+    try {
+      const accessToken =
+        localStorage.getItem("dream_education_access_token");
+
+      const res = await fetch(
+        "/api/product/learner/" + encodeURIComponent(learnerId) + "/dashboard",
+        {
+          headers: accessToken
+            ? {
+                "Authorization": "Bearer " + accessToken
+              }
+            : {}
+        }
+      );
+
+      const data = await res.json();
+
+      if (!data.success) {
+        throw new Error(data.message || "Could not load dashboard.");
+      }
+
+      learnerDashboardData = data;
+
+    const learner = data.learner || {};
+      const learning = data.learning || {};
+      const progress = learning.progress || {};
+      const schools = data.education?.schools || [];
+
+      dashboardWelcome.textContent =
+        "Welcome back, " + (learner.name || "Learner") + ".";
+
+      dashboardEducation.textContent =
+      [learner.level, learner.grade]
+        .filter(Boolean)
+        .join(" · ");
+
+    dashboardSchool.textContent =
+        schools.length ? schools[0].name : "";
+
+      dashboardTopic.textContent =
+        learning.active_topic || data.next?.topic || "Start learning";
+
+      dashboardState.textContent =
+        learning.learning_state
+          ? "Learning state: " + learning.learning_state
+          : "Ready for your next learning step.";
+
+      dashboardTopics.textContent =
+        progress.topics_started ?? 0;
+
+      dashboardMastery.textContent =
+        learning.mastery_status || "—";
+
+      dashboardAverage.textContent =
+        Math.round(progress.average_score || 0) + "%";
+
+    } catch (error) {
+      dashboardWelcome.textContent = "Welcome back.";
+      dashboardState.textContent =
+        "We couldn't load your latest progress.";
+      console.error("Dashboard error:", error);
+    }
+  }
+
+  const dashboardHistoryBtn =
+    document.getElementById("dashboard-history-btn");
+  const dashboardProgressBtn =
+    document.getElementById("dashboard-progress-btn");
+  const dashboardHistoryPanel =
+    document.getElementById("dashboard-history-panel");
+  const dashboardProgressPanel =
+    document.getElementById("dashboard-progress-panel");
+  const dashboardHistoryContent =
+    document.getElementById("dashboard-history-content");
+  const dashboardProgressContent =
+    document.getElementById("dashboard-progress-content");
+
+  function hideDashboardPanels() {
+  dashboardSubjectsPanel.classList.add("hidden");
+  document.getElementById("dashboard-topics-panel")?.classList.add("hidden");
+  document.getElementById("dashboard-concepts-panel")?.classList.add("hidden");
+  dashboardHistoryPanel?.classList.add("hidden");
+  dashboardProgressPanel?.classList.add("hidden");
+}
+
+dashboardSubjectsBtn.addEventListener("click", function () {
+  hideDashboardPanels();
+
+  dashboardSubjectsPanel.classList.remove("hidden");
+  dashboardSubjectsPanel.scrollIntoView({
+    behavior: "smooth",
+    block: "center"
+  });
+});
+
+dashboardHistoryBtn?.addEventListener("click", function () {
+    const data = learnerDashboardData || {};
+    const results = data.results || {};
+    const recent = Array.isArray(results.recent)
+      ? results.recent
+      : [];
+
+    hideDashboardPanels();
+
+    if (!recent.length) {
+      dashboardHistoryContent.innerHTML =
+        "<p>You haven't completed any learning activities yet.</p>";
+    } else {
+      dashboardHistoryContent.innerHTML = recent
+        .slice()
+        .reverse()
+        .map(function (result) {
+          const topic =
+            result.topic ||
+            result.subject ||
+            "Learning activity";
+
+          const score =
+            Number.isFinite(Number(result.score))
+              ? Math.round(Number(result.score)) + "%"
+              : "Score not recorded";
+
+          const date = result.created_at
+            ? new Date(result.created_at).toLocaleString()
+            : "";
+
+          return (
+            '<div class="dashboard-history-item">' +
+            "<strong>" + topic + "</strong>" +
+            "<span>" + score + "</span>" +
+            (date ? "<small>" + date + "</small>" : "") +
+            "</div>"
+          );
+        })
+        .join("");
+    }
+
+    dashboardHistoryPanel.classList.remove("hidden");
+    dashboardHistoryPanel.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
+  });
+
+  dashboardProgressBtn?.addEventListener("click", function () {
+    const data = learnerDashboardData || {};
+    const results = data.results || {};
+    const learning = data.learning || {};
+    const bySubject = results.by_subject || {};
+    const byTopic = results.by_topic || {};
+
+    hideDashboardPanels();
+
+    let html =
+      '<div class="dashboard-progress-summary">' +
+      "<p><strong>Average score:</strong> " +
+      (Number.isFinite(Number(results.average_score))
+        ? Math.round(Number(results.average_score)) + "%"
+        : "0%") +
+      "</p>" +
+      "<p><strong>Mastery:</strong> " +
+      (learning.mastery_status || "Not started") +
+      "</p>" +
+      "<p><strong>Learning state:</strong> " +
+      (learning.learning_state || "Ready") +
+      "</p>" +
+      "</div>";
+
+    const subjectNames = Object.keys(bySubject);
+
+    if (subjectNames.length) {
+      html += "<h3>By subject</h3><ul>";
+
+      subjectNames.forEach(function (subject) {
+        const item = bySubject[subject] || {};
+        const average =
+          Number.isFinite(Number(item.average_score))
+            ? Math.round(Number(item.average_score)) + "%"
+            : "—";
+
+        html +=
+          "<li><strong>" +
+          subject +
+          "</strong>: " +
+          average +
+          "</li>";
+      });
+
+      html += "</ul>";
+    }
+
+    const topicNames = Object.keys(byTopic);
+
+    if (topicNames.length) {
+      html += "<h3>By topic</h3><ul>";
+
+      topicNames.forEach(function (topic) {
+        const item = byTopic[topic] || {};
+        const average =
+          Number.isFinite(Number(item.average_score))
+            ? Math.round(Number(item.average_score)) + "%"
+            : "—";
+
+        html +=
+          "<li><strong>" +
+          topic +
+          "</strong>: " +
+          average +
+          "</li>";
+      });
+
+      html += "</ul>";
+    }
+
+    if (!subjectNames.length && !topicNames.length) {
+      html +=
+        "<p>Your detailed progress will appear here as you learn.</p>";
+    }
+
+    dashboardProgressContent.innerHTML = html;
+
+    dashboardProgressPanel.classList.remove("hidden");
+    dashboardProgressPanel.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
+  });
+
+  document.querySelectorAll("[data-dashboard-subject]").forEach(function (button) {
+  button.addEventListener("click", async function () {
+    const selectedSubject = button.dataset.dashboardSubject;
+
+    const learningSubject = document.getElementById("learn-subject");
+    const learningTopic = document.getElementById("learn-topic");
+    const learningQuestion = document.getElementById("learn-question");
+
+    const topicsPanel = document.getElementById("dashboard-topics-panel");
+    const topicsTitle = document.getElementById("dashboard-topics-title");
+    const topicList = document.getElementById("dashboard-topic-list");
+
+    if (learningSubject) learningSubject.value = selectedSubject;
+    if (learningTopic) learningTopic.value = "";
+    if (learningQuestion) learningQuestion.value = "";
+
+    topicsTitle.textContent = selectedSubject + " topics";
+    topicList.innerHTML = "<p>Loading topics...</p>";
+
+    dashboardSubjectsPanel.classList.add("hidden");
+    topicsPanel.classList.remove("hidden");
+
+    try {
+      const currentLevel =
+        learnerDashboardData?.learner?.level ||
+        "Junior Secondary";
+
+      const response = await fetch(
+        "/api/product/curriculum/topics?subject=" +
+        encodeURIComponent(selectedSubject) +
+        "&level=" +
+        encodeURIComponent(currentLevel)
+      );
+
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.error || "Could not load topics.");
+      }
+
+      const topics = [];
+
+      (data.strands || []).forEach(function (strand) {
+        (strand.topics || []).forEach(function (topicName) {
+          topics.push({
+            strand: strand.strand,
+            topic: topicName
+          });
+        });
+      });
+
+      if (!topics.length) {
+        topicList.innerHTML = "<p>No topics are available for this level yet.</p>";
+        return;
+      }
+
+      topicList.innerHTML = topics.map(function (item) {
+        return (
+          '<button type="button" class="dashboard-topic-option" ' +
+          'data-dashboard-topic="' + item.topic.replace(/"/g, "&quot;") + '">' +
+          '<strong>' + item.topic + '</strong>' +
+          '<span>' + item.strand + '</span>' +
+          '</button>'
+        );
+      }).join("");
+
+      topicList.querySelectorAll("[data-dashboard-topic]").forEach(function (topicButton) {
+        topicButton.addEventListener("click", async function () {
+          const selectedTopic = topicButton.dataset.dashboardTopic;
+
+          const conceptsPanel =
+            document.getElementById("dashboard-concepts-panel");
+          const conceptsTitle =
+            document.getElementById("dashboard-concepts-title");
+          const conceptList =
+            document.getElementById("dashboard-concept-list");
+
+          if (learningTopic) learningTopic.value = selectedTopic;
+          if (learningQuestion) learningQuestion.value = "";
+
+          conceptsTitle.textContent = selectedTopic + " concepts";
+          conceptList.innerHTML = "<p>Loading concepts...</p>";
+
+          topicsPanel.classList.add("hidden");
+          conceptsPanel.classList.remove("hidden");
+
+          try {
+            const currentLevel =
+              learnerDashboardData?.learner?.level ||
+              "Junior Secondary";
+
+            const selectedSubject =
+              document.getElementById("learn-subject")?.value ||
+              "";
+
+            const response = await fetch(
+              "/api/product/curriculum/concepts?subject=" +
+              encodeURIComponent(selectedSubject) +
+              "&level=" +
+              encodeURIComponent(currentLevel) +
+              "&topic=" +
+              encodeURIComponent(selectedTopic)
+            );
+
+            const data = await response.json();
+
+            if (!data.success) {
+              throw new Error(data.error || "Could not load concepts.");
+            }
+
+            const concepts = data.concepts || [];
+
+            if (!concepts.length) {
+              conceptList.innerHTML =
+                "<p>No concepts are available for this topic yet.</p>";
+              return;
+            }
+
+            conceptList.innerHTML = concepts.map(function (concept) {
+              return (
+                '<button type="button" class="dashboard-concept-option" ' +
+                'data-dashboard-concept="' +
+                concept.name.replace(/"/g, "&quot;") +
+                '">' +
+                '<strong>' + concept.name + '</strong>' +
+                '<span class="concept-definition">' +
+                (concept.definition || "Explore this concept.") +
+                '</span>' +
+                '</button>'
+              );
+            }).join("");
+
+            conceptList
+              .querySelectorAll("[data-dashboard-concept]")
+              .forEach(function (conceptButton) {
+                conceptButton.addEventListener("click", async function () {
+                  const selectedConcept =
+                    conceptButton.dataset.dashboardConcept;
+
+                  const learningSubject =
+                    document.getElementById("learn-subject");
+                  const learningTopic =
+                    document.getElementById("learn-topic");
+                  const learningQuestion =
+                    document.getElementById("learn-question");
+                  const conceptContext =
+  document.getElementById("selected-concept-context");
+
+const conceptName =
+  document.getElementById("selected-concept-name");
+
+if (conceptName) {
+  conceptName.textContent = selectedConcept;
+}
+
+if (conceptContext) {
+  conceptContext.classList.remove("hidden");
+}
+
+if (learningSubject) {
+                    learningSubject.value = selectedSubject;
+                  }
+
+                  if (learningTopic) {
+                    learningTopic.value = selectedTopic;
+                  }
+
+                  if (learningQuestion) {
+                    learningQuestion.value =
+                      "Teach me about " + selectedConcept + ".";
+                  }
+
+                  conceptsPanel.classList.add("hidden");
+
+                  const learningPanel =
+                    document.querySelector(".live-learning-panel");
+
+                  if (learningPanel) {
+                    learningPanel.classList.remove("hidden");
+                    learningPanel.scrollIntoView({
+                      behavior: "smooth",
+                      block: "start"
+                    });
+                  }
+                });
+              });
+
+            conceptsPanel.scrollIntoView({
+              behavior: "smooth",
+              block: "center"
+            });
+
+          } catch (error) {
+            conceptList.innerHTML =
+              "<p>We couldn't load the concepts: " +
+              error.message +
+              "</p>";
+
+            console.error("Curriculum concept error:", error);
+          }
+        });
+      });
+
+      topicsPanel.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+
+    } catch (error) {
+      topicList.innerHTML =
+        "<p>We couldn't load the topics: " + error.message + "</p>";
+      console.error("Curriculum topic error:", error);
+    }
+  });
+});
+
+dashboardContinueBtn.addEventListener("click", function () {
+    const learningPanel =
+      document.querySelector(".live-learning-panel");
+
+    if (learningPanel) {
+      document
+        .getElementById("learner-dashboard")
+        ?.classList.add("learning-mode");
+
+      learningPanel.classList.remove("hidden");
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+    }
+  });
+
+</script>
+
+
+
+<script src="https://meet.jit.si/external_api.js"></script>
+
+<script>
+(function () {
+  "use strict";
+
+  const createMeetingBtn =
+    document.getElementById("create-meeting-btn");
+
+  const joinMeetingBtn =
+    document.getElementById("join-meeting-btn");
+
+  const meetingRoomBox =
+    document.getElementById("meeting-room-box");
+
+  const meetingRoomTitle =
+    document.getElementById("meeting-room-title");
+
+  const jitsiMeeting =
+    document.getElementById("jitsi-meeting");
+
+  let jitsiApi = null;
+
+  function openMeeting(roomName) {
+    if (!roomName) return;
+
+    meetingRoomBox.classList.remove("hidden");
+    meetingRoomTitle.textContent =
+      "Meeting Room: " + roomName;
+
+    jitsiMeeting.innerHTML = "";
+
+    if (jitsiApi) {
+      try {
+        jitsiApi.dispose();
+      } catch (error) {
+        console.warn("Previous meeting cleanup:", error);
+      }
+      jitsiApi = null;
+    }
+
+    jitsiApi = new JitsiMeetExternalAPI("meet.jit.si", {
+      roomName: roomName,
+      parentNode: jitsiMeeting,
+      width: "100%",
+      height: 650,
+      userInfo: {
+        displayName:
+          localStorage.getItem("dream_chat_display_name") ||
+          "Dream Education User"
+      }
+    });
+  }
+
+  createMeetingBtn?.addEventListener("click", function () {
+    const roomName =
+      "DreamEducation-" +
+      crypto.randomUUID();
+
+    openMeeting(roomName);
+  });
+
+  joinMeetingBtn?.addEventListener("click", function () {
+    const roomName = prompt(
+      "Enter the Dream Education meeting room name:"
+    );
+
+    if (!roomName) return;
+
+    openMeeting(roomName.trim());
+  });
+})();
+</script>
+
+
+<script>
+/* ============================================================
+   DREAM EDUCATION — FINAL INTEGRATED CHAT
+   Chat belongs inside authenticated role dashboards.
+   No separate chat identity. No separate chat dashboard.
+   Sender identity always comes from authentication.
+   ============================================================ */
+(function () {
+  "use strict";
+
+  const CHAT_STYLE_ID = "dream-integrated-chat-style";
+  const CHAT_PANEL_ID = "dream-integrated-chat";
+
+  let chatState = {
+    recipient: null,
+    conversationId: "",
+    key: null,
+    polling: null
+  };
+
+  function chatToken() {
+    return localStorage.getItem("dream_education_access_token") || "";
+  }
+
+  function chatHeaders(extra) {
+    const token = chatToken();
+    return Object.assign(
+      { Authorization: "Bearer " + token },
+      extra || {}
+    );
+  }
+
+  function escapeChat(value) {
+    return String(value == null ? "" : value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function conversationIdFor(a, b) {
+    return [String(a), String(b)].sort().join("__");
+  }
+
+  function bytesToBase64(bytes) {
+    let binary = "";
+    const chunk = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunk) {
+      binary += String.fromCharCode.apply(
+        null,
+        bytes.subarray(i, Math.min(i + chunk, bytes.length))
+      );
+    }
+    return btoa(binary);
+  }
+
+  function base64ToBytes(value) {
+    const binary = atob(value);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes;
+  }
+
+  async function getChatKey(conversationId) {
+    const storageKey = "dream_chat_key_" + conversationId;
+    const stored = localStorage.getItem(storageKey);
+
+    if (stored) {
+      return crypto.subtle.importKey(
+        "jwk",
+        JSON.parse(stored),
+        { name: "AES-GCM" },
+        false,
+        ["encrypt", "decrypt"]
+      );
+    }
+
+    const key = await crypto.subtle.generateKey(
+      { name: "AES-GCM", length: 256 },
+      true,
+      ["encrypt", "decrypt"]
+    );
+
+    const jwk = await crypto.subtle.exportKey("jwk", key);
+    localStorage.setItem(storageKey, JSON.stringify(jwk));
+    return key;
+  }
+
+  async function encryptChatMessage(text, key) {
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const encoded = new TextEncoder().encode(text);
+
+    const ciphertext = await crypto.subtle.encrypt(
+      { name: "AES-GCM", iv: iv },
+      key,
+      encoded
+    );
+
+    return {
+      ciphertext: bytesToBase64(new Uint8Array(ciphertext)),
+      iv: bytesToBase64(iv)
+    };
+  }
+
+  async function decryptChatMessage(ciphertext, iv, key) {
+    const plain = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: base64ToBytes(iv) },
+      key,
+      base64ToBytes(ciphertext)
+    );
+
+    return new TextDecoder().decode(plain);
+  }
+
+  function activeRoleDashboard() {
+    const role =
+      String(window.selectedRole || localStorage.getItem("dream_education_role") || "")
+        .trim()
+        .toLowerCase();
+
+    const dashboardIds = {
+      learner: "learner-dashboard",
+      teacher: "teacher-dashboard",
+      parent: "parent-dashboard",
+      school: "school-dashboard"
+    };
+
+    const id = dashboardIds[role];
+    if (id) {
+      const dashboard = document.getElementById(id);
+      if (dashboard && !dashboard.classList.contains("hidden")) {
+        return dashboard;
+      }
+    }
+
+    const authenticatedCandidates = [
+      "learner-dashboard",
+      "teacher-dashboard",
+      "parent-dashboard",
+      "school-dashboard"
+    ];
+
+    return authenticatedCandidates
+      .map(id => document.getElementById(id))
+      .find(node => node && !node.classList.contains("hidden")) || null;
+  }
+
+  function installChatStyles() {
+    if (document.getElementById(CHAT_STYLE_ID)) return;
+
+    const style = document.createElement("style");
+    style.id = CHAT_STYLE_ID;
+    style.textContent = `
+      #${CHAT_PANEL_ID} {
+        margin: 0 0 14px 0;
+        width: auto;
+        max-width: max-content;
+        display: block;
+        grid-column: auto;
+        align-self: flex-start;
+      }
+
+      #${CHAT_PANEL_ID} .de-chat-dashboard-button {
+        width: auto;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 9px 13px;
+        border: 1px solid rgba(255,255,255,.12);
+        border-radius: 18px;
+        background: rgba(15,23,42,.82);
+        color: inherit;
+        cursor: pointer;
+        text-align: left;
+        box-sizing: border-box;
+      }
+
+      #${CHAT_PANEL_ID} .de-chat-dashboard-icon {
+        font-size: 19px;
+        flex: 0 0 auto;
+      }
+
+      #${CHAT_PANEL_ID} .de-chat-dashboard-text {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        flex: 1;
+      }
+
+      #${CHAT_PANEL_ID} .de-chat-dashboard-text strong {
+        font-size: 14px;
+      }
+
+      #${CHAT_PANEL_ID} .de-chat-dashboard-text small {
+        font-size: 11px;
+        opacity: .72;
+      }
+
+      #${CHAT_PANEL_ID} .de-chat-dashboard-arrow {
+        font-size: 13px;
+        opacity: .8;
+        white-space: nowrap;
+      }
+
+      #${CHAT_PANEL_ID} .de-chat-expanded {
+        margin-top: 14px;
+      }
+
+      #${CHAT_PANEL_ID} .de-chat-header-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      #${CHAT_PANEL_ID} .de-chat-close {
+        border: 0;
+        border-radius: 10px;
+        padding: 8px 12px;
+        cursor: pointer;
+      }
+
+      #${CHAT_PANEL_ID} {
+        margin-top: 24px;
+        width: 100%;
+        max-width: 100%;
+        grid-column: 1 / -1;
+        align-self: stretch;
+        border: 1px solid rgba(255,255,255,.12);
+        border-radius: 22px;
+        padding: 22px;
+        background: rgba(15,23,42,.82);
+        color: inherit;
+        box-sizing: border-box;
+      }
+
+      #${CHAT_PANEL_ID} .de-chat-header {
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        gap:16px;
+        margin-bottom:18px;
+      }
+
+      #${CHAT_PANEL_ID} .de-chat-title {
+        margin:0;
+        font-size:1.25rem;
+      }
+
+      #${CHAT_PANEL_ID} .de-chat-subtitle {
+        margin:6px 0 0;
+        opacity:.72;
+        font-size:.9rem;
+      }
+
+      #${CHAT_PANEL_ID} .de-chat-layout {
+        display:grid;
+        grid-template-columns:280px minmax(0,1fr);
+        gap:16px;
+      }
+
+      #${CHAT_PANEL_ID} .de-chat-connections,
+      #${CHAT_PANEL_ID} .de-chat-conversation {
+        border:1px solid rgba(255,255,255,.1);
+        border-radius:16px;
+        padding:14px;
+        min-width:0;
+      }
+
+      #${CHAT_PANEL_ID} .de-chat-person {
+        width:100%;
+        text-align:left;
+        border:1px solid rgba(255,255,255,.1);
+        border-radius:13px;
+        padding:12px;
+        margin-bottom:9px;
+        background:rgba(255,255,255,.035);
+        color:inherit;
+        cursor:pointer;
+      }
+
+      #${CHAT_PANEL_ID} .de-chat-person.active {
+        border-color:rgba(96,165,250,.7);
+        background:rgba(59,130,246,.12);
+      }
+
+      #${CHAT_PANEL_ID} .de-chat-person strong,
+      #${CHAT_PANEL_ID} .de-chat-person span {
+        display:block;
+      }
+
+      #${CHAT_PANEL_ID} .de-chat-person span {
+        margin-top:3px;
+        opacity:.65;
+        font-size:.8rem;
+      }
+
+      #${CHAT_PANEL_ID} .de-chat-messages {
+        height:330px;
+        overflow-y:auto;
+        padding:10px;
+        border-radius:12px;
+        background:rgba(0,0,0,.12);
+      }
+
+      #${CHAT_PANEL_ID} .de-chat-message {
+        max-width:78%;
+        padding:10px 12px;
+        margin:7px 0;
+        border-radius:13px;
+        background:rgba(255,255,255,.08);
+        word-break:break-word;
+      }
+
+      #${CHAT_PANEL_ID} .de-chat-message.mine {
+        margin-left:auto;
+        background:rgba(59,130,246,.2);
+      }
+
+      #${CHAT_PANEL_ID} .de-chat-compose {
+        display:flex;
+        gap:8px;
+        margin-top:10px;
+      }
+
+      #${CHAT_PANEL_ID} .de-chat-compose input {
+        flex:1;
+        min-width:0;
+        border-radius:12px;
+        border:1px solid rgba(255,255,255,.14);
+        padding:11px 12px;
+        background:rgba(0,0,0,.16);
+        color:inherit;
+      }
+
+      #${CHAT_PANEL_ID} .de-chat-compose button,
+      #${CHAT_PANEL_ID} .de-chat-refresh {
+        border:0;
+        border-radius:12px;
+        padding:10px 14px;
+        cursor:pointer;
+      }
+
+      #${CHAT_PANEL_ID} .de-chat-empty {
+        opacity:.65;
+        padding:18px 8px;
+        text-align:center;
+      }
+
+      @media(max-width:760px) {
+        #${CHAT_PANEL_ID} .de-chat-layout {
+          grid-template-columns:1fr;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function chatPanelHTML() {
+    return `
+      <section id="${CHAT_PANEL_ID}" class="de-chat-compact">
+
+        <button type="button" id="de-chat-open" class="de-chat-dashboard-button">
+          <span class="de-chat-dashboard-icon">💬</span>
+          <span class="de-chat-dashboard-text">
+            <strong>Chat</strong>
+            <small>Message your active connections</small>
+          </span>
+          <span class="de-chat-dashboard-arrow">Open →</span>
+        </button>
+
+        <div id="de-chat-expanded" class="de-chat-expanded hidden">
+
+          <div class="de-chat-header">
+            <div>
+              <h2 class="de-chat-title">Private Chat</h2>
+              <p class="de-chat-subtitle">
+                Chat with your active Dream Education connections.
+                Your signed-in account is automatically the sender.
+              </p>
+            </div>
+
+            <div class="de-chat-header-actions">
+              <button type="button" class="de-chat-refresh" id="de-chat-refresh">
+                Refresh
+              </button>
+              <button type="button" id="de-chat-close" class="de-chat-close">
+                Close
+              </button>
+            </div>
+          </div>
+
+          <div class="de-chat-layout">
+
+            <div class="de-chat-connections">
+              <strong>Active connections</strong>
+              <div id="de-chat-people">
+                <div class="de-chat-empty">
+                  Loading active connections...
+                </div>
+              </div>
+            </div>
+
+            <div class="de-chat-conversation">
+              <strong id="de-chat-recipient">
+                Select a connection
+              </strong>
+
+              <div id="de-chat-messages" class="de-chat-messages">
+                <div class="de-chat-empty">
+                  Tap a connected person to start a private conversation.
+                </div>
+              </div>
+
+              <div class="de-chat-compose">
+                <input
+                  id="de-chat-input"
+                  type="text"
+                  placeholder="Write a message..."
+                  disabled
+                >
+                <button id="de-chat-send" type="button" disabled>
+                  Send
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </section>
+    `;
+  }
+
+  function installChatPanel() {
+    const dashboard = activeRoleDashboard();
+    if (!dashboard) return false;
+
+    installChatStyles();
+
+    let panel = document.getElementById(CHAT_PANEL_ID);
+
+    if (!panel) {
+      const wrapper = document.createElement("div");
+      wrapper.innerHTML = chatPanelHTML();
+      panel = wrapper.firstElementChild;
+    }
+
+    const chatContainer =
+      dashboard.querySelector(".learner-dashboard-card") || dashboard;
+
+    if (panel.parentElement !== chatContainer) {
+      chatContainer.insertBefore(panel, chatContainer.firstElementChild);
+    }
+
+    const openChatButton =
+      document.getElementById("de-chat-open");
+
+    const closeChatButton =
+      document.getElementById("de-chat-close");
+
+    const expandedChat =
+      document.getElementById("de-chat-expanded");
+
+    openChatButton?.addEventListener("click", function () {
+      expandedChat?.classList.remove("hidden");
+      openChatButton.classList.add("hidden");
+      loadChatConnections();
+    });
+
+    closeChatButton?.addEventListener("click", function () {
+      expandedChat?.classList.add("hidden");
+      openChatButton?.classList.remove("hidden");
+    });
+
+    document
+      .getElementById("de-chat-refresh")
+      ?.addEventListener("click", loadChatConnections);
+
+    document
+      .getElementById("de-chat-send")
+      ?.addEventListener("click", sendChatMessage);
+
+    document
+      .getElementById("de-chat-input")
+      ?.addEventListener("keydown", event => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          sendChatMessage();
+        }
+      });
+
+    return true;
+  }
+
+  async function loadChatConnections() {
+    const peopleBox = document.getElementById("de-chat-people");
+    if (!peopleBox) return;
+
+    const token = chatToken();
+
+    if (!token) {
+      peopleBox.innerHTML =
+        '<div class="de-chat-empty">Please sign in to use Chat.</div>';
+      return;
+    }
+
+    peopleBox.innerHTML =
+      '<div class="de-chat-empty">Loading active connections...</div>';
+
+    try {
+      const response = await fetch("/api/chat/users", {
+        headers: chatHeaders()
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "Could not load connections.");
+      }
+
+      const users = Array.isArray(data.users) ? data.users : [];
+
+      if (!users.length) {
+        peopleBox.innerHTML =
+          '<div class="de-chat-empty">No active connections yet.</div>';
+        return;
+      }
+
+      peopleBox.innerHTML = users.map(user => `
+        <button
+          type="button"
+          class="de-chat-person"
+          data-chat-user-id="${escapeChat(user.user_id)}"
+          data-chat-user-role="${escapeChat(user.role || "")}"
+        >
+          <strong>${escapeChat(user.display_name || user.user_id)}</strong>
+          <span>${escapeChat(user.role || "Connected account")}</span>
+        </button>
+      `).join("");
+
+      peopleBox.querySelectorAll(".de-chat-person").forEach(button => {
+        button.addEventListener("click", () => {
+          const user = {
+            user_id: button.dataset.chatUserId,
+            role: button.dataset.chatUserRole,
+            display_name: button.querySelector("strong")?.textContent || "Connection"
+          };
+
+          selectChatRecipient(user);
+        });
+      });
+
+      if (
+        chatState.recipient &&
+        users.some(user => user.user_id === chatState.recipient.user_id)
+      ) {
+        const current = users.find(
+          user => user.user_id === chatState.recipient.user_id
+        );
+        if (current) selectChatRecipient(current, false);
+      }
+
+    } catch (error) {
+      console.error("Integrated chat connection error:", error);
+      peopleBox.innerHTML =
+        '<div class="de-chat-empty">Unable to load active connections.</div>';
+    }
+  }
+
+  async function selectChatRecipient(user, reloadMessages = true) {
+    chatState.recipient = user;
+
+    document.querySelectorAll(".de-chat-person").forEach(button => {
+      button.classList.toggle(
+        "active",
+        button.dataset.chatUserId === user.user_id
+      );
+    });
+
+    const title = document.getElementById("de-chat-recipient");
+    const input = document.getElementById("de-chat-input");
+    const send = document.getElementById("de-chat-send");
+
+    if (title) {
+      title.textContent = user.display_name || user.user_id;
+    }
+
+    if (input) input.disabled = false;
+    if (send) send.disabled = false;
+
+    chatState.conversationId = conversationIdFor(
+      "authenticated-account",
+      user.user_id
+    );
+
+    /*
+      The server does not need our sender ID.
+      The real authenticated sender is established server-side.
+      The local conversation key only needs a stable local room ID.
+    */
+    chatState.key = await getChatKey(chatState.conversationId);
+
+    if (reloadMessages) {
+      await loadChatMessages();
+    }
+  }
+
+  async function loadChatMessages() {
+    const box = document.getElementById("de-chat-messages");
+
+    if (!box || !chatState.recipient) return;
+
+    try {
+      const params = new URLSearchParams({
+        conversation_id: chatState.conversationId,
+        recipient_id: chatState.recipient.user_id,
+        recipient_role: chatState.recipient.role
+      });
+
+      const response = await fetch(
+        "/api/chat/messages?" + params.toString(),
+        { headers: chatHeaders() }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "Could not load messages.");
+      }
+
+      const messages = Array.isArray(data.messages)
+        ? data.messages
+        : [];
+
+      if (!messages.length) {
+        box.innerHTML =
+          '<div class="de-chat-empty">No messages yet. Start the conversation.</div>';
+        return;
+      }
+
+      const token = chatToken();
+      const myResponse = await fetch("/api/chat/users", {
+        headers: chatHeaders()
+      });
+
+      const myData = await myResponse.json();
+      const connectedUsers = Array.isArray(myData.users)
+        ? myData.users
+        : [];
+
+      /*
+        Sender ownership is determined from the authenticated chat API
+        response. We do not trust a client-supplied sender identity.
+      */
+      const possibleMyIds = connectedUsers
+        .map(user => user.user_id)
+        .filter(Boolean);
+
+      box.innerHTML = "";
+
+      for (const message of messages) {
+        let text = "[Unable to decrypt message]";
+
+        try {
+          text = await decryptChatMessage(
+            message.ciphertext,
+            message.iv,
+            chatState.key
+          );
+        } catch (error) {
+          console.error("Message decryption error:", error);
+        }
+
+        const item = document.createElement("div");
+        item.className =
+          "de-chat-message" +
+          (
+            possibleMyIds.includes(message.sender_id)
+              ? " mine"
+              : ""
+          );
+
+        item.textContent = text;
+        box.appendChild(item);
+      }
+
+      box.scrollTop = box.scrollHeight;
+
+    } catch (error) {
+      console.error("Integrated chat message error:", error);
+    }
+  }
+
+  async function sendChatMessage() {
+    if (!chatState.recipient || !chatState.key) return;
+
+    const input = document.getElementById("de-chat-input");
+    const text = String(input?.value || "").trim();
+
+    if (!text) return;
+
+    const encrypted = await encryptChatMessage(
+      text,
+      chatState.key
+    );
+
+    try {
+      const response = await fetch("/api/chat/messages", {
+        method: "POST",
+        headers: chatHeaders({
+          "Content-Type": "application/json"
+        }),
+        body: JSON.stringify({
+          conversation_id: chatState.conversationId,
+          recipient_id: chatState.recipient.user_id,
+          recipient_role: chatState.recipient.role,
+          ciphertext: encrypted.ciphertext,
+          iv: encrypted.iv
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "Message could not be sent.");
+      }
+
+      input.value = "";
+      await loadChatMessages();
+
+    } catch (error) {
+      console.error("Integrated chat send error:", error);
+      alert(error.message || "Message could not be sent.");
+    }
+  }
+
+  function startIntegratedChat() {
+    if (!chatToken()) return;
+
+    if (!installChatPanel()) return;
+
+    loadChatConnections();
+
+    if (chatState.polling) {
+      clearInterval(chatState.polling);
+    }
+
+    chatState.polling = setInterval(() => {
+      if (chatState.recipient) {
+        loadChatMessages();
+      }
+    }, 3000);
+  }
+
+  /*
+    Observe dashboard visibility changes.
+    This means the chat is automatically inserted into the
+    authenticated Teacher, Learner, Parent, or School dashboard.
+  */
+  const observer = new MutationObserver(() => {
+    if (chatToken()) {
+      const dashboard = activeRoleDashboard();
+      if (dashboard) {
+        startIntegratedChat();
+      }
+    }
+  });
+
+  observer.observe(document.body, {
+    subtree: true,
+    attributes: true,
+    attributeFilter: ["class"]
+  });
+
+  window.addEventListener("load", () => {
+    setTimeout(startIntegratedChat, 500);
+  });
+
+  window.addEventListener("storage", event => {
+    if (event.key === "dream_education_access_token") {
+      setTimeout(startIntegratedChat, 300);
+    }
+  });
+
+})();
+</script>
+
+</body>
+</html>
+
+
+<style>
+/* =========================================================
+   DREAM EDUCATION — SIGNATURE EXPERIENCE
+   ========================================================= */
+
+.dream-signature-hero {
+  position: relative !important;
+  min-height: 650px !important;
+  overflow: hidden !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 70px 20px !important;
+  isolation: isolate;
+}
+
+.dream-atmosphere {
+  position: absolute;
+  width: 520px;
+  height: 520px;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: .28;
+  pointer-events: none;
+  z-index: -3;
+  animation: dreamAtmosphere 8s ease-in-out infinite alternate;
+}
+
+.dream-atmosphere-one {
+  background: #7c3aed;
+  top: -220px;
+  left: -160px;
+}
+
+.dream-atmosphere-two {
+  background: #06b6d4;
+  right: -180px;
+  bottom: -230px;
+  animation-delay: -4s;
+}
+
+.dream-grid {
+  position: absolute;
+  inset: 0;
+  z-index: -4;
+  opacity: .16;
+  background-image:
+    linear-gradient(rgba(255,255,255,.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.08) 1px, transparent 1px);
+  background-size: 46px 46px;
+  mask-image: radial-gradient(circle at center, black, transparent 75%);
+}
+
+.dream-core {
+  position: relative;
+  width: 440px;
+  height: 440px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dream-brand-core {
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  z-index: 5;
+  background:
+    radial-gradient(circle at 35% 25%, rgba(255,255,255,.16), transparent 35%),
+    linear-gradient(145deg, rgba(30,20,65,.96), rgba(8,16,35,.98));
+  border: 1px solid rgba(255,255,255,.22);
+  box-shadow:
+    0 0 35px rgba(124,58,237,.45),
+    0 0 100px rgba(6,182,212,.18),
+    inset 0 0 45px rgba(124,58,237,.16);
+  animation: dreamCorePulse 4s ease-in-out infinite;
+}
+
+.dream-brand-small {
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .28em;
+  opacity: .62;
+  margin-bottom: 10px;
+}
+
+.dream-brand-name {
+  display: flex;
+  flex-direction: column;
+  line-height: .86;
+  font-size: 27px;
+  font-weight: 950;
+  letter-spacing: -.055em;
+  background: linear-gradient(
+    110deg,
+    #ffffff 5%,
+    #b9a5ff 30%,
+    #67e8f9 52%,
+    #ffffff 72%,
+    #c4b5fd 95%
+  );
+  background-size: 250% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: dreamNameFlow 5s linear infinite;
+  filter: drop-shadow(0 0 13px rgba(103,232,249,.25));
+}
+
+.dream-brand-line {
+  width: 48px;
+  height: 2px;
+  margin: 14px 0 9px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, transparent, #67e8f9, #a78bfa, transparent);
+  animation: dreamLinePulse 2s ease-in-out infinite;
+}
+
+.dream-brand-subtitle {
+  font-size: 9px;
+  opacity: .66;
+  letter-spacing: .06em;
+}
+
+.dream-core-ring {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.dream-ring-one {
+  width: 330px;
+  height: 330px;
+  border: 1px solid rgba(103,232,249,.20);
+  box-shadow: 0 0 30px rgba(103,232,249,.08);
+  animation: dreamRotate 18s linear infinite;
+}
+
+.dream-ring-two {
+  width: 410px;
+  height: 410px;
+  border: 1px dashed rgba(167,139,250,.22);
+  animation: dreamRotateReverse 28s linear infinite;
+}
+
+.dream-orbit {
+  position: absolute;
+  z-index: 4;
+  padding: 8px 13px;
+  border-radius: 999px;
+  background: rgba(10,15,35,.68);
+  border: 1px solid rgba(255,255,255,.14);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 25px rgba(0,0,0,.18);
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: .16em;
+  white-space: nowrap;
+  animation: dreamFloat 4s ease-in-out infinite;
+}
+
+.dream-orbit-one {
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.dream-orbit-two {
+  right: -5px;
+  top: 50%;
+  transform: translateY(-50%);
+  animation-delay: -1s;
+}
+
+.dream-orbit-three {
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation-delay: -2s;
+}
+
+.dream-orbit-four {
+  left: -5px;
+  top: 50%;
+  transform: translateY(-50%);
+  animation-delay: -3s;
+}
+
+.dream-hero-message {
+  position: absolute;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .18em;
+  opacity: .62;
+  white-space: nowrap;
+}
+
+.dream-live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #67e8f9;
+  box-shadow: 0 0 12px #67e8f9;
+  animation: dreamLivePulse 1.6s ease-in-out infinite;
+}
+
+/* Smaller role/dashboard cards */
+
+.role-options {
+  gap: 12px !important;
+  max-width: 620px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+.role-option {
+  min-height: 92px !important;
+  padding: 14px !important;
+  border-radius: 18px !important;
+  transform: scale(.82);
+  transform-origin: center;
+  margin: -8px !important;
+}
+
+.role-option:hover {
+  transform: scale(.88) translateY(-4px) !important;
+}
+
+.role-option .role-icon,
+.role-option .icon {
+  transform: scale(.78);
+}
+
+.role-option h3,
+.role-option strong {
+  font-size: .88rem !important;
+}
+
+.role-option p {
+  font-size: .68rem !important;
+  line-height: 1.35 !important;
+}
+
+/* Keep dashboard containers visually compact */
+
+.dashboard-card,
+.dashboard-panel,
+.dashboard-section,
+.stat-card {
+  transform: scale(.9);
+  transform-origin: top center;
+}
+
+@keyframes dreamNameFlow {
+  0% { background-position: 0% center; }
+  100% { background-position: 250% center; }
+}
+
+@keyframes dreamCorePulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow:
+      0 0 35px rgba(124,58,237,.45),
+      0 0 100px rgba(6,182,212,.18),
+      inset 0 0 45px rgba(124,58,237,.16);
+  }
+  50% {
+    transform: scale(1.035);
+    box-shadow:
+      0 0 55px rgba(124,58,237,.62),
+      0 0 125px rgba(6,182,212,.25),
+      inset 0 0 60px rgba(124,58,237,.22);
+  }
+}
+
+@keyframes dreamRotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes dreamRotateReverse {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+@keyframes dreamFloat {
+  0%, 100% { margin-top: 0; }
+  50% { margin-top: -7px; }
+}
+
+@keyframes dreamLivePulse {
+  0%, 100% { opacity: .45; transform: scale(.8); }
+  50% { opacity: 1; transform: scale(1.3); }
+}
+
+@keyframes dreamLinePulse {
+  0%, 100% { opacity: .5; width: 42px; }
+  50% { opacity: 1; width: 65px; }
+}
+
+@keyframes dreamAtmosphere {
+  from { transform: scale(.92) translate(0,0); }
+  to { transform: scale(1.08) translate(30px,-20px); }
+}
+
+@media (max-width: 650px) {
+  .dream-signature-hero {
+    min-height: 520px !important;
+    padding: 40px 10px !important;
+  }
+
+  .dream-core {
+    width: 330px;
+    height: 330px;
+  }
+
+  .dream-brand-core {
+    width: 190px;
+    height: 190px;
+  }
+
+  .dream-brand-name {
+    font-size: 21px;
+  }
+
+  .dream-ring-one {
+    width: 270px;
+    height: 270px;
+  }
+
+  .dream-ring-two {
+    width: 315px;
+    height: 315px;
+  }
+
+  .dream-orbit {
+    font-size: 7px;
+    padding: 6px 9px;
+  }
+
+  .dream-orbit-two {
+    right: -20px;
+  }
+
+  .dream-orbit-four {
+    left: -20px;
+  }
+
+  .dream-hero-message {
+    bottom: 18px;
+    font-size: 7px;
+    letter-spacing: .12em;
+  }
+
+  .role-options {
+    gap: 6px !important;
+  }
+
+  .role-option {
+    min-height: 78px !important;
+    padding: 9px !important;
+    transform: scale(.78);
+    margin: -12px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dream-brand-name,
+  .dream-brand-core,
+  .dream-core-ring,
+  .dream-orbit,
+  .dream-atmosphere,
+  .dream-live-dot,
+  .dream-brand-line {
+    animation: none !important;
+  }
+}
+</style>

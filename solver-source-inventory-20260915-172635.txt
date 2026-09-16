@@ -1,0 +1,1084 @@
+============================================================
+DREAM EDUCATION — COMPLETE SOLVER/SOURCE INVENTORY
+============================================================
+
+DATE: Tue Sep 15 17:26:35 EAT 2026
+PROJECT: /data/data/com.termux/files/home/dream-education
+
+==================== SOLVER/SOURCE FILES ===================
+product/calculator_free_gateway.js
+product/general_problem_solver.py
+product/knowledge_answer.js
+product/knowledge_extractor.before-improvement.js
+product/knowledge_extractor.js
+product/knowledge_retrieval.before-ranking-fix.js
+product/knowledge_retrieval.js
+product/knowledge_teaching_bridge.js
+product/math_solver_worker.py
+product/ncbi_gateway.js
+product/nist_gateway.js
+product/problem_solver_engine.js
+product/pubchem_gateway.js
+product/research_gateway.js
+product/search_engine.before-external-query.js
+product/search_engine.before-query-engine.js
+product/search_engine.before-smart-search.js
+product/search_engine.before-universal-cli.js
+product/search_engine.js
+product/source_engine.before-timeout.js
+product/source_engine.js
+product/source_verifier.before-ranking.js
+product/source_verifier.before-relevance.js
+product/source_verifier.js
+product/specialist_gateway.js
+product/trusted_information_gateway.js
+
+==================== ALL PRODUCT PYTHON ====================
+product/general_problem_solver.py
+product/math_solver_worker.py
+
+==================== ALL PRODUCT JAVASCRIPT =================
+product/calculator_free_gateway.js
+product/class_engine.js
+product/connection_engine.js
+product/data_engine.js
+product/dream_teacher_engine.js
+product/knowledge_answer.js
+product/knowledge_extractor.before-improvement.js
+product/knowledge_extractor.js
+product/knowledge_retrieval.before-ranking-fix.js
+product/knowledge_retrieval.js
+product/knowledge_teaching_bridge.js
+product/learner_engine.js
+product/level_teaching_engine.js
+product/method_teaching_engine.js
+product/ncbi_gateway.js
+product/nist_gateway.js
+product/parent_engine.js
+product/payment_engine.js
+product/problem_solver_engine.js
+product/pubchem_gateway.js
+product/quality_teaching_pipeline.js
+product/query_engine.js
+product/research_gateway.js
+product/results_engine.js
+product/school_engine.js
+product/search_engine.before-external-query.js
+product/search_engine.before-query-engine.js
+product/search_engine.before-smart-search.js
+product/search_engine.before-universal-cli.js
+product/search_engine.js
+product/source_engine.before-timeout.js
+product/source_engine.js
+product/source_verifier.before-ranking.js
+product/source_verifier.before-relevance.js
+product/source_verifier.js
+product/specialist_gateway.js
+product/teacher_engine.js
+product/teaching_quality_engine.js
+product/teaching_transformation_engine.js
+product/trusted_information_gateway.js
+
+==================== PYTHON PACKAGES ========================
+Python: 3.14.6 (main, Jul  5 2026, 10:35:55) [Clang 21.0.0 (https://android.googlesource.com/toolchain/llvm-project 5e96669f0
+PACKAGE_SCAN_ERROR: No module named 'pkg_resources'
+
+==================== NODE PACKAGES ===========================
+dream-education@1.0.0 /data/data/com.termux/files/home/dream-education
+├── @supabase/supabase-js@2.114.0
+├── dotenv@17.4.2
+├── express@5.2.1
+└── openai@7.9.0
+
+
+==================== EXTERNAL URLS ===========================
+http://localhost:3000
+https://api.crossref.org/v1/works?
+https://api.datacite.org/dois?
+https://api.duckduckgo.com/?q=
+https://api.openalex.org
+https://api.openalex.org/works?search=
+https://archive.org/
+https://archive.org/advancedsearch.php?
+https://archive.org/details/${item.identifier
+https://arxiv.org/
+https://calculator.free/api/v1
+https://datacite.org/
+https://doi.org/
+https://doi.org/${item.doi
+https://doi.org/${item.id
+https://en.wikipedia.org/w/api.php?
+https://en.wikipedia.org/wiki/
+https://en.wikipedia.org/wiki/Photosynthesis
+https://europepmc.org/
+https://eutils.ncbi.nlm.nih.gov/entrez/eutils
+https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?
+https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?
+https://export.arxiv.org/api/query?
+https://images-api.nasa.gov/search?
+https://images.nasa.gov/
+https://physics.nist.gov/cuu/Constants
+https://pubchem.ncbi.nlm.nih.gov/rest/pug
+https://pubmed.ncbi.nlm.nih.gov/${id
+https://pubmed.ncbi.nlm.nih.gov/${item.pmid
+https://www.ebi.ac.uk/europepmc/webservices/rest/search?
+https://www.loc.gov/
+https://www.loc.gov/books/?
+https://www.ncei.noaa.gov/
+https://www.ncei.noaa.gov/access/metadata/landing-page/bin/iso?id=
+https://www.ncei.noaa.gov/access/services/search/v1/datasets?text=
+https://www.wikidata.org/w/api.php?action=wbsearchentities
+https://www.wikidata.org/wiki/${item.id
+
+==================== API/GATEWAY REFERENCES ==================
+product/search_engine.js:116:    console.log("Usage: node product/search_engine.js <question>");
+product/source_engine.js:52:async function searchWikipedia(query, limit = 5) {
+product/source_engine.js:63:    "https://en.wikipedia.org/w/api.php?" +
+product/source_engine.js:84:    source: "Wikipedia",
+product/source_engine.js:85:    provider: "wikipedia",
+product/source_engine.js:88:      "https://en.wikipedia.org/wiki/" +
+product/source_engine.js:101:    "https://api.crossref.org/v1/works?" +
+product/source_engine.js:106:  return (json.message?.items || []).map(item => {
+product/source_engine.js:124:          ? "https://doi.org/" + item.DOI
+product/source_engine.js:197:    "https://www.wikidata.org/w/api.php?action=wbsearchentities" +
+product/source_engine.js:210:    url: item.concepturi || `https://www.wikidata.org/wiki/${item.id}`,
+product/source_engine.js:217:    "https://api.duckduckgo.com/?q=" +
+product/source_engine.js:257:async function searchOpenAlex(query, limit = 5) {
+product/source_engine.js:259:    "https://api.openalex.org/works?search=" +
+product/source_engine.js:280:      source: "OpenAlex",
+product/source_engine.js:281:      provider: "openalex",
+product/source_engine.js:294:async function searchNCBIPubMed(query, limit = 5) {
+product/source_engine.js:303:    "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?" +
+product/source_engine.js:318:    "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?" +
+product/source_engine.js:331:      source: "NCBI PubMed",
+product/source_engine.js:332:      provider: "ncbi_pubmed",
+product/source_engine.js:334:      url: `https://pubmed.ncbi.nlm.nih.gov/${id}/`,
+product/source_engine.js:348:    "https://www.ebi.ac.uk/europepmc/webservices/rest/search?" +
+product/source_engine.js:365:        ? `https://pubmed.ncbi.nlm.nih.gov/${item.pmid}/`
+product/source_engine.js:367:          ? `https://doi.org/${item.doi}`
+product/source_engine.js:368:          : "https://europepmc.org/",
+product/source_engine.js:437:    "https://export.arxiv.org/api/query?" +
+product/source_engine.js:455:      url: id || "https://arxiv.org/",
+product/source_engine.js:463:    "https://www.ncei.noaa.gov/access/services/search/v1/datasets?text=" +
+product/source_engine.js:500:          ? "https://www.ncei.noaa.gov/access/metadata/landing-page/bin/iso?id=" +
+product/source_engine.js:502:          : "https://www.ncei.noaa.gov/"
+product/source_engine.js:526:    "https://images-api.nasa.gov/search?" +
+product/source_engine.js:545:      url: item.href || "https://images.nasa.gov/",
+product/source_engine.js:562:    "https://archive.org/advancedsearch.php?" +
+product/source_engine.js:582:        ? `https://archive.org/details/${item.identifier}`
+product/source_engine.js:583:        : "https://archive.org/",
+product/source_engine.js:597:    "https://www.loc.gov/books/?" +
+product/source_engine.js:617:      url: item.id || "https://www.loc.gov/",
+product/source_engine.js:630:    "https://api.datacite.org/dois?" +
+product/source_engine.js:658:          ? `https://doi.org/${item.id}`
+product/source_engine.js:659:          : "https://datacite.org/"),
+product/source_engine.js:689:    { name: "wikipedia", run: () => searchWikipedia(searchQuery, limit) },
+product/source_engine.js:693:    { name: "openalex", run: () => searchOpenAlex(searchQuery, limit) },
+product/source_engine.js:696:    { name: "ncbi_pubmed", run: () => searchNCBIPubMed(searchQuery, limit) },
+product/source_engine.js:716:        error: error.message
+product/source_engine.js:784:async function getWikipediaPage(title) {
+product/source_engine.js:797:    "https://en.wikipedia.org/w/api.php?" +
+product/source_engine.js:809:      source: "Wikipedia"
+product/source_engine.js:816:    source: "Wikipedia"
+product/source_engine.js:823:  searchOpenAlex,
+product/source_engine.js:824:  searchWikipedia,
+product/source_engine.js:827:  getWikipediaPage
+product/source_engine.js:835:      "Usage: node product/source_engine.js <question>"
+product/source_engine.js:880:        error.message
+product/knowledge_extractor.js:62:    source: "Wikipedia",
+product/source_verifier.js:408:    source: "Wikipedia",
+product/source_verifier.js:411:    url: "https://en.wikipedia.org/wiki/Photosynthesis"
+product/knowledge_retrieval.js:44:        candidate.provider === "wikipedia" ||
+product/knowledge_retrieval.js:45:        candidate.source === "Wikipedia"
+product/knowledge_retrieval.js:48:          await sourceEngine.getWikipediaPage(candidate.title);
+product/knowledge_retrieval.js:144:        error.message
+product/quality_teaching_pipeline.js:71:    console.error("PIPELINE ERROR:", error.message);
+product/query_engine.js:37:  // Numerical/problem-solving requests must be detected before
+product/query_engine.js:199:      /\b(current|today|latest|now|recent|this year|president|minister|weather|news)\b/.test(q)
+product/search_engine.before-query-engine.js:113:    console.log("Usage: node product/search_engine.js <question>");
+product/search_engine.before-smart-search.js:115:    console.log("Usage: node product/search_engine.js <question>");
+product/source_engine.before-timeout.js:3:function searchWikipedia(query, limit = 5) {
+product/source_engine.before-timeout.js:15:      "https://en.wikipedia.org/w/api.php?" + params.toString();
+product/source_engine.before-timeout.js:43:                source: "Wikipedia",
+product/source_engine.before-timeout.js:45:                  "https://en.wikipedia.org/wiki/" +
+product/source_engine.before-timeout.js:60:  const wikipedia = await searchWikipedia(query, limit);
+product/source_engine.before-timeout.js:65:    sources: wikipedia
+product/source_engine.before-timeout.js:70:  searchWikipedia,
+product/source_engine.before-timeout.js:78:    console.log("Usage: node product/source_engine.js <question>");
+product/source_engine.before-timeout.js:99:      console.error("Source search failed:", error.message);
+product/source_engine.before-timeout.js:104:function getWikipediaPage(title) {
+product/source_engine.before-timeout.js:118:      "https://en.wikipedia.org/w/api.php?" + params.toString();
+product/source_engine.before-timeout.js:143:              source: "Wikipedia"
+product/source_engine.before-timeout.js:154:module.exports.getWikipediaPage = getWikipediaPage;
+product/search_engine.before-external-query.js:116:    console.log("Usage: node product/search_engine.js <question>");
+product/search_engine.before-universal-cli.js:116:    console.log("Usage: node product/search_engine.js <question>");
+product/source_verifier.before-relevance.js:45:    source: "Wikipedia",
+product/source_verifier.before-relevance.js:47:    url: "https://en.wikipedia.org/wiki/Photosynthesis"
+product/source_verifier.before-ranking.js:96:    source: "Wikipedia",
+product/source_verifier.before-ranking.js:98:    url: "https://en.wikipedia.org/wiki/Photosynthesis"
+product/knowledge_retrieval.before-ranking-fix.js:28:  const page = await sourceEngine.getWikipediaPage(bestSource.title);
+product/knowledge_extractor.before-improvement.js:58:    source: "Wikipedia",
+product/problem_solver_engine.js:5:} = require("./specialist_gateway.js");
+product/problem_solver_engine.js:62:        error: error.message
+product/problem_solver_engine.js:98:const EXTERNAL_CALCULATOR_BASE = "https://calculator.free/api/v1";
+product/problem_solver_engine.js:100:async function solveWithExternalCalculator(question) {
+product/problem_solver_engine.js:146:    const { calculate } = require("./calculator_free_gateway");
+product/problem_solver_engine.js:152:        `Calculator.Free ${slug} returned no usable result`
+product/problem_solver_engine.js:186:      `calculator.free:${slug}`,
+product/problem_solver_engine.js:464:       * Calculator.Free should only receive an actual chemical
+product/problem_solver_engine.js:468:       * sources such as PubChem.
+product/problem_solver_engine.js:528:      "External Calculator:",
+product/problem_solver_engine.js:529:      error.message
+product/problem_solver_engine.js:560:      "Specialist gateway:",
+product/problem_solver_engine.js:561:      error.message
+product/problem_solver_engine.js:576:   * Calculator.Free is an external specialist resource.
+product/problem_solver_engine.js:581:    await solveWithExternalCalculator(text);
+product/math_solver_worker.py:4:import sympy as sp
+product/math_solver_worker.py:5:from sympy.parsing.sympy_parser import (
+product/math_solver_worker.py:27:    # sending the mathematical expression to SymPy.
+product/math_solver_worker.py:398:            "solver": "sympy",
+product/math_solver_worker.py:412:            "solver": "sympy",
+product/math_solver_worker.py:442:            "solver": "sympy",
+product/math_solver_worker.py:497:            "solver": "sympy",
+product/math_solver_worker.py:546:            "solver": "sympy",
+product/math_solver_worker.py:595:            "solver": "sympy",
+product/math_solver_worker.py:649:            "solver": "sympy",
+product/math_solver_worker.py:703:            "solver": "sympy",
+product/math_solver_worker.py:778:        "solver": "sympy",
+product/math_solver_worker.py:802:                    "solver": "sympy",
+product/general_problem_solver.py:5:import sympy as sp
+product/general_problem_solver.py:13:    sp.parsing.sympy_parser.standard_transformations
+product/general_problem_solver.py:15:        sp.parsing.sympy_parser.implicit_multiplication_application,
+product/general_problem_solver.py:16:        sp.parsing.sympy_parser.convert_xor,
+product/general_problem_solver.py:42:    # Remove common natural-language wrappers before SymPy parses math.
+product/general_problem_solver.py:54:    # SymPy parses the mathematical expression.
+product/general_problem_solver.py:75:    return sp.parsing.sympy_parser.parse_expr(
+product/general_problem_solver.py:95:                   specialist="sympy", domain="mathematics"):
+product/general_problem_solver.py:110:def failure(message, problem_type="unsupported", domain="unknown"):
+product/general_problem_solver.py:121:        "error": message,
+product/general_problem_solver.py:428:        original = sp.parsing.sympy_parser.parse_expr(
+product/general_problem_solver.py:1944:    # Preserve the exact allele capitalization.
+product/general_problem_solver.py:3782:        r'(?:borrowed|invest|invested|principal|capital|loan|amount)\s+'
+product/specialist_gateway.js:39:          solver: "sympy",
+product/specialist_gateway.js:62:        solver: "sympy",
+product/specialist_gateway.js:64:        error: error.message
+product/specialist_gateway.js:85:        solver: "sympy",
+product/specialist_gateway.js:135:    solver: result.solver || "sympy",
+product/specialist_gateway.js:317:   * Mathematics has a dedicated SymPy worker.
+product/specialist_gateway.js:344:   * The gateway now knows the domain, so additional
+product/calculator_free_gateway.js:1:const BASE_URL = "https://calculator.free/api/v1";
+product/calculator_free_gateway.js:4:  const response = await fetch(`${BASE_URL}/`);
+product/calculator_free_gateway.js:7:    throw new Error(`Calculator.Free catalog HTTP ${response.status}`);
+product/calculator_free_gateway.js:15:    throw new Error("Calculator.Free slug is required");
+product/calculator_free_gateway.js:32:  const response = await fetch(url);
+product/calculator_free_gateway.js:38:    solver: `calculator.free:${slug}`,
+product/calculator_free_gateway.js:46:    message: data.message || null,
+product/pubchem_gateway.js:1:const BASE_URL = "https://pubchem.ncbi.nlm.nih.gov/rest/pug";
+product/pubchem_gateway.js:5:    throw new Error("PubChem compound name is required");
+product/pubchem_gateway.js:14:  const response = await fetch(url);
+product/pubchem_gateway.js:17:    throw new Error(`PubChem HTTP ${response.status}`);
+product/pubchem_gateway.js:24:    throw new Error("PubChem returned no compound property");
+product/pubchem_gateway.js:29:    source: "pubchem",
+product/ncbi_gateway.js:2:  "https://eutils.ncbi.nlm.nih.gov/entrez/eutils";
+product/ncbi_gateway.js:6:    throw new Error("NCBI search term is required");
+product/ncbi_gateway.js:16:  const response = await fetch(
+product/ncbi_gateway.js:21:    throw new Error(`NCBI HTTP ${response.status}`);
+product/ncbi_gateway.js:31:      source: "ncbi",
+product/ncbi_gateway.js:48:  const summaryResponse = await fetch(
+product/ncbi_gateway.js:54:      `NCBI summary HTTP ${summaryResponse.status}`
+product/ncbi_gateway.js:87:    source: "ncbi",
+product/nist_gateway.js:2:  "https://physics.nist.gov/cuu/Constants";
+product/nist_gateway.js:5:  const response = await fetch(
+product/nist_gateway.js:10:    throw new Error(`NIST HTTP ${response.status}`);
+product/nist_gateway.js:25:    throw new Error("NIST constant name is required");
+product/nist_gateway.js:53:      source: "nist",
+product/nist_gateway.js:63:    source: "nist",
+product/research_gateway.js:1:const BASE_URL = "https://api.openalex.org";
+product/research_gateway.js:47:  const response = await fetch(
+product/research_gateway.js:52:    throw new Error(`OpenAlex HTTP ${response.status}`);
+product/research_gateway.js:59:    source: "openalex",
+product/trusted_information_gateway.js:1:const pubchem = require("./pubchem_gateway");
+product/trusted_information_gateway.js:2:const ncbi = require("./ncbi_gateway");
+product/trusted_information_gateway.js:3:const nist = require("./nist_gateway");
+product/trusted_information_gateway.js:4:const research = require("./research_gateway");
+product/trusted_information_gateway.js:11:    pubchem: false,
+product/trusted_information_gateway.js:12:    ncbi: false,
+product/trusted_information_gateway.js:13:    nist: false,
+product/trusted_information_gateway.js:24:    needs.pubchem = true;
+product/trusted_information_gateway.js:35:    needs.ncbi = true;
+product/trusted_information_gateway.js:44:    needs.nist = true;
+product/trusted_information_gateway.js:104:  if (needs.pubchem) {
+product/trusted_information_gateway.js:109:        pubchem
+product/trusted_information_gateway.js:112:            source: "pubchem",
+product/trusted_information_gateway.js:118:            source: "pubchem",
+product/trusted_information_gateway.js:120:            error: error.message
+product/trusted_information_gateway.js:126:  if (needs.ncbi) {
+product/trusted_information_gateway.js:128:      ncbi
+product/trusted_information_gateway.js:131:          source: "ncbi",
+product/trusted_information_gateway.js:137:          source: "ncbi",
+product/trusted_information_gateway.js:139:          error: error.message
+product/trusted_information_gateway.js:144:  if (needs.nist) {
+product/trusted_information_gateway.js:149:        nist
+product/trusted_information_gateway.js:152:            source: "nist",
+product/trusted_information_gateway.js:158:            source: "nist",
+product/trusted_information_gateway.js:160:            error: error.message
+product/trusted_information_gateway.js:171:          source: "openalex",
+product/trusted_information_gateway.js:177:          source: "openalex",
+product/trusted_information_gateway.js:179:          error: error.message
+server.js:87:  apiKey: process.env.AI_API_KEY,
+server.js:213:} = require("./product/trusted_information_gateway.js");
+server.js:281:   * Trusted sources such as PubChem return structured factual
+server.js:296:    if (source?.source === "pubchem" && source?.result) {
+server.js:318:    if (source?.source === "openalex" && source?.result) {
+server.js:326:          `OpenAlex paper ${index + 1}: ${work.title}`
+server.js:331:            `OpenAlex publication year: ${work.publication_year}`
+server.js:337:            `OpenAlex authors: ${work.authors.join(", ")}`
+server.js:343:            `OpenAlex abstract: ${work.abstract}`
+server.js:349:    if (source?.source === "nist" && source?.result) {
+server.js:358:              `NIST constant: ${item.trim()}`
+server.js:363:          `NIST constant: ${result.value}`
+server.js:367:          `NIST constant: ${result}`
+server.js:398:    const nistFact = trustedFacts.find(
+server.js:399:      fact => fact.startsWith("NIST constant:")
+server.js:402:    const openAlexFacts = trustedFacts.filter(
+server.js:403:      fact => fact.startsWith("OpenAlex ")
+server.js:427:    } else if (nistFact) {
+server.js:428:      const constant = nistFact
+server.js:429:        .replace("NIST constant:", "")
+server.js:434:        `The NIST reference gives the speed of light in a vacuum as ${constant}. ` +
+server.js:438:    } else if (openAlexFacts.length) {
+server.js:442:      for (const fact of openAlexFacts) {
+server.js:443:        if (fact.startsWith("OpenAlex paper ")) {
+server.js:445:            title: fact.replace(/^OpenAlex paper \d+:\s*/, ""),
+server.js:451:        } else if (currentPaper && fact.startsWith("OpenAlex publication year:")) {
+server.js:453:            fact.replace("OpenAlex publication year:", "").trim();
+server.js:454:        } else if (currentPaper && fact.startsWith("OpenAlex authors:")) {
+server.js:456:            fact.replace("OpenAlex authors:", "").trim();
+server.js:457:        } else if (currentPaper && fact.startsWith("OpenAlex abstract:")) {
+server.js:459:            fact.replace("OpenAlex abstract:", "").trim();
+server.js:464:        `Here is what the research literature retrieved through OpenAlex tells us:\n\n` +
+server.js:482:              `\nAn abstract was not available in the OpenAlex result for this paper.`;
+server.js:487:        `\n\nThese are research-literature results retrieved through OpenAlex. ` +
+server.js:971:app.get("/api/health", (req, res) => {
+server.js:982:app.post("/api/learn", async (req, res) => {
+server.js:997:        message: auth.error
+server.js:1004:        message: "Your account is not authorized to use Dream Education learning."
+server.js:1053:        message: "Please enter a question."
+server.js:1089:        specialistError.message
+server.js:1142:              knowledgeError.message
+server.js:1147:              error: knowledgeError.message
+server.js:1157:              trustedError.message
+server.js:1164:              error: trustedError.message
+server.js:1478:          messages: [
+server.js:1486:        answer = response.choices?.[0]?.message?.content;
+server.js:1561:      message: "Dream Education could not complete the lesson.",
+server.js:1562:      debug: error.message
+server.js:1580: *   /api/code-generator
+server.js:1585: * - API keys never reach the browser.
+server.js:1591:app.post("/api/code-generator", async (req, res) => {
+server.js:1598:        message: auth.error
+server.js:1605:        message: "Your account is not authorized to use the code generator."
+server.js:1616:        message: "Invalid code-generation request."
+server.js:1623:        message: "Invalid code-project request type."
+server.js:1633:        message: "Generation details are missing."
+server.js:1645:        message: "The user's code request is empty."
+server.js:1655:        message: "Invalid project type."
+server.js:1662:        message:
+server.js:1750:      messages: [
+server.js:1758:    const rawOutput = response.choices?.[0]?.message?.content;
+server.js:1889:      message: "Dream Education could not generate the requested code.",
+server.js:1890:      debug: error.message
+server.js:1901:const dreamChatMessages = [];
+server.js:1991:      message: auth.error || "Authentication required."
+server.js:1999:app.post("/api/chat/users", async (req, res) => {
+server.js:2017:        message: "Display name is required."
+server.js:2038:      message: "Could not register chat identity."
+server.js:2043:app.get("/api/chat/users", async (req, res) => {
+server.js:2102:      message: "Could not load connected people."
+server.js:2107:app.get("/api/chat/users/search", async (req, res) => {
+server.js:2166:      message: "Could not search connected people."
+server.js:2171:app.get("/api/chat/messages", async (req, res) => {
+server.js:2194:        message: "Conversation and recipient information are required."
+server.js:2208:        message: "Chat is available only between active connected accounts."
+server.js:2216:      messages: dreamChatMessages
+server.js:2217:        .filter(message =>
+server.js:2218:          message.conversation_id === conversationId &&
+server.js:2220:            (message.sender_id === myId &&
+server.js:2221:             message.recipient_id === recipientId) ||
+server.js:2222:            (message.sender_id === recipientId &&
+server.js:2223:             message.recipient_id === myId)
+server.js:2229:    console.error("Chat message load error:", error);
+server.js:2232:      message: "Could not load messages."
+server.js:2237:app.post("/api/chat/messages", async (req, res) => {
+server.js:2276:        message: "Private encrypted message data is incomplete."
+server.js:2290:        message: "You can only message an actively connected account."
+server.js:2296:    const message = {
+server.js:2306:    dreamChatMessages.push(message);
+server.js:2308:    if (dreamChatMessages.length > 1000) {
+server.js:2309:      dreamChatMessages.shift();
+server.js:2314:      message
+server.js:2317:    console.error("Chat message send error:", error);
+server.js:2320:      message: "Message could not be sent."
+server.js:2325:app.get("/api/progress/:learner_id", async (req, res) => {
+server.js:2332:        message: "Learner ID is required."
+server.js:2347:        message: "Could not load learner progress."
+server.js:2378:      message: "Dream Education could not load progress."
+server.js:2383:app.get("/api/profile/:learner_id", async (req, res) => {
+server.js:2390:        message: "Learner ID is required."
+server.js:2407:        message: "Could not load learner profile."
+server.js:2422:        message: "Could not load learning history."
+server.js:2455:        message: "Ask Dream Education anything you want to understand."
+server.js:2461:        message:
+server.js:2490:      message: "Dream Education could not load the learning profile."
+server.js:2496:app.get("/api/adaptive/:learner_id", async (req, res) => {
+server.js:2524:          message: "Start your first learning question."
+server.js:2548:        message: `Continue learning ${mostStudiedSubject}.`,
+server.js:2569:app.get("/api/next-question/:learner_id", async (req, res) => {
+server.js:2650:app.post("/api/assess", async (req, res) => {
+server.js:2770:app.get("/api/difficulty/:learner_id", async (req, res) => {
+server.js:2845:app.post("/api/learning-cycle", async (req, res) => {
+server.js:3045:      details: error.message
+server.js:3054:app.get("/api/intelligence/:learner_id", async (req, res) => {
+server.js:3179:        message: recommendation
+server.js:3191:      details: error.message
+server.js:3200:app.get("/api/adaptive-question/:learner_id", async (req, res) => {
+server.js:3382:      details: error.message
+server.js:3391:app.post("/api/teach", async (req, res) => {
+server.js:3507:app.get("/api/mastery/:learner_id/:topic", async (req, res) => {
+server.js:3614:app.post("/api/session", async (req, res) => {
+server.js:4136:    console.error("ERROR MESSAGE:", error && error.message);
+server.js:4148:  console.log("Dream Education running on http://localhost:3000");
+server.js:4153:  DREAM EDUCATION PRODUCT LEARNER API
+server.js:4175:app.get("/api/product/curriculum/concepts", (req, res) => {
+server.js:4245:app.get("/api/product/curriculum/topics", (req, res) => {
+server.js:4293:app.post("/api/auth/register", async (req, res) => {
+server.js:4363:        error: authError.message
+server.js:4458:      message: authData.session
+server.js:4472:app.post("/api/auth/login", async (req, res) => {
+server.js:4503:        error: authError.message
+server.js:4557:      message: "Login successful."
+server.js:4569:app.post("/api/product/learner", (req, res) => {
+server.js:4638:app.get("/api/product/learner/:learner_id", (req, res) => {
+server.js:4663:app.post("/api/product/learner/:learner_id/preferences", (req, res) => {
+server.js:4701:  DREAM EDUCATION PRODUCT TEACHER API
+server.js:4714:app.post("/api/product/teacher", (req, res) => {
+server.js:4740:   DREAM EDUCATION CONNECTION API
+server.js:4743:app.post("/api/product/connections/request", async (req, res) => {
+server.js:4793:      error: error.message || "Connection request failed."
+server.js:4800:   DREAM EDUCATION CONNECTION LIST API
+server.js:4803:app.get("/api/product/connections", async (req, res) => {
+server.js:4857:      error: error.message || "Connection listing failed."
+server.js:4864:   DREAM EDUCATION CONNECTION APPROVAL / REJECTION API
+server.js:4867:app.post("/api/product/connections/:connection_id/status", async (req, res) => {
+server.js:4938:      error: error.message || "Connection status update failed."
+server.js:4943:app.get("/api/product/teacher/:teacher_id", (req, res) => {
+server.js:4968:app.post("/api/product/teacher/:teacher_id/analytics", (req, res) => {
+server.js:5004:  DREAM EDUCATION PRODUCT PARENT API
+server.js:5017:app.post("/api/product/parent", (req, res) => {
+server.js:5041:app.get("/api/product/parent/:parent_id", (req, res) => {
+server.js:5066:app.post("/api/product/parent/:parent_id/child-progress", (req, res) => {
+server.js:5104:  DREAM EDUCATION PRODUCT SCHOOL API
+server.js:5117:app.post("/api/product/school", (req, res) => {
+server.js:5141:app.get("/api/product/school/:school_id", (req, res) => {
+server.js:5166:app.post("/api/product/school/:school_id/analytics", (req, res) => {
+server.js:5210:  DREAM EDUCATION PRODUCT CLASS API
+server.js:5224:app.post("/api/product/class", (req, res) => {
+server.js:5262:app.get("/api/product/class/:class_id", (req, res) => {
+server.js:5288:  DREAM EDUCATION PRODUCT RESULTS API
+server.js:5303:app.post("/api/product/results", (req, res) => {
+server.js:5329:app.get("/api/product/results/learner/:learner_id", (req, res) => {
+server.js:5353:app.get("/api/product/results/class/:class_id", (req, res) => {
+server.js:5377:app.get("/api/product/results/school/:school_id", (req, res) => {
+server.js:5406:app.get("/api/product/results/teacher/:teacher_id", (req, res) => {
+server.js:5459:app.get("/api/product/school/:school_id/overview", (req, res) => {
+server.js:5535:app.get("/api/product/learner/:learner_id/overview", (req, res) => {
+server.js:5607:app.get("/api/product/parent/:parent_id/child/:learner_id/overview", (req, res) => {
+server.js:5711:        message: "Your free trial or subscription has expired. Please choose a plan to continue.",
+server.js:5727:app.get("/api/account/access", async (req, res) => {
+server.js:5811:app.get("/api/product/teacher/:teacher_id/dashboard", async (req, res) => {
+server.js:5905:app.get("/api/product/parent/:parent_id/dashboard", async (req, res) => {
+server.js:5982:app.get("/api/product/school/:school_id/dashboard", async (req, res) => {
+server.js:6089:app.get("/api/product/learner/:learner_id/dashboard", async (req, res) => {
+
+==================== ROUTING REFERENCES ======================
+product/data_engine.js:249:        c.type === "class_learner" &&
+product/data_engine.js:260:      c.type === "teacher_class" &&
+product/data_engine.js:274:      c.type === "school_class" &&
+product/data_engine.js:295:        c.type === "teacher_learner" &&
+product/data_engine.js:313:        c.type === "teacher_class" &&
+product/data_engine.js:338:        c.type === "teacher_learner" &&
+product/data_engine.js:354:        c.type === "class_learner" &&
+product/data_engine.js:372:        c.type === "school_learner" &&
+product/data_engine.js:400:        c.type === "school_class" &&
+product/data_engine.js:421:        c.type === "school_teacher" &&
+product/data_engine.js:439:        c.type === "school_learner" &&
+product/data_engine.js:455:        c.type === "parent_learner" &&
+product/results_engine.js:7:  assessment_type = "assessment"
+product/results_engine.js:17:    assessment_type: String(assessment_type || "assessment"),
+product/search_engine.js:33:    record.domain,
+product/search_engine.js:91:      domain: r.domain,
+product/source_engine.js:86:    source_type: "reference",
+product/source_engine.js:120:      source_type: "academic",
+product/source_engine.js:188:        (authority[source.source_type] || 0) +
+product/source_engine.js:209:    source_type: "structured_knowledge",
+product/source_engine.js:231:      source_type: "web_reference",
+product/source_engine.js:247:        source_type: "web_reference",
+product/source_engine.js:282:      source_type: "academic_research",
+product/source_engine.js:333:      source_type: "biomedical_research",
+product/source_engine.js:363:      source_type: "life_science_research",
+product/source_engine.js:454:      source_type: "scientific_research",
+product/source_engine.js:511:      source_type: "official",
+product/source_engine.js:521:    media_type: "image,video",
+product/source_engine.js:544:      source_type: "scientific_reference",
+product/source_engine.js:580:      source_type: "digital_library",
+product/source_engine.js:616:      source_type: "library_reference",
+product/source_engine.js:644:      descriptions.find(item => item.descriptionType === "Abstract")
+product/source_engine.js:655:      source_type: "research_metadata",
+product/knowledge_extractor.js:33:    source_verified: Boolean(source.title && text),
+product/knowledge_extractor.js:72:  console.log("Source verified:", result.source_verified);
+product/knowledge_extractor.js:73:  console.log("Status:", result.source_verified ? "EXTRACTOR READY" : "CHECK REQUIRED");
+product/source_verifier.js:281:      const verificationScore = scoreSource(source);
+product/source_verifier.js:286:        verification_score: verificationScore,
+product/source_verifier.js:288:        ranking_score: verificationScore + relevance
+product/source_verifier.js:296:      return b.verification_score - a.verification_score;
+product/source_verifier.js:372:      queryInfo.question_type === "general_question"
+product/source_verifier.js:380:    verified:
+product/source_verifier.js:419:  console.log("=== SOURCE VERIFICATION TEST ===");
+product/source_verifier.js:423:  console.log("Verified:", result.verified ? "YES" : "NO");
+product/source_verifier.js:434:    result.verified
+product/knowledge_retrieval.js:39:  const verifiedCandidates = [];
+product/knowledge_retrieval.js:60:          const candidateVerification =
+product/knowledge_retrieval.js:67:            "Knowledge candidate verification:",
+product/knowledge_retrieval.js:74:                candidateVerification.relevance_score,
+product/knowledge_retrieval.js:75:              verified:
+product/knowledge_retrieval.js:76:                candidateVerification.verified
+product/knowledge_retrieval.js:80:          if (candidateVerification.verified) {
+product/knowledge_retrieval.js:81:            verifiedCandidates.push({
+product/knowledge_retrieval.js:83:              verification: candidateVerification
+product/knowledge_retrieval.js:105:          const candidateVerification =
+product/knowledge_retrieval.js:112:            "Knowledge candidate verification:",
+product/knowledge_retrieval.js:119:                candidateVerification.relevance_score,
+product/knowledge_retrieval.js:120:              verified:
+product/knowledge_retrieval.js:121:                candidateVerification.verified
+product/knowledge_retrieval.js:125:          if (candidateVerification.verified) {
+product/knowledge_retrieval.js:126:            verifiedCandidates.push({
+product/knowledge_retrieval.js:128:              verification: candidateVerification
+product/knowledge_retrieval.js:149:  if (!verifiedCandidates.length) {
+product/knowledge_retrieval.js:153:      error: "No verified knowledge source was found."
+product/knowledge_retrieval.js:158:   * Every verified candidate now competes in the final ranking.
+product/knowledge_retrieval.js:163:      verifiedCandidates.map(item => item.source),
+product/knowledge_retrieval.js:167:  const verifiedSource = finalRankedCandidates[0];
+product/knowledge_retrieval.js:169:  const verification =
+product/knowledge_retrieval.js:171:      verifiedSource,
+product/knowledge_retrieval.js:176:    verifiedSource._knowledgePage || null;
+product/knowledge_retrieval.js:183:  if (!verification.verified) {
+product/knowledge_retrieval.js:187:      error: "Top ranked source failed verification."
+product/knowledge_retrieval.js:196:        "No verified source is sufficiently relevant to the question."
+product/knowledge_retrieval.js:201:    verifiedSource,
+product/knowledge_retrieval.js:209:      title: verifiedSource.title,
+product/knowledge_retrieval.js:210:      name: verifiedSource.source,
+product/knowledge_retrieval.js:211:      verification_score: verification.score
+product/knowledge_retrieval.js:235:      console.log("Verification score:", result.source.verification_score);
+product/teaching_quality_engine.js:61:    source: "verified_source_fallback",
+product/teaching_quality_engine.js:103:      "verified_source_fallback"
+product/query_engine.js:86:function detectQuestionType(q, intent) {
+product/query_engine.js:176:function detectRequirements(q, intent, type) {
+product/query_engine.js:179:      type === "calculation" ||
+product/query_engine.js:180:      type === "equation" ||
+product/query_engine.js:181:      type === "word_problem" ||
+product/query_engine.js:185:      type === "calculation" ||
+product/query_engine.js:186:      type === "equation" ||
+product/query_engine.js:187:      type === "word_problem" ||
+product/query_engine.js:321:function understandQuestion(q, intent, subject, topic, question_type) {
+product/query_engine.js:380:  const question_type = detectQuestionType(normalized, intent);
+product/query_engine.js:385:  // Clear task structure can reveal the domain even when the
+product/query_engine.js:390:      question_type === "calculation" ||
+product/query_engine.js:391:      question_type === "equation" ||
+product/query_engine.js:405:    question_type
+product/query_engine.js:443:    question_type
+product/query_engine.js:545:    question_type,
+product/query_engine.js:570:      question_type,
+product/query_engine.js:587:  detectQuestionType,
+product/search_engine.before-query-engine.js:31:    record.domain,
+product/search_engine.before-query-engine.js:88:      domain: r.domain,
+product/search_engine.before-smart-search.js:32:    record.domain,
+product/search_engine.before-smart-search.js:90:      domain: r.domain,
+product/search_engine.before-external-query.js:33:    record.domain,
+product/search_engine.before-external-query.js:91:      domain: r.domain,
+product/search_engine.before-universal-cli.js:33:    record.domain,
+product/search_engine.before-universal-cli.js:91:      domain: r.domain,
+product/source_verifier.before-relevance.js:16:      verification_score: scoreSource(source)
+product/source_verifier.before-relevance.js:18:    .sort((a, b) => b.verification_score - a.verification_score);
+product/source_verifier.before-relevance.js:25:    verified: score >= 6,
+product/source_verifier.before-relevance.js:52:  console.log("=== SOURCE VERIFICATION TEST ===");
+product/source_verifier.before-relevance.js:55:  console.log("Verified:", result.verified ? "YES" : "NO");
+product/source_verifier.before-relevance.js:57:  console.log("Status:", result.verified ? "SOURCE VERIFIER READY" : "CHECK REQUIRED");
+product/source_verifier.before-ranking.js:66:      verification_score: scoreSource(source)
+product/source_verifier.before-ranking.js:68:    .sort((a, b) => b.verification_score - a.verification_score);
+product/source_verifier.before-ranking.js:75:    verified: score >= 6,
+product/source_verifier.before-ranking.js:103:  console.log("=== SOURCE VERIFICATION TEST ===");
+product/source_verifier.before-ranking.js:106:  console.log("Verified:", result.verified ? "YES" : "NO");
+product/source_verifier.before-ranking.js:108:  console.log("Status:", result.verified ? "SOURCE VERIFIER READY" : "CHECK REQUIRED");
+product/knowledge_retrieval.before-ranking-fix.js:38:  const verifiedSource = {
+product/knowledge_retrieval.before-ranking-fix.js:43:  const verification = verifier.verifySource(verifiedSource);
+product/knowledge_retrieval.before-ranking-fix.js:45:  if (!verification.verified) {
+product/knowledge_retrieval.before-ranking-fix.js:49:      error: "Retrieved source failed verification."
+product/knowledge_retrieval.before-ranking-fix.js:54:    verifiedSource,
+product/knowledge_retrieval.before-ranking-fix.js:62:      title: verifiedSource.title,
+product/knowledge_retrieval.before-ranking-fix.js:63:      name: verifiedSource.source,
+product/knowledge_retrieval.before-ranking-fix.js:64:      verification_score: verification.score
+product/knowledge_retrieval.before-ranking-fix.js:87:      console.log("Verification score:", result.source.verification_score);
+product/knowledge_extractor.before-improvement.js:33:    source_verified: Boolean(source.title && text),
+product/knowledge_extractor.before-improvement.js:68:  console.log("Source verified:", result.source_verified);
+product/knowledge_extractor.before-improvement.js:69:  console.log("Status:", result.source_verified ? "EXTRACTOR READY" : "CHECK REQUIRED");
+product/problem_solver_engine.js:4:  solveWithSpecialists
+product/problem_solver_engine.js:5:} = require("./specialist_gateway.js");
+product/problem_solver_engine.js:7:const WORKER_PATH = path.join(__dirname, "general_problem_solver.py");
+product/problem_solver_engine.js:75:function solveWithUniversalSolver(question) {
+product/problem_solver_engine.js:110:    if (typeof value === "object") return JSON.stringify(value);
+product/problem_solver_engine.js:114:  function makeResult(result, type, solver, steps, primaryResult = null) {
+product/problem_solver_engine.js:126:      domain: "external",
+product/problem_solver_engine.js:127:      type,
+product/problem_solver_engine.js:133:      verified: !failedResult,
+product/problem_solver_engine.js:135:      classification: {
+product/problem_solver_engine.js:136:        domain: "external",
+product/problem_solver_engine.js:137:        type
+product/problem_solver_engine.js:145:  async function call(slug, params, type, stepsBuilder) {
+product/problem_solver_engine.js:185:      type,
+product/problem_solver_engine.js:535:async function solveProblem(question, queryInfo = {}) {
+product/problem_solver_engine.js:554:    specialistResult = await solveWithSpecialists(
+product/problem_solver_engine.js:569:    specialistResult.verified === true
+product/problem_solver_engine.js:587:    externalResult.verified === true
+product/problem_solver_engine.js:595:  const result = await solveWithUniversalSolver(text);
+product/problem_solver_engine.js:601:    result.verified === true
+product/problem_solver_engine.js:607:      domain:
+product/problem_solver_engine.js:608:        result.domain ||
+product/problem_solver_engine.js:609:        result.classification?.domain ||
+product/problem_solver_engine.js:611:      type:
+product/problem_solver_engine.js:612:        result.type ||
+product/problem_solver_engine.js:613:        result.classification?.type ||
+product/problem_solver_engine.js:616:        result.domain ||
+product/problem_solver_engine.js:617:        result.classification?.domain ||
+product/problem_solver_engine.js:619:      solver: result.solver || "general_problem_solver",
+product/problem_solver_engine.js:628:      verified: true,
+product/problem_solver_engine.js:633:      classification:
+product/problem_solver_engine.js:634:        result.classification || {
+product/problem_solver_engine.js:635:          domain: result.domain || "unknown",
+product/problem_solver_engine.js:636:          type: result.type || "general_problem"
+product/problem_solver_engine.js:649:    domain:
+product/problem_solver_engine.js:650:      result?.domain ||
+product/problem_solver_engine.js:651:      result?.classification?.domain ||
+product/problem_solver_engine.js:653:    type:
+product/problem_solver_engine.js:654:      result?.type ||
+product/problem_solver_engine.js:655:      result?.classification?.type ||
+product/problem_solver_engine.js:658:      result?.domain ||
+product/problem_solver_engine.js:659:      result?.classification?.domain ||
+product/problem_solver_engine.js:661:    solver: result?.solver || "general_problem_solver",
+product/problem_solver_engine.js:670:    verified: false,
+product/problem_solver_engine.js:675:    classification:
+product/problem_solver_engine.js:676:      result?.classification || {
+product/problem_solver_engine.js:677:        domain: result?.domain || "unknown",
+product/problem_solver_engine.js:678:        type: result?.type || "general_problem"
+product/problem_solver_engine.js:682:      "No verified solver could solve this problem."
+product/problem_solver_engine.js:687:  solveWithUniversalSolver,
+product/problem_solver_engine.js:688:  solveProblem
+product/math_solver_worker.py:130:                "verified": ok
+product/math_solver_worker.py:202:        verified = True
+product/math_solver_worker.py:208:                        verified = verified and all(
+product/math_solver_worker.py:334:                        "verified": ok
+product/math_solver_worker.py:367:                "verified": verified
+product/math_solver_worker.py:393:                "verified": verified
+product/math_solver_worker.py:399:            "type": "equation",
+product/math_solver_worker.py:405:            "verified": verified,
+product/math_solver_worker.py:443:            "type": "derivative",
+product/math_solver_worker.py:446:            "verified": True,
+product/math_solver_worker.py:466:                    "verified": True
+product/math_solver_worker.py:491:        verified = sp.simplify(
+product/math_solver_worker.py:498:            "type": "integral",
+product/math_solver_worker.py:501:            "verified": verified,
+product/math_solver_worker.py:521:                    "verified": verified
+product/math_solver_worker.py:542:        verified = sp.expand(result - expr) == 0
+product/math_solver_worker.py:547:            "type": "factorization",
+product/math_solver_worker.py:550:            "verified": verified,
+product/math_solver_worker.py:570:                    "verified": verified
+product/math_solver_worker.py:591:        verified = sp.simplify(expr - result) == 0
+product/math_solver_worker.py:596:            "type": "simplification",
+product/math_solver_worker.py:599:            "verified": verified,
+product/math_solver_worker.py:619:                    "verified": verified
+product/math_solver_worker.py:650:            "type": "arithmetic",
+product/math_solver_worker.py:653:            "verified": True,
+product/math_solver_worker.py:673:                    "verified": True
+product/math_solver_worker.py:704:            "type": "substitution",
+product/math_solver_worker.py:707:            "verified": True,
+product/math_solver_worker.py:734:                    "verified": True
+product/math_solver_worker.py:779:        "type": "unsupported",
+product/math_solver_worker.py:780:        "verified": False,
+product/math_solver_worker.py:803:                    "verified": False,
+product/general_problem_solver.py:8:# Foundation: parsing, classification, structured results
+product/general_problem_solver.py:93:def success_result(problem_type, result, expression=None,
+product/general_problem_solver.py:94:                   verified=True, steps=None,
+product/general_problem_solver.py:95:                   specialist="sympy", domain="mathematics"):
+product/general_problem_solver.py:100:        "type": problem_type,
+product/general_problem_solver.py:101:        "domain": domain,
+product/general_problem_solver.py:104:        "verified": bool(verified),
+product/general_problem_solver.py:110:def failure(message, problem_type="unsupported", domain="unknown"):
+product/general_problem_solver.py:114:        "solver": "general_problem_solver",
+product/general_problem_solver.py:115:        "type": problem_type,
+product/general_problem_solver.py:116:        "domain": domain,
+product/general_problem_solver.py:119:        "verified": False,
+product/general_problem_solver.py:129:        return {"domain": "unknown", "type": "empty"}
+product/general_problem_solver.py:132:        return {"domain": "mathematics", "type": "derivative"}
+product/general_problem_solver.py:135:        return {"domain": "mathematics", "type": "integral"}
+product/general_problem_solver.py:138:        return {"domain": "mathematics", "type": "factorization"}
+product/general_problem_solver.py:141:        return {"domain": "mathematics", "type": "simplification"}
+product/general_problem_solver.py:144:        return {"domain": "mathematics", "type": "matrix"}
+product/general_problem_solver.py:147:        return {"domain": "mathematics", "type": "vector"}
+product/general_problem_solver.py:150:        return {"domain": "mathematics", "type": "probability"}
+product/general_problem_solver.py:156:        return {"domain": "statistics", "type": "statistics"}
+product/general_problem_solver.py:162:        return {"domain": "mathematics", "type": "trigonometry"}
+product/general_problem_solver.py:168:        return {"domain": "mathematics", "type": "geometry"}
+product/general_problem_solver.py:176:        return {"domain": "physics", "type": "physics_numerical"}
+product/general_problem_solver.py:183:        return {"domain": "chemistry", "type": "chemistry_numerical"}
+product/general_problem_solver.py:186:        r"\b(genotype|phenotype|punnett|offspring)\b",
+product/general_problem_solver.py:189:        return {"domain": "biology", "type": "biology_genetics"}
+product/general_problem_solver.py:195:        return {"domain": "mathematics", "type": "mathematical_problem"}
+product/general_problem_solver.py:197:    return {"domain": "unknown", "type": "general_problem"}
+product/general_problem_solver.py:232:            verified=True,
+product/general_problem_solver.py:314:        verified = bool(solution)
+product/general_problem_solver.py:328:                verified = verified and ok
+product/general_problem_solver.py:336:                    if verified
+product/general_problem_solver.py:339:                    "verified in every equation."
+product/general_problem_solver.py:367:            verified=verified,
+product/general_problem_solver.py:388:        verified = sp.expand(factored) == sp.expand(expr)
+product/general_problem_solver.py:394:            verified=verified,
+product/general_problem_solver.py:436:        verified = sp.simplify(original - simplified) == 0
+product/general_problem_solver.py:442:            verified=verified,
+product/general_problem_solver.py:508:        # Independent verification:
+product/general_problem_solver.py:511:        verification = sp.simplify(
+product/general_problem_solver.py:519:            verified=verification,
+product/general_problem_solver.py:553:        verification = sp.simplify(
+product/general_problem_solver.py:561:            verified=verification,
+product/general_problem_solver.py:610:            verified=True,
+product/general_problem_solver.py:706:            verified=True,
+product/general_problem_solver.py:745:            verified=True,
+product/general_problem_solver.py:795:            verified=True,
+product/general_problem_solver.py:853:            verified=True,
+product/general_problem_solver.py:948:            verified=True,
+product/general_problem_solver.py:988:            verified=True,
+product/general_problem_solver.py:1034:                verified=True,
+product/general_problem_solver.py:1068:                verified=True,
+product/general_problem_solver.py:1100:                verified=True,
+product/general_problem_solver.py:1158:            verified=True,
+product/general_problem_solver.py:1268:                verified=force == mass * acceleration,
+product/general_problem_solver.py:1270:                domain="physics",
+product/general_problem_solver.py:1304:                verified=weight == mass * gravity,
+product/general_problem_solver.py:1306:                domain="physics",
+product/general_problem_solver.py:1337:                verified=abs(speed - distance / time) < 1e-12,
+product/general_problem_solver.py:1339:                domain="physics",
+product/general_problem_solver.py:1382:                verified=True,
+product/general_problem_solver.py:1384:                domain="physics",
+product/general_problem_solver.py:1415:                verified=True,
+product/general_problem_solver.py:1417:                domain="physics",
+product/general_problem_solver.py:1449:                verified=True,
+product/general_problem_solver.py:1451:                domain="physics",
+product/general_problem_solver.py:1483:                verified=True,
+product/general_problem_solver.py:1485:                domain="physics",
+product/general_problem_solver.py:1596:                verified=mass > 0,
+product/general_problem_solver.py:1598:                domain="chemistry",
+product/general_problem_solver.py:1653:            verified=True,
+product/general_problem_solver.py:1655:            domain="chemistry",
+product/general_problem_solver.py:1714:            verified=True,
+product/general_problem_solver.py:1716:            domain="chemistry",
+product/general_problem_solver.py:1791:                verified=True,
+product/general_problem_solver.py:1793:                domain="chemistry",
+product/general_problem_solver.py:1821:            verified=True,
+product/general_problem_solver.py:1823:            domain="chemistry",
+product/general_problem_solver.py:1931:            r"\b(genotype|phenotype|punnett|offspring|"
+product/general_problem_solver.py:1955:            genotype = first + second
+product/general_problem_solver.py:1958:            genotype = "".join(
+product/general_problem_solver.py:1960:                    genotype,
+product/general_problem_solver.py:1968:            offspring.append(genotype)
+product/general_problem_solver.py:1972:    for genotype in offspring:
+product/general_problem_solver.py:1973:        counts[genotype] = counts.get(genotype, 0) + 1
+product/general_problem_solver.py:1975:    phenotype_counts = {}
+product/general_problem_solver.py:1977:    for genotype, count in counts.items():
+product/general_problem_solver.py:1978:        dominant = any(c.isupper() for c in genotype)
+product/general_problem_solver.py:1980:        phenotype = (
+product/general_problem_solver.py:1986:        phenotype_counts[phenotype] = (
+product/general_problem_solver.py:1987:            phenotype_counts.get(phenotype, 0) + count
+product/general_problem_solver.py:1991:    # Find a requested genotype / phenotype.
+product/general_problem_solver.py:2007:    # Recessive phenotype means the homozygous recessive
+product/general_problem_solver.py:2008:    # genotype. Match the actual lowercase allele pair so
+product/general_problem_solver.py:2022:    # Only use a requested genotype when the learner did not
+product/general_problem_solver.py:2023:    # explicitly ask for recessive phenotype probability.
+product/general_problem_solver.py:2039:            for genotype in counts:
+product/general_problem_solver.py:2040:                if str(genotype) == candidate:
+product/general_problem_solver.py:2041:                    target = genotype
+product/general_problem_solver.py:2043:                        counts[genotype],
+product/general_problem_solver.py:2051:        "genotype_counts": counts,
+product/general_problem_solver.py:2052:        "phenotype_counts": phenotype_counts,
+product/general_problem_solver.py:2056:        result_data["target_genotype"] = target
+product/general_problem_solver.py:2073:            "work": f"Genotypes: {counts}",
+product/general_problem_solver.py:2103:        verified=(
+product/general_problem_solver.py:2111:        domain="biology",
+product/general_problem_solver.py:2195:        verified=True,
+product/general_problem_solver.py:2197:        domain="statistics",
+product/general_problem_solver.py:2262:            verified=True,
+product/general_problem_solver.py:2264:            domain="mathematics",
+product/general_problem_solver.py:2360:        verified=True,
+product/general_problem_solver.py:2361:        specialist="general_problem_solver",
+product/general_problem_solver.py:2362:        domain="mathematics",
+product/general_problem_solver.py:2442:        verified=True,
+product/general_problem_solver.py:2444:        domain="general",
+product/general_problem_solver.py:2505:        verified=True,
+product/general_problem_solver.py:2506:        specialist="general_problem_solver",
+product/general_problem_solver.py:2507:        domain="mathematics",
+product/general_problem_solver.py:2577:                    verified=True,
+product/general_problem_solver.py:2579:                    domain="finance",
+product/general_problem_solver.py:2727:                verified=True,
+product/general_problem_solver.py:2729:                domain="mathematics",
+product/general_problem_solver.py:2779:                "type": label,
+product/general_problem_solver.py:2787:            verified=(
+product/general_problem_solver.py:2791:            domain="mathematics",
+product/general_problem_solver.py:2895:                verified_count = x + y == int(total_items)
+product/general_problem_solver.py:2896:                verified_cost = (
+product/general_problem_solver.py:2901:                if verified_count and verified_cost:
+product/general_problem_solver.py:2912:                        verified=True,
+product/general_problem_solver.py:2946:                        domain="mathematics",
+product/general_problem_solver.py:3011:        result["classification"] = classify_problem(question)
+product/general_problem_solver.py:3013:        # Keep top-level domain and type consistent with final classification.
+product/general_problem_solver.py:3014:        classification = result.get("classification") or {}
+product/general_problem_solver.py:3015:        if classification.get("domain"):
+product/general_problem_solver.py:3016:            result["domain"] = classification["domain"]
+product/general_problem_solver.py:3017:        if classification.get("type"):
+product/general_problem_solver.py:3018:            result["type"] = classification["type"]
+product/general_problem_solver.py:3026:        info["type"],
+product/general_problem_solver.py:3027:        info["domain"],
+product/general_problem_solver.py:3264:                verified=True,
+product/general_problem_solver.py:3266:                domain="physics",
+product/general_problem_solver.py:3311:                verified=True,
+product/general_problem_solver.py:3313:                domain="physics",
+product/general_problem_solver.py:3355:                verified=True,
+product/general_problem_solver.py:3357:                domain="physics",
+product/general_problem_solver.py:3404:                verified=True,
+product/general_problem_solver.py:3406:                domain="physics",
+product/general_problem_solver.py:3497:            verified=True,
+product/general_problem_solver.py:3544:                verified=True,
+product/general_problem_solver.py:3594:                verified=True,
+product/general_problem_solver.py:3633:            verified=True,
+product/general_problem_solver.py:3696:            verified=True,
+product/general_problem_solver.py:3698:            domain="mathematics",
+product/general_problem_solver.py:3741:        verified=True,
+product/general_problem_solver.py:3743:        domain="mathematics",
+product/general_problem_solver.py:3816:        verified=True,
+product/general_problem_solver.py:3818:        domain="finance",
+product/general_problem_solver.py:3871:        verified=True,
+product/general_problem_solver.py:3873:        domain="mathematics",
+product/general_problem_solver.py:3928:        verified=True,
+product/general_problem_solver.py:3930:        domain="mathematics",
+product/general_problem_solver.py:3997:            verified=True,
+product/general_problem_solver.py:3999:            domain="mathematics",
+product/general_problem_solver.py:4090:                    verified=True,
+product/general_problem_solver.py:4092:                    domain="finance",
+product/general_problem_solver.py:4136:# Final classification normalization.
+product/general_problem_solver.py:4142:    if re.search(r'\b(a+a|aa|genotype|offspring|crossed with|cross)\b', text):
+product/general_problem_solver.py:4144:            "domain": "biology",
+product/general_problem_solver.py:4145:            "type": "genetics"
+product/general_problem_solver.py:4150:            "domain": "mathematics",
+product/general_problem_solver.py:4151:            "type": "unit_conversion"
+product/general_problem_solver.py:4156:            "domain": "mathematics",
+product/general_problem_solver.py:4157:            "type": "ratio"
+product/general_problem_solver.py:4162:            "domain": "finance",
+product/general_problem_solver.py:4163:            "type": "finance"
+product/general_problem_solver.py:4168:            "domain": "mathematics",
+product/general_problem_solver.py:4169:            "type": "percentage"
+product/general_problem_solver.py:4174:            "domain": "mathematics",
+product/general_problem_solver.py:4175:            "type": "rate"
+product/general_problem_solver.py:4189:            "domain": "mathematics",
+product/general_problem_solver.py:4190:            "type": "word_problem"
+product/general_problem_solver.py:4210:            "domain": "mathematics",
+product/general_problem_solver.py:4211:            "type": "word_problem"
+product/general_problem_solver.py:4257:                    verified=True,
+product/general_problem_solver.py:4259:                    domain="chemistry",
+product/general_problem_solver.py:4297:                verified=True,
+product/general_problem_solver.py:4299:                domain="chemistry",
+product/specialist_gateway.js:6:  "math_solver_worker.py"
+product/specialist_gateway.js:40:          verified: false,
+product/specialist_gateway.js:63:        verified: false,
+product/specialist_gateway.js:86:        verified: false,
+product/specialist_gateway.js:127:    domain: "mathematics",
+product/specialist_gateway.js:129:    type:
+product/specialist_gateway.js:130:      result.type ||
+product/specialist_gateway.js:147:    verified: result.verified === true,
+product/specialist_gateway.js:153:    classification: {
+product/specialist_gateway.js:154:      domain: "mathematics",
+product/specialist_gateway.js:155:      type:
+product/specialist_gateway.js:156:        result.type ||
+product/specialist_gateway.js:166:function detectSpecialistDomain(question, queryInfo = {}) {
+product/specialist_gateway.js:269:    /\b(gene|genotype|phenotype|allele|offspring|dna|genetics|biology|organism|cell|cells|photosynthesis|respiration|ecosystem|ecology)\b/.test(text) ||
+product/specialist_gateway.js:296:async function solveWithSpecialists(
+product/specialist_gateway.js:311:  const domain = detectSpecialistDomain(
+product/specialist_gateway.js:320:  if (domain === "mathematics") {
+product/specialist_gateway.js:333:      normalized.verified
+product/specialist_gateway.js:340:   * These domains are currently handled by the
+product/specialist_gateway.js:344:   * The gateway now knows the domain, so additional
+product/specialist_gateway.js:353:  solveWithSpecialists,
+product/specialist_gateway.js:355:  detectSpecialistDomain
+product/calculator_free_gateway.js:14:  if (!slug || typeof slug !== "string") {
+product/pubchem_gateway.js:4:  if (!name || typeof name !== "string") {
+product/pubchem_gateway.js:30:    type: "compound",
+product/ncbi_gateway.js:5:  if (!term || typeof term !== "string") {
+product/ncbi_gateway.js:32:      type: "pubmed_search",
+product/ncbi_gateway.js:65:      if (!article || typeof article !== "object") {
+product/ncbi_gateway.js:88:    type: "pubmed_search",
+product/nist_gateway.js:24:  if (!name || typeof name !== "string") {
+product/nist_gateway.js:54:      type: "codata_constant",
+product/nist_gateway.js:64:    type: "codata_constant",
+product/research_gateway.js:15:  if (!invertedIndex || typeof invertedIndex !== "object") {
+product/research_gateway.js:35:  if (!search || typeof search !== "string") {
+product/research_gateway.js:60:    type: "research_search",
+product/trusted_information_gateway.js:33:    /\b(gene|genetics|genotype|phenotype|dna|rna|protein|cell|cells|organism|disease|enzyme|photosynthesis|respiration|ecosystem|ecology|microbiology|biomedical)\b/.test(text)
+product/trusted_information_gateway.js:113:            type: result.type,
+product/trusted_information_gateway.js:132:          type: result.type,
+product/trusted_information_gateway.js:153:            type: result.type,
+product/trusted_information_gateway.js:172:          type: result.type,
+product/payment_engine.js:59:    account.plan_type === "owner" &&
+product/payment_engine.js:67:      plan_type: "owner",
+product/payment_engine.js:81:    plan_type: "trial",
+product/payment_engine.js:104:      plan_type: "owner",
+product/payment_engine.js:120:        plan_type: account.plan_type || "paid",
+product/payment_engine.js:136:        plan_type: "trial",
+product/payment_engine.js:145:    plan_type: account.plan_type || null,
+product/payment_engine.js:166:      plan_type: "owner",
+product/payment_engine.js:186:    plan_type: plan.id,
+product/connection_engine.js:18:const VALID_CONNECTION_TYPES = new Set([
+product/connection_engine.js:30:  type,
+product/connection_engine.js:37:  if (!VALID_CONNECTION_TYPES.has(type)) {
+product/connection_engine.js:38:    throw new Error("Invalid connection type.");
+product/connection_engine.js:58:    type,
+product/connection_engine.js:82:  if (filters.type) {
+product/connection_engine.js:84:      connection => connection.type === filters.type
+product/connection_engine.js:105:  type,
+product/connection_engine.js:111:      connection.type === type &&
+product/connection_engine.js:145:  VALID_CONNECTION_TYPES,
+product/connection_engine.js:217:  type,
+product/connection_engine.js:222:    type,
+product/connection_engine.js:431:const CONNECTION_TYPE_ROLES = {
+product/connection_engine.js:462:function validateConnectionTypeRoles({
+product/connection_engine.js:463:  type,
+product/connection_engine.js:467:  const expected = CONNECTION_TYPE_ROLES[type];
+product/connection_engine.js:470:    throw new Error("Invalid connection type.");
+product/connection_engine.js:478:      `Connection type ${type} requires ${expected.from_role} -> ${expected.to_role}.`
+product/connection_engine.js:488:function createValidatedConnectionWithTypeValidation(
+product/connection_engine.js:492:  validateConnectionTypeRoles(options);
+product/connection_engine.js:500:module.exports.CONNECTION_TYPE_ROLES =
+product/connection_engine.js:501:  CONNECTION_TYPE_ROLES;
+product/connection_engine.js:503:module.exports.validateConnectionTypeRoles =
+product/connection_engine.js:504:  validateConnectionTypeRoles;
+product/connection_engine.js:507:  createValidatedConnectionWithTypeValidation;
+server.js:19:const { solveProblem } = require("./product/problem_solver_engine.js");
+server.js:354:          .filter(item => typeof item === "string" && item.trim())
+server.js:365:      } else if (typeof result === "string") {
+server.js:506:  const hasVerifiedSpecialistResult =
+server.js:509:    specialist_result.verified === true;
+server.js:511:  if (hasVerifiedSpecialistResult) {
+server.js:527:        if (typeof step === "string") {
+server.js:554:      `${stepExplanation || `The verified result is ${solvedResult}.`}` +
+server.js:556:      `Verified answer:\n${
+server.js:558:        typeof solvedResult === "object"
+server.js:647:  if (!hasVerifiedSpecialistResult && method === "explanation") {
+server.js:718:  } else if (!hasVerifiedSpecialistResult && method === "step_by_step") {
+server.js:927:    !hasVerifiedSpecialistResult &&
+server.js:945:    !hasVerifiedSpecialistResult &&
+server.js:957:  res.setHeader("X-Content-Type-Options", "nosniff");
+server.js:1073:      specialistResult = await solveProblem(
+server.js:1104:     * A verified specialist result remains authoritative for
+server.js:1125:      const specialistVerified =
+server.js:1128:        specialistResult.verified === true;
+server.js:1130:      const knowledgePromise = specialistVerified
+server.js:1134:          error: "Skipped because verified specialist result is authoritative."
+server.js:1250:     * Verified specialist results are authoritative for solving.
+server.js:1257:      specialistResult.verified === true
+server.js:1258:        ? "specialist_verified"
+server.js:1276:          specialistResult.verified === true
+server.js:1613:    if (!projectRequest || typeof projectRequest !== "object") {
+server.js:1620:    if (projectRequest.type !== "code_project_request") {
+server.js:1623:        message: "Invalid code-project request type."
+server.js:1629:      typeof projectRequest.generation !== "object"
+server.js:1640:      typeof generation.request !== "string" ||
+server.js:1650:      projectRequest.project_type !== "single-file" &&
+server.js:1651:      projectRequest.project_type !== "multi-file"
+server.js:1655:        message: "Invalid project type."
+server.js:1674:    const projectType =
+server.js:1675:      projectRequest.project_type;
+server.js:1691:PROJECT TYPE
+server.js:1692:${projectType}
+server.js:1720:  "project_type": "single-file" or "multi-file",
+server.js:1743:    console.log("Project type:", projectType);
+server.js:1761:      typeof rawOutput !== "string" ||
+server.js:1781:      typeof project !== "object" ||
+server.js:1791:      project.project_type !== "single-file" &&
+server.js:1792:      project.project_type !== "multi-file"
+server.js:1795:        "The AI returned an invalid project type."
+server.js:1802:        typeof file !== "object" ||
+server.js:1803:        typeof file.path !== "string" ||
+server.js:1805:        typeof file.language !== "string" ||
+server.js:1807:        typeof file.content !== "string" ||
+server.js:1838:      projectType === "multi-file" &&
+server.js:1840:        typeof project.entry_point !== "string" ||
+server.js:1860:      typeof project.instructions !== "string"
+server.js:1876:      project_type: project.project_type,
+server.js:2005:      typeof req.body?.display_name === "string"
+server.js:2010:      typeof req.body?.phone === "string"
+server.js:2089:        connection_type: connection.type,
+server.js:2113:      typeof req.query?.q === "string"
+server.js:2145:          connection_type: c.type,
+server.js:2177:      typeof req.query?.conversation_id === "string"
+server.js:2182:      typeof req.query?.recipient_id === "string"
+server.js:2187:      typeof req.query?.recipient_role === "string"
+server.js:2243:      typeof req.body?.conversation_id === "string"
+server.js:2248:      typeof req.body?.recipient_id === "string"
+server.js:2253:      typeof req.body?.recipient_role === "string"
+server.js:2258:      typeof req.body?.ciphertext === "string"
+server.js:2263:      typeof req.body?.iv === "string"
+server.js:2522:          type: "start",
+server.js:2545:        type: "continue",
+server.js:3687:    const questionType = assessment.questionType;
+server.js:4092:      question_type: questionType,
+server.js:4755:      type,
+server.js:4772:      type,
+server.js:4825:    if (req.query.type) {
+server.js:4826:      filters.type = String(req.query.type);
+
+==================== ENVIRONMENT KEYS =========================
+process.env.AI_API_KEY
+process.env.AI_BASE_URL
+process.env.AI_MODE
+process.env.AI_MODEL
+process.env.LEARNER_TEACHING_MODE
+process.env.PORT
+process.env.SUPABASE_KEY
+process.env.SUPABASE_URL
+
+==================== PACKAGE JSON =============================
+{
+  "name": "dream-education",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.114.0",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "openai": "^7.9.0"
+  }
+}
+
+==================== END INVENTORY ============================

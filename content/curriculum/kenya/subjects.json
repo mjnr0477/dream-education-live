@@ -1,0 +1,51 @@
+{
+  "country": "Kenya",
+  "curriculum": "CBC",
+  "version": "1.0",
+  "subjects": {
+    "Biology": {
+      "levels": ["Junior Secondary", "Senior Secondary"],
+      "strands": [
+        "Living Things and Their Environment",
+        "Cell Biology",
+        "Nutrition",
+        "Respiration",
+        "Reproduction",
+        "Ecology"
+      ]
+    },
+    "Integrated Science": {
+      "levels": ["Junior Secondary"],
+      "strands": [
+        "Scientific Investigation",
+        "Basic Scientific Skills",
+        "Living Things",
+        "Matter",
+        "Energy",
+        "Environment"
+      ]
+    },
+    "Mathematics": {
+      "levels": ["Junior Secondary"],
+      "strands": [
+        "Numbers",
+        "Algebra",
+        "Measurement",
+        "Geometry",
+        "Data Handling",
+        "Probability"
+      ]
+    },
+    "Physics": {
+      "levels": ["Senior Secondary"],
+      "strands": [
+        "Measurement",
+        "Mechanics",
+        "Waves",
+        "Thermal Physics",
+        "Electricity",
+        "Magnetism"
+      ]
+    }
+  }
+}

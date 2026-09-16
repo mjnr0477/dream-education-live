@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0",
+  "name": "Dream Education Knowledge Collection",
+  "purpose": "Standard format for importing large, independently maintained knowledge collections.",
+  "collection": {
+    "id": "unique_collection_id",
+    "title": "Collection title",
+    "field": "Primary field",
+    "scope": "global",
+    "version": "1.0",
+    "source_policy": {
+      "requires_provenance": true,
+      "requires_license": true,
+      "requires_validation": true
+    },
+    "records": [
+      {
+        "id": "unique_knowledge_id",
+        "title": "",
+        "field": "",
+        "domain": "",
+        "topic": "",
+        "subtopic": "",
+        "concept": "",
+        "definition": "",
+        "key_ideas": [],
+        "principles": [],
+        "relationships": [],
+        "prerequisites": [],
+        "examples": [],
+        "applications": [],
+        "skills": [],
+        "misconceptions": [],
+        "questions": [],
+        "assessment_ideas": [],
+        "difficulty": {
+          "min": 1,
+          "max": 10
+        },
+        "depth_levels": [],
+        "sources": [],
+        "source_type": [],
+        "version": "1.0",
+        "status": "draft"
+      }
+    ]
+  }
+}

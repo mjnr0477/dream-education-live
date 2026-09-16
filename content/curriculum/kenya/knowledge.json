@@ -1,0 +1,99 @@
+{
+  "version": "1.0",
+  "country": "Kenya",
+  "curriculum": "CBC",
+  "subjects": {
+    "Biology": {
+      "levels": {
+        "Junior Secondary": {
+          "strands": {
+            "Living Things and Their Environment": {
+              "topics": {
+                "Nutrition in Plants": {
+                  "concepts": {
+                    "Photosynthesis": {
+                      "definition": "Photosynthesis is the process by which green plants make their own food using light energy, carbon dioxide and water in the presence of chlorophyll.",
+                      "key_ideas": [
+                        "Plants use light energy to make food.",
+                        "Carbon dioxide enters the leaf from the air.",
+                        "Water is absorbed from the soil and transported to the leaves.",
+                        "Chlorophyll absorbs light energy.",
+                        "Glucose is produced during photosynthesis.",
+                        "Oxygen is released as a by-product."
+                      ],
+                      "equation": "Carbon dioxide + water \u2192 glucose + oxygen",
+                      "examples": [
+                        "Green leaves exposed to sunlight can carry out photosynthesis.",
+                        "A plant kept without sufficient light cannot photosynthesise effectively."
+                      ]
+                    },
+                    "Chlorophyll": {
+                      "definition": "Chlorophyll is the green pigment in plant cells that absorbs light energy needed for photosynthesis.",
+                      "key_ideas": [
+                        "Chlorophyll gives many leaves their green colour.",
+                        "It absorbs light energy.",
+                        "The absorbed light energy is used during photosynthesis."
+                      ],
+                      "examples": [
+                        "A green leaf contains chlorophyll.",
+                        "Leaves with little or no chlorophyll have reduced ability to photosynthesise."
+                      ]
+                    },
+                    "Carbon Dioxide": {
+                      "definition": "Carbon dioxide is a gas from the air that green plants use as a raw material during photosynthesis.",
+                      "key_ideas": [
+                        "Carbon dioxide enters leaves mainly through stomata.",
+                        "It provides carbon needed to make glucose.",
+                        "Carbon dioxide is one of the raw materials required for photosynthesis."
+                      ],
+                      "examples": [
+                        "A plant needs carbon dioxide from the surrounding air to photosynthesise.",
+                        "Closing or blocking stomata can reduce carbon dioxide entering a leaf."
+                      ]
+                    },
+                    "Water": {
+                      "definition": "Water is a raw material for photosynthesis and is absorbed from the soil by plant roots before being transported to the leaves.",
+                      "key_ideas": [
+                        "Roots absorb water from the soil.",
+                        "Water is transported to the leaves through xylem vessels.",
+                        "Water is used during photosynthesis."
+                      ],
+                      "examples": [
+                        "A plant without enough water cannot photosynthesise effectively.",
+                        "Water absorbed by roots can reach the leaves through the stem."
+                      ]
+                    },
+                    "Glucose": {
+                      "definition": "Glucose is a sugar produced by plants during photosynthesis and can be used to provide energy or converted into other substances for growth and storage.",
+                      "key_ideas": [
+                        "Glucose is produced during photosynthesis.",
+                        "Glucose can be used in respiration to release energy.",
+                        "Plants can convert glucose into starch for storage."
+                      ],
+                      "examples": [
+                        "Excess glucose in a plant may be stored as starch.",
+                        "Glucose can be used by growing plant tissues."
+                      ]
+                    },
+                    "Stomata": {
+                      "definition": "Stomata are tiny openings, mainly found on the surfaces of leaves, that allow gases to move into and out of the leaf.",
+                      "key_ideas": [
+                        "Carbon dioxide enters leaves through stomata.",
+                        "Oxygen can leave the leaf through stomata.",
+                        "Stomata are controlled by guard cells."
+                      ],
+                      "examples": [
+                        "Open stomata allow carbon dioxide to enter a leaf.",
+                        "Stomata can close when a plant needs to reduce water loss."
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,748 @@
+{
+  "source": {
+    "title": "Pre Primary Two Curriculum Designs",
+    "level": "Pre-Primary Two",
+    "country": "Kenya",
+    "curriculum": "CBC",
+    "publisher": "Kenya Institute of Curriculum Development",
+    "source_file": "content/work/pp2.txt",
+    "source_type": "official_kicd_pdf"
+  },
+  "extraction": {
+    "total_lines": 6518,
+    "structural_markers": [
+      {
+        "line": 20,
+        "strand": null,
+        "sub_strand": null,
+        "marker": "contain the National Goals of Education, outline of the Early Years Education (EYE) and general and specific learning outcomes of each subject."
+      },
+      {
+        "line": 130,
+        "strand": null,
+        "sub_strand": null,
+        "marker": "Each learning activity area has both the general and specific learning outcomes clearly stipulated. The learning experiences and the key inquiry"
+      },
+      {
+        "line": 232,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand          Sub-strand          Suggested learning outcomes              Suggested learning              Key Inquiry questions"
+      },
+      {
+        "line": 302,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand           Sub-strand         Specific learning outcomes       Suggested learning experiences                Key inquiry questions"
+      },
+      {
+        "line": 352,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand            Sub-strand           Specific learning outcomes           Suggested learning experiences           Key inquiry"
+      },
+      {
+        "line": 408,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand    Sub-strands                       Specific learning outcomes Suggested learning experiences                 Key inquiry questions"
+      },
+      {
+        "line": 446,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                     Sub-strand            Specific learning outcomes   Suggested learning experiences               Key inquiry questions"
+      },
+      {
+        "line": 492,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand          Sub-strand            Specific Learning Outcomes          Suggested Learning Experiences              Key Inquiry"
+      },
+      {
+        "line": 523,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand               Sub-strand           Suggested learning outcomes        Suggested learning experiences           Key Inquiry questions"
+      },
+      {
+        "line": 577,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand              Sub-strand       Specific learning outcomes               Suggested learning experiences         Key inquiry questions"
+      },
+      {
+        "line": 633,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand             Sub-strands        Specific learning outcomes               Suggested learning experiences         Key inquiry questions"
+      },
+      {
+        "line": 679,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand            Sub-strand          Specific learning outcomes      Suggested learning experiences           Key inquiry questions"
+      },
+      {
+        "line": 723,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand   Sub-strand                    Specific learning outcomes         Suggested learning experiences        Key inquiry questions"
+      },
+      {
+        "line": 769,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand          Sub-strand          Specific learning outcomes          Suggested learning experiences            Key inquiry questions"
+      },
+      {
+        "line": 807,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand     Sub-strand         Specific Learning Outcomes               Suggested Learning Experiences                   Key Inquiry Questions"
+      },
+      {
+        "line": 866,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                     Sub strand            Specific learning outcomes          Suggested learning         Key inquiry questions"
+      },
+      {
+        "line": 911,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand           Sub-strand         Specific Learning Outcomes        Suggested Learning Experiences          Key Inquiry Questions"
+      },
+      {
+        "line": 994,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand              Sub strand        Specific learning outcomes             Suggested learning experiences              Key inquiry question"
+      },
+      {
+        "line": 1024,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand         Sub strand         Specific learning outcomes         Suggested learning experiences                          Key inquiry question"
+      },
+      {
+        "line": 1058,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand             Sub strand        Specific learning outcomes       Suggested learning experiences                     Key inquiry questions"
+      },
+      {
+        "line": 1088,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand         Sub strand      Specific learning outcomes               Suggested learning experiences                         Key inquiry question"
+      },
+      {
+        "line": 1130,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand         Sub-strand                     Specific learning outcomes             Suggested learning               Key inquiry questions"
+      },
+      {
+        "line": 1172,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand              Sub-strand               Specific learning outcomes        Suggested learning                 Key inquiry questions"
+      },
+      {
+        "line": 1208,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand          Sub-          Specific Learning             Suggested Learning Experiences                      Key Questions"
+      },
+      {
+        "line": 1253,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand          Sub-Strand    Specific Learning              Suggested Learning Experiences                          Key Questions"
+      },
+      {
+        "line": 1292,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand          Sub-strand      Specific learning             Suggested learning experiences                         Key inquiry questions"
+      },
+      {
+        "line": 1330,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                Sub-strand   Specific learning             Suggested learning experiences                        Key inquiry questions"
+      },
+      {
+        "line": 1369,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand           Sub-Strand     Specific Learning Outcomes     Suggested Learning Experiences                Key Questions"
+      },
+      {
+        "line": 1414,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand            Sub-Strand          Specific Learning                  Suggested Learning Experiences               Key Questions"
+      },
+      {
+        "line": 1470,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand            Sub-Strand         Specific Learning Outcomes           Suggested Learning Experiences           Key Inquiry Questions"
+      },
+      {
+        "line": 1517,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand            Sub-strand        Specific learning outcomes         Suggested learning experiences             Key inquiry questions"
+      },
+      {
+        "line": 1607,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                    Sub-Strand        Specific Learning Outcomes        Suggested Learning Experiences             Key Inquiry Questions"
+      },
+      {
+        "line": 1664,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                   Sub-Strand           Specific Learning Outcomes             Suggested Learning Experiences           Key Inquiry Questions"
+      },
+      {
+        "line": 1714,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                   Sub-Strand         Specific Learning Outcomes            Suggested Learning                 Key Inquiry Questions"
+      },
+      {
+        "line": 1768,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand               Sub-Strand          Specific Learning Outcomes       Suggested Learning Experiences          Key Inquiry Questions"
+      },
+      {
+        "line": 1827,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand             Sub-Strand             Specific Learning Outcomes       Suggested Learning                  Key Inquiry Questions"
+      },
+      {
+        "line": 1858,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand               Sub-Strand           Specific Learning                Suggested Learning Experiences               Key Inquiry Questions"
+      },
+      {
+        "line": 1902,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                 Sub-Strand         Specific Learning Outcomes            Suggested Learning Experiences          Key Inquiry Questions"
+      },
+      {
+        "line": 1940,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand              Sub-Strand        Specific Learning Outcomes         Suggested Learning Experiences                    Key Inquiry"
+      },
+      {
+        "line": 1987,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand              Sub-Strand          Specific Learning Outcomes           Suggested Learning                Key Inquiry Questions"
+      },
+      {
+        "line": 2027,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand            Sub-Strand              Specific Learning Outcomes        Suggested Learning Experiences                    Key Inquiry Questions"
+      },
+      {
+        "line": 2069,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand            Sub-Strand       Specific Learning Outcomes                 Suggested Learning Experiences        Key Inquiry Questions"
+      },
+      {
+        "line": 2115,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                Sub-Strand          Specific Learning Outcomes             Suggested Learning Experiences             Key Inquiry Questions"
+      },
+      {
+        "line": 2159,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand              Sub-Strand           Specific Learning Outcomes                Suggested Learning Experiences            Key Inquiry Questions"
+      },
+      {
+        "line": 2206,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                    Sub-Strand       Specific Learning            Suggested Learning Experiences                  Key Inquiry Questions"
+      },
+      {
+        "line": 2254,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                   Sub-Strand         Specific Learning Outcomes                   Suggested Learning Experiences             Key Inquiry"
+      },
+      {
+        "line": 2298,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand               Sub-Strand       Specific Learning Outcomes          Suggested Learning Experiences        Key Inquiry Questions"
+      },
+      {
+        "line": 2349,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                  Sub-Strand         Specific Learning                Suggested Learning                  Key Inquiry Questions"
+      },
+      {
+        "line": 2405,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                      Sub-Strand      Specific Learning Outcomes            Suggested Learning                    Key Inquiry Questions"
+      },
+      {
+        "line": 2449,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                     Sub-Strand         Specific Learning Outcomes           Suggested Learning Experiences             Key Inquiry"
+      },
+      {
+        "line": 2513,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand           Sub-strand                Specific Learning Outcomes       Suggested Learning Experiences       Key Inquiry Question(s)"
+      },
+      {
+        "line": 2551,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand          Sub-strand          Specific Learning Outcomes        Suggested Learning Experiences                 Key Inquiry"
+      },
+      {
+        "line": 2597,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand            Sub-strand        Specific Learning              Suggested Learning Experiences                            Key Inquiry"
+      },
+      {
+        "line": 2641,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                Sub-strand         Specific Learning                  Suggested Learning Experiences           Key Inquiry Question(s)"
+      },
+      {
+        "line": 2689,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand               Sub-strand          Specific Learning Outcomes          Suggested Learning               Key Inquiry Question(s)"
+      },
+      {
+        "line": 2731,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand               Sub-          Specific Learning Outcomes         Suggested Learning Experiences                      Key Inquiry Question(s)"
+      },
+      {
+        "line": 2779,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                Sub-strand     Specific Learning Outcomes              Suggested Learning Experiences                  Key Inquiry"
+      },
+      {
+        "line": 2826,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                  Sub-strand            Specific Learning                 Suggested Learning Experiences            Key Inquiry Question(s)"
+      },
+      {
+        "line": 2875,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                 Sub-strand        Specific Learning Outcomes           Suggested Learning Experiences           Key Inquiry Question(s)"
+      },
+      {
+        "line": 2920,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand               Sub-strand          Specific Learning Outcomes             Suggested Learning                    Key Inquiry Question(s)"
+      },
+      {
+        "line": 2970,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand             Sub-strand               Specific Learning              Suggested Learning Experiences            Key Inquiry Question(s)"
+      },
+      {
+        "line": 3015,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                Sub-strand         Specific Learning Outcomes              Suggested Learning              Key Inquiry Question(s)"
+      },
+      {
+        "line": 3066,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand         Sub-strand       Specific Learning Outcomes           Suggested Learning                  Key Inquiry Question(s)"
+      },
+      {
+        "line": 3105,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                SUBSTRAND                Specific Learning Outcomes         Suggested Learning Experiences        Key Inquiry Question(s)"
+      },
+      {
+        "line": 3158,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                Sub-strand         Specific Learning Outcomes           Suggested Learning Experiences           Key Inquiry Question(s)"
+      },
+      {
+        "line": 3196,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                 Sub-Strand            Specific Learning Outcomes            Suggested Learning                 Key Inquiry Question(s)"
+      },
+      {
+        "line": 3283,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                    Sub-strand        Specific Learning Outcomes         Suggested Learning                Key Inquiry Question(s)"
+      },
+      {
+        "line": 3322,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                 Sub-strand         Specific Learning Outcomes                Suggested Learning               Key Inquiry Question(s)"
+      },
+      {
+        "line": 3369,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                  Sub-strand         Specific Learning Outcomes          Suggested Learning Experiences        Key Inquiry Question(s)"
+      },
+      {
+        "line": 3408,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                Sub-strand             Specific Learning Outcomes        Suggested Learning Experiences             Key Inquiry Question(s)"
+      },
+      {
+        "line": 3457,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                 Sub-strand      Specific Learning Outcomes        Suggested Learning                   Key Inquiry Question(s)"
+      },
+      {
+        "line": 3499,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                 Sub-strand           Specific Learning Outcomes          Suggested Learning                   Key Inquiry Question(s)"
+      },
+      {
+        "line": 3570,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                Sub-strand              Specific Learning Outcomes         Suggested Learning Experiences          Key Inquiry"
+      },
+      {
+        "line": 3642,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand         Sub-strand             Specific Learning Outcomes          Suggested Learning                 Key Inquiry Question(s)"
+      },
+      {
+        "line": 3686,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand              Sub-strand            Specific Learning Outcomes        Suggested Learning Experiences      Key Inquiry Question(s)"
+      },
+      {
+        "line": 3740,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                Sub-strand        Specific Learning          Suggested Learning Experiences                 Key Inquiry Question(s)"
+      },
+      {
+        "line": 3778,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand               Sub-strand              Specific Learning              Suggested Learning Experiences             Key Inquiry Question(s"
+      },
+      {
+        "line": 3819,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand               Sub-strand            Specific Learning Outcomes                Suggested Learning                  Key Inquiry"
+      },
+      {
+        "line": 3990,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand               Sub-strand        Specific Learning                  Suggested Learning Experiences                 Key Inquiry"
+      },
+      {
+        "line": 4032,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand             Sub-strand              Specific Learning                      Suggested Learning Experiences                  Key Inquiry"
+      },
+      {
+        "line": 4087,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                Sub-strand          Specific Learning           Suggested Learning Experiences            Key Inquiry Question(s)"
+      },
+      {
+        "line": 4132,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand               Sub-strand         Specific Learning                Suggested Learning Experiences                      Key Inquiry"
+      },
+      {
+        "line": 4189,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand          Sub-strand           Specific Learning            Suggested Learning Experiences                Key Inquiry"
+      },
+      {
+        "line": 4238,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand               Sub-strand           Specific Learning Outcomes               Suggested Learning                 Key Inquiry"
+      },
+      {
+        "line": 4291,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                     Sub-strand            Specific Learning            Suggested Learning Experiences         Key Inquiry"
+      },
+      {
+        "line": 4344,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                Sub-strand         Specific Learning          Suggested Learning Experiences                Key Inquiry"
+      },
+      {
+        "line": 4385,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                Sub-strand       Specific Learning Outcomes            Suggested Learning                 Key Inquiry Question(s)"
+      },
+      {
+        "line": 4431,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                Sub-strand           Specific Learning           Suggested Learning Experiences           Key Inquiry"
+      },
+      {
+        "line": 4485,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand              Sub-strand        Specific Learning Outcomes       Suggested Learning Experiences          Key Inquiry"
+      },
+      {
+        "line": 4524,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                 Sub-strand       Specific Learning Outcomes    Suggested Learning Experiences          Key Inquiry"
+      },
+      {
+        "line": 4571,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand              Sub-strand      Specific Learning            Suggested Learning Experiences               Key Inquiry Question(s)"
+      },
+      {
+        "line": 4625,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand               Sub-strand         Specific Learning              Suggested Learning Experiences              Key Inquiry"
+      },
+      {
+        "line": 4669,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                  Sub-strand           Specific Learning          Suggested Learning Experiences          Key Inquiry"
+      },
+      {
+        "line": 4714,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand               Sub-strand        Specific Learning Outcomes         Suggested Learning Experiences                       Key Inquiry"
+      },
+      {
+        "line": 4822,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Theme               Sub-theme                  Specific learning outcomes         Suggested learning experiences       Key inquiry questions"
+      },
+      {
+        "line": 4894,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Theme                Sub-theme                 Specific learning              Suggested learning                 Key inquiry questions"
+      },
+      {
+        "line": 4954,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Theme       Sub-theme          Specific learning             Suggested learning             Key inquiry questions"
+      },
+      {
+        "line": 5044,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Theme                Sub- theme            Specific learning outcomes        Learning experiences                      Key inquiry"
+      },
+      {
+        "line": 5106,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Theme           Sub- theme                    Specific learning              Learning experiences              Key inquiry questions"
+      },
+      {
+        "line": 5167,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Theme                Sub- theme                 Specific learning               Learning experiences               Key inquiry questions"
+      },
+      {
+        "line": 5223,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Theme                Sub- theme                  Specific learning                 Learning experiences                 Key inquiry questions"
+      },
+      {
+        "line": 5287,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Theme               Sub-theme            Specific learning outcomes            Learning experiences                       Key inquiry questions"
+      },
+      {
+        "line": 5425,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Theme                 Sub-theme                  Specific learning              Learning experiences              Key inquiry questions"
+      },
+      {
+        "line": 5502,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Theme           Sub-theme                   Specific learning outcomes        Learning experiences              Key inquiry questions"
+      },
+      {
+        "line": 5551,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Theme                 Sub-Theme              Specific learning                Learning experiences                Key inquiry questions"
+      },
+      {
+        "line": 5626,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Theme               Sub-theme                Specific learning              Learning experiences                        Key inquiry questions"
+      },
+      {
+        "line": 5709,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Theme                 Sub-theme:              Specific learning               Learning experiences               Key inquiry questions"
+      },
+      {
+        "line": 5798,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand            Sub Strand            Specific Learning Outcomes       Suggested Learning Experiences         Key Inquiry Question(S)"
+      },
+      {
+        "line": 5851,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand            Sub strand          Specific learning outcomes              Suggested learning experiences            Key inquiry question(s)"
+      },
+      {
+        "line": 5886,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand           Sub Strand         Specific Learning Outcomes        Suggested Learning Experiences                 Key Inquiry Question(S)"
+      },
+      {
+        "line": 5925,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand           Sub Strand          Specific Learning Outcomes             Suggested Learning Experiences     Key Inquiry Question(S)"
+      },
+      {
+        "line": 5967,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand              Sub strand         Specific learning outcomes        Suggested learning experiences               Key inquiry questions"
+      },
+      {
+        "line": 5997,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                Sub Strand         Specific Learning Outcomes               Suggested Learning Experiences          Key Inquiry Questions"
+      },
+      {
+        "line": 6040,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand             Sub Strand             Specific Learning Outcomes        Suggested Learning Experiences             Key Inquiry"
+      },
+      {
+        "line": 6073,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand             Sub Strand            Specific Learning Outcomes           Suggested Learning Experiences           Key Inquiry"
+      },
+      {
+        "line": 6106,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand               Sub Strand            Specific Learning Outcomes         Suggested Learning Experiences              Key Inquiry"
+      },
+      {
+        "line": 6146,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand              Sub strand              Specific learning outcomes       Suggested learning experiences         Key inquiry questions"
+      },
+      {
+        "line": 6208,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand               Sub strand            Specific learning outcomes      Suggested learning             Key inquiry question(s)"
+      },
+      {
+        "line": 6273,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand              Sub strand            Specific learning              Suggested learning experiences             Key inquiry question(s)"
+      },
+      {
+        "line": 6329,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand             Sub strand           Specific learning           Suggested learning experiences       Key inquiry question(s)"
+      },
+      {
+        "line": 6398,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand                Sub strand       Specific learning            Suggested learning experiences                 Key inquiry question(s)"
+      },
+      {
+        "line": 6436,
+        "strand": "TRANSPORT",
+        "sub_strand": null,
+        "marker": "Strand               Sub strand                Specific learning               Suggested learning experiences     Key inquiry question(s)"
+      }
+    ]
+  }
+}

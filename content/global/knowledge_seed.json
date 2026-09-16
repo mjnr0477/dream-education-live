@@ -1,0 +1,283 @@
+{
+  "schema_version": "1.0",
+  "collection": "global_foundations",
+  "scope": "global",
+  "records": [
+    {
+      "id": "math-numbers-natural-numbers",
+      "title": "Natural Numbers",
+      "field": "Mathematics",
+      "domain": "Number",
+      "topic": "Numbers",
+      "subtopic": "Natural Numbers",
+      "concept": "Natural numbers",
+      "definition": "Natural numbers are the numbers used for counting, beginning with 0 or 1 depending on the convention being used.",
+      "key_ideas": [
+        "Natural numbers are whole counting numbers.",
+        "Natural numbers do not contain fractional or decimal parts.",
+        "Natural numbers can be ordered from smaller to larger values."
+      ],
+      "principles": [
+        "Every natural number has a successor."
+      ],
+      "relationships": [
+        "Natural numbers are part of the integers."
+      ],
+      "prerequisites": [
+        "Counting"
+      ],
+      "examples": [
+        "0",
+        "1",
+        "2",
+        "10",
+        "100"
+      ],
+      "applications": [
+        "Counting objects",
+        "Ordering quantities",
+        "Basic arithmetic"
+      ],
+      "skills": [
+        "Counting",
+        "Ordering numbers",
+        "Comparing quantities"
+      ],
+      "misconceptions": [
+        "Natural numbers are not the same as all real numbers."
+      ],
+      "questions": [
+        "What are natural numbers?",
+        "Which numbers are natural numbers?"
+      ],
+      "assessment_ideas": [
+        "Identify natural numbers from a list.",
+        "Arrange natural numbers in ascending order."
+      ],
+      "difficulty": {
+        "min": 1,
+        "max": 3
+      },
+      "depth_levels": [
+        "foundational",
+        "intermediate"
+      ],
+      "sources": [
+        "Standard mathematical definitions"
+      ],
+      "source_type": [
+        "academic"
+      ],
+      "version": "1.0",
+      "status": "active"
+    },
+    {
+      "id": "biology-cell-basic-unit",
+      "title": "Cell",
+      "field": "Biology",
+      "domain": "Cell Biology",
+      "topic": "Cells",
+      "subtopic": "Cell Theory",
+      "concept": "Cell as the basic unit of life",
+      "definition": "A cell is the basic structural and functional unit of living organisms.",
+      "key_ideas": [
+        "Living organisms are composed of one or more cells.",
+        "Cells carry out processes necessary for life.",
+        "Cells arise from pre-existing cells."
+      ],
+      "principles": [
+        "Cell theory describes fundamental relationships between cells and living organisms."
+      ],
+      "relationships": [
+        "Cells contain structures that perform specialized functions.",
+        "Multicellular organisms contain many interacting cells."
+      ],
+      "prerequisites": [
+        "Characteristics of living things"
+      ],
+      "examples": [
+        "Bacterial cells",
+        "Plant cells",
+        "Animal cells"
+      ],
+      "applications": [
+        "Understanding disease",
+        "Biotechnology",
+        "Medicine"
+      ],
+      "skills": [
+        "Identifying cell structures",
+        "Comparing cell types",
+        "Explaining cellular functions"
+      ],
+      "misconceptions": [
+        "Not all cells have the same structures or functions."
+      ],
+      "questions": [
+        "What is a cell?",
+        "Why are cells important?"
+      ],
+      "assessment_ideas": [
+        "Define a cell.",
+        "Explain why cells are considered basic units of life."
+      ],
+      "difficulty": {
+        "min": 1,
+        "max": 6
+      },
+      "depth_levels": [
+        "foundational",
+        "intermediate",
+        "advanced"
+      ],
+      "sources": [
+        "Standard biological definitions",
+        "Cell theory literature"
+      ],
+      "source_type": [
+        "academic",
+        "primary_research"
+      ],
+      "version": "1.0",
+      "status": "active"
+    },
+    {
+      "id": "physics-motion-position",
+      "title": "Motion",
+      "field": "Physics",
+      "domain": "Mechanics",
+      "topic": "Motion",
+      "subtopic": "Position and Change",
+      "concept": "Motion",
+      "definition": "Motion is a change in the position of an object relative to a chosen reference frame over time.",
+      "key_ideas": [
+        "Motion is described relative to a reference frame.",
+        "Position can change with time.",
+        "Different observers can describe the same motion relative to different reference frames."
+      ],
+      "principles": [
+        "Motion requires a reference frame for its description."
+      ],
+      "relationships": [
+        "Position changes can be described using displacement.",
+        "Time and position can be used to describe velocity."
+      ],
+      "prerequisites": [
+        "Measurement",
+        "Time",
+        "Position"
+      ],
+      "examples": [
+        "A moving vehicle",
+        "A falling object",
+        "Earth orbiting the Sun"
+      ],
+      "applications": [
+        "Transport",
+        "Engineering",
+        "Astronomy"
+      ],
+      "skills": [
+        "Describing motion",
+        "Interpreting position changes",
+        "Using reference frames"
+      ],
+      "misconceptions": [
+        "An object can be moving relative to one reference frame and stationary relative to another."
+      ],
+      "questions": [
+        "What is motion?",
+        "Why does motion depend on a reference frame?"
+      ],
+      "assessment_ideas": [
+        "Describe whether an object is moving relative to a stated reference frame."
+      ],
+      "difficulty": {
+        "min": 2,
+        "max": 8
+      },
+      "depth_levels": [
+        "foundational",
+        "intermediate",
+        "advanced"
+      ],
+      "sources": [
+        "Standard physics definitions"
+      ],
+      "source_type": [
+        "academic"
+      ],
+      "version": "1.0",
+      "status": "active"
+    },
+    {
+      "id": "computer-science-algorithm",
+      "title": "Algorithm",
+      "field": "Computer Science",
+      "domain": "Algorithms",
+      "topic": "Problem Solving",
+      "subtopic": "Algorithms",
+      "concept": "Algorithm",
+      "definition": "An algorithm is a finite, well-defined sequence of steps or rules for solving a problem or performing a computation.",
+      "key_ideas": [
+        "Algorithms specify procedures for solving problems.",
+        "Algorithms should have clearly defined steps.",
+        "Algorithms can be represented using text, pseudocode, diagrams, or programs."
+      ],
+      "principles": [
+        "A useful algorithm must specify how a problem is transformed from input to desired output."
+      ],
+      "relationships": [
+        "Algorithms can be implemented as computer programs.",
+        "Different algorithms can solve the same problem with different efficiency."
+      ],
+      "prerequisites": [
+        "Logical reasoning",
+        "Problem decomposition"
+      ],
+      "examples": [
+        "Sorting numbers",
+        "Searching a list",
+        "Finding the shortest path"
+      ],
+      "applications": [
+        "Software development",
+        "Data processing",
+        "Artificial intelligence"
+      ],
+      "skills": [
+        "Problem decomposition",
+        "Writing pseudocode",
+        "Evaluating algorithms"
+      ],
+      "misconceptions": [
+        "An algorithm is not necessarily a computer program."
+      ],
+      "questions": [
+        "What is an algorithm?",
+        "Why are algorithms useful?"
+      ],
+      "assessment_ideas": [
+        "Write an algorithm for a simple everyday problem.",
+        "Convert a procedure into pseudocode."
+      ],
+      "difficulty": {
+        "min": 2,
+        "max": 8
+      },
+      "depth_levels": [
+        "foundational",
+        "intermediate",
+        "advanced"
+      ],
+      "sources": [
+        "Standard computer science definitions"
+      ],
+      "source_type": [
+        "academic"
+      ],
+      "version": "1.0",
+      "status": "active"
+    }
+  ]
+}

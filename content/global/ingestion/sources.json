@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0",
+  "sources": [
+    {
+      "id": "openstax",
+      "name": "OpenStax",
+      "type": "open_educational_resource",
+      "license": "CC BY-NC-SA 4.0",
+      "commercial_use": false,
+      "action": "reference_only_until_commercial_rights_are_obtained"
+    },
+    {
+      "id": "mit-ocw",
+      "name": "MIT OpenCourseWare",
+      "type": "open_educational_resource",
+      "license": "CC BY-NC-SA 4.0",
+      "commercial_use": false,
+      "action": "reference_only_until_commercial_rights_are_obtained"
+    }
+  ]
+}

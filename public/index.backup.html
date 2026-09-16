@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dream Education</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f7fb;
+      color: #172033;
+    }
+
+    .header {
+      background: #172554;
+      color: white;
+      padding: 24px 20px;
+    }
+
+    .header h1 {
+      margin: 0 0 6px;
+      font-size: 28px;
+    }
+
+    .header p {
+      margin: 0;
+      opacity: 0.85;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 30px auto;
+      padding: 0 18px;
+    }
+
+    .card {
+      background: white;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    }
+
+    label {
+      display: block;
+      margin: 16px 0 7px;
+      font-weight: bold;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      font-size: 16px;
+    }
+
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 20px;
+      padding: 15px;
+      border: 0;
+      border-radius: 10px;
+      background: #2563eb;
+      color: white;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+    }
+
+    .answer {
+      margin-top: 25px;
+      padding: 20px;
+      background: #f8fafc;
+      border-left: 4px solid #2563eb;
+      border-radius: 10px;
+      white-space: pre-wrap;
+      line-height: 1.6;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .status {
+      margin-top: 12px;
+      text-align: center;
+      color: #64748b;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="header">
+    <h1>Dream Education</h1>
+    <p>Learn. Understand. Grow.</p>
+  </header>
+
+  <main class="container">
+
+    <div class="card">
+
+      <h2>What do you want to learn?</h2>
+
+      <label for="name">Your name</label>
+      <input
+        id="name"
+        type="text"
+        placeholder="Enter your name"
+      >
+
+      <label for="learnerId">Learner ID</label>
+      <input
+        id="learnerId"
+        type="text"
+        placeholder="e.g. student001"
+      >
+
+      <label for="level">Learning level</label>
+      <select id="level">
+        <option value="Junior Secondary">Junior Secondary</option>
+        <option value="Primary">Primary</option>
+        <option value="Secondary">Secondary</option>
+        <option value="University">University</option>
+      </select>
+
+      <label for="subject">Subject</label>
+      <select id="subject">
+        <option value="Mathematics">Mathematics</option>
+        <option value="Biology">Biology</option>
+        <option value="Physics">Physics</option>
+        <option value="Chemistry">Chemistry</option>
+        <option value="Integrated Science">Integrated Science</option>
+        <option value="English">English</option>
+        <option value="General">General</option>
+      </select>
+
+      <label for="question">Your question</label>
+      <textarea
+        id="question"
+        placeholder="Ask anything you want to understand..."
+      ></textarea>
+
+      <button id="learnButton" onclick="learn()">
+        Start Learning
+      </button>
+
+      <div id="status" class="status"></div>
+
+      <div id="answer" class="answer hidden"></div>
+
+    </div>
+
+  </main>
+
+  <script>
+    async function learn() {
+      const button = document.getElementById("learnButton");
+      const status = document.getElementById("status");
+      const answerBox = document.getElementById("answer");
+
+      const name = document.getElementById("name").value.trim();
+      const learnerId = document.getElementById("learnerId").value.trim();
+      const level = document.getElementById("level").value;
+      const subject = document.getElementById("subject").value;
+      const question = document.getElementById("question").value.trim();
+
+      if (!question) {
+        status.textContent = "Please enter a question.";
+        return;
+      }
+
+      button.disabled = true;
+      button.textContent = "Dream Education is thinking...";
+      status.textContent = "";
+      answerBox.classList.add("hidden");
+
+      try {
+        const response = await fetch("/api/learn", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            question,
+            subject,
+            level,
+            learner_id: learnerId || null,
+            learner_name: name || null
+          })
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.message || "Something went wrong.");
+        }
+
+        answerBox.textContent = data.answer;
+        answerBox.classList.remove("hidden");
+
+        status.textContent = data.cached
+          ? "Answer retrieved from Dream Education's learning cache."
+          : "Lesson created successfully.";
+
+      } catch (error) {
+        status.textContent = error.message;
+      }
+
+      button.disabled = false;
+      button.textContent = "Start Learning";
+    }
+  </script>
+
+</body>
+</html>

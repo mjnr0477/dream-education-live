@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dream Education</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f7fb;
+      color: #172033;
+    }
+
+    .header {
+      background: #172554;
+      color: white;
+      padding: 24px 20px;
+    }
+
+    .header h1 {
+      margin: 0 0 6px;
+      font-size: 28px;
+    }
+
+    .header p {
+      margin: 0;
+      opacity: .85;
+    }
+
+    .container {
+      max-width: 750px;
+      margin: 25px auto;
+      padding: 0 18px;
+    }
+
+    .card {
+      background: white;
+      padding: 24px;
+      margin-bottom: 20px;
+      border-radius: 16px;
+      box-shadow: 0 5px 20px rgba(0,0,0,.08);
+    }
+
+    label {
+      display: block;
+      margin: 16px 0 7px;
+      font-weight: bold;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      font-size: 16px;
+    }
+
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 18px;
+      padding: 15px;
+      border: 0;
+      border-radius: 10px;
+      background: #2563eb;
+      color: white;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: .6;
+    }
+
+    .answer {
+      margin-top: 25px;
+      padding: 20px;
+      background: #f8fafc;
+      border-left: 4px solid #2563eb;
+      border-radius: 10px;
+      white-space: pre-wrap;
+      line-height: 1.6;
+    }
+
+    .status {
+      margin-top: 12px;
+      text-align: center;
+      color: #64748b;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 15px;
+    }
+
+    .stat {
+      padding: 18px;
+      background: #f8fafc;
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 28px;
+      margin-bottom: 5px;
+    }
+
+    .subject {
+      padding: 12px;
+      margin-top: 8px;
+      background: #f8fafc;
+      border-radius: 9px;
+    }
+
+    .recent {
+      padding: 14px 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .recent:last-child {
+      border-bottom: none;
+    }
+
+    .recent strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="header">
+  <h1>Dream Education</h1>
+  <p>Learn. Understand. Grow.</p>
+</header>
+
+<main class="container">
+
+  <!-- LEARNING -->
+  <section class="card">
+
+    <h2>What do you want to learn?</h2>
+
+    <label for="name">Your name</label>
+    <input id="name" type="text" placeholder="Enter your name">
+
+    <label for="learnerId">Learner ID</label>
+    <input id="learnerId" type="text" placeholder="e.g. student001">
+
+    <label for="level">Learning level</label>
+    <select id="level">
+      <option value="Junior Secondary">Junior Secondary</option>
+      <option value="Primary">Primary</option>
+      <option value="Secondary">Secondary</option>
+      <option value="University">University</option>
+    </select>
+
+    <label for="subject">Subject</label>
+    <select id="subject">
+      <option value="Mathematics">Mathematics</option>
+      <option value="Biology">Biology</option>
+      <option value="Physics">Physics</option>
+      <option value="Chemistry">Chemistry</option>
+      <option value="Integrated Science">Integrated Science</option>
+      <option value="English">English</option>
+      <option value="General">General</option>
+    </select>
+
+    <label for="question">Your question</label>
+    <textarea
+      id="question"
+      placeholder="Ask anything you want to understand..."
+    ></textarea>
+
+    <button id="learnButton" onclick="learn()">
+      Start Learning
+    </button>
+
+    <div id="status" class="status"></div>
+
+    <div id="answer" class="answer hidden"></div>
+
+    <div id="adaptiveLearning" class="hidden">
+
+      <h3>Now show me what you learned</h3>
+
+      <div id="nextQuestion" class="answer"></div>
+
+      <label for="learnerAnswer">Your answer</label>
+      <textarea
+        id="learnerAnswer"
+        placeholder="Explain what you understand..."
+      ></textarea>
+
+      <button id="submitAnswerButton" onclick="submitAnswer()">
+        Submit Answer
+      </button>
+
+      <div id="assessment" class="answer hidden"></div>
+
+      <button
+        id="continueButton"
+        class="hidden"
+        onclick="continueLearning()"
+      >
+        Continue Learning
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- PROGRESS -->
+  <section class="card">
+
+    <h2>My Progress</h2>
+
+    <button onclick="loadProgress()">
+      View My Progress
+    </button>
+
+    <div id="progress" class="hidden">
+
+      <div class="stats">
+
+        <div class="stat">
+          <strong id="totalQuestions">0</strong>
+          Questions
+        </div>
+
+        <div class="stat">
+          <strong id="subjectCount">0</strong>
+          Subjects
+        </div>
+
+      </div>
+
+      <h3>Subjects</h3>
+
+      <div id="subjects"></div>
+
+      <h3>Recent Learning</h3>
+
+      <div id="recentLearning"></div>
+
+    </div>
+
+  </section>
+
+</main>
+
+
+<script>
+
+async function learn() {
+
+  const button = document.getElementById("learnButton");
+  const status = document.getElementById("status");
+  const answerBox = document.getElementById("answer");
+
+  const name =
+    document.getElementById("name").value.trim();
+
+  const learnerId =
+    document.getElementById("learnerId").value.trim();
+
+  const level =
+    document.getElementById("level").value;
+
+  const subject =
+    document.getElementById("subject").value;
+
+  const question =
+    document.getElementById("question").value.trim();
+
+  if (!question) {
+    status.textContent = "Please enter a question.";
+    return;
+  }
+
+  if (!learnerId) {
+    status.textContent = "Please enter your Learner ID.";
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = "Dream Education is thinking...";
+  status.textContent = "";
+  answerBox.classList.add("hidden");
+
+  try {
+
+    const response = await fetch("/api/learn", {
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json"
+      },
+
+      body: JSON.stringify({
+        question,
+        subject,
+        level,
+        learner_id: learnerId,
+        learner_name: name || null
+      })
+    });
+
+    const data = await response.json();
+
+    if (!data.success) {
+      throw new Error(
+        data.message || "Something went wrong."
+      );
+    }
+
+    answerBox.textContent = data.answer;
+    answerBox.classList.remove("hidden");
+
+    status.textContent = data.cached
+      ? "Retrieved from learning cache."
+      : "Lesson created successfully.";
+
+  } catch (error) {
+
+    status.textContent = error.message;
+
+  }
+
+  button.disabled = false;
+  button.textContent = "Start Learning";
+}
+
+
+async function loadProgress() {
+
+  const learnerId =
+    document.getElementById("learnerId").value.trim();
+
+  const progressBox =
+    document.getElementById("progress");
+
+  if (!learnerId) {
+
+    alert("Enter your Learner ID first.");
+
+    return;
+  }
+
+  try {
+
+    const response =
+      await fetch("/api/progress/" +
+        encodeURIComponent(learnerId));
+
+    const data =
+      await response.json();
+
+    if (!data.success) {
+      throw new Error(
+        data.message || "Could not load progress."
+      );
+    }
+
+    document.getElementById("totalQuestions")
+      .textContent = data.total_questions;
+
+    const subjects =
+      data.subjects || {};
+
+    document.getElementById("subjectCount")
+      .textContent = Object.keys(subjects).length;
+
+    const subjectsBox =
+      document.getElementById("subjects");
+
+    subjectsBox.innerHTML = "";
+
+    Object.entries(subjects).forEach(
+      ([subject, count]) => {
+
+        const div =
+          document.createElement("div");
+
+        div.className = "subject";
+
+        div.textContent =
+          subject + ": " + count + " question(s)";
+
+        subjectsBox.appendChild(div);
+      }
+    );
+
+    const recentBox =
+      document.getElementById("recentLearning");
+
+    recentBox.innerHTML = "";
+
+    (data.recent_learning || []).forEach(
+      item => {
+
+        const div =
+          document.createElement("div");
+
+        div.className = "recent";
+
+        const strong =
+          document.createElement("strong");
+
+        strong.textContent =
+          item.subject || "General";
+
+        const text =
+          document.createElement("div");
+
+        text.textContent =
+          item.question;
+
+        div.appendChild(strong);
+        div.appendChild(text);
+
+        recentBox.appendChild(div);
+      }
+    );
+
+    progressBox.classList.remove("hidden");
+
+  } catch (error) {
+
+    alert(error.message);
+
+  }
+}
+
+</script>
+
+</body>
+</html>

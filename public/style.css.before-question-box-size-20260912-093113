@@ -1,0 +1,2423 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #f5f7fc;
+  --surface: #ffffff;
+  --surface-soft: #f8f9fd;
+  --surface-strong: #eef1ff;
+
+  --text: #111827;
+  --text-soft: #344054;
+  --muted: #667085;
+
+  --primary: #4f46e5;
+  --primary-dark: #3730a3;
+  --primary-soft: #eef2ff;
+
+  --success: #087f5b;
+  --success-soft: #ecfdf5;
+
+  --warning: #b45309;
+  --warning-soft: #fffbeb;
+
+  --danger: #b42318;
+  --danger-soft: #fef3f2;
+
+  --border: #e6e8f0;
+  --border-strong: #d8dbea;
+
+  --shadow-sm: 0 2px 8px rgba(16, 24, 40, 0.04);
+  --shadow-md: 0 12px 35px rgba(16, 24, 40, 0.07);
+  --shadow-lg: 0 25px 70px rgba(16, 24, 40, 0.10);
+
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 26px;
+  --radius-xl: 32px;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(
+      circle at 8% 0%,
+      rgba(79, 70, 229, 0.10),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 95% 5%,
+      rgba(99, 102, 241, 0.08),
+      transparent 25%
+    ),
+    var(--bg);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* HEADER */
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.84);
+  border-bottom: 1px solid rgba(230, 232, 240, 0.8);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.header-inner {
+  width: min(100%, 1080px);
+  min-height: 76px;
+  margin: 0 auto;
+  padding: 14px 18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.brand-mark {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #fff;
+  background:
+    linear-gradient(145deg, #6366f1, #4338ca);
+  border-radius: 14px;
+
+  font-size: 21px;
+  font-weight: 900;
+  letter-spacing: -1px;
+
+  box-shadow:
+    0 9px 22px rgba(79, 70, 229, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.brand-text {
+  min-width: 0;
+}
+
+.brand-text strong {
+  display: block;
+  color: var(--text);
+  font-size: 17px;
+  line-height: 1.15;
+  letter-spacing: -0.45px;
+}
+
+.brand-text span {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.2;
+  font-weight: 600;
+}
+
+.header-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 8px 12px;
+
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #12b76a;
+  box-shadow: 0 0 0 4px rgba(18, 183, 106, 0.10);
+}
+
+/* MAIN */
+
+.container {
+  width: min(100%, 1080px);
+  margin: 0 auto;
+  padding: 18px 15px 70px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+/* HERO */
+
+.welcome {
+  position: relative;
+  overflow: hidden;
+  padding: 44px 7px 34px;
+  margin-bottom: 8px;
+}
+
+.hero-glow {
+  position: absolute;
+  width: 280px;
+  height: 280px;
+  right: -150px;
+  top: -135px;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(99, 102, 241, 0.16),
+      rgba(99, 102, 241, 0.02) 60%,
+      transparent 72%
+    );
+
+  pointer-events: none;
+}
+
+.welcome-badge {
+  position: relative;
+
+  display: inline-flex;
+  align-items: center;
+
+  padding: 7px 11px;
+  margin-bottom: 17px;
+
+  color: var(--primary);
+  background: rgba(238, 242, 255, 0.88);
+  border: 1px solid #dfe3ff;
+  border-radius: 999px;
+
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 1.4px;
+}
+
+.welcome h1 {
+  position: relative;
+  max-width: 760px;
+
+  color: var(--text);
+  font-size: clamp(40px, 11vw, 68px);
+  line-height: 0.99;
+  letter-spacing: -2.8px;
+  font-weight: 900;
+
+  margin-bottom: 18px;
+}
+
+.welcome h1 span {
+  color: var(--primary);
+}
+
+.welcome > p {
+  position: relative;
+  max-width: 650px;
+
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+/* LEARNING PATH */
+
+.learning-path {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  max-width: 680px;
+  margin-top: 29px;
+}
+
+.path-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.path-number {
+  width: 33px;
+  height: 33px;
+  min-width: 33px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--primary);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+
+  font-size: 9px;
+  font-weight: 900;
+
+  box-shadow: var(--shadow-sm);
+}
+
+.path-item strong {
+  display: block;
+  font-size: 12px;
+  line-height: 1.1;
+}
+
+.path-item span {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.1;
+}
+
+.path-line {
+  width: 34px;
+  height: 1px;
+  background: var(--border-strong);
+}
+
+/* CARDS */
+
+.card {
+  position: relative;
+
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(230, 232, 240, 0.95);
+  border-radius: var(--radius-lg);
+
+  padding: 21px;
+  margin-bottom: 16px;
+
+  box-shadow: var(--shadow-md);
+}
+
+.card h2 {
+  color: var(--text);
+  font-size: 20px;
+  line-height: 1.2;
+  letter-spacing: -0.55px;
+  margin-bottom: 7px;
+}
+
+.card > p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+  margin-bottom: 19px;
+}
+
+.section-label {
+  display: inline-flex;
+  align-items: center;
+
+  color: var(--primary);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 1.25px;
+
+  margin-bottom: 8px;
+}
+
+.welcome + .card {
+  margin-top: 3px;
+}
+
+.welcome + .card::before {
+  content: "START HERE";
+
+  display: block;
+  width: fit-content;
+
+  margin-bottom: 9px;
+
+  color: var(--primary);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 1.3px;
+}
+
+/* FORM */
+
+/* Learning setup panel */
+.setup-panel {
+  margin-top: 2.5rem;
+}
+
+.setup-panel-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.setup-panel-top > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.panel-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #5148d8;
+}
+
+.setup-panel-top strong {
+  font-size: 1.05rem;
+  line-height: 1.25;
+}
+
+.panel-symbol {
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: 0 0 2.75rem;
+  display: grid;
+  place-items: center;
+  border-radius: 0.9rem;
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: #ffffff;
+  background: linear-gradient(135deg, #6259e8, #4038b8);
+  box-shadow: 0 8px 20px rgba(64, 56, 184, 0.2);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 15px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.field label,
+label {
+  color: var(--text-soft);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+
+  color: var(--text);
+  background: var(--surface);
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+
+  padding: 13px 14px;
+  outline: none;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease,
+    background 0.2s ease;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #98a2b3;
+}
+
+input:hover,
+select:hover,
+textarea:hover {
+  border-color: var(--border-strong);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  background: #fff;
+  border-color: rgba(79, 70, 229, 0.65);
+
+  box-shadow:
+    0 0 0 4px rgba(79, 70, 229, 0.09),
+    var(--shadow-sm);
+}
+
+textarea {
+  min-height: 132px;
+  resize: vertical;
+}
+
+/* BUTTONS */
+
+button.primary,
+.primary {
+  width: 100%;
+
+  border: 0;
+  border-radius: 14px;
+
+  padding: 14px 18px;
+
+  color: #fff;
+  background:
+    linear-gradient(135deg, #6366f1, #4338ca);
+
+  font-size: 14px;
+  font-weight: 800;
+
+  box-shadow:
+    0 10px 22px rgba(79, 70, 229, 0.20),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    filter 0.18s ease;
+}
+
+button.primary:hover,
+.primary:hover {
+  filter: brightness(1.04);
+  box-shadow:
+    0 14px 28px rgba(79, 70, 229, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+button.primary:active,
+.primary:active {
+  transform: translateY(1px) scale(0.985);
+}
+
+button.secondary,
+.secondary {
+  border: 1px solid var(--border);
+  border-radius: 13px;
+
+  padding: 12px 16px;
+
+  color: var(--text-soft);
+  background: var(--surface);
+
+  font-weight: 750;
+
+  box-shadow: var(--shadow-sm);
+}
+
+.button-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 17px;
+}
+
+.status {
+  margin-top: 12px;
+  font-size: 13px;
+}
+
+.error {
+  color: var(--danger);
+  background: var(--danger-soft);
+  border: 1px solid #fecdca;
+  border-radius: 13px;
+  padding: 12px;
+  margin-top: 12px;
+  font-size: 13px;
+}
+
+.success {
+  color: var(--success);
+}
+
+.loading {
+  opacity: 0.62;
+  pointer-events: none;
+}
+/* =========================================================
+   LESSON — TEACHER EXPERIENCE
+   ========================================================= */
+
+.lesson-card {
+  overflow: hidden;
+  border-top: 0;
+}
+
+.lesson-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+  background: linear-gradient(90deg, #6366f1, #8b5cf6, #a78bfa);
+}
+
+.lesson-card h2 {
+  letter-spacing: -0.65px;
+}
+
+.lesson-intro {
+  margin-bottom: 17px;
+}
+
+.lesson-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 17px;
+  background: linear-gradient(145deg, #f6f7ff, #ffffff);
+  border: 1px solid #e3e6ff;
+  border-radius: var(--radius-md);
+}
+
+.lesson-icon {
+  width: 39px;
+  height: 39px;
+  min-width: 39px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  background: var(--primary-soft);
+  border-radius: 12px;
+  font-size: 18px;
+}
+
+.lesson-answer {
+  margin-top: 0;
+  color: var(--text-soft);
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.lesson-tip {
+  margin-top: 14px;
+  padding: 14px 15px;
+  background: var(--warning-soft);
+  border: 1px solid #f7e6b5;
+  border-radius: 14px;
+}
+
+.lesson-tip strong {
+  display: block;
+  margin-bottom: 3px;
+  color: #92400e;
+  font-size: 12px;
+}
+
+.lesson-tip p {
+  color: #7c5a20;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+/* =========================================================
+   LEARNING SESSION
+   ========================================================= */
+
+.learning-session {
+  border-top: 0;
+}
+
+.learning-session::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+}
+
+.learning-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 13px;
+  color: var(--primary);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 1.25px;
+}
+
+.step-number {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  background: var(--primary-soft);
+  border-radius: 9px;
+  font-size: 10px;
+  letter-spacing: 0;
+}
+
+.learning-session h2 {
+  font-size: 23px;
+  letter-spacing: -0.65px;
+  margin-bottom: 7px;
+}
+
+.learning-prompt {
+  margin-bottom: 19px !important;
+}
+
+.question-box {
+  padding: 19px;
+  background: linear-gradient(145deg, #f1f3ff, #ffffff);
+  border: 1px solid #dfe3ff;
+  border-radius: var(--radius-md);
+  margin-bottom: 20px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.question-label {
+  margin-bottom: 9px;
+  color: var(--primary);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 1.2px;
+}
+
+.question-box .question {
+  color: var(--text);
+  font-size: 17px;
+  line-height: 1.55;
+  font-weight: 750;
+}
+
+.answer-area {
+  margin-top: 3px;
+}
+
+.answer-area label {
+  display: block;
+  margin-bottom: 7px;
+}
+
+.answer-area textarea {
+  min-height: 155px;
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.answer-hint {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.learning-submit {
+  margin-top: 17px;
+  padding: 15px;
+}
+
+/* =========================================================
+   ASSESSMENT / FEEDBACK
+   ========================================================= */
+
+.assessment-card {
+  overflow: hidden;
+  border-top: 0;
+}
+
+.assessment-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+  background: linear-gradient(90deg, #8b5cf6, #6366f1);
+}
+
+.result-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.result-icon {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  background: var(--primary-soft);
+  border-radius: 14px;
+  font-size: 20px;
+}
+
+.result-heading h2 {
+  font-size: 22px;
+  line-height: 1.18;
+  letter-spacing: -0.6px;
+  margin-bottom: 5px;
+}
+
+.result-heading p {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.score-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.score-box,
+.understanding-box {
+  min-height: 96px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 16px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.score-box span {
+  display: block;
+  color: var(--primary);
+  font-size: 36px;
+  line-height: 1;
+  letter-spacing: -1.4px;
+  font-weight: 900;
+}
+
+.score-box small,
+.understanding-box small {
+  color: var(--muted);
+  font-size: 10px;
+  margin-top: 5px;
+}
+
+.understanding-box span {
+  color: var(--text);
+  font-size: 17px;
+  line-height: 1.25;
+  font-weight: 850;
+}
+
+.feedback-box,
+.teaching-box,
+.next-question-box {
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-top: 12px;
+}
+
+.feedback-box {
+  background: linear-gradient(145deg, #f4f7ff, #ffffff);
+  border: 1px solid #dfe6ff;
+}
+
+.feedback-box h3 {
+  font-size: 13px;
+  margin-bottom: 5px;
+}
+
+.feedback-box p {
+  color: var(--text-soft);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.learning-details {
+  display: grid;
+  gap: 0;
+  margin-top: 14px;
+}
+
+.learning-detail {
+  padding: 13px 0;
+  border-top: 1px solid var(--border);
+}
+
+.learning-detail strong {
+  display: block;
+  color: var(--text-soft);
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.learning-detail p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.teaching-box {
+  background: linear-gradient(145deg, #f6f3ff, #ffffff);
+  border: 1px solid #e5ddff;
+}
+
+.next-step-label {
+  margin-bottom: 7px;
+  color: var(--primary);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 1.2px;
+}
+
+.teaching-box > p {
+  color: var(--text-soft);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.next-question-box {
+  background: var(--success-soft);
+  border: 1px solid #ccefe0;
+}
+
+.next-question-box strong {
+  display: block;
+  color: var(--success);
+  font-size: 9px;
+  letter-spacing: 0.9px;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+
+.next-question-box p {
+  color: var(--text-soft);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.assessment-card > .primary {
+  margin-top: 17px;
+}
+
+/* =========================================================
+   DASHBOARD
+   ========================================================= */
+
+.dashboard-card {
+  margin-top: 24px;
+}
+
+.dashboard-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.dashboard-heading h2 {
+  font-size: 24px;
+  letter-spacing: -0.65px;
+  margin-bottom: 3px;
+}
+
+.dashboard-heading p {
+  margin-bottom: 0 !important;
+  font-size: 12px;
+}
+
+.dashboard-refresh {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  font-size: 19px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.18s ease, background 0.18s ease;
+}
+
+.dashboard-refresh:hover {
+  background: var(--primary-soft);
+}
+
+.dashboard-refresh:active {
+  transform: rotate(20deg);
+}
+
+.learning-summary {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  margin-bottom: 15px;
+  background: linear-gradient(145deg, #f1f3ff, #ffffff);
+  border: 1px solid #dfe3ff;
+  border-radius: var(--radius-md);
+}
+
+.summary-icon {
+  width: 39px;
+  height: 39px;
+  min-width: 39px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  background: var(--primary-soft);
+  border-radius: 12px;
+  font-size: 18px;
+}
+
+.learning-summary strong {
+  display: block;
+  color: var(--text);
+  font-size: 13px;
+  margin-bottom: 3px;
+}
+
+.learning-summary p {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.dashboard-section {
+  margin-top: 25px;
+}
+
+.dashboard-section-title {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 1.25px;
+  margin-bottom: 10px;
+}
+
+.dashboard-card .stats {
+  margin-bottom: 0;
+}
+
+.dashboard-card .stat {
+  padding: 15px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: 15px;
+}
+
+.dashboard-card .stat span {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.dashboard-card .stat strong {
+  display: block;
+  color: var(--text);
+  font-size: 20px;
+  line-height: 1.1;
+  margin-top: 5px;
+}
+
+/* =========================================================
+   RECOMMENDATION
+   ========================================================= */
+
+.recommendation {
+  background: linear-gradient(145deg, #f4f6ff, #ffffff);
+  border: 1px solid #dfe3ff;
+  border-radius: var(--radius-md);
+  padding: 16px;
+}
+
+.dashboard-recommendation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.recommendation-content {
+  flex: 1;
+}
+
+.recommendation-content strong {
+  display: block;
+  color: var(--text);
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.recommendation-content p {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.recommendation-action {
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 12px;
+  padding: 10px 14px;
+  color: #fff;
+  background: var(--primary);
+  font-size: 11px;
+  font-weight: 850;
+  box-shadow: 0 7px 15px rgba(79, 70, 229, 0.18);
+}
+
+.recommendation-action:active {
+  transform: scale(0.97);
+}
+
+/* =========================================================
+   MASTERY MAP
+   ========================================================= */
+
+.topic-mastery {
+  display: grid;
+  gap: 10px;
+}
+
+.mastery-item {
+  padding: 14px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: 15px;
+}
+
+.mastery-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.mastery-top strong {
+  color: var(--text-soft);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.mastery-top span {
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.mastery-track {
+  height: 7px;
+  overflow: hidden;
+  margin: 10px 0 6px;
+  background: #e7e9f1;
+  border-radius: 999px;
+}
+
+.mastery-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  border-radius: inherit;
+  transition: width 0.5s ease;
+}
+
+.mastery-item small {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.mastery-empty {
+  padding: 16px;
+  color: var(--muted);
+  background: var(--surface-soft);
+  border: 1px dashed var(--border-strong);
+  border-radius: 14px;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+/* =========================================================
+   SUBJECTS + RECENT LEARNING
+   ========================================================= */
+
+.dashboard-card .subject,
+.dashboard-card .recent {
+  padding: 13px 14px;
+  margin-bottom: 8px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.dashboard-card .subject:last-child,
+.dashboard-card .recent:last-child {
+  margin-bottom: 0;
+}
+
+.subject strong,
+.recent strong {
+  display: block;
+  color: var(--text-soft);
+  font-size: 12px;
+}
+
+.subject span,
+.recent span {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+/* =========================================================
+   DESKTOP
+   ========================================================= */
+
+@media (min-width: 650px) {
+  .header-inner {
+    padding: 15px 24px;
+  }
+
+  .container {
+    padding: 30px 24px 90px;
+  }
+
+  .welcome {
+    padding: 72px 8px 48px;
+  }
+
+  .welcome h1 {
+    font-size: clamp(52px, 7vw, 72px);
+    letter-spacing: -3.4px;
+  }
+
+  .welcome > p {
+    font-size: 16px;
+  }
+
+  .card {
+    padding: 27px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .form-grid .full {
+    grid-column: 1 / -1;
+  }
+
+  .score-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .stats {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .learning-session h2 {
+    font-size: 28px;
+  }
+
+  .question-box {
+    padding: 23px;
+  }
+
+  .question-box .question {
+    font-size: 20px;
+  }
+
+  .answer-area textarea {
+    min-height: 185px;
+  }
+
+  .result-heading h2 {
+    font-size: 27px;
+  }
+
+  .dashboard-heading h2 {
+    font-size: 27px;
+  }
+}
+
+/* =========================================================
+   SMALL PHONES
+   ========================================================= */
+
+@media (max-width: 500px) {
+  .header-pill {
+    display: none;
+  }
+
+  .welcome {
+    padding: 38px 3px 30px;
+  }
+
+  .welcome h1 {
+    font-size: 42px;
+    letter-spacing: -1.9px;
+  }
+
+  .learning-path {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .path-line {
+    display: none;
+  }
+
+  .path-item {
+    padding: 9px;
+    background: rgba(255, 255, 255, 0.68);
+    border: 1px solid var(--border);
+    border-radius: 13px;
+  }
+
+  .dashboard-recommendation {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .recommendation-action {
+    width: 100%;
+  }
+}
+
+@media (max-width: 380px) {
+  .container {
+    padding-left: 11px;
+    padding-right: 11px;
+  }
+
+  .card {
+    padding: 17px;
+    border-radius: 22px;
+  }
+
+  .welcome {
+    padding-top: 31px;
+  }
+
+  .welcome h1 {
+    font-size: 37px;
+    letter-spacing: -1.7px;
+  }
+
+  .welcome > p {
+    font-size: 14px;
+  }
+
+  .question-box .question {
+    font-size: 16px;
+  }
+
+  .lesson-answer {
+    font-size: 14px;
+  }
+
+  .result-heading h2 {
+    font-size: 20px;
+  }
+}
+
+/* =========================================================
+   DREAM EDUCATION — LIVE LEARNING EXPERIENCE
+   ========================================================= */
+
+.live-learning-panel {
+  margin: 32px auto;
+  padding: 28px;
+  max-width: 1100px;
+  border-radius: 24px;
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.035);
+  box-shadow: 0 18px 50px rgba(0,0,0,.18);
+}
+
+.live-learning-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 26px;
+}
+
+.live-learning-header h2 {
+  margin: 6px 0;
+}
+
+.live-learning-header p {
+  margin: 0;
+  opacity: .72;
+}
+
+.section-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  opacity: .65;
+}
+
+.learning-state-badge {
+  padding: 9px 13px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  border: 1px solid rgba(255,255,255,.12);
+  white-space: nowrap;
+}
+
+.learning-controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.learning-controls label,
+.learning-question-box label,
+.answer-area label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.learning-controls select,
+.learning-controls input,
+.learning-question-box textarea,
+.answer-area textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 14px;
+  padding: 13px 14px;
+  background: rgba(0,0,0,.16);
+  color: inherit;
+  font: inherit;
+  outline: none;
+}
+
+.learning-controls select:focus,
+.learning-controls input:focus,
+.learning-question-box textarea:focus,
+.answer-area textarea:focus {
+  border-color: rgba(255,255,255,.32);
+}
+
+.learning-question-box {
+  display: grid;
+  gap: 12px;
+}
+
+.live-learning-panel button {
+  width: fit-content;
+  border: 0;
+  border-radius: 14px;
+  padding: 13px 20px;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.live-learning-panel button:disabled {
+  opacity: .55;
+  cursor: wait;
+}
+
+.learning-response {
+  margin-top: 26px;
+  padding-top: 26px;
+  border-top: 1px solid rgba(255,255,255,.09);
+}
+
+.response-meta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  font-size: 12px;
+  opacity: .7;
+}
+
+.teaching-answer,
+.adaptive-result {
+  padding: 20px;
+  border-radius: 18px;
+  background: rgba(255,255,255,.045);
+  line-height: 1.7;
+}
+
+.answer-area {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.adaptive-result {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+@media (max-width: 760px) {
+  .live-learning-panel {
+    margin: 20px 12px;
+    padding: 20px;
+  }
+
+  .live-learning-header {
+    flex-direction: column;
+  }
+
+  .learning-controls {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* =========================================================
+   DREAM EDUCATION — LEARNING EXPERIENCE UPGRADE
+   ========================================================= */
+
+.live-learning-panel {
+  position: relative;
+  overflow: hidden;
+}
+
+.live-learning-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 90% 5%, rgba(255,255,255,.08), transparent 28%),
+    radial-gradient(circle at 10% 90%, rgba(255,255,255,.05), transparent 30%);
+}
+
+.live-learning-header {
+  position: relative;
+  z-index: 1;
+}
+
+.learning-state-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .3px;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.12);
+}
+
+.learning-controls {
+  position: relative;
+  z-index: 1;
+}
+
+.learning-controls label {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .2px;
+  opacity: .8;
+}
+
+.learning-controls input,
+.learning-controls select,
+.learning-controls textarea,
+.answer-area textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 14px;
+  padding: 13px 14px;
+  border: 1px solid rgba(255,255,255,.12);
+  outline: none;
+  transition: border-color .2s, box-shadow .2s, transform .2s;
+}
+
+.learning-controls input:focus,
+.learning-controls select:focus,
+.learning-controls textarea:focus,
+.answer-area textarea:focus {
+  border-color: rgba(255,255,255,.35);
+  box-shadow: 0 0 0 3px rgba(255,255,255,.06);
+}
+
+.learning-question-box {
+  position: relative;
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.10);
+}
+
+.learning-question-box::before {
+  content: "YOUR LEARNING TASK";
+  display: block;
+  margin-bottom: 8px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  opacity: .55;
+}
+
+.learning-response {
+  position: relative;
+  margin-top: 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.10);
+  overflow: hidden;
+}
+
+.response-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  font-size: 12px;
+  font-weight: 700;
+  opacity: .8;
+}
+
+.teaching-answer {
+  padding: 20px;
+  line-height: 1.75;
+  white-space: pre-wrap;
+}
+
+.answer-area {
+  position: relative;
+  margin-top: 18px;
+}
+
+.answer-area::before {
+  content: "YOUR TURN";
+  display: block;
+  margin-bottom: 8px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  opacity: .55;
+}
+
+.adaptive-result {
+  position: relative;
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.10);
+}
+
+.adaptive-result:not(.hidden) {
+  animation: learningResultIn .35s ease-out;
+}
+
+@keyframes learningResultIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.live-learning-panel button {
+  transition: transform .15s ease, opacity .15s ease, box-shadow .15s ease;
+}
+
+.live-learning-panel button:hover {
+  transform: translateY(-1px);
+}
+
+.live-learning-panel button:active {
+  transform: translateY(1px);
+}
+
+.hidden {
+  display: none !important;
+}
+
+@media (max-width: 760px) {
+  .live-learning-panel {
+    border-radius: 20px;
+  }
+
+  .learning-question-box,
+  .teaching-answer,
+  .adaptive-result {
+    padding: 15px;
+  }
+
+  .learning-controls input,
+  .learning-controls select,
+  .learning-controls textarea,
+  .answer-area textarea {
+    font-size: 16px;
+  }
+}
+
+
+/* =====================================================
+   ROLE ENTRY
+   ===================================================== */
+
+.role-entry {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.role-entry-card {
+  width: min(760px, 100%);
+  text-align: center;
+}
+
+.role-entry-card h1 {
+  margin: 14px 0 12px;
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  line-height: 1.05;
+}
+
+.role-entry-card > p {
+  margin: 0 auto 32px;
+  max-width: 560px;
+  opacity: 0.75;
+  font-size: 1.05rem;
+}
+
+.role-options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  text-align: left;
+}
+
+.role-option {
+  appearance: none;
+  width: 100%;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 18px;
+  padding: 22px;
+  background: rgba(255,255,255,0.04);
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.role-option:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255,255,255,0.3);
+  background: rgba(255,255,255,0.07);
+}
+
+.role-option strong {
+  display: block;
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+}
+
+.role-option span {
+  display: block;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  opacity: 0.7;
+}
+
+@media (max-width: 650px) {
+  .role-entry {
+    padding: 28px 16px;
+  }
+
+  .role-options {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* Primary role and learner actions */
+.role-option,
+#learner-continue-btn,
+#learner-back-btn {
+  background: #2563eb;
+  color: #ffffff;
+  border: 1px solid #2563eb;
+}
+
+.role-option:hover,
+#learner-continue-btn:hover,
+#learner-back-btn:hover {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+
+/* =====================================================
+   LEARNER DASHBOARD
+   ===================================================== */
+
+.learner-dashboard-card {
+  width: min(900px, 100%);
+  margin: 0 auto;
+}
+
+.dashboard-header {
+  margin-bottom: 28px;
+}
+
+.dashboard-header h1 {
+  margin: 10px 0 6px;
+  font-size: clamp(2rem, 6vw, 3.2rem);
+  line-height: 1.05;
+}
+
+.dashboard-header p {
+  margin: 0;
+  opacity: 0.65;
+}
+
+.dashboard-card {
+  padding: 24px;
+  margin-bottom: 18px;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  background: rgba(255,255,255,0.04);
+}
+
+.dashboard-card-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  opacity: 0.6;
+  margin-bottom: 10px;
+}
+
+.dashboard-card h2 {
+  margin: 0 0 8px;
+  font-size: 1.6rem;
+}
+
+.dashboard-card p {
+  margin: 0 0 20px;
+  opacity: 0.7;
+}
+
+.dashboard-card button {
+  background: #2563eb;
+  color: #fff;
+  border: 1px solid #2563eb;
+  border-radius: 12px;
+  padding: 12px 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.dashboard-card button:hover {
+  background: #1d4ed8;
+}
+
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.dashboard-stats > div {
+  padding: 18px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.04);
+}
+
+.dashboard-stats strong {
+  display: block;
+  font-size: 1.5rem;
+  margin-bottom: 5px;
+}
+
+.dashboard-stats span {
+  font-size: 0.8rem;
+  opacity: 0.65;
+}
+
+.dashboard-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.dashboard-actions button {
+  padding: 15px;
+  border-radius: 12px;
+  border: 1px solid #2563eb;
+  background: #2563eb;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.dashboard-actions button:hover {
+  background: #1d4ed8;
+}
+
+@media (max-width: 650px) {
+  .dashboard-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-card {
+    padding: 20px;
+  }
+}
+
+
+/* =========================================================
+   DREAM EDUCATION — DASHBOARD ACTION BUTTONS
+   ========================================================= */
+
+.role-option,
+.dashboard-card button,
+.dashboard-actions button,
+#learner-continue-btn,
+#learner-back-btn,
+#dashboard-continue-btn {
+  background: #1677ff;
+  color: #ffffff;
+  border: 1px solid #1677ff;
+}
+
+.role-option:hover,
+.dashboard-card button:hover,
+.dashboard-actions button:hover,
+#learner-continue-btn:hover,
+#learner-back-btn:hover,
+#dashboard-continue-btn:hover {
+  background: #0d63d8;
+  border-color: #0d63d8;
+}
+
+.role-option:active,
+.dashboard-card button:active,
+.dashboard-actions button:active,
+#learner-continue-btn:active,
+#learner-back-btn:active,
+#dashboard-continue-btn:active {
+  transform: translateY(1px);
+}
+
+/* =========================================================
+   DREAM EDUCATION — LEARNING EXPERIENCE EXPANSION
+   UI ONLY — learning/adaptive logic untouched
+   ========================================================= */
+
+/* Make the learning experience feel like a full learning page */
+.live-learning-panel {
+  width: 100%;
+  max-width: 1100px;
+  margin: 32px auto 0;
+  padding: 40px;
+  border-radius: 28px;
+  box-sizing: border-box;
+}
+
+.live-learning-header {
+  margin-bottom: 30px;
+}
+
+.live-learning-header h2 {
+  font-size: clamp(28px, 5vw, 44px);
+  line-height: 1.1;
+  margin: 8px 0 10px;
+}
+
+.live-learning-header p {
+  font-size: 16px;
+  line-height: 1.6;
+  max-width: 700px;
+}
+
+/* Give the learning controls more breathing room */
+.live-learning-panel .learning-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+  margin-top: 28px;
+}
+
+.live-learning-panel .learning-controls label {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.live-learning-panel select,
+.live-learning-panel input,
+.live-learning-panel textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 16px;
+  padding: 15px 16px;
+  border-radius: 14px;
+}
+
+/* Bigger question area */
+.live-learning-panel .learning-question-box {
+  margin-top: 30px;
+  padding: 26px;
+  border-radius: 22px;
+}
+
+.live-learning-panel .learning-question-box textarea {
+  min-height: 130px;
+  resize: vertical;
+}
+
+/* Make Start Learning prominent */
+.live-learning-panel #start-learning-btn {
+  width: 100%;
+  min-height: 60px;
+  margin-top: 16px;
+  font-size: 18px;
+  font-weight: 800;
+  border-radius: 15px;
+}
+
+/* Teaching response gets more space */
+.live-learning-panel .learning-response {
+  margin-top: 30px;
+  padding: 30px;
+  border-radius: 22px;
+}
+
+.live-learning-panel .teaching-answer {
+  font-size: 18px;
+  line-height: 1.75;
+  min-height: 100px;
+}
+
+/* Answer area */
+.live-learning-panel .answer-area {
+  margin-top: 28px;
+}
+
+.live-learning-panel #learner-answer {
+  min-height: 160px;
+}
+
+.live-learning-panel #submit-answer-btn {
+  width: 100%;
+  min-height: 58px;
+  margin-top: 14px;
+  font-size: 17px;
+  font-weight: 800;
+  border-radius: 15px;
+}
+
+/* Make Continue Learning a major action */
+.live-learning-panel #continue-learning-btn {
+  width: 100%;
+  min-height: 72px;
+  margin-top: 24px;
+  padding: 18px 28px;
+  font-size: 20px;
+  font-weight: 900;
+  border-radius: 17px;
+  letter-spacing: .2px;
+}
+
+/* Dashboard Continue Learning becomes the main CTA */
+#dashboard-continue-btn {
+  width: 100%;
+  min-height: 72px;
+  margin-top: 18px;
+  padding: 18px 28px;
+  font-size: 20px;
+  font-weight: 900;
+  border-radius: 17px;
+}
+
+/* All Dream Education buttons use green */
+button,
+button.primary,
+button.secondary,
+.dashboard-card button,
+.dashboard-actions button,
+.live-learning-panel button {
+  background: #168a45 !important;
+  color: #fff !important;
+  border-color: #168a45 !important;
+}
+
+button:hover,
+button.primary:hover,
+button.secondary:hover,
+.dashboard-card button:hover,
+.dashboard-actions button:hover,
+.live-learning-panel button:hover {
+  background: #11753a !important;
+  color: #fff !important;
+  border-color: #11753a !important;
+}
+
+button:active,
+button.primary:active,
+button.secondary:active,
+.dashboard-card button:active,
+.dashboard-actions button:active,
+.live-learning-panel button:active {
+  background: #0d6231 !important;
+  color: #fff !important;
+}
+
+/* Keep disabled buttons visibly disabled */
+button:disabled,
+button.primary:disabled,
+button.secondary:disabled,
+.live-learning-panel button:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+/* Larger dashboard action buttons */
+.dashboard-actions {
+  gap: 14px;
+}
+
+.dashboard-actions button {
+  min-height: 52px;
+  padding: 14px 20px;
+  font-weight: 800;
+  border-radius: 13px;
+}
+
+/* Subject/topic/concept choices */
+.dashboard-subject-list button,
+.dashboard-topic-list button,
+.dashboard-concept-list button {
+  min-height: 54px;
+  font-weight: 750;
+  border-radius: 13px;
+}
+
+/* Mobile layout */
+@media (max-width: 700px) {
+  .live-learning-panel {
+    margin-top: 24px;
+    padding: 24px 18px;
+    border-radius: 22px;
+  }
+
+  .live-learning-panel .learning-controls {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .live-learning-panel .learning-question-box,
+  .live-learning-panel .learning-response {
+    padding: 20px;
+  }
+
+  #dashboard-continue-btn {
+    min-height: 76px;
+    font-size: 19px;
+  }
+
+  .live-learning-panel #continue-learning-btn {
+    min-height: 76px;
+    font-size: 19px;
+  }
+
+  .dashboard-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* =========================================================
+   DREAM EDUCATION — LARGE LEARNING WORKSPACE
+   Make learning comfortable and spacious on phone + desktop
+   ========================================================= */
+
+.live-learning-panel {
+  width: calc(100% - 24px);
+  max-width: 1200px;
+  min-height: 80vh;
+  margin: 30px auto;
+  padding: clamp(28px, 5vw, 55px);
+  border-radius: 30px;
+}
+
+.live-learning-header {
+  padding-bottom: 20px;
+}
+
+.live-learning-header h2 {
+  font-size: clamp(32px, 6vw, 52px);
+  margin: 12px 0;
+  line-height: 1.08;
+}
+
+.live-learning-header p {
+  font-size: clamp(17px, 2vw, 20px);
+  line-height: 1.7;
+}
+
+/* Concept being studied */
+.selected-concept-context {
+  padding: 22px 24px;
+  margin: 20px 0 30px;
+  border-radius: 18px;
+}
+
+.selected-concept-context strong {
+  display: block;
+  font-size: clamp(22px, 4vw, 30px);
+  margin-top: 8px;
+}
+
+/* Learning choices */
+.live-learning-panel .learning-controls {
+  gap: 26px;
+  margin-top: 32px;
+}
+
+.live-learning-panel .learning-controls label {
+  font-size: 16px;
+  font-weight: 750;
+  gap: 11px;
+}
+
+.live-learning-panel select,
+.live-learning-panel input {
+  min-height: 58px;
+  padding: 16px 18px;
+  font-size: 17px;
+  border-radius: 15px;
+}
+
+/* Main question area */
+.live-learning-panel .learning-question-box {
+  margin-top: 36px;
+  padding: clamp(24px, 4vw, 38px);
+  border-radius: 24px;
+}
+
+.live-learning-panel .learning-question-box label {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.live-learning-panel .learning-question-box textarea {
+  min-height: 180px;
+  margin-top: 12px;
+  padding: 18px;
+  font-size: 18px;
+  line-height: 1.6;
+  border-radius: 16px;
+}
+
+/* Main learning button */
+.live-learning-panel #start-learning-btn {
+  min-height: 70px;
+  font-size: 20px;
+  margin-top: 18px;
+  border-radius: 17px;
+}
+
+/* AI teaching response */
+.live-learning-panel .learning-response {
+  margin-top: 36px;
+  padding: clamp(26px, 5vw, 45px);
+  border-radius: 25px;
+}
+
+.live-learning-panel .response-meta {
+  font-size: 15px;
+  margin-bottom: 24px;
+}
+
+.live-learning-panel .teaching-answer {
+  font-size: clamp(19px, 3vw, 23px);
+  line-height: 1.85;
+  min-height: 180px;
+}
+
+/* Learner answer */
+.live-learning-panel .answer-area {
+  margin-top: 38px;
+}
+
+.live-learning-panel .answer-area label {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.live-learning-panel #learner-answer {
+  min-height: 210px;
+  margin-top: 12px;
+  padding: 18px;
+  font-size: 18px;
+  line-height: 1.65;
+  border-radius: 16px;
+}
+
+.live-learning-panel #submit-answer-btn {
+  min-height: 68px;
+  font-size: 19px;
+  border-radius: 17px;
+}
+
+/* Assessment / adaptive feedback */
+.live-learning-panel .adaptive-result {
+  margin-top: 30px;
+  padding: 25px;
+  font-size: 18px;
+  line-height: 1.7;
+  border-radius: 20px;
+}
+
+/* Big next-step button */
+.live-learning-panel #continue-learning-btn {
+  min-height: 82px;
+  margin-top: 28px;
+  font-size: 21px;
+  border-radius: 18px;
+}
+
+/* Phone: use the screen properly */
+@media (max-width: 700px) {
+  .live-learning-panel {
+    width: calc(100% - 12px);
+    min-height: 85vh;
+    margin: 18px auto;
+    padding: 26px 16px;
+    border-radius: 24px;
+  }
+
+  .live-learning-header h2 {
+    font-size: 34px;
+  }
+
+  .live-learning-panel .learning-controls {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .live-learning-panel .learning-question-box {
+    padding: 22px 16px;
+  }
+
+  .live-learning-panel .learning-question-box textarea {
+    min-height: 190px;
+    font-size: 17px;
+  }
+
+  .live-learning-panel .learning-response {
+    padding: 24px 17px;
+  }
+
+  .live-learning-panel .teaching-answer {
+    font-size: 19px;
+    line-height: 1.8;
+  }
+
+  .live-learning-panel #learner-answer {
+    min-height: 220px;
+  }
+
+  .live-learning-panel #start-learning-btn,
+  .live-learning-panel #submit-answer-btn,
+  .live-learning-panel #continue-learning-btn {
+    min-height: 72px;
+  }
+}
+

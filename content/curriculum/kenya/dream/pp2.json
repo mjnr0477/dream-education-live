@@ -1,0 +1,82 @@
+{
+  "level": "Pre-Primary",
+  "grade_or_year": "PP2",
+  "country": "Kenya",
+  "curriculum": "CBC",
+  "source": {
+    "authority": "KICD",
+    "document": "PP2 Curriculum Designs",
+    "version": "2017",
+    "reference": "content/sources/kicd/pre_primary/PP2-Curriculum-Designs-Dec-2017.pdf"
+  },
+  "themes": [
+    "Our Neighbourhood",
+    "My School",
+    "Animals",
+    "Weather Conditions",
+    "Water",
+    "Our Market",
+    "Hospital/Dispensary",
+    "Time",
+    "Transport"
+  ],
+  "activity_areas": [
+    {
+      "subject_or_discipline": "Language Activities",
+      "domains_or_strands": [
+        "Listening",
+        "Speaking",
+        "Reading",
+        "Writing"
+      ]
+    },
+    {
+      "subject_or_discipline": "Mathematical Activities",
+      "domains_or_strands": [
+        "Classification",
+        "Numbers",
+        "Measurement",
+        "Geometry",
+        "Patterns",
+        "Data Handling"
+      ]
+    },
+    {
+      "subject_or_discipline": "Psychomotor and Creative Activities",
+      "domains_or_strands": [
+        "Art Activities",
+        "Music Activities",
+        "Outdoor Activities"
+      ]
+    },
+    {
+      "subject_or_discipline": "Environmental Activities",
+      "domains_or_strands": [
+        "Social Environment",
+        "Natural Environment",
+        "Health and Hygiene",
+        "Safety",
+        "Science"
+      ]
+    },
+    {
+      "subject_or_discipline": "Islamic Religious Education Activities",
+      "domains_or_strands": [
+        "Qur'an",
+        "Pillars",
+        "Moral and Social Development"
+      ]
+    },
+    {
+      "subject_or_discipline": "Hindu Religious Education Activities",
+      "domains_or_strands": [
+        "Creation",
+        "Worship",
+        "Manifestations",
+        "Scriptures",
+        "Yoga"
+      ]
+    }
+  ],
+  "concepts": []
+}

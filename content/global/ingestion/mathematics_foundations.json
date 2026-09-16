@@ -1,0 +1,998 @@
+{
+  "schema_version": "1.0",
+  "collection": {
+    "id": "global-mathematics-foundations",
+    "title": "Global Mathematics Foundations",
+    "field": "Mathematics",
+    "scope": "global",
+    "version": "1.0",
+    "records": [
+      {
+        "id": "math-natural-numbers",
+        "title": "Natural Numbers",
+        "field": "Mathematics",
+        "domain": "Number",
+        "topic": "Numbers",
+        "subtopic": "Natural Numbers",
+        "concept": "Natural numbers",
+        "definition": "Whole numbers used for counting, with convention-dependent inclusion of zero.",
+        "key_ideas": [
+          "Whole numbers",
+          "Counting",
+          "Ordering"
+        ],
+        "principles": [
+          "Natural numbers can be ordered and counted."
+        ],
+        "relationships": [
+          "Natural numbers are part of the integers."
+        ],
+        "prerequisites": [
+          "Counting"
+        ],
+        "examples": [
+          "0",
+          "1",
+          "2",
+          "5",
+          "100"
+        ],
+        "applications": [
+          "Counting",
+          "Ordering"
+        ],
+        "skills": [
+          "Counting",
+          "Comparing",
+          "Ordering"
+        ],
+        "misconceptions": [
+          "Natural numbers are not the same as all real numbers."
+        ],
+        "questions": [
+          "What are natural numbers?"
+        ],
+        "assessment_ideas": [
+          "Identify natural numbers from a list."
+        ],
+        "difficulty": {
+          "min": 1,
+          "max": 3
+        },
+        "depth_levels": [
+          "foundational",
+          "intermediate"
+        ],
+        "sources": [
+          "Dream Education original synthesis; standard mathematical definitions"
+        ],
+        "source_type": [
+          "original_synthesis",
+          "academic_reference"
+        ],
+        "status": "active"
+      },
+      {
+        "id": "math-integers",
+        "title": "Integers",
+        "field": "Mathematics",
+        "domain": "Number",
+        "topic": "Numbers",
+        "subtopic": "Integers",
+        "concept": "Integers",
+        "definition": "Positive and negative whole numbers together with zero.",
+        "key_ideas": [
+          "Positive numbers",
+          "Negative numbers",
+          "Zero",
+          "Number line"
+        ],
+        "principles": [
+          "Adding or subtracting integers produces another integer."
+        ],
+        "relationships": [
+          "Integers contain the natural numbers and form part of the rational numbers."
+        ],
+        "prerequisites": [
+          "Natural numbers",
+          "Number line"
+        ],
+        "examples": [
+          "-5",
+          "-1",
+          "0",
+          "3",
+          "12"
+        ],
+        "applications": [
+          "Temperature",
+          "Elevation",
+          "Financial balances"
+        ],
+        "skills": [
+          "Comparing",
+          "Adding",
+          "Subtracting"
+        ],
+        "misconceptions": [
+          "A negative number can still have a large absolute value."
+        ],
+        "questions": [
+          "What is an integer?"
+        ],
+        "assessment_ideas": [
+          "Place integers correctly on a number line."
+        ],
+        "difficulty": {
+          "min": 2,
+          "max": 5
+        },
+        "depth_levels": [
+          "foundational",
+          "intermediate"
+        ],
+        "sources": [
+          "Dream Education original synthesis; standard mathematical definitions"
+        ],
+        "source_type": [
+          "original_synthesis",
+          "academic_reference"
+        ],
+        "status": "active"
+      },
+      {
+        "id": "math-rational-numbers",
+        "title": "Rational Numbers",
+        "field": "Mathematics",
+        "domain": "Number",
+        "topic": "Numbers",
+        "subtopic": "Rational Numbers",
+        "concept": "Rational numbers",
+        "definition": "Numbers that can be expressed as a ratio of two integers with a nonzero denominator.",
+        "key_ideas": [
+          "Fractions",
+          "Ratios",
+          "Terminating decimals",
+          "Repeating decimals"
+        ],
+        "principles": [
+          "The denominator of a rational-number fraction cannot be zero."
+        ],
+        "relationships": [
+          "Integers are rational numbers; rational numbers are real numbers."
+        ],
+        "prerequisites": [
+          "Integers",
+          "Fractions"
+        ],
+        "examples": [
+          "1/2",
+          "-3/4",
+          "5",
+          "0.25",
+          "0.333..."
+        ],
+        "applications": [
+          "Ratios",
+          "Rates",
+          "Measurement"
+        ],
+        "skills": [
+          "Converting fractions and decimals",
+          "Comparing rational numbers"
+        ],
+        "misconceptions": [
+          "Not every decimal number is rational."
+        ],
+        "questions": [
+          "What makes a number rational?"
+        ],
+        "assessment_ideas": [
+          "Classify numbers as rational or not rational."
+        ],
+        "difficulty": {
+          "min": 3,
+          "max": 6
+        },
+        "depth_levels": [
+          "foundational",
+          "intermediate"
+        ],
+        "sources": [
+          "Dream Education original synthesis; standard mathematical definitions"
+        ],
+        "source_type": [
+          "original_synthesis",
+          "academic_reference"
+        ],
+        "status": "active"
+      },
+      {
+        "id": "math-variable",
+        "title": "Variables",
+        "field": "Mathematics",
+        "domain": "Algebra",
+        "topic": "Algebraic Expressions",
+        "subtopic": "Variables",
+        "concept": "Variable",
+        "definition": "A symbol representing a quantity whose value may be unknown or may change.",
+        "key_ideas": [
+          "Symbols represent quantities",
+          "Values can change",
+          "Variables allow general rules"
+        ],
+        "principles": [
+          "An expression can be evaluated after assigning a value to its variable."
+        ],
+        "relationships": [
+          "Variables occur in expressions, equations, functions and models."
+        ],
+        "prerequisites": [
+          "Arithmetic"
+        ],
+        "examples": [
+          "x",
+          "y",
+          "n",
+          "t"
+        ],
+        "applications": [
+          "Equations",
+          "Functions",
+          "Mathematical modelling"
+        ],
+        "skills": [
+          "Substitution",
+          "Simplification"
+        ],
+        "misconceptions": [
+          "A variable does not always represent an unknown."
+        ],
+        "questions": [
+          "What is a variable?"
+        ],
+        "assessment_ideas": [
+          "Evaluate an expression after substitution."
+        ],
+        "difficulty": {
+          "min": 2,
+          "max": 6
+        },
+        "depth_levels": [
+          "foundational",
+          "intermediate"
+        ],
+        "sources": [
+          "Dream Education original synthesis; standard algebraic definitions"
+        ],
+        "source_type": [
+          "original_synthesis",
+          "academic_reference"
+        ],
+        "status": "active"
+      },
+      {
+        "id": "math-equations",
+        "title": "Equations",
+        "field": "Mathematics",
+        "domain": "Algebra",
+        "topic": "Equations",
+        "subtopic": "Linear Equations",
+        "concept": "Equation",
+        "definition": "A mathematical statement that two expressions have equal values.",
+        "key_ideas": [
+          "Equality",
+          "Unknown values",
+          "Solutions"
+        ],
+        "principles": [
+          "Applying the same valid operation to both sides preserves equality."
+        ],
+        "relationships": [
+          "Equations use variables and can represent mathematical models."
+        ],
+        "prerequisites": [
+          "Variables",
+          "Arithmetic"
+        ],
+        "examples": [
+          "x + 3 = 7",
+          "2x = 10"
+        ],
+        "applications": [
+          "Problem solving",
+          "Science",
+          "Engineering",
+          "Economics"
+        ],
+        "skills": [
+          "Solving equations",
+          "Checking solutions"
+        ],
+        "misconceptions": [
+          "An equation is not simply an expression."
+        ],
+        "questions": [
+          "What is an equation?"
+        ],
+        "assessment_ideas": [
+          "Solve and verify a linear equation."
+        ],
+        "difficulty": {
+          "min": 3,
+          "max": 7
+        },
+        "depth_levels": [
+          "foundational",
+          "intermediate",
+          "advanced"
+        ],
+        "sources": [
+          "Dream Education original synthesis; standard algebraic definitions"
+        ],
+        "source_type": [
+          "original_synthesis",
+          "academic_reference"
+        ],
+        "status": "active"
+      },
+      {
+        "id": "math-point",
+        "title": "Point",
+        "field": "Mathematics",
+        "domain": "Geometry",
+        "topic": "Geometric Objects",
+        "subtopic": "Points",
+        "concept": "Point",
+        "definition": "A point represents a precise location in geometry without length, width or thickness.",
+        "key_ideas": [
+          "Location",
+          "Coordinates",
+          "Geometric construction"
+        ],
+        "principles": [
+          "Points can be used to define geometric structures."
+        ],
+        "relationships": [
+          "Points form lines, shapes and coordinate systems."
+        ],
+        "prerequisites": [
+          "Basic spatial understanding"
+        ],
+        "examples": [
+          "Point A",
+          "(2,3)"
+        ],
+        "applications": [
+          "Geometry",
+          "Mapping",
+          "Computer graphics"
+        ],
+        "skills": [
+          "Plotting points",
+          "Reading coordinates"
+        ],
+        "misconceptions": [
+          "A drawn dot is a representation of a mathematical point."
+        ],
+        "questions": [
+          "What is a point?"
+        ],
+        "assessment_ideas": [
+          "Plot points on a coordinate plane."
+        ],
+        "difficulty": {
+          "min": 1,
+          "max": 5
+        },
+        "depth_levels": [
+          "foundational",
+          "intermediate"
+        ],
+        "sources": [
+          "Dream Education original synthesis; standard geometry definitions"
+        ],
+        "source_type": [
+          "original_synthesis",
+          "academic_reference"
+        ],
+        "status": "active"
+      },
+      {
+        "id": "math-angle",
+        "title": "Angle",
+        "field": "Mathematics",
+        "domain": "Geometry",
+        "topic": "Angles",
+        "subtopic": "Angle Measurement",
+        "concept": "Angle",
+        "definition": "An angle describes the amount of rotation between two rays sharing a common endpoint.",
+        "key_ideas": [
+          "Rotation",
+          "Degrees",
+          "Radians",
+          "Classification"
+        ],
+        "principles": [
+          "A full rotation is 360 degrees or 2pi radians."
+        ],
+        "relationships": [
+          "Angles occur in triangles, polygons, circles and trigonometry."
+        ],
+        "prerequisites": [
+          "Lines",
+          "Rays",
+          "Measurement"
+        ],
+        "examples": [
+          "30 degrees",
+          "90 degrees",
+          "180 degrees",
+          "pi/2 radians"
+        ],
+        "applications": [
+          "Construction",
+          "Navigation",
+          "Engineering",
+          "Physics"
+        ],
+        "skills": [
+          "Measuring angles",
+          "Classifying angles",
+          "Unit conversion"
+        ],
+        "misconceptions": [
+          "An angle represents more than just the visible space between lines."
+        ],
+        "questions": [
+          "What is an angle?"
+        ],
+        "assessment_ideas": [
+          "Classify and measure angles."
+        ],
+        "difficulty": {
+          "min": 2,
+          "max": 7
+        },
+        "depth_levels": [
+          "foundational",
+          "intermediate",
+          "advanced"
+        ],
+        "sources": [
+          "Dream Education original synthesis; standard geometry definitions"
+        ],
+        "source_type": [
+          "original_synthesis",
+          "academic_reference"
+        ],
+        "status": "active"
+      },
+      {
+        "id": "math-triangle",
+        "title": "Triangle",
+        "field": "Mathematics",
+        "domain": "Geometry",
+        "topic": "Shapes",
+        "subtopic": "Triangles",
+        "concept": "Triangle",
+        "definition": "A triangle is a polygon with three sides and three interior angles.",
+        "key_ideas": [
+          "Three sides",
+          "Three angles",
+          "Classification"
+        ],
+        "principles": [
+          "The interior angles of a Euclidean triangle sum to 180 degrees."
+        ],
+        "relationships": [
+          "Triangles are fundamental to geometry and trigonometry."
+        ],
+        "prerequisites": [
+          "Angles",
+          "Line segments",
+          "Polygons"
+        ],
+        "examples": [
+          "Equilateral",
+          "Isosceles",
+          "Right triangle"
+        ],
+        "applications": [
+          "Construction",
+          "Surveying",
+          "Engineering"
+        ],
+        "skills": [
+          "Classification",
+          "Angle calculation",
+          "Area calculation"
+        ],
+        "misconceptions": [
+          "Triangles do not need to have equal sides."
+        ],
+        "questions": [
+          "What is a triangle?"
+        ],
+        "assessment_ideas": [
+          "Classify triangles using sides and angles."
+        ],
+        "difficulty": {
+          "min": 2,
+          "max": 7
+        },
+        "depth_levels": [
+          "foundational",
+          "intermediate",
+          "advanced"
+        ],
+        "sources": [
+          "Dream Education original synthesis; standard Euclidean geometry"
+        ],
+        "source_type": [
+          "original_synthesis",
+          "academic_reference"
+        ],
+        "status": "active"
+      },
+      {
+        "id": "math-circle",
+        "title": "Circle",
+        "field": "Mathematics",
+        "domain": "Geometry",
+        "topic": "Shapes",
+        "subtopic": "Circles",
+        "concept": "Circle",
+        "definition": "A circle is the set of points in a plane that are the same distance from a fixed centre.",
+        "key_ideas": [
+          "Centre",
+          "Radius",
+          "Diameter",
+          "Circumference"
+        ],
+        "principles": [
+          "Diameter is twice the radius.",
+          "Circumference is 2pi times radius.",
+          "Area is pi times radius squared."
+        ],
+        "relationships": [
+          "Circles connect geometry, trigonometry and coordinate geometry."
+        ],
+        "prerequisites": [
+          "Distance",
+          "Measurement"
+        ],
+        "examples": [
+          "Radius 5 cm",
+          "Unit circle"
+        ],
+        "applications": [
+          "Engineering",
+          "Architecture",
+          "Wheels",
+          "Measurement"
+        ],
+        "skills": [
+          "Finding area",
+          "Finding circumference"
+        ],
+        "misconceptions": [
+          "Radius and diameter are not the same length."
+        ],
+        "questions": [
+          "What is a circle?"
+        ],
+        "assessment_ideas": [
+          "Calculate area and circumference."
+        ],
+        "difficulty": {
+          "min": 2,
+          "max": 7
+        },
+        "depth_levels": [
+          "foundational",
+          "intermediate",
+          "advanced"
+        ],
+        "sources": [
+          "Dream Education original synthesis; standard Euclidean geometry"
+        ],
+        "source_type": [
+          "original_synthesis",
+          "academic_reference"
+        ],
+        "status": "active"
+      },
+      {
+        "id": "math-data",
+        "title": "Data",
+        "field": "Mathematics",
+        "domain": "Statistics",
+        "topic": "Data",
+        "subtopic": "Data and Variables",
+        "concept": "Data",
+        "definition": "Data are recorded observations, measurements or values collected for analysis or decision-making.",
+        "key_ideas": [
+          "Numerical data",
+          "Categorical data",
+          "Collection",
+          "Organization"
+        ],
+        "principles": [
+          "Statistical conclusions depend on the quality and relevance of data."
+        ],
+        "relationships": [
+          "Data are central to statistics, science, research and computing."
+        ],
+        "prerequisites": [
+          "Counting",
+          "Measurement"
+        ],
+        "examples": [
+          "Heights",
+          "Rainfall",
+          "Survey responses"
+        ],
+        "applications": [
+          "Research",
+          "Business",
+          "Science",
+          "Public policy"
+        ],
+        "skills": [
+          "Collecting",
+          "Organizing",
+          "Interpreting"
+        ],
+        "misconceptions": [
+          "More data does not automatically mean better data."
+        ],
+        "questions": [
+          "What is data?"
+        ],
+        "assessment_ideas": [
+          "Organize and classify a dataset."
+        ],
+        "difficulty": {
+          "min": 1,
+          "max": 8
+        },
+        "depth_levels": [
+          "foundational",
+          "intermediate",
+          "advanced"
+        ],
+        "sources": [
+          "Dream Education original synthesis; standard statistical definitions"
+        ],
+        "source_type": [
+          "original_synthesis",
+          "academic_reference"
+        ],
+        "status": "active"
+      },
+      {
+        "id": "math-mean",
+        "title": "Arithmetic Mean",
+        "field": "Mathematics",
+        "domain": "Statistics",
+        "topic": "Central Tendency",
+        "subtopic": "Mean",
+        "concept": "Arithmetic mean",
+        "definition": "The arithmetic mean is the sum of numerical observations divided by the number of observations.",
+        "key_ideas": [
+          "Sum",
+          "Number of observations",
+          "Central tendency"
+        ],
+        "principles": [
+          "Mean equals total value divided by the number of observations."
+        ],
+        "relationships": [
+          "Mean is a measure of central tendency alongside median and mode."
+        ],
+        "prerequisites": [
+          "Addition",
+          "Division"
+        ],
+        "examples": [
+          "Mean of 2, 4 and 6 is 4."
+        ],
+        "applications": [
+          "Statistics",
+          "Research",
+          "Education"
+        ],
+        "skills": [
+          "Calculating means",
+          "Interpreting means"
+        ],
+        "misconceptions": [
+          "The mean does not have to be one of the observed values."
+        ],
+        "questions": [
+          "How is the arithmetic mean calculated?"
+        ],
+        "assessment_ideas": [
+          "Calculate and interpret a dataset mean."
+        ],
+        "difficulty": {
+          "min": 2,
+          "max": 6
+        },
+        "depth_levels": [
+          "foundational",
+          "intermediate",
+          "advanced"
+        ],
+        "sources": [
+          "Dream Education original synthesis; standard statistical definitions"
+        ],
+        "source_type": [
+          "original_synthesis",
+          "academic_reference"
+        ],
+        "status": "active"
+      },
+      {
+        "id": "math-probability",
+        "title": "Probability",
+        "field": "Mathematics",
+        "domain": "Probability",
+        "topic": "Chance",
+        "subtopic": "Basic Probability",
+        "concept": "Probability",
+        "definition": "Probability is a numerical measure of how likely an event is to occur.",
+        "key_ideas": [
+          "Likelihood",
+          "Events",
+          "Outcomes",
+          "Uncertainty"
+        ],
+        "principles": [
+          "Probability ranges from 0 to 1 in the standard model.",
+          "Impossible events have probability 0 and certain events have probability 1."
+        ],
+        "relationships": [
+          "Probability connects mathematics with statistics, risk and decision-making."
+        ],
+        "prerequisites": [
+          "Fractions",
+          "Ratios"
+        ],
+        "examples": [
+          "A fair coin has probability 1/2 of landing heads."
+        ],
+        "applications": [
+          "Risk",
+          "Insurance",
+          "Games",
+          "Science"
+        ],
+        "skills": [
+          "Calculating simple probabilities",
+          "Interpreting probability"
+        ],
+        "misconceptions": [
+          "A probability of 1/2 does not guarantee exactly half of a small number of trials."
+        ],
+        "questions": [
+          "What does probability measure?"
+        ],
+        "assessment_ideas": [
+          "Calculate probabilities of simple events."
+        ],
+        "difficulty": {
+          "min": 3,
+          "max": 8
+        },
+        "depth_levels": [
+          "foundational",
+          "intermediate",
+          "advanced"
+        ],
+        "sources": [
+          "Dream Education original synthesis; standard probability theory"
+        ],
+        "source_type": [
+          "original_synthesis",
+          "academic_reference"
+        ],
+        "status": "active"
+      },
+      {
+        "id": "math-limit",
+        "title": "Limit",
+        "field": "Mathematics",
+        "domain": "Calculus",
+        "topic": "Limits",
+        "subtopic": "Foundations of Calculus",
+        "concept": "Limit",
+        "definition": "A limit describes the value a function or sequence approaches as its input approaches a specified value or as an index grows.",
+        "key_ideas": [
+          "Approach",
+          "Function behaviour",
+          "Continuity"
+        ],
+        "principles": [
+          "Limits provide the foundation for derivatives and integrals."
+        ],
+        "relationships": [
+          "Limits connect functions, continuity, derivatives and integrals."
+        ],
+        "prerequisites": [
+          "Functions",
+          "Algebra"
+        ],
+        "examples": [
+          "lim(x→0) sin(x)/x = 1"
+        ],
+        "applications": [
+          "Calculus",
+          "Physics",
+          "Engineering"
+        ],
+        "skills": [
+          "Evaluating limits",
+          "Interpreting limiting behaviour"
+        ],
+        "misconceptions": [
+          "A limit does not always equal the function value at the point."
+        ],
+        "questions": [
+          "What does a limit mean?",
+          "Why are limits important?"
+        ],
+        "assessment_ideas": [
+          "Evaluate basic limits."
+        ],
+        "difficulty": {
+          "min": 6,
+          "max": 10
+        },
+        "depth_levels": [
+          "advanced",
+          "research"
+        ],
+        "sources": [
+          "Dream Education original synthesis; NIST Digital Library of Mathematical Functions"
+        ],
+        "source_type": [
+          "original_synthesis",
+          "government_reference"
+        ],
+        "status": "active"
+      },
+      {
+        "id": "math-derivative",
+        "title": "Derivative",
+        "field": "Mathematics",
+        "domain": "Calculus",
+        "topic": "Differentiation",
+        "subtopic": "Derivatives",
+        "concept": "Derivative",
+        "definition": "A derivative describes the instantaneous rate of change of a function with respect to its input.",
+        "key_ideas": [
+          "Rate of change",
+          "Slope",
+          "Instantaneous change"
+        ],
+        "principles": [
+          "A derivative is defined using a limit of a difference quotient."
+        ],
+        "relationships": [
+          "Derivatives connect functions, limits, motion and optimization."
+        ],
+        "prerequisites": [
+          "Functions",
+          "Limits",
+          "Algebra"
+        ],
+        "examples": [
+          "The derivative of x^2 is 2x."
+        ],
+        "applications": [
+          "Velocity",
+          "Optimization",
+          "Engineering",
+          "Economics"
+        ],
+        "skills": [
+          "Differentiation",
+          "Interpreting rates of change"
+        ],
+        "misconceptions": [
+          "A derivative is not simply the slope of one fixed straight line."
+        ],
+        "questions": [
+          "What does a derivative measure?",
+          "How is a derivative related to a limit?"
+        ],
+        "assessment_ideas": [
+          "Differentiate basic functions."
+        ],
+        "difficulty": {
+          "min": 7,
+          "max": 10
+        },
+        "depth_levels": [
+          "advanced",
+          "research"
+        ],
+        "sources": [
+          "Dream Education original synthesis; NIST mathematical-functions reference"
+        ],
+        "source_type": [
+          "original_synthesis",
+          "government_reference"
+        ],
+        "status": "active"
+      },
+      {
+        "id": "math-integral",
+        "title": "Integral",
+        "field": "Mathematics",
+        "domain": "Calculus",
+        "topic": "Integration",
+        "subtopic": "Integrals",
+        "concept": "Integral",
+        "definition": "An integral is used to represent accumulation and, in definite form, can represent signed area under a curve.",
+        "key_ideas": [
+          "Accumulation",
+          "Area",
+          "Antiderivative"
+        ],
+        "principles": [
+          "The Fundamental Theorem of Calculus connects differentiation and integration."
+        ],
+        "relationships": [
+          "Integrals connect derivatives, area, volume and probability."
+        ],
+        "prerequisites": [
+          "Functions",
+          "Limits",
+          "Derivatives"
+        ],
+        "examples": [
+          "The integral of x is x^2/2 + C."
+        ],
+        "applications": [
+          "Area",
+          "Volume",
+          "Physics",
+          "Probability"
+        ],
+        "skills": [
+          "Basic integration",
+          "Interpreting accumulation"
+        ],
+        "misconceptions": [
+          "An integral is not always simply geometric area above the x-axis."
+        ],
+        "questions": [
+          "What does an integral represent?",
+          "How are derivatives and integrals connected?"
+        ],
+        "assessment_ideas": [
+          "Evaluate basic indefinite and definite integrals."
+        ],
+        "difficulty": {
+          "min": 7,
+          "max": 10
+        },
+        "depth_levels": [
+          "advanced",
+          "research"
+        ],
+        "sources": [
+          "Dream Education original synthesis; NIST mathematical-functions reference"
+        ],
+        "source_type": [
+          "original_synthesis",
+          "government_reference"
+        ],
+        "status": "active"
+      }
+    ]
+  }
+}

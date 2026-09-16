@@ -1,0 +1,126 @@
+{
+  "time": 1789580685219,
+  "value": {
+    "sources": [
+      {
+        "provider": "doaj",
+        "source": "DOAJ",
+        "title": "Non sustainable development. CO2, Plants and Climate.",
+        "extract": "The crucial role of plant photosynthesis has been emphasized in relation to the atmospheric CO2 concentration and climate change. Because of the irreplaceable role of plants in ecosystem services, potential changes of both crop and wild plants could impact sustainability of human societies. The dependence of the rate of photosynthesis of the C3 and C4 plants on irradiance, CO2 concentration and temperature has been illustrated. Potential consequences of the atmospheric CO2 concentration rise and climate change on ecosystem composition and functions are briefly described.(In Czech, English summary only)",
+        "url": "https://kvasnyprumysl.cz/en/artkey/kpr-200609-0002_Rozvoj_trvale_neudrzitelny_Oxid_uhlicity_rostliny_a_klima.php",
+        "open_access": true,
+        "global_source_id": "doaj",
+        "source_family": "research",
+        "license": "open-access-index",
+        "commercial_use": true,
+        "query": "photosynthesis"
+      },
+      {
+        "provider": "doaj",
+        "source": "DOAJ",
+        "title": "Carbon dioxide uptake in a eutrophic stratified reservoir: Freshwater carbon sequestration potential",
+        "extract": "Carbon capture and storage due to photosynthesis activities has been proposed as a carbon sink to mitigate climate change. To enhance such mitigation, previous studies have shown that freshwater lakes should be included in the carbon sink, since they may capture as much carbon as coastal areas. In eutrophic freshwater lakes, there is uncertainty about whether the equilibrium equation can estimate the partial pressure of carbon dioxide (pCO2), owing to the presence of photosynthesis due to phytoplankton, and pH measurement error in freshwater fluid. Thus, this study investigated the applicability of the equilibrium equation and revealed the need to modify it. The modified equilibrium equation was successfully applied to reproduce pCO2 based on total alkalinity and pH through field observations. In addition, pCO2 at the water surface was lower than the atmospheric partial pressure of carbon dioxide due to photosynthesis by phytoplankton during strong stratification. The stratification effect on low pCO2 was verified by using the Net Ecosystem Production (NEP) model, and a submerged freshwater plants such as Potamogeton malaianus were found to have high potential for dissolved inorganic carbon (DIC) sequestration in a freshwater lake. These results should provide a starting point toward more sophisticated methods to investigate the effect of freshwater carbon on DIC uptake in freshwater stratified eutrophic lakes.",
+        "url": "http://www.sciencedirect.com/science/article/pii/S2405844023075308",
+        "open_access": true,
+        "global_source_id": "doaj",
+        "source_family": "research",
+        "license": "open-access-index",
+        "commercial_use": true,
+        "query": "photosynthesis"
+      },
+      {
+        "provider": "doaj",
+        "source": "DOAJ",
+        "title": "Photosynthesis and Rubisco kinetics in spring wheat and meadow fescue under conditions of simulated climate change with elevated CO2 and increased temperatures",
+        "extract": "Spring wheat (Triticum aestivum L.cv.Polkka)and meadow fescue (Festuca pratensis Hudson cv. Kalevi)cwere grown in ambient and elevated (700 µl l -1 )carbon dioxide concentration both at present ambient temperatures and at temperatures 3°C higher than at present simulating a future climate.The CO2 concentrations were elevated in large (3 m in diameter)open top chambers and the temperatures in a greenhouse built over the experimental field.The photosynthetic rate of both wheat and meadow fescue was 31 37%higher in elevated carbon dioxide (eCO2 )than in ambient CO 2 (aCO2 )throughout the growing season.The enhancement in wheat photosynthesis in eCO2 declined 10 13 days before yellow ripeness,at which point the rate of photosynthesis in both CO 2 treatments declined.The stomatal conductance of wheat and meadow fescue was 2336% lower in eCO2 than in aCO2 .The amount and activity of ribulose-1,5-bisphosphate carboxylase-oxygenase (Rubisco) in wheat were lower under conditions of eCO2 ,except at elevated temperatures in 1993 when there was a clear yield increase.There was no clear change in the amount and activity of Rubisco in meadow fescue under eCO2 at either elevated or ambient temperature.This suggests that adaptation to elevated CO2 at biochemical level occurs only when there is insufficient sink for photosynthetic products.While the sink size of wheat can be increased only by introducing new,more productive genotypes,the sink size of meadow fescue can be regulated by fitting the cutting schedule to growth.;",
+        "url": "https://journal.fi/afs/article/view/5640",
+        "open_access": true,
+        "global_source_id": "doaj",
+        "source_family": "research",
+        "license": "open-access-index",
+        "commercial_use": true,
+        "query": "photosynthesis"
+      },
+      {
+        "provider": "gbif",
+        "source": "GBIF",
+        "title": "Alloteropsis C.Presl",
+        "extract": "Alloteropsis",
+        "url": "https://www.gbif.org/species/165614509",
+        "global_source_id": "gbif",
+        "source_family": "biology",
+        "license": "mixed-open",
+        "commercial_use": true,
+        "query": "photosynthesis"
+      },
+      {
+        "provider": "gbif",
+        "source": "GBIF",
+        "title": "Rhodomicrobium Duchow & Douglas, 1949",
+        "extract": "Pseudomonadota > Alphaproteobacteria > Hyphomicrobiales > Hyphomicrobiaceae > Rhodomicrobium",
+        "url": "https://www.gbif.org/species/165246881",
+        "global_source_id": "gbif",
+        "source_family": "biology",
+        "license": "mixed-open",
+        "commercial_use": true,
+        "query": "photosynthesis"
+      },
+      {
+        "provider": "gbif",
+        "source": "GBIF",
+        "title": "Hyobanche L.",
+        "extract": "Hyobanche",
+        "url": "https://www.gbif.org/species/167278207",
+        "global_source_id": "gbif",
+        "source_family": "biology",
+        "license": "mixed-open",
+        "commercial_use": true,
+        "query": "photosynthesis"
+      },
+      {
+        "provider": "uniprot",
+        "source": "UniProt",
+        "title": "PAM68_ARATH",
+        "extract": "Protein PAM68, chloroplastic",
+        "url": "https://www.uniprot.org/uniprotkb/O49668",
+        "global_source_id": "uniprot",
+        "source_family": "biology",
+        "license": "CC BY 4.0",
+        "commercial_use": true,
+        "query": "photosynthesis"
+      },
+      {
+        "provider": "uniprot",
+        "source": "UniProt",
+        "title": "TPT_ARATH",
+        "extract": "Triose phosphate/phosphate translocator TPT, chloroplastic",
+        "url": "https://www.uniprot.org/uniprotkb/Q9ZSR7",
+        "global_source_id": "uniprot",
+        "source_family": "biology",
+        "license": "CC BY 4.0",
+        "commercial_use": true,
+        "query": "photosynthesis"
+      },
+      {
+        "provider": "uniprot",
+        "source": "UniProt",
+        "title": "PA71H_ARATH",
+        "extract": "Protein PAM71-homolog, chloroplastic",
+        "url": "https://www.uniprot.org/uniprotkb/Q9T0H9",
+        "global_source_id": "uniprot",
+        "source_family": "biology",
+        "license": "CC BY 4.0",
+        "commercial_use": true,
+        "query": "photosynthesis"
+      }
+    ],
+    "providers": [
+      "openalex",
+      "doaj",
+      "gbif",
+      "uniprot",
+      "rcsb_pdb"
+    ],
+    "cached_at": 1789580685216
+  }
+}

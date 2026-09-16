@@ -1,0 +1,124 @@
+{
+  "version": "2.0",
+  "source": {
+    "authority": "Kenya Institute of Curriculum Development",
+    "country": "Kenya",
+    "curriculum": "CBC",
+    "index": "https://kicd.ac.ke/cbc-materials/curriculum-designs/regular-curriculum-designs/",
+    "discovered_at": "2026-09-10T19:42:35.298Z"
+  },
+  "curriculum_pages": [
+    {
+      "page_url": "https://kicd.ac.ke/cbc-materials/curriculum-designs/grade-eight-designs/",
+      "page_title": "Grade Eight Designs : Kenya Institute of Curriculum Development",
+      "pdf_documents": []
+    },
+    {
+      "page_url": "https://kicd.ac.ke/cbc-materials/curriculum-designs/grade-eleven/",
+      "page_title": "Grade Eleven : Kenya Institute of Curriculum Development",
+      "pdf_documents": []
+    },
+    {
+      "page_url": "https://kicd.ac.ke/cbc-materials/curriculum-designs/grade-five-designs/",
+      "page_title": "Grade Five Designs : Kenya Institute of Curriculum Development",
+      "pdf_documents": []
+    },
+    {
+      "page_url": "https://kicd.ac.ke/cbc-materials/curriculum-designs/grade-four-designs/",
+      "page_title": "Grade Four Designs : Kenya Institute of Curriculum Development",
+      "pdf_documents": []
+    },
+    {
+      "page_url": "https://kicd.ac.ke/cbc-materials/curriculum-designs/grade-nine-designs/",
+      "page_title": "Grade Nine Designs : Kenya Institute of Curriculum Development",
+      "pdf_documents": []
+    },
+    {
+      "page_url": "https://kicd.ac.ke/cbc-materials/curriculum-designs/grade-seven-designs/",
+      "page_title": "Grade Seven Designs : Kenya Institute of Curriculum Development",
+      "pdf_documents": []
+    },
+    {
+      "page_url": "https://kicd.ac.ke/cbc-materials/curriculum-designs/grade-six-designs/",
+      "page_title": "Grade Six Designs : Kenya Institute of Curriculum Development",
+      "pdf_documents": []
+    },
+    {
+      "page_url": "https://kicd.ac.ke/cbc-materials/curriculum-designs/grade-ten/",
+      "page_title": "Grade Ten : Kenya Institute of Curriculum Development",
+      "pdf_documents": []
+    },
+    {
+      "page_url": "https://kicd.ac.ke/cbc-materials/curriculum-designs/grade-twelve/",
+      "page_title": "Grade Twelve : Kenya Institute of Curriculum Development",
+      "pdf_documents": []
+    },
+    {
+      "page_url": "https://kicd.ac.ke/cbc-materials/curriculum-designs/sne-curriculum-designs/hi-grade-five5-designs/",
+      "page_title": "HI Grade Five(5) Designs : Kenya Institute of Curriculum Development",
+      "pdf_documents": []
+    },
+    {
+      "page_url": "https://kicd.ac.ke/cbc-materials/curriculum-designs/sne-curriculum-designs/hi-grade-four-4-designs/",
+      "page_title": "HI Grade Four (4) Designs : Kenya Institute of Curriculum Development",
+      "pdf_documents": []
+    },
+    {
+      "page_url": "https://kicd.ac.ke/cbc-materials/curriculum-designs/sne-curriculum-designs/hi-grade-seven7/",
+      "page_title": "HI Grade Seven(7) : Kenya Institute of Curriculum Development",
+      "pdf_documents": []
+    },
+    {
+      "page_url": "https://kicd.ac.ke/cbc-materials/curriculum-designs/sne-curriculum-designs/hi-grade-six-6-designs/",
+      "page_title": "HI Grade Six (6) Designs : Kenya Institute of Curriculum Development",
+      "pdf_documents": []
+    },
+    {
+      "page_url": "https://kicd.ac.ke/cbc-materials/curriculum-designs/sne-curriculum-designs/pi-grade-five5-designs/",
+      "page_title": "PI Grade Five(5) Designs : Kenya Institute of Curriculum Development",
+      "pdf_documents": []
+    },
+    {
+      "page_url": "https://kicd.ac.ke/cbc-materials/curriculum-designs/sne-curriculum-designs/pi-grade-four4-designs/",
+      "page_title": "PI Grade Four(4) Designs : Kenya Institute of Curriculum Development",
+      "pdf_documents": []
+    },
+    {
+      "page_url": "https://kicd.ac.ke/cbc-materials/curriculum-designs/sne-curriculum-designs/pi-grade-seven7/",
+      "page_title": "PI Grade Seven(7) : Kenya Institute of Curriculum Development",
+      "pdf_documents": []
+    },
+    {
+      "page_url": "https://kicd.ac.ke/cbc-materials/curriculum-designs/sne-curriculum-designs/pi-grade-six-6-designs/",
+      "page_title": "PI Grade Six (6) Designs : Kenya Institute of Curriculum Development",
+      "pdf_documents": []
+    },
+    {
+      "page_url": "https://kicd.ac.ke/cbc-materials/curriculum-designs/sne-curriculum-designs/vi-grade-five-5-designs/",
+      "page_title": "VI Grade Five (5) Designs : Kenya Institute of Curriculum Development",
+      "pdf_documents": []
+    },
+    {
+      "page_url": "https://kicd.ac.ke/cbc-materials/curriculum-designs/sne-curriculum-designs/vi-grade-four-4-designs/",
+      "page_title": "VI Grade Four (4) Designs : Kenya Institute of Curriculum Development",
+      "pdf_documents": []
+    },
+    {
+      "page_url": "https://kicd.ac.ke/cbc-materials/curriculum-designs/sne-curriculum-designs/vi-grade-seven7/",
+      "page_title": "VI Grade Seven(7) : Kenya Institute of Curriculum Development",
+      "pdf_documents": []
+    },
+    {
+      "page_url": "https://kicd.ac.ke/cbc-materials/curriculum-designs/sne-curriculum-designs/vi-grade-six-6-designs/",
+      "page_title": "VI Grade Six (6) Designs : Kenya Institute of Curriculum Development",
+      "pdf_documents": []
+    }
+  ],
+  "ingestion": {
+    "curriculum_pages_discovered": 21,
+    "documents_discovered": 0,
+    "downloaded_documents": 0,
+    "parsed_documents": 0,
+    "imported_content_nodes": 0
+  }
+}

@@ -1,0 +1,358 @@
+{
+  "name": "Dream Education Free Solver and Evidence Network",
+  "version": "1.1.0",
+  "policy": {
+    "cost": "free_first",
+    "api_keys_required": false,
+    "paid_services_required": false,
+    "verification_required": true,
+    "unverified_results_must_not_be_taught": true,
+    "wolfram_excluded": true
+  },
+  "sources": [
+    {
+      "id": "sympy",
+      "name": "SymPy",
+      "kind": "local_solver",
+      "cost": "free",
+      "requires_key": false,
+      "domains": [
+        "mathematics",
+        "physics",
+        "engineering",
+        "statistics_data",
+        "units_measurement"
+      ],
+      "role": [
+        "symbolic_algebra",
+        "equations",
+        "calculus",
+        "matrices",
+        "verification"
+      ],
+      "local_command": "python"
+    },
+    {
+      "id": "maxima",
+      "name": "Maxima",
+      "kind": "local_solver",
+      "cost": "free",
+      "requires_key": false,
+      "domains": [
+        "mathematics",
+        "physics",
+        "engineering"
+      ],
+      "role": [
+        "computer_algebra",
+        "symbolic_verification",
+        "alternative_method"
+      ],
+      "local_command": "maxima"
+    },
+    {
+      "id": "sagemath",
+      "name": "SageMath",
+      "kind": "local_or_remote_solver",
+      "cost": "free",
+      "requires_key": false,
+      "domains": [
+        "mathematics",
+        "statistics_data",
+        "physics",
+        "engineering"
+      ],
+      "role": [
+        "advanced_mathematics",
+        "symbolic_computation",
+        "numerical_computation",
+        "alternative_method"
+      ],
+      "local_command": "sage"
+    },
+    {
+      "id": "sagemathcell",
+      "name": "SageMathCell",
+      "kind": "remote_solver",
+      "cost": "free",
+      "requires_key": false,
+      "domains": [
+        "mathematics"
+      ],
+      "role": [
+        "remote_mathematical_computation",
+        "fallback"
+      ],
+      "endpoint": "https://sagecell.sagemath.org/service"
+    },
+    {
+      "id": "calculator_free",
+      "name": "Calculator.Free",
+      "kind": "remote_solver",
+      "cost": "free",
+      "requires_key": false,
+      "domains": [
+        "mathematics",
+        "finance_accounting",
+        "real_world_calculations",
+        "units_measurement",
+        "statistics_data"
+      ],
+      "role": [
+        "deterministic_calculation",
+        "calculation_crosscheck"
+      ],
+      "endpoint": "https://calculator.free/api/v1/"
+    },
+    {
+      "id": "openalex",
+      "name": "OpenAlex",
+      "kind": "evidence_source",
+      "cost": "free",
+      "requires_key": false,
+      "domains": [
+        "research_evidence",
+        "biology_life_science",
+        "environmental_science",
+        "agriculture",
+        "geography_earth_science"
+      ],
+      "role": [
+        "research_evidence",
+        "literature_search",
+        "source_discovery"
+      ],
+      "endpoint": "https://api.openalex.org"
+    },
+    {
+      "id": "ncbi_entrez",
+      "name": "NCBI Entrez E-utilities",
+      "kind": "evidence_source",
+      "cost": "free",
+      "requires_key": false,
+      "domains": [
+        "biology_life_science",
+        "research_evidence",
+        "chemistry"
+      ],
+      "role": [
+        "biological_evidence",
+        "literature_search",
+        "gene_protein_data",
+        "pubmed_search"
+      ],
+      "endpoint": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/"
+    },
+    {
+      "id": "pubchem",
+      "name": "PubChem PUG REST",
+      "kind": "evidence_source",
+      "cost": "free",
+      "requires_key": false,
+      "domains": [
+        "chemistry",
+        "biology_life_science"
+      ],
+      "role": [
+        "chemical_properties",
+        "compound_information",
+        "molecular_data",
+        "chemical_verification"
+      ],
+      "endpoint": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/"
+    },
+    {
+      "id": "nasa",
+      "name": "NASA Public APIs",
+      "kind": "evidence_source",
+      "cost": "free",
+      "requires_key": false,
+      "domains": [
+        "astronomy_space_science",
+        "geography_earth_science",
+        "environmental_science"
+      ],
+      "role": [
+        "space_evidence",
+        "earth_science_data",
+        "astronomy_data"
+      ],
+      "endpoint": "https://api.nasa.gov/"
+    },
+    {
+      "id": "wikipedia",
+      "name": "Wikipedia API",
+      "kind": "evidence_source",
+      "cost": "free",
+      "requires_key": false,
+      "domains": [
+        "all"
+      ],
+      "role": [
+        "general_knowledge",
+        "source_discovery"
+      ],
+      "endpoint": "https://en.wikipedia.org/w/api.php"
+    },
+    {
+      "id": "wikimedia",
+      "name": "Wikimedia / Wikipedia",
+      "kind": "evidence_source",
+      "cost": "free",
+      "requires_key": false,
+      "domains": [
+        "all"
+      ],
+      "role": [
+        "general_knowledge",
+        "encyclopedia",
+        "source_discovery",
+        "fact_checking"
+      ],
+      "endpoint": "https://en.wikipedia.org/w/api.php"
+    },
+    {
+      "id": "wikidata",
+      "name": "Wikidata",
+      "kind": "structured_knowledge_source",
+      "cost": "free",
+      "requires_key": false,
+      "domains": [
+        "all"
+      ],
+      "role": [
+        "structured_facts",
+        "entities",
+        "relationships",
+        "fact_checking"
+      ],
+      "endpoint": "https://www.wikidata.org/w/api.php"
+    },
+    {
+      "id": "wikimedia_commons",
+      "name": "Wikimedia Commons",
+      "kind": "media_source",
+      "cost": "free",
+      "requires_key": false,
+      "domains": [
+        "all"
+      ],
+      "role": [
+        "images",
+        "diagrams",
+        "media_evidence"
+      ],
+      "endpoint": "https://commons.wikimedia.org/w/api.php"
+    },
+    {
+      "id": "wiktionary",
+      "name": "Wiktionary",
+      "kind": "language_source",
+      "cost": "free",
+      "requires_key": false,
+      "domains": [
+        "all"
+      ],
+      "role": [
+        "definitions",
+        "terminology",
+        "language"
+      ],
+      "endpoint": "https://en.wiktionary.org/w/api.php"
+    },
+    {
+      "id": "arxiv",
+      "name": "arXiv",
+      "kind": "research_source",
+      "cost": "free",
+      "requires_key": false,
+      "domains": [
+        "mathematics",
+        "physics",
+        "computer_science",
+        "programming_code",
+        "astronomy_space_science",
+        "research_evidence"
+      ],
+      "role": [
+        "research_papers",
+        "preprints",
+        "scientific_evidence"
+      ],
+      "endpoint": "https://export.arxiv.org/api/query"
+    },
+    {
+      "id": "crossref",
+      "name": "Crossref",
+      "kind": "research_metadata_source",
+      "cost": "free",
+      "requires_key": false,
+      "domains": [
+        "research_evidence",
+        "all"
+      ],
+      "role": [
+        "doi_lookup",
+        "research_metadata",
+        "literature_discovery"
+      ],
+      "endpoint": "https://api.crossref.org/works"
+    },
+    {
+      "id": "semantic_scholar",
+      "name": "Semantic Scholar",
+      "kind": "research_source",
+      "cost": "free",
+      "requires_key": false,
+      "domains": [
+        "research_evidence",
+        "all"
+      ],
+      "role": [
+        "papers",
+        "citations",
+        "authors",
+        "research_discovery"
+      ],
+      "endpoint": "https://api.semanticscholar.org/graph/v1"
+    },
+    {
+      "id": "europe_pmc",
+      "name": "Europe PMC",
+      "kind": "biomedical_research_source",
+      "cost": "free",
+      "requires_key": false,
+      "domains": [
+        "biology_life_science",
+        "research_evidence",
+        "chemistry"
+      ],
+      "role": [
+        "biomedical_research",
+        "literature_search",
+        "full_text"
+      ],
+      "endpoint": "https://www.ebi.ac.uk/europepmc/webservices/rest"
+    },
+    {
+      "id": "eurostat",
+      "name": "Eurostat",
+      "kind": "official_statistics_source",
+      "cost": "free",
+      "requires_key": false,
+      "domains": [
+        "statistics_data",
+        "economics_business",
+        "geography_earth_science",
+        "environmental_science",
+        "research_evidence"
+      ],
+      "role": [
+        "official_statistics",
+        "economic_data",
+        "environmental_data"
+      ],
+      "endpoint": "https://ec.europa.eu/eurostat/api/"
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "version": "1.0",
+  "country": "Kenya",
+  "authority": "Kenya Institute of Curriculum Development",
+  "source_type": "official_curriculum_designs",
+  "purpose": "Authoritative source registry for Dream Education curriculum ingestion",
+  "official_index": "https://kicd.ac.ke/cbc-materials/curriculum-designs/regular-curriculum-designs/",
+  "levels": {
+    "Pre-Primary": {
+      "grades": ["PP1", "PP2"],
+      "source_category": "Pre-Primary curriculum designs"
+    },
+    "Primary": {
+      "grades": [
+        "Grade 1",
+        "Grade 2",
+        "Grade 3",
+        "Grade 4",
+        "Grade 5",
+        "Grade 6"
+      ],
+      "source_category": "Primary curriculum designs"
+    },
+    "Junior School": {
+      "grades": [
+        "Grade 7",
+        "Grade 8",
+        "Grade 9"
+      ],
+      "source_category": "Junior School curriculum designs"
+    },
+    "Senior School": {
+      "grades": [
+        "Grade 10",
+        "Grade 11",
+        "Grade 12"
+      ],
+      "source_category": "Senior School curriculum designs"
+    }
+  },
+  "source_components": [
+    "national_goals",
+    "essence_statement",
+    "general_learning_outcomes",
+    "specific_learning_outcomes",
+    "strands",
+    "sub_strands",
+    "suggested_learning_experiences",
+    "key_inquiry_questions",
+    "core_competencies",
+    "pertinent_and_contemporary_issues",
+    "values",
+    "assessment_rubrics",
+    "learning_resources",
+    "references"
+  ],
+  "ingestion_rules": {
+    "preserve_source_structure": true,
+    "preserve_existing_content": true,
+    "do_not_invent_curriculum": true,
+    "record_source_reference": true,
+    "allow_multiple_versions": true,
+    "allow_multiple_subjects": true,
+    "allow_multiple_levels": true
+  },
+  "existing_content": {
+    "file": "content/curriculum/kenya/knowledge.json",
+    "status": "preserve",
+    "known_subjects": ["Biology"],
+    "known_levels": ["Junior Secondary"]
+  },
+  "next_ingestion_order": [
+    "Pre-Primary",
+    "Primary",
+    "Junior School",
+    "Senior School",
+    "Tertiary",
+    "Advanced and research knowledge"
+  ]
+}

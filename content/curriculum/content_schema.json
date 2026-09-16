@@ -1,0 +1,67 @@
+{
+  "schema_version": "2.0",
+  "description": "Universal Dream Education content model",
+  "node_fields": {
+    "id": "Unique content identifier",
+    "title": "Human-readable title",
+    "level": "Education level",
+    "grade_or_stage": "Grade, year, qualification or academic stage",
+    "subject_or_discipline": "Subject or academic discipline",
+    "strand_or_domain": "Strand, domain, field or major area",
+    "topic": "Topic",
+    "subtopic": "Subtopic",
+    "concept": "Concept",
+    "definition": "Accurate explanation",
+    "key_ideas": "Important ideas",
+    "skills": "Skills the learner should develop",
+    "examples": "Examples",
+    "applications": "Real-world applications",
+    "misconceptions": "Common learner misconceptions",
+    "questions": "Learning questions",
+    "assessments": "Assessment material",
+    "learning_activities": "Activities and demonstrations",
+    "references": "Source references"
+  },
+  "basic_education": {
+    "source_priority": [
+      "KICD curriculum designs",
+      "Approved curriculum support materials",
+      "Other authoritative Kenyan education sources"
+    ]
+  },
+  "tertiary_education": {
+    "structure": [
+      "institution",
+      "faculty",
+      "school",
+      "department",
+      "programme",
+      "course",
+      "unit",
+      "domain",
+      "topic",
+      "subtopic",
+      "concept"
+    ]
+  },
+  "advanced_education": {
+    "masters": [
+      "specialization",
+      "advanced_concepts",
+      "research_methods",
+      "literature",
+      "applications"
+    ],
+    "doctorate": [
+      "research_field",
+      "research_topic",
+      "advanced_knowledge",
+      "research_methods",
+      "literature",
+      "evidence",
+      "research_questions",
+      "open_problems",
+      "references"
+    ]
+  }
+}

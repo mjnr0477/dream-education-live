@@ -1,0 +1,80 @@
+{
+  "name": "Dream Education",
+  "version": "1.0",
+  "vision": "Help every learner understand what they are learning, in the way that works best for them, while continuously adapting to their evidence of understanding.",
+  "roles": {
+    "learner": {
+      "capabilities": [
+        "learn",
+        "ask_questions",
+        "choose_learning_method",
+        "answer_questions",
+        "view_progress",
+        "view_mastery",
+        "view_history"
+      ]
+    },
+    "teacher": {
+      "capabilities": [
+        "view_learners",
+        "view_progress",
+        "view_assessments",
+        "upload_marks",
+        "view_class_analytics"
+      ]
+    },
+    "parent": {
+      "capabilities": [
+        "view_child_progress",
+        "view_mastery",
+        "view_weak_areas",
+        "view_improvement"
+      ]
+    },
+    "school": {
+      "capabilities": [
+        "manage_learners",
+        "manage_classes",
+        "manage_results",
+        "view_analytics"
+      ]
+    }
+  },
+  "learning_cycle": [
+    "request",
+    "content_retrieval",
+    "teaching",
+    "learner_response",
+    "assessment",
+    "concept_evidence",
+    "learning_state",
+    "mastery",
+    "decision",
+    "difficulty",
+    "adaptive_question",
+    "history",
+    "progress",
+    "continue"
+  ],
+  "teaching_methods": [
+    "auto",
+    "explanation",
+    "examples",
+    "step_by_step",
+    "discussion",
+    "problem_solving",
+    "custom"
+  ],
+  "platform_layers": {
+    "content": "curriculum knowledge and educational resources",
+    "learning_engine": "assessment, evidence, state, mastery and adaptation",
+    "teaching_engine": "method-aware teaching",
+    "learner": "accounts, profiles, progress and history",
+    "teacher": "class and learner management",
+    "parent": "learner progress visibility",
+    "school": "school-level management and analytics",
+    "ai": "advanced teaching and reasoning assistance",
+    "payments": "subscriptions and access",
+    "media": "voice, visual and demonstration learning"
+  }
+}

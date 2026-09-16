@@ -1,0 +1,110 @@
+{
+  "version": "1.0",
+  "name": "Dream Education Master Education Structure",
+  "country": "Kenya",
+  "basic_education": {
+    "system": "CBC",
+    "levels": {
+      "Pre-Primary": {
+        "grades": ["PP1", "PP2"]
+      },
+      "Primary": {
+        "grades": [
+          "Grade 1",
+          "Grade 2",
+          "Grade 3",
+          "Grade 4",
+          "Grade 5",
+          "Grade 6"
+        ]
+      },
+      "Junior School": {
+        "grades": [
+          "Grade 7",
+          "Grade 8",
+          "Grade 9"
+        ]
+      },
+      "Senior School": {
+        "grades": [
+          "Grade 10",
+          "Grade 11",
+          "Grade 12"
+        ],
+        "pathways": [
+          "STEM",
+          "Social Sciences",
+          "Arts and Sports Science"
+        ]
+      }
+    }
+  },
+  "tertiary_education": {
+    "levels": [
+      "Certificate",
+      "Diploma",
+      "Undergraduate",
+      "Postgraduate Diploma",
+      "Masters",
+      "Doctorate",
+      "PhD"
+    ],
+    "structure": [
+      "Institution",
+      "Faculty",
+      "School",
+      "Department",
+      "Programme",
+      "Course",
+      "Unit",
+      "Domain",
+      "Topic",
+      "Subtopic",
+      "Concept"
+    ]
+  },
+  "knowledge_hierarchy": [
+    "Level",
+    "GradeOrAcademicStage",
+    "SubjectOrDiscipline",
+    "StrandOrDomain",
+    "Topic",
+    "Subtopic",
+    "Concept",
+    "Definition",
+    "KeyIdeas",
+    "Skills",
+    "Examples",
+    "Applications",
+    "Misconceptions",
+    "Questions",
+    "Assessments",
+    "LearningActivities",
+    "References"
+  ],
+  "advanced_knowledge": {
+    "masters": [
+      "Advanced Concepts",
+      "Specialized Domains",
+      "Research Methods",
+      "Applications",
+      "Literature"
+    ],
+    "doctorate": [
+      "Research Field",
+      "Research Topic",
+      "Advanced Knowledge",
+      "Research Methods",
+      "Literature",
+      "Research Questions",
+      "Evidence",
+      "Open Problems",
+      "References"
+    ]
+  },
+  "content_sources": {
+    "basic_education": "KICD curriculum designs and approved curriculum materials",
+    "tertiary": "Institutional and programme-specific academic sources",
+    "advanced": "Academic literature, research publications and learner-provided materials"
+  }
+}

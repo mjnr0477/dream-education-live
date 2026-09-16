@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0",
+  "name": "Dream Education Universal Content Structure",
+  "hierarchy": [
+    "level",
+    "grade_or_year",
+    "subject_or_discipline",
+    "domain_or_strand",
+    "topic",
+    "subtopic",
+    "concept",
+    "knowledge"
+  ],
+  "knowledge_fields": [
+    "definition",
+    "key_ideas",
+    "examples",
+    "skills",
+    "applications",
+    "misconceptions",
+    "questions",
+    "assessments"
+  ],
+  "learning_methods": [
+    "explanation",
+    "examples",
+    "step_by_step",
+    "discussion",
+    "problem_solving",
+    "custom"
+  ],
+  "source_fields": [
+    "authority",
+    "document",
+    "reference",
+    "version"
+  ]
+}

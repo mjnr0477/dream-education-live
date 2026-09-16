@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0",
+  "name": "Dream Education Knowledge Relationship Schema",
+  "scope": "global",
+
+  "relationship_types": {
+    "prerequisite": "Knowledge that should normally be understood first",
+    "builds_on": "Knowledge that extends or develops another concept",
+    "part_of": "A concept that belongs to a larger topic or domain",
+    "related_to": "Concepts connected without a strict prerequisite relationship",
+    "example_of": "An example illustrating another concept",
+    "application_of": "A practical use of another concept",
+    "deeper_than": "A more advanced treatment of related knowledge"
+  },
+
+  "relationship_record": {
+    "id": "unique relationship id",
+    "from": "source knowledge record id",
+    "relationship": "relationship type",
+    "to": "target knowledge record id",
+    "strength": "strong | moderate | weak",
+    "reason": "why the relationship exists",
+    "sources": [],
+    "version": "1.0",
+    "status": "verified | reviewed | proposed"
+  },
+
+  "rules": [
+    "Every referenced knowledge id must exist in the global knowledge index",
+    "Prerequisite relationships must have a clear educational justification",
+    "Relationships must not be invented without evidence or educational reasoning",
+    "Proposed relationships must be distinguishable from verified relationships",
+    "Existing knowledge records must never be overwritten when relationships are added"
+  ]
+}

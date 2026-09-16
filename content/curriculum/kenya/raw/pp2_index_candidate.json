@@ -1,0 +1,352 @@
+{
+  "schema_version": "1.0",
+  "status": "candidate",
+  "country": "Kenya",
+  "curriculum": "CBC",
+  "level": "Pre-Primary",
+  "grade_or_year": "PP2",
+  "source": {
+    "authority": "KICD",
+    "document": "PP2 Curriculum Designs",
+    "version": "2017",
+    "reference": "content/sources/kicd/pre_primary/PP2-Curriculum-Designs-Dec-2017.pdf",
+    "extracted_from": "content/work/pp2.txt"
+  },
+  "activity_areas": [
+    {
+      "activity_area": "Language Activities",
+      "source_line_start": 319,
+      "source_line_end": 1939,
+      "candidate_sub_strands": [
+        {
+          "strand_number": "1.0",
+          "strand": "LISTENING",
+          "sub_strand_number": "1.1",
+          "sub_strand": "Common"
+        },
+        {
+          "strand_number": "2.0",
+          "strand": "SPEAKING",
+          "sub_strand_number": "2.1",
+          "sub_strand": "Common"
+        },
+        {
+          "strand_number": "3.0",
+          "strand": "READING",
+          "sub_strand_number": "3.1",
+          "sub_strand": "Book handling"
+        },
+        {
+          "strand_number": "3.0",
+          "strand": "READING",
+          "sub_strand_number": "3.4",
+          "sub_strand": "Visual"
+        },
+        {
+          "strand_number": "3.0",
+          "strand": "READING",
+          "sub_strand_number": "3.8",
+          "sub_strand": "Reading three to"
+        },
+        {
+          "strand_number": "4.0",
+          "strand": "WRITING",
+          "sub_strand_number": "4.6",
+          "sub_strand": "Letter"
+        },
+        {
+          "strand_number": "4.0",
+          "strand": "WRITING",
+          "sub_strand_number": "4.7",
+          "sub_strand": "Writing"
+        },
+        {
+          "strand_number": "4.0",
+          "strand": "WRITING",
+          "sub_strand_number": "4.8",
+          "sub_strand": "Writing"
+        }
+      ]
+    },
+    {
+      "activity_area": "Mathematical Activities",
+      "source_line_start": 1940,
+      "source_line_end": 3027,
+      "candidate_sub_strands": [
+        {
+          "strand_number": "1.0",
+          "strand": "CLASSIFICATION",
+          "sub_strand_number": "1.1",
+          "sub_strand": "Sorting &"
+        },
+        {
+          "strand_number": "1.0",
+          "strand": "CLASSIFICATION",
+          "sub_strand_number": "1.2",
+          "sub_strand": "Matching"
+        },
+        {
+          "strand_number": "1.0",
+          "strand": "CLASSIFICATION",
+          "sub_strand_number": "1.3",
+          "sub_strand": "Ordering"
+        },
+        {
+          "strand_number": "1.0",
+          "strand": "CLASSIFICATION",
+          "sub_strand_number": "1.4",
+          "sub_strand": "PATTERNS"
+        },
+        {
+          "strand_number": "2.0",
+          "strand": "NUMBERS",
+          "sub_strand_number": "2.1",
+          "sub_strand": "Rote counting"
+        },
+        {
+          "strand_number": "2.0",
+          "strand": "NUMBERS",
+          "sub_strand_number": "2.2",
+          "sub_strand": "Number"
+        },
+        {
+          "strand_number": "2.0",
+          "strand": "NUMBERS",
+          "sub_strand_number": "2.3",
+          "sub_strand": "Counting"
+        },
+        {
+          "strand_number": "2.0",
+          "strand": "NUMBERS",
+          "sub_strand_number": "2.5",
+          "sub_strand": "Number"
+        },
+        {
+          "strand_number": "2.0",
+          "strand": "NUMBERS",
+          "sub_strand_number": "2.8",
+          "sub_strand": "Putting"
+        },
+        {
+          "strand_number": "3.0",
+          "strand": "MEASUREMENT",
+          "sub_strand_number": "3.7",
+          "sub_strand": "Area"
+        }
+      ]
+    },
+    {
+      "activity_area": "Psychomotor and Creative Activities",
+      "source_line_start": 3028,
+      "source_line_end": 4498,
+      "candidate_sub_strands": [
+        {
+          "strand_number": "1.0",
+          "strand": "PICTURE",
+          "sub_strand_number": "1.1",
+          "sub_strand": "Drawing"
+        },
+        {
+          "strand_number": "1.0",
+          "strand": "PICTURE",
+          "sub_strand_number": "1.2",
+          "sub_strand": "Drawing from"
+        },
+        {
+          "strand_number": "1.0",
+          "strand": "PICTURE",
+          "sub_strand_number": "1.3",
+          "sub_strand": "Printing"
+        },
+        {
+          "strand_number": "1.0",
+          "strand": "PICTURE",
+          "sub_strand_number": "1.4",
+          "sub_strand": "Colouring"
+        },
+        {
+          "strand_number": "1.0",
+          "strand": "PICTURE",
+          "sub_strand_number": "1.5",
+          "sub_strand": "Painting"
+        },
+        {
+          "strand_number": "1.0",
+          "strand": "PICTURE",
+          "sub_strand_number": "1.6",
+          "sub_strand": "Collage"
+        },
+        {
+          "strand_number": "2.0",
+          "strand": "MODELLING",
+          "sub_strand_number": "2.1",
+          "sub_strand": "Ball"
+        },
+        {
+          "strand_number": "2.0",
+          "strand": "MODELLING",
+          "sub_strand_number": "2.2",
+          "sub_strand": "Coil"
+        },
+        {
+          "strand_number": "4.0",
+          "strand": "CREATING",
+          "sub_strand_number": "4.1",
+          "sub_strand": "Creating"
+        },
+        {
+          "strand_number": "5.0",
+          "strand": "PAPER",
+          "sub_strand_number": "5.1",
+          "sub_strand": "Weaving"
+        },
+        {
+          "strand_number": "7.0",
+          "strand": "ORNAMENTS",
+          "sub_strand_number": "7.1",
+          "sub_strand": "Beading"
+        },
+        {
+          "strand_number": "7.0",
+          "strand": "ORNAMENTS",
+          "sub_strand_number": "7.2",
+          "sub_strand": "Bracelets"
+        },
+        {
+          "strand_number": "8.0",
+          "strand": "PERFORMANCE",
+          "sub_strand_number": "8.2",
+          "sub_strand": "Musical"
+        },
+        {
+          "strand_number": "9.0",
+          "strand": "LISTENING",
+          "sub_strand_number": "9.1",
+          "sub_strand": "Musical"
+        },
+        {
+          "strand_number": "10.0",
+          "strand": "BASIC",
+          "sub_strand_number": "10.1",
+          "sub_strand": "Locomotive"
+        },
+        {
+          "strand_number": "10.0",
+          "strand": "BASIC",
+          "sub_strand_number": "10.2",
+          "sub_strand": "Non-"
+        },
+        {
+          "strand_number": "10.0",
+          "strand": "BASIC",
+          "sub_strand_number": "10.3",
+          "sub_strand": "Manipulative"
+        },
+        {
+          "strand_number": "12.0",
+          "strand": "FUN",
+          "sub_strand_number": "12.1",
+          "sub_strand": "Modern/"
+        }
+      ]
+    },
+    {
+      "activity_area": "Environmental Activities",
+      "source_line_start": 4499,
+      "source_line_end": 6888,
+      "candidate_sub_strands": [
+        {
+          "strand_number": "1.0",
+          "strand": "SOCIAL",
+          "sub_strand_number": "1.3",
+          "sub_strand": "Our Home"
+        },
+        {
+          "strand_number": "1.0",
+          "strand": "SOCIAL",
+          "sub_strand_number": "1.6",
+          "sub_strand": "Dressing"
+        },
+        {
+          "strand_number": "2.0",
+          "strand": "HEALTH",
+          "sub_strand_number": "2.5",
+          "sub_strand": "Food/"
+        },
+        {
+          "strand_number": "3.0",
+          "strand": "NATURAL",
+          "sub_strand_number": "3.3",
+          "sub_strand": "Weather"
+        },
+        {
+          "strand_number": "3.0",
+          "strand": "NATURAL",
+          "sub_strand_number": "3.5",
+          "sub_strand": "Soil"
+        },
+        {
+          "strand_number": "3.0",
+          "strand": "NATURAL",
+          "sub_strand_number": "3.6",
+          "sub_strand": "SOUND"
+        },
+        {
+          "strand_number": "4.0",
+          "strand": "ENVIRON-",
+          "sub_strand_number": "4.2",
+          "sub_strand": "Safety In"
+        }
+      ]
+    },
+    {
+      "activity_area": "Islamic Religious Education Activities",
+      "source_line_start": 6889,
+      "source_line_end": 7403,
+      "candidate_sub_strands": [
+        {
+          "strand_number": "1.0",
+          "strand": "QUR’AN",
+          "sub_strand_number": "1.1",
+          "sub_strand": "The Arabic"
+        },
+        {
+          "strand_number": "1.0",
+          "strand": "QUR’AN",
+          "sub_strand_number": "1.2",
+          "sub_strand": "Surah Naas"
+        },
+        {
+          "strand_number": "2.0",
+          "strand": "PILLARS",
+          "sub_strand_number": "2.1",
+          "sub_strand": "Belief in"
+        },
+        {
+          "strand_number": "2.0",
+          "strand": "PILLARS",
+          "sub_strand_number": "2.2",
+          "sub_strand": "Belief in His"
+        },
+        {
+          "strand_number": "4.0",
+          "strand": "MORAL",
+          "sub_strand_number": "4.1",
+          "sub_strand": "Islamic"
+        },
+        {
+          "strand_number": "5.0",
+          "strand": "ISLAMIC",
+          "sub_strand_number": "5.1",
+          "sub_strand": "Eid"
+        }
+      ]
+    },
+    {
+      "activity_area": "Hindu Religious Education Activities",
+      "source_line_start": 7404,
+      "source_line_end": 7834,
+      "candidate_sub_strands": []
+    }
+  ]
+}

@@ -1,0 +1,795 @@
+{
+  "name": "Dream Education Universal Solving Capability Registry",
+  "version": "1.0.0",
+  "policy": {
+    "primary_architecture": "specialist_routing",
+    "verification_required": true,
+    "external_special_problem_solver": "emergency_fallback_only",
+    "wolfram": "excluded",
+    "generic_solver_as_primary": false,
+    "speed_and_accuracy": true
+  },
+
+  "verification_states": [
+    "PASS",
+    "FAIL",
+    "INCONCLUSIVE"
+  ],
+
+  "domains": {
+
+    "mathematics": {
+      "specialist": "mathematics_specialist",
+      "problem_types": [
+        "arithmetic",
+        "fractions",
+        "percentages",
+        "ratios",
+        "proportion",
+        "powers",
+        "roots",
+        "algebra",
+        "equations",
+        "inequalities",
+        "simultaneous_equations",
+        "polynomials",
+        "factorization",
+        "sequences",
+        "series",
+        "functions",
+        "coordinate_geometry",
+        "plane_geometry",
+        "solid_geometry",
+        "trigonometry",
+        "vectors",
+        "matrices",
+        "complex_numbers",
+        "limits",
+        "differentiation",
+        "integration",
+        "differential_equations",
+        "number_theory",
+        "combinatorics",
+        "probability",
+        "discrete_mathematics"
+      ],
+      "local_solvers": [
+        "deterministic_arithmetic",
+        "sympy",
+        "mpmath",
+        "custom_algebra_algorithms",
+        "custom_geometry_algorithms",
+        "custom_trigonometry_algorithms",
+        "custom_matrix_algorithms"
+      ],
+      "evidence_sources": [
+        "verified_formula_library",
+        "mathematical_constants"
+      ],
+      "verification": [
+        "substitution_check",
+        "reverse_calculation",
+        "alternative_method",
+        "numerical_check",
+        "domain_constraint_check"
+      ]
+    },
+
+    "physics": {
+      "specialist": "physics_specialist",
+      "problem_types": [
+        "motion",
+        "kinematics",
+        "dynamics",
+        "newtons_laws",
+        "momentum",
+        "work",
+        "energy",
+        "power",
+        "pressure",
+        "density",
+        "fluids",
+        "heat",
+        "thermal_physics",
+        "waves",
+        "sound",
+        "light",
+        "optics",
+        "electricity",
+        "circuits",
+        "electrostatics",
+        "magnetism",
+        "electromagnetism",
+        "modern_physics",
+        "nuclear_physics",
+        "semiconductors",
+        "measurement",
+        "dimensional_analysis"
+      ],
+      "local_solvers": [
+        "deterministic_physics_equations",
+        "sympy",
+        "mpmath",
+        "dimensional_analysis_engine",
+        "numerical_physics_algorithms"
+      ],
+      "evidence_sources": [
+        "verified_physics_formula_library",
+        "nist_constants"
+      ],
+      "verification": [
+        "equation_rearrangement_check",
+        "unit_check",
+        "dimensional_check",
+        "independent_recalculation",
+        "limiting_case_check"
+      ]
+    },
+
+    "chemistry": {
+      "specialist": "chemistry_specialist",
+      "problem_types": [
+        "atomic_structure",
+        "periodic_table",
+        "chemical_formula",
+        "moles",
+        "molar_mass",
+        "stoichiometry",
+        "balancing_equations",
+        "concentration",
+        "molarity",
+        "dilution",
+        "gas_laws",
+        "thermochemistry",
+        "chemical_equilibrium",
+        "acids_bases",
+        "ph",
+        "redox",
+        "electrochemistry",
+        "organic_chemistry",
+        "inorganic_chemistry",
+        "biochemistry"
+      ],
+      "local_solvers": [
+        "deterministic_chemistry_algorithms",
+        "stoichiometry_engine",
+        "molar_mass_engine",
+        "equation_balancer",
+        "sympy"
+      ],
+      "evidence_sources": [
+        "pubchem",
+        "ncbi",
+        "nist_constants"
+      ],
+      "verification": [
+        "atom_balance_check",
+        "charge_balance_check",
+        "mole_balance_check",
+        "independent_recalculation",
+        "chemical_database_crosscheck"
+      ]
+    },
+
+    "biology_life_science": {
+      "specialist": "biology_specialist",
+      "problem_types": [
+        "cell_biology",
+        "genetics",
+        "inheritance",
+        "dna",
+        "rna",
+        "protein_synthesis",
+        "evolution",
+        "ecology",
+        "physiology",
+        "anatomy",
+        "microbiology",
+        "botany",
+        "zoology",
+        "human_biology",
+        "biotechnology",
+        "taxonomy",
+        "biological_data"
+      ],
+      "local_solvers": [
+        "genetics_probability_engine",
+        "biological_calculation_engine",
+        "sequence_analysis_engine"
+      ],
+      "evidence_sources": [
+        "ncbi",
+        "pubchem",
+        "europe_pmc"
+      ],
+      "verification": [
+        "independent_source_check",
+        "biological_constraint_check",
+        "calculation_recheck",
+        "evidence_quality_check"
+      ]
+    },
+
+    "statistics_data": {
+      "specialist": "statistics_specialist",
+      "problem_types": [
+        "mean",
+        "median",
+        "mode",
+        "range",
+        "variance",
+        "standard_deviation",
+        "quartiles",
+        "percentiles",
+        "frequency_tables",
+        "probability",
+        "distributions",
+        "correlation",
+        "regression",
+        "hypothesis_testing",
+        "confidence_intervals",
+        "sampling",
+        "data_cleaning",
+        "data_analysis"
+      ],
+      "local_solvers": [
+        "deterministic_statistics",
+        "custom_probability_engine",
+        "custom_regression_engine",
+        "sympy",
+        "mpmath"
+      ],
+      "optional_solvers": [
+        "scipy",
+        "statsmodels"
+      ],
+      "verification": [
+        "independent_recalculation",
+        "formula_check",
+        "range_check",
+        "sample_size_check",
+        "alternative_method"
+      ]
+    },
+
+    "units_measurement": {
+      "specialist": "units_specialist",
+      "problem_types": [
+        "unit_conversion",
+        "metric_conversion",
+        "scientific_notation",
+        "significant_figures",
+        "measurement_error",
+        "dimensional_analysis",
+        "area_conversion",
+        "volume_conversion",
+        "mass_conversion",
+        "temperature_conversion",
+        "time_conversion",
+        "speed_conversion",
+        "pressure_conversion",
+        "energy_conversion"
+      ],
+      "local_solvers": [
+        "custom_unit_engine",
+        "dimensional_analysis_engine",
+        "deterministic_conversion_engine"
+      ],
+      "optional_solvers": [
+        "pint"
+      ],
+      "verification": [
+        "reverse_conversion",
+        "dimension_check",
+        "magnitude_check"
+      ]
+    },
+
+    "finance_accounting": {
+      "specialist": "finance_specialist",
+      "problem_types": [
+        "simple_interest",
+        "compound_interest",
+        "loans",
+        "installments",
+        "amortization",
+        "discounts",
+        "profit_loss",
+        "markup",
+        "tax",
+        "depreciation",
+        "cash_flow",
+        "present_value",
+        "future_value",
+        "accounting_ratios",
+        "break_even",
+        "financial_statements"
+      ],
+      "local_solvers": [
+        "decimal_finance_engine",
+        "custom_amortization_engine",
+        "custom_cashflow_engine",
+        "sympy"
+      ],
+      "verification": [
+        "independent_recalculation",
+        "cashflow_balance_check",
+        "rounding_check",
+        "reverse_calculation"
+      ]
+    },
+
+    "economics_business": {
+      "specialist": "economics_business_specialist",
+      "problem_types": [
+        "supply_demand",
+        "elasticity",
+        "revenue",
+        "cost",
+        "profit",
+        "market_equilibrium",
+        "growth",
+        "inflation",
+        "gdp",
+        "productivity",
+        "business_metrics",
+        "break_even",
+        "forecasting"
+      ],
+      "local_solvers": [
+        "economic_equation_engine",
+        "deterministic_business_calculator",
+        "statistics_engine"
+      ],
+      "evidence_sources": [
+        "official_statistics_sources"
+      ],
+      "verification": [
+        "equation_check",
+        "unit_check",
+        "independent_recalculation",
+        "source_check"
+      ]
+    },
+
+    "engineering": {
+      "specialist": "engineering_specialist",
+      "problem_types": [
+        "mechanical",
+        "civil",
+        "electrical",
+        "structural",
+        "materials",
+        "thermodynamics",
+        "fluid_mechanics",
+        "circuits",
+        "control_systems",
+        "engineering_measurement"
+      ],
+      "local_solvers": [
+        "physics_engine",
+        "mathematics_engine",
+        "deterministic_engineering_equations",
+        "dimensional_analysis_engine"
+      ],
+      "verification": [
+        "unit_check",
+        "dimensional_check",
+        "independent_recalculation",
+        "boundary_check"
+      ]
+    },
+
+    "programming_code": {
+      "specialist": "code_specialist",
+      "problem_types": [
+        "code_generation",
+        "debugging",
+        "syntax",
+        "algorithms",
+        "data_structures",
+        "complexity",
+        "testing",
+        "refactoring",
+        "program_design",
+        "api_usage",
+        "database_queries",
+        "shell_commands"
+      ],
+      "local_solvers": [
+        "language_parser",
+        "syntax_checker",
+        "static_analysis_engine",
+        "test_execution_engine",
+        "algorithm_analysis_engine"
+      ],
+      "optional_components": [
+        "tree_sitter"
+      ],
+      "evidence_sources": [
+        "official_documentation"
+      ],
+      "verification": [
+        "syntax_check",
+        "static_check",
+        "test_execution",
+        "logic_check",
+        "expected_output_check"
+      ]
+    },
+
+    "computer_science": {
+      "specialist": "computer_science_specialist",
+      "problem_types": [
+        "algorithms",
+        "data_structures",
+        "complexity",
+        "automata",
+        "logic",
+        "operating_systems",
+        "networks",
+        "databases",
+        "security",
+        "distributed_systems",
+        "computer_architecture"
+      ],
+      "local_solvers": [
+        "algorithm_engine",
+        "logic_engine",
+        "graph_algorithms",
+        "custom_complexity_analyzer"
+      ],
+      "verification": [
+        "algorithm_trace",
+        "test_cases",
+        "invariant_check",
+        "complexity_check"
+      ]
+    },
+
+    "optimization_operations_research": {
+      "specialist": "optimization_specialist",
+      "problem_types": [
+        "linear_programming",
+        "integer_programming",
+        "constraint_satisfaction",
+        "scheduling",
+        "routing",
+        "assignment",
+        "network_flow",
+        "resource_allocation",
+        "optimization"
+      ],
+      "local_solvers": [
+        "custom_linear_solver",
+        "graph_algorithms",
+        "constraint_engine"
+      ],
+      "optional_solvers": [
+        "ortools",
+        "scipy"
+      ],
+      "verification": [
+        "constraint_check",
+        "feasibility_check",
+        "objective_recalculation",
+        "alternative_solution_check"
+      ]
+    },
+
+    "logic_reasoning": {
+      "specialist": "logic_reasoning_specialist",
+      "problem_types": [
+        "deduction",
+        "induction",
+        "propositional_logic",
+        "predicate_logic",
+        "truth_tables",
+        "syllogisms",
+        "puzzles",
+        "constraint_reasoning",
+        "proofs"
+      ],
+      "local_solvers": [
+        "truth_table_engine",
+        "logic_rule_engine",
+        "constraint_engine"
+      ],
+      "verification": [
+        "truth_table_check",
+        "counterexample_search",
+        "rule_consistency_check",
+        "independent_reasoning_path"
+      ]
+    },
+
+    "word_problems": {
+      "specialist": "word_problem_specialist",
+      "problem_types": [
+        "age",
+        "distance_time",
+        "work_rate",
+        "mixture",
+        "percentage",
+        "ratio",
+        "money",
+        "motion",
+        "geometry",
+        "probability",
+        "multi_step"
+      ],
+      "local_solvers": [
+        "variable_extraction_engine",
+        "constraint_extraction_engine",
+        "mathematics_engine",
+        "physics_engine",
+        "finance_engine"
+      ],
+      "verification": [
+        "text_constraint_check",
+        "substitution_into_original_problem",
+        "unit_check",
+        "independent_solution_path"
+      ]
+    },
+
+    "agriculture": {
+      "specialist": "agriculture_specialist",
+      "problem_types": [
+        "farm_calculations",
+        "yield",
+        "spacing",
+        "seed_rate",
+        "fertilizer",
+        "livestock_calculations",
+        "irrigation",
+        "farm_economics",
+        "soil",
+        "crop_science"
+      ],
+      "local_solvers": [
+        "agriculture_calculation_engine",
+        "unit_engine",
+        "statistics_engine"
+      ],
+      "evidence_sources": [
+        "official_agricultural_sources",
+        "research_databases"
+      ],
+      "verification": [
+        "unit_check",
+        "rate_check",
+        "independent_recalculation",
+        "source_check"
+      ]
+    },
+
+    "geography_earth_science": {
+      "specialist": "earth_science_specialist",
+      "problem_types": [
+        "coordinates",
+        "scale",
+        "distance",
+        "gradient",
+        "map_work",
+        "weather",
+        "climate",
+        "geology",
+        "hydrology",
+        "population_calculations"
+      ],
+      "local_solvers": [
+        "geospatial_calculation_engine",
+        "statistics_engine",
+        "unit_engine"
+      ],
+      "evidence_sources": [
+        "official_geospatial_sources",
+        "scientific_databases"
+      ],
+      "verification": [
+        "coordinate_check",
+        "scale_check",
+        "unit_check",
+        "source_check"
+      ]
+    },
+
+    "environmental_science": {
+      "specialist": "environmental_science_specialist",
+      "problem_types": [
+        "pollution",
+        "emissions",
+        "population",
+        "resource_use",
+        "water",
+        "waste",
+        "ecosystems",
+        "climate",
+        "environmental_measurement"
+      ],
+      "local_solvers": [
+        "environmental_calculation_engine",
+        "statistics_engine",
+        "unit_engine"
+      ],
+      "evidence_sources": [
+        "scientific_databases",
+        "official_environmental_sources"
+      ],
+      "verification": [
+        "unit_check",
+        "data_check",
+        "independent_recalculation",
+        "source_check"
+      ]
+    },
+
+    "astronomy_space_science": {
+      "specialist": "astronomy_specialist",
+      "problem_types": [
+        "orbital_calculations",
+        "distance",
+        "light",
+        "gravity",
+        "astronomical_measurement",
+        "space_physics"
+      ],
+      "local_solvers": [
+        "physics_engine",
+        "mathematics_engine",
+        "astronomy_calculation_engine"
+      ],
+      "evidence_sources": [
+        "nist_constants",
+        "official_space_science_sources"
+      ],
+      "verification": [
+        "unit_check",
+        "dimensional_check",
+        "independent_recalculation"
+      ]
+    },
+
+    "research_evidence": {
+      "specialist": "research_specialist",
+      "problem_types": [
+        "fact_verification",
+        "literature_search",
+        "scientific_evidence",
+        "paper_discovery",
+        "citation_verification",
+        "source_comparison",
+        "research_synthesis"
+      ],
+      "evidence_sources": [
+        "openalex",
+        "crossref",
+        "datacite",
+        "arxiv",
+        "ncbi",
+        "europe_pmc",
+        "internet_archive"
+      ],
+      "verification": [
+        "source_authority_check",
+        "publication_check",
+        "cross_source_check",
+        "citation_check",
+        "date_check"
+      ]
+    },
+
+    "technical_troubleshooting": {
+      "specialist": "technical_troubleshooting_specialist",
+      "problem_types": [
+        "software_errors",
+        "configuration",
+        "dependency_errors",
+        "network_errors",
+        "database_errors",
+        "build_errors",
+        "runtime_errors",
+        "environment_errors"
+      ],
+      "local_solvers": [
+        "error_pattern_engine",
+        "diagnostic_rule_engine",
+        "log_analysis_engine",
+        "code_analysis_engine"
+      ],
+      "evidence_sources": [
+        "official_documentation",
+        "verified_error_databases"
+      ],
+      "verification": [
+        "reproduction_check",
+        "configuration_check",
+        "test_execution",
+        "error_resolution_check"
+      ]
+    },
+
+    "real_world_calculations": {
+      "specialist": "real_world_calculation_specialist",
+      "problem_types": [
+        "shopping",
+        "construction",
+        "travel",
+        "fuel",
+        "electricity",
+        "water",
+        "household",
+        "salary",
+        "budget",
+        "time",
+        "distance",
+        "rates"
+      ],
+      "local_solvers": [
+        "deterministic_calculation_engine",
+        "unit_engine",
+        "finance_engine",
+        "rate_engine"
+      ],
+      "verification": [
+        "unit_check",
+        "rate_check",
+        "reverse_calculation",
+        "independent_recalculation"
+      ]
+    },
+
+    "cross_domain": {
+      "specialist": "cross_domain_specialist",
+      "problem_types": [
+        "mixed_math_physics",
+        "mixed_math_chemistry",
+        "mixed_math_biology",
+        "mixed_math_finance",
+        "mixed_physics_engineering",
+        "mixed_biology_chemistry",
+        "mixed_statistics_research",
+        "complex_multi_domain"
+      ],
+      "local_solvers": [
+        "domain_chain_solver",
+        "mathematics_engine",
+        "physics_engine",
+        "chemistry_engine",
+        "statistics_engine",
+        "finance_engine",
+        "units_engine"
+      ],
+      "verification": [
+        "per_domain_verification",
+        "cross_domain_consistency",
+        "unit_check",
+        "independent_recalculation"
+      ]
+    }
+  },
+
+  "global_routing_order": [
+    "analyze_problem",
+    "identify_domain",
+    "identify_problem_type",
+    "select_specialist",
+    "select_relevant_local_solvers",
+    "select_relevant_evidence_sources",
+    "solve",
+    "verify",
+    "crosscheck",
+    "format_steps",
+    "return_verified_solution"
+  ],
+
+  "failure_policy": {
+    "local_solver_failure": "try_next_relevant_solver",
+    "verification_failure": "reject_solution",
+    "inconclusive_verification": "try_alternative_method",
+    "all_internal_methods_failed": "external_special_problem_solver",
+    "external_result": "must_be_independently_verified",
+    "unverified_result": "never_teach_as_fact"
+  }
+}
