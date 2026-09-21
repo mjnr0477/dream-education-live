@@ -22,7 +22,8 @@ const VALID_CONNECTION_TYPES = new Set([
   "school_learner",
   "school_class",
   "teacher_class",
-  "class_learner"
+  "class_learner",
+  "general"
 ]);
 
 function createConnection({
@@ -215,20 +216,44 @@ function validateConnectionEndpoints(store, {
 
 function findExistingConnection(store, {
   type,
+  from_role,
   from_id,
+  to_role,
   to_id
 } = {}) {
-  const existing = findConnection(store, {
-    type,
-    from_id,
-    to_id
+  const connections = Object.values(store.connections || {});
+
+  const existing = connections.find(connection => {
+    if (
+      connection.type !== type ||
+      !["pending", "active"].includes(connection.status)
+    ) {
+      return false;
+    }
+
+    const sameDirection =
+      connection.from_role === from_role &&
+      connection.from_id === from_id &&
+      connection.to_role === to_role &&
+      connection.to_id === to_id;
+
+    if (sameDirection) {
+      return true;
+    }
+
+    if (type === "general") {
+      return (
+        connection.from_role === to_role &&
+        connection.from_id === to_id &&
+        connection.to_role === from_role &&
+        connection.to_id === from_id
+      );
+    }
+
+    return false;
   });
 
-  if (existing && ["pending", "active"].includes(existing.status)) {
-    return existing;
-  }
-
-  return null;
+  return existing || null;
 }
 
 function createValidatedConnection(store, options = {}) {
@@ -429,6 +454,8 @@ module.exports.authorizeAccountForEntity =
   authorizeAccountForEntity;
 
 const CONNECTION_TYPE_ROLES = {
+  general: null,
+
   parent_learner: {
     from_role: "parent",
     to_role: "learner"
@@ -465,6 +492,32 @@ function validateConnectionTypeRoles({
   to_role
 } = {}) {
   const expected = CONNECTION_TYPE_ROLES[type];
+
+  if (type === "general") {
+    const generalRoles = new Set([
+      "learner",
+      "teacher",
+      "parent",
+      "school"
+    ]);
+
+    if (
+      !generalRoles.has(from_role) ||
+      !generalRoles.has(to_role)
+    ) {
+      throw new Error(
+        "General connections require valid user roles."
+      );
+    }
+
+    if (from_role === to_role && !from_role) {
+      throw new Error(
+        "Invalid general connection."
+      );
+    }
+
+    return true;
+  }
 
   if (!expected) {
     throw new Error("Invalid connection type.");

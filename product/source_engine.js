@@ -5,6 +5,9 @@ const globalSourceBridge = require("./global_sources/bridge.js");
 const USER_AGENT = "DreamEducation/1.0 knowledge-search";
 const PROVIDER_TIMEOUT = 3500;
 
+const OPEN_LIBRARY_CACHE_TTL = 30 * 60 * 1000;
+const openLibraryCache = new Map();
+
 function httpsGetJson(url, timeout = PROVIDER_TIMEOUT) {
   return new Promise((resolve, reject) => {
     const request = https.get(
@@ -664,6 +667,140 @@ async function searchDataCite(query, limit = 5) {
   });
 }
 
+
+async function searchOpenLibrary(query, limit = 5) {
+  const cacheKey = `${String(query).trim().toLowerCase()}|${limit}`;
+  const cached = openLibraryCache.get(cacheKey);
+
+  if (cached && (Date.now() - cached.timestamp) < OPEN_LIBRARY_CACHE_TTL) {
+    return cached.results;
+  }
+
+  const params = new URLSearchParams({
+    q: query,
+    limit: String(limit)
+  });
+
+  const url = "https://openlibrary.org/search.json?" + params.toString();
+  const data = await httpsGetJson(url, 2000);
+
+  const books = (data.docs || []).slice(0, limit);
+
+  const results = books.map(item => {
+    const title = String(item.title || query).trim();
+
+    const authors = Array.isArray(item.author_name)
+      ? item.author_name.slice(0, 3).join(", ")
+      : "";
+
+    const year = item.first_publish_year
+      ? String(item.first_publish_year)
+      : "";
+
+    const subjects = Array.isArray(item.subject)
+      ? item.subject.slice(0, 8).join(", ")
+      : "";
+
+    const description = String(
+      item.first_sentence?.value ||
+      item.first_sentence ||
+      item.subtitle ||
+      ""
+    ).trim();
+
+    const key = String(item.key || "").trim();
+
+    const publishers = Array.isArray(item.publisher)
+      ? item.publisher.slice(0, 3).join(", ")
+      : "";
+
+    const languages = Array.isArray(item.language)
+      ? item.language.slice(0, 3).join(", ")
+      : "";
+
+    const metadata = [
+      authors ? `Author: ${authors}.` : "",
+      year ? `First published: ${year}.` : "",
+      subjects ? `Subjects: ${subjects}.` : "",
+      publishers ? `Publisher: ${publishers}.` : "",
+      languages ? `Language: ${languages}.` : ""
+    ].filter(Boolean).join(" ");
+
+    const referenceText =
+      `Open Library book reference for "${title}". ` +
+      `${metadata}`;
+
+    const extract = [
+      description,
+      referenceText
+    ].filter(Boolean).join(" ").trim();
+
+    return {
+      title,
+      snippet: extract || title,
+      extract: extract || title,
+      source: "Open Library",
+      provider: "open_library",
+      source_type: "library_reference",
+      url: key
+        ? `https://openlibrary.org${key}`
+        : "https://openlibrary.org/",
+      has_usable_content: extract.length >= 80
+    };
+  });
+
+  openLibraryCache.set(cacheKey, {
+    timestamp: Date.now(),
+    results
+  });
+
+  return results;
+}
+
+async function searchSearXNG(query, limit = 5) {
+  const baseUrl = String(process.env.SEARXNG_URL || "").trim();
+
+  if (!baseUrl) {
+    return [];
+  }
+
+  const normalizedBaseUrl = baseUrl.replace(/\/+$/, "");
+
+  const params = new URLSearchParams({
+    q: query,
+    format: "json",
+    language: "en",
+    safesearch: "1"
+  });
+
+  const url = `${normalizedBaseUrl}/search?${params.toString()}`;
+  const data = await httpsGetJson(url);
+
+  return (data.results || []).slice(0, limit).map(item => {
+    const title = String(item.title || query).trim();
+
+    const extract = String(
+      item.content ||
+      item.snippet ||
+      item.description ||
+      title
+    ).trim();
+
+    return {
+      title,
+      snippet: extract,
+      extract,
+      source: "SearXNG",
+      provider: "searxng",
+      source_type: "web_reference",
+      url: String(item.url || "").trim(),
+      engine: item.engine_name || item.engine || null,
+      engines: Array.isArray(item.engines) ? item.engines : [],
+      has_usable_content: extract.length >= 80
+    };
+  });
+}
+
 async function searchSources(query, limit = 5) {
   const started = Date.now();
 
@@ -683,7 +820,7 @@ async function searchSources(query, limit = 5) {
       intent: queryInfo.intent
     })
   );
-  const FAST_RETRIEVAL_DEADLINE = 4000;
+  const FAST_RETRIEVAL_DEADLINE = 4500;
 
   const providers = [
     // EXISTING PROVIDERS — PRESERVED
@@ -702,6 +839,8 @@ async function searchSources(query, limit = 5) {
     { name: "internet_archive", run: () => searchInternetArchive(searchQuery, limit) },
     { name: "library_of_congress", run: () => searchLibraryOfCongress(searchQuery, limit) },
     { name: "datacite", run: () => searchDataCite(searchQuery, limit) },
+    { name: "open_library", run: () => searchOpenLibrary(searchQuery, limit) },
+    { name: "searxng", run: () => searchSearXNG(searchQuery, limit) },
 
     // GLOBAL SOURCE EXPANSION — ADDITIVE
     {
@@ -714,7 +853,31 @@ async function searchSources(query, limit = 5) {
     }
   ];
 
-  const tasks = providers.map(provider =>
+  const openLibraryProvider = providers.find(
+    provider => provider.name === "open_library"
+  );
+
+  const blockingProviders = providers.filter(
+    provider => provider.name !== "open_library"
+  );
+
+  // Open Library is intentionally non-blocking.
+  // It may be slow, so it refreshes the in-memory cache in the background
+  // without delaying the main knowledge search.
+  if (openLibraryProvider) {
+    Promise.resolve()
+      .then(() => openLibraryProvider.run())
+      .catch(error => {
+        console.warn("Open Library background search failed:", error.message);
+      });
+  }
+
+  const openLibraryCacheKey =
+    `${String(searchQuery).trim().toLowerCase()}|${limit}`;
+
+  const cachedOpenLibrary = openLibraryCache.get(openLibraryCacheKey);
+
+  const tasks = blockingProviders.map(provider =>
     Promise.resolve()
       .then(() => provider.run())
       .then(sources => ({
@@ -730,6 +893,18 @@ async function searchSources(query, limit = 5) {
 
   const pending = new Set(tasks);
   const completed = [];
+
+  if (
+    cachedOpenLibrary &&
+    (Date.now() - cachedOpenLibrary.timestamp) < OPEN_LIBRARY_CACHE_TTL
+  ) {
+    completed.push({
+      provider: "open_library",
+      sources: Array.isArray(cachedOpenLibrary.results)
+        ? cachedOpenLibrary.results
+        : []
+    });
+  }
 
   while (pending.size > 0) {
     const remaining = FAST_RETRIEVAL_DEADLINE - (Date.now() - started);

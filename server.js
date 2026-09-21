@@ -28,6 +28,7 @@ const path = require("path");
 const fs = require("fs");
 const crypto = require("crypto");
 const OpenAI = require("openai");
+const { generateAI: generateFreeAI } = require("./product/ai/ai_provider_router");
 const { createClient } = require("@supabase/supabase-js");
 
 const app = express();
@@ -1341,7 +1342,7 @@ app.post("/api/learn", async (req, res) => {
         specialistResult.solved === true &&
         specialistResult.verified === true;
 
-      if (specialistVerified || AI_MODE !== "live") {
+      if (specialistVerified || curriculumContent || retrievedKnowledge || AI_MODE !== "live") {
         console.log(
           specialistVerified
             ? "6. VERIFIED SOLVER TEACHING MODE"
@@ -1487,19 +1488,67 @@ Do not mechanically follow this structure when it would make the response unnatu
 Return a learner-facing teaching response only.
 `;
 
-        const response = await client.chat.completions.create({
-          model: process.env.AI_MODEL || "gemini-3.8-flash",
-          messages: [
-            {
-              role: "user",
-              content: prompt
+        let response;
+        let primaryAIError = null;
+
+        try {
+          for (let attempt = 1; attempt <= 3; attempt++) {
+            try {
+              response = await client.chat.completions.create({
+                model: process.env.AI_MODEL || "gemini-3.8-flash",
+                messages: [
+                  {
+                    role: "user",
+                    content: prompt
+                  }
+                ]
+              });
+              break;
+            } catch (err) {
+              if (err?.status !== 503 || attempt === 3) throw err;
+              console.log(`AI temporarily unavailable; retrying (${attempt}/3)...`);
+              await new Promise(r => setTimeout(r, attempt * 2000));
             }
-          ]
-        });
+          }
+        } catch (err) {
+          primaryAIError = err;
+          console.log("Primary AI unavailable; trying configured free AI providers...");
+        }
+
+        if (!response) {
+          const freeAI = await generateFreeAI({
+            messages: [
+              {
+                role: "user",
+                content: prompt
+              }
+            ],
+            maxTokens: 1200,
+            temperature: 0.2
+          });
+
+          if (!freeAI.success) {
+            throw primaryAIError || new Error(
+              freeAI.message || "No AI provider returned a usable response."
+            );
+          }
+
+          response = {
+            choices: [
+              {
+                message: {
+                  content: freeAI.content
+                }
+              }
+            ]
+          };
+
+          console.log(`7. Free AI answer created (${freeAI.provider})`);
+        } else {
+          console.log("7. AI answer created");
+        }
 
         answer = response.choices?.[0]?.message?.content;
-
-        console.log("7. AI answer created");
       }
 
       cache[cacheKey] = {
@@ -4187,7 +4236,7 @@ console.log("STATE-AWARE TEACHING ANALYSIS:", teachingAnalysis);
 });
 
 
-app.listen(3000, () => {
+app.listen(PORT, () => {
   console.log("Dream Education running on http://localhost:3000");
   console.log("AI mode:", process.env.AI_MODE || "development");
 });
@@ -4215,15 +4264,6 @@ const {
   createCheckoutOrder,
   captureCheckoutOrder
 } = require("./product/paypal_engine");
-
-const {
-  initiateStkPush,
-  parseStkCallback,
-  normalizeMpesaPhone,
-  savePendingPayment,
-  getPendingPayment,
-  completePendingPayment
-} = require("./product/mpesa_engine");
 
 const {
   addPayment
@@ -4806,6 +4846,293 @@ app.post("/api/product/teacher", (req, res) => {
    DREAM EDUCATION CONNECTION API
 */
 
+app.get("/api/product/connections/search", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+
+    if (!auth.success) {
+      return res.status(auth.status).json({
+        success: false,
+        error: auth.error
+      });
+    }
+
+    const q = String(req.query.q || "").trim().toLowerCase();
+
+    if (!q) {
+      return res.status(200).json({
+        success: true,
+        results: []
+      });
+    }
+
+    const dataEngine = require("./product/data_engine");
+    const connectionEngine = require("./product/connection_engine");
+    const store = dataEngine.loadStore();
+
+    const learners = store.learners || {};
+    const myId = connectionEngine.getAccountEntityId(auth.account);
+
+    const connections = Object.values(store.connections || {});
+
+    const results = Object.entries(learners)
+      .filter(function ([learnerId, learner]) {
+        if (!learner || learnerId === myId) return false;
+
+        const name = String(
+          learner.name ||
+          learner.full_name ||
+          learner.display_name ||
+          learner.learner_name ||
+          ""
+        ).toLowerCase();
+
+        const email = String(
+          learner.email ||
+          ""
+        ).toLowerCase();
+
+        const id = String(learnerId).toLowerCase();
+
+        return (
+          name.includes(q) ||
+          email.includes(q) ||
+          id.includes(q)
+        );
+      })
+      .map(function ([learnerId, learner]) {
+        const existing = connections.find(function (connection) {
+          if (!connection) return false;
+
+          const teacherLearner =
+            connection.type === "teacher_learner";
+
+          if (!teacherLearner) return false;
+
+          const learnerIsTarget =
+            (connection.from_role === "learner" &&
+             connection.from_id === learnerId) ||
+            (connection.to_role === "learner" &&
+             connection.to_id === learnerId);
+
+          const teacherIsMine =
+            (connection.from_role === auth.account.role &&
+             connection.from_id === myId) ||
+            (connection.to_role === auth.account.role &&
+             connection.to_id === myId);
+
+          return learnerIsTarget && teacherIsMine;
+        });
+
+        return {
+          learner_id: learnerId,
+          name:
+            learner.name ||
+            learner.full_name ||
+            learner.display_name ||
+            learner.learner_name ||
+            learnerId,
+          email: learner.email || "",
+          level: learner.level || "",
+          grade: learner.grade || "",
+          connection_status: existing
+            ? existing.status
+            : "none",
+          connection_id: existing
+            ? existing.connection_id
+            : null
+        };
+      })
+      .slice(0, 20);
+
+    return res.status(200).json({
+      success: true,
+      results
+    });
+  } catch (error) {
+    console.error("Connection search error:", error);
+
+    return res.status(500).json({
+      success: false,
+      error: error.message || "Connection search failed."
+    });
+  }
+});
+
+
+// ============================================================
+// DREAM EDUCATION GENERAL CONNECTION SEARCH
+// Searches authenticated user accounts across all user roles.
+// Teacher -> Learner search remains separate and untouched.
+// ============================================================
+app.get("/api/product/connections/general/search", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+
+    if (!auth.success) {
+      return res.status(auth.status).json({
+        success: false,
+        error: auth.error
+      });
+    }
+
+    const query = String(req.query.q || "").trim().toLowerCase();
+
+    if (!query) {
+      return res.status(400).json({
+        success: false,
+        error: "Search query is required."
+      });
+    }
+
+    if (query.length < 2) {
+      return res.status(400).json({
+        success: false,
+        error: "Search query must contain at least 2 characters."
+      });
+    }
+
+    const dataEngine = require("./product/data_engine");
+    const connectionEngine = require("./product/connection_engine");
+
+    const store = dataEngine.loadStore();
+
+    const roleCollections = [
+      ["learner", store.learners || {}, "learner_id"],
+      ["teacher", store.teachers || {}, "teacher_id"],
+      ["parent", store.parents || {}, "parent_id"],
+      ["school", store.schools || {}, "school_id"]
+    ];
+
+    const currentRole = auth.account.role;
+    const currentId =
+      connectionEngine.getAccountEntityId(auth.account);
+
+    const results = [];
+
+    const userGeneralConnections = Object.values(store.connections || {}).filter(
+      connection =>
+        connection &&
+        connection.type === "general" &&
+        ["pending", "active"].includes(connection.status) &&
+        (
+          (
+            connection.from_role === currentRole &&
+            connection.from_id === currentId
+          ) ||
+          (
+            connection.to_role === currentRole &&
+            connection.to_id === currentId
+          )
+        )
+    );
+
+    for (const [role, collection, idField] of roleCollections) {
+      for (const profile of Object.values(collection)) {
+        if (!profile) continue;
+
+        const entityId = profile[idField];
+
+        if (!entityId) continue;
+
+        if (
+          role === currentRole &&
+          entityId === currentId
+        ) {
+          continue;
+        }
+
+        const name = String(
+          profile.name ||
+          profile.full_name ||
+          profile.display_name ||
+          profile.school_name ||
+          ""
+        );
+
+        const email = String(profile.email || "");
+
+        const searchable = [
+          entityId,
+          name,
+          email
+        ]
+          .join(" ")
+          .toLowerCase();
+
+        if (!searchable.includes(query)) {
+          continue;
+        }
+
+        const existing = userGeneralConnections.find(connection =>
+          (
+            connection.from_role === currentRole &&
+            connection.from_id === currentId &&
+            connection.to_role === role &&
+            connection.to_id === entityId
+          ) ||
+          (
+            connection.to_role === currentRole &&
+            connection.to_id === currentId &&
+            connection.from_role === role &&
+            connection.from_id === entityId
+          )
+        ) || null;
+
+        let connectionStatus = null;
+
+        if (existing) {
+          if (existing.status === "active") {
+            connectionStatus = "active";
+          } else if (
+            existing.from_role === currentRole &&
+            existing.from_id === currentId
+          ) {
+            connectionStatus = "outgoing_pending";
+          } else {
+            connectionStatus = "incoming_pending";
+          }
+        }
+
+        results.push({
+          role,
+          id: entityId,
+          name: name || entityId,
+          email: email || null,
+          connection_status: connectionStatus,
+          connection_id: existing?.connection_id || null
+        });
+      }
+    }
+
+    results.sort((a, b) =>
+      String(a.name).localeCompare(
+        String(b.name),
+        undefined,
+        { sensitivity: "base" }
+      )
+    );
+
+    return res.status(200).json({
+      success: true,
+      query,
+      results: results.slice(0, 25)
+    });
+
+  } catch (error) {
+    console.error(
+      "General connection search error:",
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
+      error: error.message ||
+        "General connection search failed."
+    });
+  }
+});
+
 app.post("/api/product/connections/request", async (req, res) => {
   try {
     const auth = await getAuthenticatedAccount(req);
@@ -5002,6 +5329,367 @@ app.post("/api/product/connections/:connection_id/status", async (req, res) => {
     return res.status(403).json({
       success: false,
       error: error.message || "Connection status update failed."
+    });
+  }
+});
+
+
+/*
+   DREAM EDUCATION MEETING API V2
+   Meetings are attached to existing active connections.
+*/
+
+app.post("/api/product/meetings", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+
+    if (!auth.success) {
+      return res.status(auth.status).json({
+        success: false,
+        error: auth.error
+      });
+    }
+
+    const {
+      connection_id,
+      title,
+      type,
+      provider,
+      scheduled_date,
+      scheduled_time
+    } = req.body || {};
+
+    if (!connection_id || !title || !scheduled_date || !scheduled_time) {
+      return res.status(400).json({
+        success: false,
+        error:
+          "connection_id, title, scheduled_date and scheduled_time are required."
+      });
+    }
+
+    const allowedTypes = [
+      "learning",
+      "teaching",
+      "parent-support",
+      "school"
+    ];
+
+    const meetingType = type || "learning";
+
+    const allowedProviders = ["dream", "jitsi"];
+    const meetingProvider = provider || "dream";
+
+    if (!allowedProviders.includes(meetingProvider)) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid meeting provider."
+      });
+    }
+
+    if (!allowedTypes.includes(meetingType)) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid meeting type."
+      });
+    }
+
+    const dataEngine = require("./product/data_engine");
+    const connectionEngine = require("./product/connection_engine");
+
+    const store = dataEngine.loadStore();
+
+    const connection =
+      connectionEngine.getConnection(store, String(connection_id));
+
+    if (!connection) {
+      return res.status(404).json({
+        success: false,
+        error: "Connection not found."
+      });
+    }
+
+    if (connection.status !== "active") {
+      return res.status(409).json({
+        success: false,
+        error: "Meetings require an active connection."
+      });
+    }
+
+    connectionEngine.authorizeAccountForConnection(
+      auth.account,
+      connection
+    );
+
+    const accountEntityId =
+      connectionEngine.getAccountEntityId(auth.account);
+
+    if (!accountEntityId) {
+      return res.status(403).json({
+        success: false,
+        error: "Authenticated account is not linked to an entity."
+      });
+    }
+
+    if (!store.meetings) {
+      store.meetings = {};
+    }
+
+    const meetingId =
+      `meeting_${crypto.randomUUID()}`;
+
+    const now = new Date().toISOString();
+
+    const meeting = {
+      meeting_id: meetingId,
+      connection_id: connection.connection_id,
+      created_by_role: auth.account.role,
+      created_by_id: accountEntityId,
+      title: String(title).trim(),
+      type: meetingType,
+      scheduled_date: String(scheduled_date),
+      scheduled_time: String(scheduled_time),
+      status: "scheduled",
+      provider: meetingProvider,
+      external_room_name:
+        meetingProvider === "jitsi"
+          ? `DreamEducation-${meetingId}`
+          : null,
+      created_at: now,
+      updated_at: now
+    };
+
+    if (!meeting.title) {
+      return res.status(400).json({
+        success: false,
+        error: "Meeting title cannot be empty."
+      });
+    }
+
+    store.meetings[meetingId] = meeting;
+    dataEngine.saveStore(store);
+
+    if (meeting.provider === "jitsi") {
+      meeting.external_url =
+        "https://meet.jit.si/" +
+        encodeURIComponent(meeting.external_room_name);
+    }
+
+    return res.status(201).json({
+      success: true,
+      meeting
+    });
+  } catch (error) {
+    console.error("Meeting creation error:", error);
+
+    return res.status(403).json({
+      success: false,
+      error: error.message || "Meeting creation failed."
+    });
+  }
+});
+
+
+app.get("/api/product/meetings", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+
+    if (!auth.success) {
+      return res.status(auth.status).json({
+        success: false,
+        error: auth.error
+      });
+    }
+
+    const dataEngine = require("./product/data_engine");
+    const connectionEngine = require("./product/connection_engine");
+
+    const store = dataEngine.loadStore();
+
+    const meetings = Object.values(store.meetings || {})
+      .filter(meeting => {
+        if (!meeting || !meeting.connection_id) {
+          return false;
+        }
+
+        const connection =
+          connectionEngine.getConnection(
+            store,
+            meeting.connection_id
+          );
+
+        if (!connection || connection.status !== "active") {
+          return false;
+        }
+
+        try {
+          connectionEngine.authorizeAccountForConnection(
+            auth.account,
+            connection
+          );
+          return true;
+        } catch {
+          return false;
+        }
+      })
+      .sort((a, b) => {
+        const aDate =
+          `${a.scheduled_date}T${a.scheduled_time}`;
+        const bDate =
+          `${b.scheduled_date}T${b.scheduled_time}`;
+
+        return aDate.localeCompare(bDate);
+      });
+
+    const now = new Date();
+
+    const upcoming = [];
+    const past = [];
+
+    for (const meeting of meetings) {
+      const meetingDate = new Date(
+        `${meeting.scheduled_date}T${meeting.scheduled_time}`
+      );
+
+      if (
+        Number.isNaN(meetingDate.getTime()) ||
+        meetingDate >= now
+      ) {
+        upcoming.push(meeting);
+      } else {
+        past.push(meeting);
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      meetings,
+      upcoming,
+      past
+    });
+  } catch (error) {
+    console.error("Meeting listing error:", error);
+
+    return res.status(500).json({
+      success: false,
+      error: error.message || "Meeting listing failed."
+    });
+  }
+});
+
+
+
+/*
+   DREAM EDUCATION MEETING JOIN API
+   Only participants on the meeting's active connection may join.
+*/
+
+app.get("/api/product/meetings/:meeting_id/join", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+
+    if (!auth.success) {
+      return res.status(auth.status).json({
+        success: false,
+        error: auth.error
+      });
+    }
+
+    const dataEngine = require("./product/data_engine");
+    const connectionEngine = require("./product/connection_engine");
+
+    const store = dataEngine.loadStore();
+
+    const meeting =
+      store.meetings?.[String(req.params.meeting_id)] || null;
+
+    if (!meeting) {
+      return res.status(404).json({
+        success: false,
+        error: "Meeting not found."
+      });
+    }
+
+    const connection =
+      connectionEngine.getConnection(
+        store,
+        String(meeting.connection_id)
+      );
+
+    if (!connection) {
+      return res.status(404).json({
+        success: false,
+        error: "Meeting connection not found."
+      });
+    }
+
+    if (connection.status !== "active") {
+      return res.status(409).json({
+        success: false,
+        error: "This meeting is no longer available because its connection is not active."
+      });
+    }
+
+    connectionEngine.authorizeAccountForConnection(
+      auth.account,
+      connection
+    );
+
+    const accountEntityId =
+      connectionEngine.getAccountEntityId(auth.account);
+
+    const isHost =
+      String(meeting.created_by_role) === String(auth.account.role) &&
+      String(meeting.created_by_id) === String(accountEntityId);
+
+    const mediaProvider =
+      require("./meeting-server/media/provider");
+
+    const mediaProviderName =
+      mediaProvider.getMediaProvider();
+
+    const mediaToken =
+      mediaProvider.createRoomToken({
+        meetingId: meeting.meeting_id,
+        participantId: accountEntityId,
+        role: auth.account.role
+      });
+
+    return res.status(200).json({
+      success: true,
+      meeting: {
+        meeting_id: meeting.meeting_id,
+        connection_id: meeting.connection_id,
+        title: meeting.title,
+        type: meeting.type,
+        scheduled_date: meeting.scheduled_date,
+        scheduled_time: meeting.scheduled_time,
+        status: meeting.status,
+        provider: meeting.provider || "dream",
+        external_room_name: meeting.external_room_name || null,
+        external_url:
+          meeting.provider === "jitsi" && meeting.external_room_name
+            ? "https://meet.jit.si/" +
+              encodeURIComponent(meeting.external_room_name)
+            : null
+      },
+      participant: {
+        role: auth.account.role,
+        id: accountEntityId,
+        is_host: isHost
+      },
+      room: {
+        room_id: meeting.meeting_id,
+        status: "ready",
+        media_provider: mediaProviderName,
+        media_token: mediaToken
+      }
+    });
+  } catch (error) {
+    console.error("Meeting join error:", error);
+
+    return res.status(403).json({
+      success: false,
+      error: error.message || "Meeting join failed."
     });
   }
 });
@@ -5598,6 +6286,341 @@ app.get("/api/product/school/:school_id/overview", (req, res) => {
   DREAM EDUCATION LEARNER OVERVIEW
 */
 
+/*
+   DREAM EDUCATION TEACHER → LEARNER VIEW API
+*/
+
+app.get("/api/product/teacher/learner/:learner_id", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+
+    if (!auth.success) {
+      return res.status(auth.status).json({
+        success: false,
+        error: auth.error
+      });
+    }
+
+    if (auth.account.role !== "teacher") {
+      return res.status(403).json({
+        success: false,
+        error: "Only teachers can view connected learner information."
+      });
+    }
+
+    const learnerId = String(req.params.learner_id || "").trim();
+
+    if (!learnerId) {
+      return res.status(400).json({
+        success: false,
+        error: "Learner ID is required."
+      });
+    }
+
+    const dataEngine = require("./product/data_engine");
+    const connectionEngine = require("./product/connection_engine");
+    const store = dataEngine.loadStore();
+
+    const teacherId = connectionEngine.getAccountEntityId(auth.account);
+
+    const connections = connectionEngine.listConnections(store, {
+      status: "active",
+      type: "teacher_learner",
+      role: "teacher",
+      id: teacherId
+    });
+
+    const connection = connections.find(
+      item =>
+        item.from_role === "teacher" &&
+        item.from_id === teacherId &&
+        item.to_role === "learner" &&
+        item.to_id === learnerId
+    );
+
+    if (!connection) {
+      return res.status(403).json({
+        success: false,
+        error: "You are not authorized to view this learner."
+      });
+    }
+
+    connectionEngine.authorizeAccountForConnection(
+      auth.account,
+      connection
+    );
+
+    const learner = store.learners?.[learnerId];
+
+    if (!learner) {
+      return res.status(404).json({
+        success: false,
+        error: "Learner not found."
+      });
+    }
+
+    const classes = Object.values(store.classes || {})
+      .filter(classData =>
+        Array.isArray(classData.learners) &&
+        classData.learners.includes(learner.learner_id)
+      );
+
+    const teacherIds = [
+      ...new Set(
+        classes
+          .map(classData => classData.teacher_id)
+          .filter(Boolean)
+      )
+    ];
+
+    const teachers = Object.values(store.teachers || {})
+      .filter(teacher =>
+        teacherIds.includes(teacher.teacher_id)
+      );
+
+    const schoolIds = [
+      ...new Set(
+        classes
+          .map(classData => classData.school_id)
+          .filter(Boolean)
+      )
+    ];
+
+    const schools = Object.values(store.schools || {})
+      .filter(school =>
+        schoolIds.includes(school.school_id)
+      );
+
+    const results = (store.results || [])
+      .filter(result =>
+        result.learner_id === learner.learner_id
+      );
+
+    const analysis = analyzeResults(results);
+
+    const assessments = Array.isArray(learner.assessments)
+      ? learner.assessments
+      : [];
+
+    const scores = assessments
+      .map(a => Number(a.score))
+      .filter(Number.isFinite);
+
+    const assessmentAverage = scores.length
+      ? Math.round(
+          scores.reduce((sum, score) => sum + score, 0) / scores.length
+        )
+      : 0;
+
+    const { data: learningAssessments, error: learningAssessmentsError } =
+      await supabase
+        .from("learning_assessments")
+        .select("question, subject, topic, score, understanding, feedback, strengths, gaps, misconceptions, created_at")
+        .eq("learner_id", learner.learner_id)
+        .order("created_at", { ascending: false });
+
+    if (learningAssessmentsError) throw learningAssessmentsError;
+
+    const { data: learningHistory, error: learningHistoryError } =
+      await supabase
+        .from("learning_history")
+        .select("question, subject, topic, level, created_at")
+        .eq("learner_id", learner.learner_id)
+        .order("created_at", { ascending: false });
+
+    if (learningHistoryError) throw learningHistoryError;
+
+    const journeyAssessments = learningAssessments || [];
+    const journeyHistory = learningHistory || [];
+
+    const subjectMap = {};
+    const topicMap = {};
+
+    journeyAssessments.forEach((item) => {
+      const subject = item.subject || "General";
+      const topic = item.topic || "No topic";
+      const score = Number(item.score);
+
+      if (!subjectMap[subject]) {
+        subjectMap[subject] = {
+          subject,
+          assessments: 0,
+          total_score: 0,
+          scored_assessments: 0,
+          latest_score: null,
+          latest_at: item.created_at || null,
+          activities: 0
+        };
+      }
+
+      subjectMap[subject].assessments += 1;
+
+      if (Number.isFinite(score)) {
+        subjectMap[subject].total_score += score;
+        subjectMap[subject].scored_assessments += 1;
+
+        if (
+          subjectMap[subject].latest_at == null ||
+          new Date(item.created_at || 0) > new Date(subjectMap[subject].latest_at || 0)
+        ) {
+          subjectMap[subject].latest_score = score;
+          subjectMap[subject].latest_at = item.created_at || null;
+        }
+      }
+    });
+
+    journeyHistory.forEach((item) => {
+      const subject = item.subject || "General";
+      const topic = item.topic || "No topic";
+
+      if (!subjectMap[subject]) {
+        subjectMap[subject] = {
+          subject,
+          assessments: 0,
+          total_score: 0,
+          scored_assessments: 0,
+          latest_score: null,
+          latest_at: null,
+          activities: 0
+        };
+      }
+
+      subjectMap[subject].activities += 1;
+    });
+
+    journeyAssessments.forEach((item) => {
+      const subject = item.subject || "General";
+      const topic = item.topic || "No topic";
+      const score = Number(item.score);
+
+      const key = subject + "::" + topic;
+
+      if (!topicMap[key]) {
+        topicMap[key] = {
+          subject,
+          topic,
+          assessments: 0,
+          total_score: 0,
+          scored_assessments: 0,
+          latest_score: null,
+          latest_at: item.created_at || null
+        };
+      }
+
+      topicMap[key].assessments += 1;
+
+      if (Number.isFinite(score)) {
+        topicMap[key].total_score += score;
+        topicMap[key].scored_assessments += 1;
+
+        if (
+          topicMap[key].latest_at == null ||
+          new Date(item.created_at || 0) > new Date(topicMap[key].latest_at || 0)
+        ) {
+          topicMap[key].latest_score = score;
+          topicMap[key].latest_at = item.created_at || null;
+        }
+      }
+    });
+
+    const subjectHistory = Object.values(subjectMap)
+      .map((item) => ({
+        ...item,
+        average_score: item.scored_assessments
+          ? Number((item.total_score / item.scored_assessments).toFixed(1))
+          : null
+      }))
+      .sort((a, b) => {
+        const aDate = new Date(a.latest_at || 0).getTime();
+        const bDate = new Date(b.latest_at || 0).getTime();
+        return bDate - aDate;
+      });
+
+    const topicProgression = Object.values(topicMap)
+      .map((item) => ({
+        ...item,
+        average_score: item.scored_assessments
+          ? Number((item.total_score / item.scored_assessments).toFixed(1))
+          : null
+      }))
+      .sort((a, b) => {
+        const aDate = new Date(a.latest_at || 0).getTime();
+        const bDate = new Date(b.latest_at || 0).getTime();
+        return bDate - aDate;
+      });
+
+    const assessmentProgression = journeyAssessments
+      .filter((item) => Number.isFinite(Number(item.score)))
+      .slice(0, 20)
+      .reverse()
+      .map((item) => ({
+        score: Number(item.score),
+        subject: item.subject || "General",
+        topic: item.topic || "No topic",
+        created_at: item.created_at || null
+      }));
+
+    const learningJourney = {
+      assessments: journeyAssessments,
+      history: journeyHistory,
+      subject_history: subjectHistory,
+      topic_progression: topicProgression,
+      assessment_progression: assessmentProgression,
+      current_state: {
+        subject: learner.active_subject || null,
+        topic: learner.active_topic || null,
+        learning_state: learner.learning_state || null,
+        mastery_status: learner.mastery_status || "not_started",
+        progress: learner.progress || {},
+        assessment_average: assessmentAverage,
+        assessment_count: assessments.length,
+        next_action: learner.next_action || null,
+        next_topic: learner.next_topic || null
+      },
+      teacher_action: {
+        action: learner.next_action || "Review learner progress",
+        topic: learner.next_topic || learner.active_topic || null,
+        learning_state: learner.learning_state || null
+      }
+    };
+
+    return res.json({
+      success: true,
+      learner,
+      classes,
+      teachers,
+      schools,
+      results,
+      learning_journey: learningJourney,
+      learning: {
+        active_subject: learner.active_subject || null,
+        active_topic: learner.active_topic || null,
+        learning_state: learner.learning_state || null,
+        mastery_status: learner.mastery_status || "not_started",
+        progress: learner.progress || {},
+        assessments: assessments.length,
+        assessment_average: assessmentAverage
+      },
+      next: {
+        action: learner.next_action || null,
+        topic: learner.next_topic || null
+      },
+      analytics: {
+        ...analysis,
+        by_subject: analyzeResultsBySubject(results),
+        by_topic: analyzeResultsByTopic(results)
+      }
+    });
+  } catch (error) {
+    console.error("Teacher learner view error:", error);
+
+    return res.status(500).json({
+      success: false,
+      error: "Teacher learner view failed."
+    });
+  }
+});
+
 app.get("/api/product/learner/:learner_id/overview", (req, res) => {
   try {
     const store = require("./product/data_engine").loadStore();
@@ -5898,298 +6921,6 @@ async function getAuthenticatedAccount(req) {
 */
 
 
-/*
-  DREAM EDUCATION M-PESA STK PUSH
-*/
-
-app.post("/api/mpesa/stk-push", async (req, res) => {
-  try {
-    const auth = await getAuthenticatedAccount(req);
-
-    if (!auth.success) {
-      return res.status(auth.status).json({
-        success: false,
-        error: auth.error
-      });
-    }
-
-    if (isOwnerAccount(auth.account)) {
-      return res.status(403).json({
-        success: false,
-        error: "Owner account has permanent free access and does not require payment."
-      });
-    }
-
-    const planId = String(req.body?.plan_id || "").trim();
-    const phone = String(req.body?.phone || "").trim();
-
-    const plan = PLANS[planId];
-
-    if (!plan) {
-      return res.status(400).json({
-        success: false,
-        error: "Invalid payment plan."
-      });
-    }
-
-    if (!Number.isFinite(Number(plan.price)) || Number(plan.price) <= 0) {
-      return res.status(500).json({
-        success: false,
-        error: "Payment plan price is not configured."
-      });
-    }
-
-    if (!phone) {
-      return res.status(400).json({
-        success: false,
-        error: "M-PESA phone number is required."
-      });
-    }
-
-    const normalizedPhone = normalizeMpesaPhone(phone);
-
-    const accountBinding =
-      `${planId}:${auth.account.account_id}`;
-
-    const stk = await initiateStkPush({
-      phone: normalizedPhone,
-      amount: Number(plan.price),
-      accountReference: `DE-${auth.account.account_id.slice(0, 8)}`,
-      transactionDescription: `Dream ${plan.name}`,
-    });
-
-    const pendingPayment = savePendingPayment({
-      checkout_request_id: stk.checkout_request_id,
-      merchant_request_id: stk.merchant_request_id,
-      account_id: auth.account.account_id,
-      learner_id: auth.account.learner_id || null,
-      plan_id: planId,
-      amount: Number(plan.price),
-      currency: plan.currency,
-      phone: normalizedPhone
-    });
-
-    return res.json({
-      success: true,
-      provider: "mpesa",
-      payment_status: "pending",
-      plan: {
-        id: plan.id,
-        name: plan.name,
-        price: plan.price,
-        currency: plan.currency,
-        duration_days: plan.duration_days
-      },
-      account_binding: accountBinding,
-      phone: normalizedPhone,
-      merchant_request_id: stk.merchant_request_id,
-      checkout_request_id: stk.checkout_request_id,
-      response_code: stk.response_code,
-      response_description: stk.response_description,
-      customer_message: stk.customer_message
-    });
-
-  } catch (error) {
-    console.error("M-PESA STK Push error:", error);
-
-    return res.status(500).json({
-      success: false,
-      error: error.message || "Unable to initiate M-PESA payment."
-    });
-  }
-});
-
-
-app.post("/api/mpesa/callback", async (req, res) => {
-  try {
-    const callback = parseStkCallback(req.body);
-
-    const checkoutRequestId = callback.checkout_request_id;
-
-    if (!checkoutRequestId) {
-      return res.status(200).json({
-        success: false,
-        received: true,
-        reason: "missing_checkout_request_id"
-      });
-    }
-
-    const pending = getPendingPayment(checkoutRequestId);
-
-    if (!pending) {
-      console.warn(
-        "[M-PESA] Callback received for unknown CheckoutRequestID:",
-        checkoutRequestId
-      );
-
-      return res.status(200).json({
-        success: false,
-        received: true,
-        reason: "unknown_transaction"
-      });
-    }
-
-    if (pending.status !== "pending") {
-      return res.status(200).json({
-        success: true,
-        received: true,
-        already_processed: true,
-        status: pending.status
-      });
-    }
-
-    if (Number(callback.result_code) !== 0) {
-      completePendingPayment(checkoutRequestId, {
-        status: "failed",
-        result_code: callback.result_code,
-        result_description: callback.result_description
-      });
-
-      return res.status(200).json({
-        success: true,
-        received: true,
-        payment_status: "failed"
-      });
-    }
-
-    const account = await getAccount(pending.account_id);
-
-    if (!account) {
-      completePendingPayment(checkoutRequestId, {
-        status: "failed",
-        result_code: -1,
-        result_description: "Account not found"
-      });
-
-      return res.status(200).json({
-        success: false,
-        received: true,
-        reason: "account_not_found"
-      });
-    }
-
-    if (isOwnerAccount(account)) {
-      completePendingPayment(checkoutRequestId, {
-        status: "failed",
-        result_code: -1,
-        result_description: "Owner account cannot be charged"
-      });
-
-      return res.status(200).json({
-        success: false,
-        received: true,
-        reason: "owner_account"
-      });
-    }
-
-    const plan = PLANS[pending.plan_id];
-
-    if (!plan) {
-      completePendingPayment(checkoutRequestId, {
-        status: "failed",
-        result_code: -1,
-        result_description: "Invalid plan"
-      });
-
-      return res.status(200).json({
-        success: false,
-        received: true,
-        reason: "invalid_plan"
-      });
-    }
-
-    if (Number(pending.amount) !== Number(plan.price)) {
-      completePendingPayment(checkoutRequestId, {
-        status: "failed",
-        result_code: -1,
-        result_description: "Payment amount mismatch"
-      });
-
-      return res.status(200).json({
-        success: false,
-        received: true,
-        reason: "amount_mismatch"
-      });
-    }
-
-    if (
-      callback.amount !== null &&
-      Number(callback.amount) !== Number(plan.price)
-    ) {
-      completePendingPayment(checkoutRequestId, {
-        status: "failed",
-        result_code: -1,
-        result_description: "Safaricom amount mismatch"
-      });
-
-      return res.status(200).json({
-        success: false,
-        received: true,
-        reason: "provider_amount_mismatch"
-      });
-    }
-
-    const updatedAccount = activatePlan(
-      account,
-      pending.plan_id,
-      Number(plan.price),
-      "KES",
-      {
-        provider: "mpesa",
-        transaction_id:
-          callback.mpesa_receipt_number || checkoutRequestId,
-        checkout_request_id: checkoutRequestId,
-        phone: pending.phone
-      }
-    );
-
-    await saveAccount(updatedAccount);
-
-    addPayment({
-      payment_id: `mpesa_${checkoutRequestId}`,
-      account_id: pending.account_id,
-      learner_id: pending.learner_id,
-      amount: Number(plan.price),
-      currency: "KES",
-      plan_id: pending.plan_id,
-      status: "successful",
-      owner_exempt: false,
-      billing_period_days: plan.duration_days,
-      payment_date: new Date().toISOString()
-    });
-
-    completePendingPayment(checkoutRequestId, {
-      status: "completed",
-      result_code: callback.result_code,
-      result_description: callback.result_description,
-      mpesa_receipt_number: callback.mpesa_receipt_number,
-      transaction_date: callback.transaction_date
-    });
-
-    console.log(
-      "[M-PESA] Payment completed:",
-      checkoutRequestId,
-      callback.mpesa_receipt_number || ""
-    );
-
-    return res.status(200).json({
-      success: true,
-      received: true,
-      payment_status: "completed",
-      plan_id: pending.plan_id
-    });
-
-  } catch (error) {
-    console.error("[M-PESA CALLBACK ERROR]", error);
-
-    return res.status(200).json({
-      success: false,
-      received: true,
-      reason: "callback_processing_error"
-    });
-  }
-});
-
 app.post("/api/paypal/create-order", async (req, res) => {
   try {
     const auth = await getAuthenticatedAccount(req);
@@ -6270,6 +7001,22 @@ app.post("/api/paypal/create-order", async (req, res) => {
       error: "Unable to create PayPal order."
     });
   }
+});
+
+app.get("/api/paypal/return", (req, res) => {
+  const orderId = String(req.query?.token || "").trim();
+
+  if (!orderId) {
+    return res.redirect("/?paypal=error");
+  }
+
+  return res.redirect(
+    `/?paypal=return&order_id=${encodeURIComponent(orderId)}`
+  );
+});
+
+app.get("/api/paypal/cancel", (req, res) => {
+  return res.redirect("/?paypal=cancelled");
 });
 
 app.post("/api/paypal/capture-order", async (req, res) => {
@@ -6793,6 +7540,174 @@ app.get("/api/product/learner/:learner_id/dashboard", async (req, res) => {
         )
       : 0;
 
+    const { data: learningAssessments, error: learningAssessmentsError } =
+      await supabase
+        .from("learning_assessments")
+        .select("question, learner_answer, subject, topic, level, score, understanding, feedback, strengths, gaps, misconceptions, created_at")
+        .eq("learner_id", learnerId)
+        .order("created_at", { ascending: false });
+
+    if (learningAssessmentsError) throw learningAssessmentsError;
+
+    const { data: learningHistory, error: learningHistoryError } =
+      await supabase
+        .from("learning_history")
+        .select("question, subject, topic, level, answer, cached, created_at")
+        .eq("learner_id", learnerId)
+        .order("created_at", { ascending: false });
+
+    if (learningHistoryError) throw learningHistoryError;
+
+    const journeyAssessments = learningAssessments || [];
+    const journeyHistory = learningHistory || [];
+
+    const subjectMap = {};
+
+    journeyAssessments.forEach(item => {
+      const subject = item.subject || "General";
+      if (!subjectMap[subject]) {
+        subjectMap[subject] = {
+          subject,
+          assessments: 0,
+          activities: 0,
+          score_total: 0,
+          scored: 0,
+          latest_score: null,
+          latest_at: item.created_at || null
+        };
+      }
+
+      subjectMap[subject].assessments += 1;
+
+      const score = Number(item.score);
+      if (Number.isFinite(score)) {
+        subjectMap[subject].score_total += score;
+        subjectMap[subject].scored += 1;
+        subjectMap[subject].latest_score = score;
+      }
+
+      if (
+        item.created_at &&
+        (!subjectMap[subject].latest_at ||
+          new Date(item.created_at) > new Date(subjectMap[subject].latest_at))
+      ) {
+        subjectMap[subject].latest_at = item.created_at;
+      }
+    });
+
+    journeyHistory.forEach(item => {
+      const subject = item.subject || "General";
+      if (!subjectMap[subject]) {
+        subjectMap[subject] = {
+          subject,
+          assessments: 0,
+          activities: 0,
+          score_total: 0,
+          scored: 0,
+          latest_score: null,
+          latest_at: item.created_at || null
+        };
+      }
+
+      subjectMap[subject].activities += 1;
+
+      if (
+        item.created_at &&
+        (!subjectMap[subject].latest_at ||
+          new Date(item.created_at) > new Date(subjectMap[subject].latest_at))
+      ) {
+        subjectMap[subject].latest_at = item.created_at;
+      }
+    });
+
+    const subjectHistory = Object.values(subjectMap)
+      .map(item => ({
+        ...item,
+        average_score: item.scored
+          ? Math.round(item.score_total / item.scored)
+          : null
+      }))
+      .sort((a, b) =>
+        new Date(b.latest_at || 0) - new Date(a.latest_at || 0)
+      );
+
+    const topicMap = {};
+
+    journeyAssessments.forEach(item => {
+      const topic = item.topic || "No topic";
+      if (!topicMap[topic]) {
+        topicMap[topic] = {
+          topic,
+          subject: item.subject || "General",
+          assessments: 0,
+          score_total: 0,
+          scored: 0,
+          latest_score: null,
+          latest_at: item.created_at || null
+        };
+      }
+
+      topicMap[topic].assessments += 1;
+
+      const score = Number(item.score);
+      if (Number.isFinite(score)) {
+        topicMap[topic].score_total += score;
+        topicMap[topic].scored += 1;
+        topicMap[topic].latest_score = score;
+      }
+
+      if (
+        item.created_at &&
+        (!topicMap[topic].latest_at ||
+          new Date(item.created_at) > new Date(topicMap[topic].latest_at))
+      ) {
+        topicMap[topic].latest_at = item.created_at;
+      }
+    });
+
+    const topicProgression = Object.values(topicMap)
+      .map(item => ({
+        ...item,
+        average_score: item.scored
+          ? Math.round(item.score_total / item.scored)
+          : null
+      }))
+      .sort((a, b) =>
+        new Date(b.latest_at || 0) - new Date(a.latest_at || 0)
+      );
+
+    const assessmentProgression = journeyAssessments
+      .filter(item => Number.isFinite(Number(item.score)))
+      .slice(0, 20)
+      .reverse()
+      .map(item => ({
+        subject: item.subject || "General",
+        topic: item.topic || "No topic",
+        score: Number(item.score),
+        created_at: item.created_at || null
+      }));
+
+    const learningJourney = {
+      assessments: journeyAssessments,
+      history: journeyHistory,
+      subject_history: subjectHistory,
+      topic_progression: topicProgression,
+      assessment_progression: assessmentProgression,
+      current_state: {
+        active_subject: learner.active_subject || null,
+        active_topic: learner.active_topic || null,
+        learning_state: learner.learning_state || null,
+        mastery_status: learner.mastery_status || "not_started",
+        progress: learner.progress || {},
+        assessment_average: assessmentAverage,
+        assessment_count: journeyAssessments.length,
+        next_action: learner.next_action || null,
+        next_topic: learner.next_topic || null
+      },
+      next_action: learner.next_action || null,
+      next_topic: learner.next_topic || null
+    };
+
     res.json({
       success: true,
 
@@ -6835,7 +7750,9 @@ app.get("/api/product/learner/:learner_id/dashboard", async (req, res) => {
       next: {
         action: learner.next_action || null,
         topic: learner.next_topic || null
-      }
+      },
+
+      learning_journey: learningJourney
     });
   } catch (error) {
     console.error("Learner dashboard error:", error);

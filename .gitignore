@@ -28,3 +28,18 @@ cp
 
 supabase.env.tmp
 *.env.tmp
+
+# Local authentication/session artifacts
+dream-cookie.txt
+login-response.json
+sed
+
+# Local/generated meeting files
+meeting-server/
+public/meeting-room/
+
+# Local/generated AI files
+product/ai/
+
+# Generated global-source cache
+product/global_sources/cache/
