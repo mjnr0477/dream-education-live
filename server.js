@@ -4236,10 +4236,14 @@ console.log("STATE-AWARE TEACHING ANALYSIS:", teachingAnalysis);
 });
 
 
-app.listen(PORT, () => {
-  console.log("Dream Education running on http://localhost:3000");
-  console.log("AI mode:", process.env.AI_MODE || "development");
-});
+// Server starts after the persistent product store has hydrated.
+function startDreamEducationServer() {
+  app.listen(PORT, () => {
+    console.log("Dream Education running on http://localhost:" + PORT);
+    console.log("AI mode:", process.env.AI_MODE || "development");
+    console.log("Product store persistence: ready");
+  });
+}
 
 /*
   DREAM EDUCATION PRODUCT LEARNER API
@@ -4275,7 +4279,8 @@ const {
   saveAccount,
   getAccount,
   getAccountByEmail,
-  getAccountByPhone
+  getAccountByPhone,
+  ready: productStoreReady
 } = require("./product/data_engine");
 
 app.get("/api/product/curriculum/concepts", (req, res) => {
@@ -7825,3 +7830,16 @@ app.get("/api/product/learner/:learner_id/dashboard", async (req, res) => {
     });
   }
 });
+
+
+productStoreReady
+  .then(() => {
+    startDreamEducationServer();
+  })
+  .catch((error) => {
+    console.error(
+      "Dream Education startup aborted: product store persistence failed:",
+      error.message
+    );
+    process.exit(1);
+  });

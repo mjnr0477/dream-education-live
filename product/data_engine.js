@@ -1,28 +1,33 @@
 const fs = require("fs");
 const path = require("path");
+const { createClient } = require("@supabase/supabase-js");
 
 const DATA_DIR = path.join(__dirname, "..", "data");
 const FILE = path.join(DATA_DIR, "product.json");
+
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_KEY;
+const STORE_ID = 1;
+
+const supabase =
+  SUPABASE_URL && SUPABASE_KEY
+    ? createClient(SUPABASE_URL, SUPABASE_KEY)
+    : null;
+
+const EMPTY_STORE = {
+  learners: {},
+  teachers: {},
+  parents: {},
+  schools: {},
+  accounts: {},
+  connections: {}
+};
 
 function ensureStore() {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 
   if (!fs.existsSync(FILE)) {
-    fs.writeFileSync(
-      FILE,
-      JSON.stringify(
-        {
-          learners: {},
-          teachers: {},
-          parents: {},
-          schools: {},
-          accounts: {},
-          connections: {}
-        },
-        null,
-        2
-      )
-    );
+    fs.writeFileSync(FILE, JSON.stringify(EMPTY_STORE, null, 2));
     return;
   }
 
@@ -34,14 +39,141 @@ function ensureStore() {
   }
 }
 
-function loadStore() {
+function readLocalStore() {
   ensureStore();
   return JSON.parse(fs.readFileSync(FILE, "utf8"));
 }
 
-function saveStore(store) {
+function writeLocalStore(store) {
   ensureStore();
   fs.writeFileSync(FILE, JSON.stringify(store, null, 2));
+}
+
+function isStoreEmpty(store) {
+  if (!store || typeof store !== "object") return true;
+
+  return Object.keys(store).every((key) => {
+    const value = store[key];
+    return (
+      value === null ||
+      value === undefined ||
+      (typeof value === "object" && Object.keys(value).length === 0)
+    );
+  });
+}
+
+async function uploadStore(store) {
+  if (!supabase) return;
+
+  const { error } = await supabase
+    .from("dream_product_store")
+    .upsert(
+      {
+        id: STORE_ID,
+        data: store,
+        updated_at: new Date().toISOString()
+      },
+      { onConflict: "id" }
+    );
+
+  if (error) {
+    throw error;
+  }
+}
+
+async function hydrateStore() {
+  ensureStore();
+
+  if (!supabase) {
+    console.log("Dream product store: Supabase persistence disabled.");
+    return;
+  }
+
+  const { data, error } = await supabase
+    .from("dream_product_store")
+    .select("data")
+    .eq("id", STORE_ID)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  const localStore = readLocalStore();
+  const remoteStore = data && data.data ? data.data : null;
+
+  /*
+   * First-run migration:
+   * If Supabase is empty but the local product store contains real data,
+   * upload the local store instead of deleting it.
+   */
+  if (isStoreEmpty(remoteStore) && !isStoreEmpty(localStore)) {
+    await uploadStore(localStore);
+    console.log("Dream product store: local data migrated to Supabase.");
+    return;
+  }
+
+  /*
+   * Normal Render startup:
+   * Restore the persistent Supabase store into the local cache.
+   */
+  if (remoteStore && !isStoreEmpty(remoteStore)) {
+    writeLocalStore(remoteStore);
+    console.log("Dream product store: restored from Supabase.");
+    return;
+  }
+
+  /*
+   * Brand-new installation with no existing data.
+   */
+  if (!remoteStore) {
+    const initialStore = localStore || EMPTY_STORE;
+    await uploadStore(initialStore);
+    console.log("Dream product store: initialized in Supabase.");
+  }
+}
+
+let persistChain = Promise.resolve();
+
+const ready = hydrateStore().catch((error) => {
+  console.error(
+    "Dream product store: Supabase hydration failed:",
+    error.message || error
+  );
+  throw error;
+});
+
+function loadStore() {
+  return readLocalStore();
+}
+
+function saveStore(store) {
+  ensureStore();
+
+  /*
+   * Keep the local cache synchronous because the existing Dream Education
+   * engine depends on synchronous data_engine functions.
+   */
+  writeLocalStore(store);
+
+  /*
+   * Persist every change to Supabase in order.
+   * Waiting for hydration prevents a startup race from overwriting
+   * persistent data with an unhydrated local cache.
+   */
+  if (supabase) {
+    const snapshot = JSON.parse(JSON.stringify(store));
+
+    persistChain = persistChain
+      .then(() => ready)
+      .then(() => uploadStore(snapshot))
+      .catch((error) => {
+        console.error(
+          "Dream product store: Supabase save failed:",
+          error.message || error
+        );
+      });
+  }
 }
 
 function saveLearner(profile) {
@@ -64,7 +196,8 @@ module.exports = {
   loadStore,
   saveStore,
   saveLearner,
-  getLearner
+  getLearner,
+  ready
 };
 
 function saveTeacher(profile) {
