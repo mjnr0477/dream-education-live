@@ -1,0 +1,78 @@
+{
+  "version": "1.1.0",
+  "purpose": "Dream Education multi-provider AI registry",
+  "providers": [
+    {
+      "id": "existing_ai",
+      "name": "Existing AI",
+      "type": "existing",
+      "status": "active",
+      "cost": "configured",
+      "priority": 1,
+      "enabled": true
+    },
+    {
+      "id": "openrouter_free",
+      "name": "OpenRouter Free",
+      "type": "api",
+      "status": "free_models",
+      "cost": "limited_free",
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "id": "gemini",
+      "name": "Google Gemini",
+      "type": "api",
+      "status": "free_tier",
+      "cost": "limited_free",
+      "priority": 20,
+      "enabled": true
+    },
+    {
+      "id": "groq",
+      "name": "Groq",
+      "type": "api",
+      "status": "free_tier",
+      "cost": "limited_free",
+      "priority": 30,
+      "enabled": true
+    },
+    {
+      "id": "huggingface",
+      "name": "Hugging Face Inference",
+      "type": "api",
+      "status": "free_credit",
+      "cost": "limited_free",
+      "priority": 40,
+      "enabled": true
+    },
+    {
+      "id": "cloudflare",
+      "name": "Cloudflare Workers AI",
+      "type": "api",
+      "status": "free_capable",
+      "cost": "limited_free",
+      "priority": 50,
+      "enabled": true
+    },
+    {
+      "id": "mistral",
+      "name": "Mistral",
+      "type": "api",
+      "status": "free_tier",
+      "cost": "limited_free",
+      "priority": 60,
+      "enabled": true
+    },
+    {
+      "id": "cohere",
+      "name": "Cohere",
+      "type": "api",
+      "status": "free_tier",
+      "cost": "limited_free",
+      "priority": 70,
+      "enabled": true
+    }
+  ]
+}

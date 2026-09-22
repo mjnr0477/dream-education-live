@@ -39,7 +39,6 @@ meeting-server/
 public/meeting-room/
 
 # Local/generated AI files
-product/ai/
 
 # Generated global-source cache
 product/global_sources/cache/
