@@ -4617,15 +4617,77 @@ app.post("/api/auth/login", async (req, res) => {
       });
     }
 
-    const account =
+    let account =
       getAccount(authData.user.id) ||
       getAccountByEmail(email);
 
+    /*
+     * RENDER ACCOUNT RECOVERY
+     *
+     * Supabase authentication can succeed while the local product
+     * account store (data/product.json) is empty after deployment.
+     * Rebuild the missing product account from the authenticated
+     * Supabase user instead of rejecting a valid login.
+     */
     if (!account) {
-      return res.status(404).json({
-        success: false,
-        error: "Account profile not found."
+      const metadata = authData.user.user_metadata || {};
+      const recoveredName =
+        String(
+          metadata.name ||
+          metadata.full_name ||
+          metadata.display_name ||
+          email.split("@")[0] ||
+          "Learner"
+        ).trim();
+
+      const recoveredRole =
+        ["learner", "teacher", "parent", "school"].includes(
+          String(metadata.role || "").trim().toLowerCase()
+        )
+          ? String(metadata.role).trim().toLowerCase()
+          : "learner";
+
+      if (recoveredRole !== "learner") {
+        return res.status(404).json({
+          success: false,
+          error: "Account profile not found. Please complete account recovery from the registered profile."
+        });
+      }
+
+      const recoveredProfile = createLearnerProfile({
+        name: recoveredName,
+        level: String(metadata.level || "").trim(),
+        grade: String(metadata.grade || "").trim(),
+        school: metadata.school || null
       });
+
+      saveLearner(recoveredProfile);
+
+      account = {
+        account_id: authData.user.id,
+        role: "learner",
+        email,
+        phone: metadata.phone
+          ? String(metadata.phone).trim().replace(/[\\s()-]/g, "")
+          : null,
+        learner_id: recoveredProfile.learner_id,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      account = {
+        ...account,
+        ...createTrialAccess(account)
+      };
+
+      saveAccount(account);
+
+      console.log(
+        "Recovered product account from Supabase authentication:",
+        account.account_id,
+        account.email,
+        account.learner_id
+      );
     }
 
     const role = account.role || "learner";
