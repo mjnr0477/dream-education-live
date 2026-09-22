@@ -1,5 +1,5 @@
 {
-  "time": 1789580764418,
+  "time": 1789893184881,
   "value": {
     "sources": [
       {
@@ -118,9 +118,9 @@
       {
         "provider": "gbif",
         "source": "GBIF",
-        "title": "Frithia N.E.Br.",
-        "extract": "Plantae > Caryophyllales > Aizoaceae > Frithia",
-        "url": "https://www.gbif.org/species/165563490",
+        "title": "Aphanizomenon A.Morren ex Bornet & Flahault, 1888",
+        "extract": "Aphanizomenon",
+        "url": "https://www.gbif.org/species/165619927",
         "global_source_id": "gbif",
         "source_family": "biology",
         "license": "mixed-open",
@@ -186,6 +186,66 @@
         "license": "CC BY 4.0",
         "commercial_use": true,
         "query": "photosynthesis"
+      },
+      {
+        "provider": "rcsb_pdb",
+        "source": "RCSB PDB",
+        "title": "9JJ8",
+        "extract": "1",
+        "url": "https://www.rcsb.org/structure/9JJ8",
+        "global_source_id": "rcsb_pdb",
+        "source_family": "biology",
+        "license": "CC0/data-open",
+        "commercial_use": true,
+        "query": "photosynthesis"
+      },
+      {
+        "provider": "rcsb_pdb",
+        "source": "RCSB PDB",
+        "title": "9UEN",
+        "extract": "0.9942399087586212",
+        "url": "https://www.rcsb.org/structure/9UEN",
+        "global_source_id": "rcsb_pdb",
+        "source_family": "biology",
+        "license": "CC0/data-open",
+        "commercial_use": true,
+        "query": "photosynthesis"
+      },
+      {
+        "provider": "rcsb_pdb",
+        "source": "RCSB PDB",
+        "title": "9V7T",
+        "extract": "0.9864626474615704",
+        "url": "https://www.rcsb.org/structure/9V7T",
+        "global_source_id": "rcsb_pdb",
+        "source_family": "biology",
+        "license": "CC0/data-open",
+        "commercial_use": true,
+        "query": "photosynthesis"
+      },
+      {
+        "provider": "rcsb_pdb",
+        "source": "RCSB PDB",
+        "title": "9V7U",
+        "extract": "0.9864626474615704",
+        "url": "https://www.rcsb.org/structure/9V7U",
+        "global_source_id": "rcsb_pdb",
+        "source_family": "biology",
+        "license": "CC0/data-open",
+        "commercial_use": true,
+        "query": "photosynthesis"
+      },
+      {
+        "provider": "rcsb_pdb",
+        "source": "RCSB PDB",
+        "title": "8Z11",
+        "extract": "0.9789546416775188",
+        "url": "https://www.rcsb.org/structure/8Z11",
+        "global_source_id": "rcsb_pdb",
+        "source_family": "biology",
+        "license": "CC0/data-open",
+        "commercial_use": true,
+        "query": "photosynthesis"
       }
     ],
     "providers": [
@@ -195,6 +255,6 @@
       "uniprot",
       "rcsb_pdb"
     ],
-    "cached_at": 1789580764414
+    "cached_at": 1789893184880
   }
 }
