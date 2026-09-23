@@ -5,7 +5,17 @@ const { Pool } = require("pg");
 let pool = null;
 
 function getDatabaseUrl() {
-  return process.env.DATABASE_URL || "";
+  const raw = process.env.DATABASE_URL || "";
+  if (!raw) return "";
+
+  try {
+    const url = new URL(raw);
+    url.searchParams.delete("sslmode");
+    url.searchParams.delete("ssl");
+    return url.toString();
+  } catch {
+    return raw;
+  }
 }
 
 function getPool() {
