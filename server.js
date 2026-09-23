@@ -5380,11 +5380,12 @@ app.post("/api/product/connections/:connection_id/status", async (req, res) => {
       );
 
     connectionEngine.saveConnection(store, updatedConnection);
-    dataEngine.saveStore(store);
 
     if (updatedConnection.status === "active") {
       dataEngine.syncAllRelations();
     }
+
+    dataEngine.saveStore(store);
 
     return res.status(200).json({
       success: true,

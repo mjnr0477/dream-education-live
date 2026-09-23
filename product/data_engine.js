@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const { createClient } = require("@supabase/supabase-js");
+const postgresStore = require("../infrastructure/database/postgres-store");
 
 const DATA_DIR = path.join(__dirname, "..", "data");
 const FILE = path.join(DATA_DIR, "product.json");
@@ -19,8 +20,11 @@ const EMPTY_STORE = {
   teachers: {},
   parents: {},
   schools: {},
+  classes: {},
   accounts: {},
-  connections: {}
+  connections: {},
+  results: [],
+  meetings: {}
 };
 
 function ensureStore() {
@@ -84,52 +88,90 @@ async function uploadStore(store) {
 async function hydrateStore() {
   ensureStore();
 
-  if (!supabase) {
+  /*
+   * PostgreSQL is the durable primary store when configured.
+   * The local JSON file remains the synchronous application cache.
+   */
+  if (postgresStore.hasDatabase()) {
+    try {
+      const postgresRemote = await postgresStore.loadStore();
+
+      if (postgresRemote) {
+        const counts = await postgresStore.getCounts();
+        const postgresRows = postgresStore.totalRows(counts);
+
+        if (postgresRows > 0) {
+          writeLocalStore(postgresRemote);
+          console.log(
+            "Dream product store: restored from PostgreSQL (" +
+              postgresRows +
+              " rows)."
+          );
+          return;
+        }
+
+        console.log(
+          "Dream product store: PostgreSQL is empty; checking existing persistent store."
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Dream product store: PostgreSQL hydration failed; using fallback:",
+        error.message || error
+      );
+    }
+  }
+
+  /*
+   * Existing Supabase fallback/migration path.
+   */
+  if (supabase) {
+    const { data, error } = await supabase
+      .from("dream_product_store")
+      .select("data")
+      .eq("id", STORE_ID)
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    const localStore = readLocalStore();
+    const remoteStore = data && data.data ? data.data : null;
+
+    if (isStoreEmpty(remoteStore) && !isStoreEmpty(localStore)) {
+      await uploadStore(localStore);
+      console.log("Dream product store: local data migrated to Supabase.");
+    } else if (remoteStore && !isStoreEmpty(remoteStore)) {
+      writeLocalStore(remoteStore);
+      console.log("Dream product store: restored from Supabase.");
+    } else if (!remoteStore) {
+      await uploadStore(localStore || EMPTY_STORE);
+      console.log("Dream product store: initialized in Supabase.");
+    }
+  } else {
     console.log("Dream product store: Supabase persistence disabled.");
-    return;
-  }
-
-  const { data, error } = await supabase
-    .from("dream_product_store")
-    .select("data")
-    .eq("id", STORE_ID)
-    .maybeSingle();
-
-  if (error) {
-    throw error;
-  }
-
-  const localStore = readLocalStore();
-  const remoteStore = data && data.data ? data.data : null;
-
-  /*
-   * First-run migration:
-   * If Supabase is empty but the local product store contains real data,
-   * upload the local store instead of deleting it.
-   */
-  if (isStoreEmpty(remoteStore) && !isStoreEmpty(localStore)) {
-    await uploadStore(localStore);
-    console.log("Dream product store: local data migrated to Supabase.");
-    return;
   }
 
   /*
-   * Normal Render startup:
-   * Restore the persistent Supabase store into the local cache.
+   * If PostgreSQL is configured but was empty, promote the existing
+   * application store into PostgreSQL once.
    */
-  if (remoteStore && !isStoreEmpty(remoteStore)) {
-    writeLocalStore(remoteStore);
-    console.log("Dream product store: restored from Supabase.");
-    return;
-  }
+  if (postgresStore.hasDatabase()) {
+    const currentStore = readLocalStore();
 
-  /*
-   * Brand-new installation with no existing data.
-   */
-  if (!remoteStore) {
-    const initialStore = localStore || EMPTY_STORE;
-    await uploadStore(initialStore);
-    console.log("Dream product store: initialized in Supabase.");
+    if (!isStoreEmpty(currentStore)) {
+      try {
+        await postgresStore.replaceStore(currentStore);
+        console.log("Dream product store: existing data migrated to PostgreSQL.");
+      } catch (error) {
+        console.error(
+          "Dream product store: PostgreSQL migration failed:",
+          error.message || error
+        );
+        throw error;
+      }
+    }
   }
 }
 
@@ -156,14 +198,28 @@ function saveStore(store) {
    */
   writeLocalStore(store);
 
+  const snapshot = JSON.parse(JSON.stringify(store));
+
   /*
-   * Persist every change to Supabase in order.
-   * Waiting for hydration prevents a startup race from overwriting
-   * persistent data with an unhydrated local cache.
+   * PostgreSQL is the durable primary store.
+   * Writes are serialized so concurrent application writes cannot overlap.
+   */
+  if (postgresStore.hasDatabase()) {
+    persistChain = persistChain
+      .then(() => ready)
+      .then(() => postgresStore.replaceStore(snapshot))
+      .catch((error) => {
+        console.error(
+          "Dream product store: PostgreSQL save failed:",
+          error.message || error
+        );
+      });
+  }
+
+  /*
+   * Keep Supabase synchronized during the transition as a fallback.
    */
   if (supabase) {
-    const snapshot = JSON.parse(JSON.stringify(store));
-
     persistChain = persistChain
       .then(() => ready)
       .then(() => uploadStore(snapshot))
