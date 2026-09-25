@@ -1,0 +1,3 @@
+function scoreDirection(identity,d){const caps=identity.capabilities||{};const req=d.requirements||[];let matched=0,total=0;for(const r of req){total++;matched+=caps[r.id||r]?.confidence||0;}return {id:d.id||d.name,name:d.name,score:total?matched/total:0,matched: req.filter(r=>(caps[r.id||r]?.confidence||0)>=.6),missing:req.filter(r=>(caps[r.id||r]?.confidence||0)<.6)};}
+function generateDirections(identity,directions=[]){return directions.map(d=>scoreDirection(identity,d)).sort((a,b)=>b.score-a.score).map(x=>({...x,interpretation:'possibility—not a prescription'}));}
+module.exports={scoreDirection,generateDirections};

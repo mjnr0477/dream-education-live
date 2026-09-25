@@ -1,0 +1,1 @@
+function suggestTransfers(identity,relations=[]){const caps=identity.capabilities||{};return relations.filter(r=>(caps[r.from]?.confidence||0)>=.7&&(caps[r.to]?.confidence||0)<.5).map(r=>({from:r.from,to:r.to,reason:'A demonstrated capability may transfer, but needs new evidence.',confidence:Math.min(caps[r.from].confidence,.6)}));}module.exports={suggestTransfers};

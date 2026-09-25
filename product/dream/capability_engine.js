@@ -1,0 +1,6 @@
+const crypto=require('crypto'); const id=()=>crypto.randomUUID(); const clamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,Number(n)||0));
+const STATES=['unknown','emerging','developing','demonstrated','strong','mastered'];
+function ensureCapability(identity,input={}){identity.capabilities=identity.capabilities||{};const cid=input.id||input.capability_id||id();if(!identity.capabilities[cid])identity.capabilities[cid]={id:cid,name:String(input.name||'Unnamed capability'),description:String(input.description||''),state:'unknown',confidence:0,evidence_ids:[],history:[]};return identity.capabilities[cid];}
+function stateFor(score){return score<.15?'unknown':score<.35?'emerging':score<.55?'developing':score<.75?'demonstrated':score<.9?'strong':'mastered';}
+function recordCapabilityEvidence(identity,capabilityId,evidence){const c=ensureCapability(identity,{id:capabilityId,name:capabilityId});const score=clamp(evidence.score==null?evidence.confidence:evidence.score);c.evidence_ids.push(evidence.id);const old=c.confidence||0;c.confidence=clamp(old*.65+score*.35);c.state=stateFor(c.confidence);c.history.push({at:new Date().toISOString(),confidence:c.confidence,state:c.state,evidence_id:evidence.id});return c;}
+module.exports={ensureCapability,recordCapabilityEvidence,stateFor,STATES};

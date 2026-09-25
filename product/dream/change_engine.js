@@ -1,0 +1,2 @@
+function snapshot(identity){return {at:new Date().toISOString(),capabilities:Object.values(identity.capabilities||{}).map(c=>({id:c.id,confidence:c.confidence,state:c.state}))};}
+function compare(a,b){const old=Object.fromEntries((a.capabilities||[]).map(c=>[c.id,c]));return (b.capabilities||[]).map(c=>({id:c.id,confidence_change:c.confidence-(old[c.id]?.confidence||0),state_before:old[c.id]?.state||'unknown',state_after:c.state}));}module.exports={snapshot,compare};

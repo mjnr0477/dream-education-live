@@ -1,0 +1,1 @@
+const crypto=require('crypto');function addReflection(identity,text,answers={}){identity.reflections=identity.reflections||[];const r={id:crypto.randomUUID(),text:String(text||''),answers,created_at:new Date().toISOString()};identity.reflections.push(r);return r;}module.exports={addReflection};

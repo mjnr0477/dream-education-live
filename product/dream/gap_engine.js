@@ -1,0 +1,3 @@
+function analyzeGoal(identity,goal){const gaps=(goal.desired_capabilities||[]).map(req=>{const c=identity.capabilities?.[req.id||req.capability_id||req];const current=c?c.confidence:0;const target=typeof req==='object'&&req.target!=null?Number(req.target):.75;return {capability_id:req.id||req.capability_id||req,name:req.name||c?.name||String(req),current,target,gap:Math.max(0,target-current),priority:Math.max(0,target-current)};}).filter(g=>g.gap>0);return gaps.sort((a,b)=>b.priority-a.priority);}
+function refreshGaps(identity){identity.gaps=[];for(const g of identity.goals||[])identity.gaps.push(...analyzeGoal(identity,g).map(x=>({...x,goal_id:g.id})));return identity.gaps;}
+module.exports={analyzeGoal,refreshGaps};

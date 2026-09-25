@@ -1,0 +1,3 @@
+function normalize(item={}){return {title:String(item.title||''),summary:String(item.summary||''),source:item.source||'unknown',source_url:item.source_url||null,license:item.license||null,retrieved_at:item.retrieved_at||new Date().toISOString(),raw_id:item.raw_id||null};}
+function rank(items,query=''){const terms=String(query).toLowerCase().split(/\s+/).filter(Boolean);return items.map(x=>{const text=(x.title+' '+x.summary).toLowerCase();const score=terms.reduce((s,t)=>s+(text.includes(t)?1:0),0)/(terms.length||1);return {...x,score};}).sort((a,b)=>b.score-a.score);}
+module.exports={normalize,rank};

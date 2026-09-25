@@ -1,0 +1,1 @@
+function provenance(input={}){return {source:input.source||'unknown',source_url:input.source_url||null,creator:input.creator||null,license:input.license||null,attribution:input.attribution||null,retrieved_at:new Date().toISOString()};}module.exports={provenance};

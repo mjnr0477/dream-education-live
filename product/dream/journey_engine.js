@@ -1,0 +1,2 @@
+function buildJourney(identity){const active=(identity.goals||[]).find(g=>g.status==='active');return {now:{capabilities:Object.values(identity.capabilities||{}).map(c=>({name:c.name,state:c.state,confidence:c.confidence}))},desire:active?active.title:'Discover what matters to you',gap:(identity.gaps||[]).slice(0,5),path:(identity.directions||[]).slice(0,5),action:identity.next_actions?.[0]||null,evidence:(identity.evidence||[]).slice(-5),change:(identity.change||[]).slice(-10)};}
+module.exports={buildJourney};

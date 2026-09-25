@@ -1,0 +1,1 @@
+const crypto=require('crypto');function addMilestone(identity,input={}){identity.milestones=identity.milestones||[];const m={id:crypto.randomUUID(),title:String(input.title||''),description:String(input.description||''),goal_id:input.goal_id||null,at:new Date().toISOString(),evidence_ids:input.evidence_ids||[]};identity.milestones.push(m);return m;}module.exports={addMilestone};

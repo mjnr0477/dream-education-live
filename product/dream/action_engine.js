@@ -1,0 +1,3 @@
+const crypto=require('crypto');const id=()=>crypto.randomUUID();
+function generateNextAction(identity){const gap=(identity.gaps||[]).find(g=>g.gap>0);if(gap)return {id:id(),type:'close_gap',title:`Build evidence for ${gap.name}`,reason:'This is a current capability gap linked to a goal.',capability_id:gap.capability_id,goal_id:gap.goal_id,status:'recommended'};const goal=(identity.goals||[]).find(g=>g.status==='active');if(goal)return {id:id(),type:'advance_goal',title:`Take one measurable step toward ${goal.title}`,goal_id:goal.id,status:'recommended'};return {id:id(),type:'discover',title:'Explore one question you genuinely care about',status:'recommended'};}
+module.exports={generateNextAction};

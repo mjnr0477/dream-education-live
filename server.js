@@ -17,6 +17,7 @@ const {
   authorizeAccountForEntity
 } = require("./product/connection_engine");
 const { solveProblem } = require("./product/problem_solver_engine.js");
+const { safelyObserveLearningEvent } = require("./product/dream/learning_observer");
 
 const express = require("express");
 const {
@@ -4104,7 +4105,19 @@ console.log("STATE-AWARE TEACHING ANALYSIS:", teachingAnalysis);
     */
     try {
       const learnerStore = require("./product/data_engine");
-      const learnerProfile = learnerStore.getLearner(learner_id);
+      const { createLearnerProfile } = require("./product/learner_engine");
+
+      let learnerProfile = learnerStore.getLearner(learner_id);
+
+      if (!learnerProfile) {
+        learnerProfile = createLearnerProfile({
+          learner_id,
+          name,
+          level
+        });
+
+        learnerStore.saveLearner(learnerProfile);
+      }
 
       if (learnerProfile) {
         learnerProfile.active_subject = subject || null;
@@ -4154,6 +4167,19 @@ console.log("STATE-AWARE TEACHING ANALYSIS:", teachingAnalysis);
 
         learnerProfile.updated_at =
           new Date().toISOString();
+
+        await safelyObserveLearningEvent({
+          learner: learnerProfile,
+          question,
+          learner_answer,
+          subject,
+          topic,
+          score,
+          understanding,
+          feedback
+        }, (error) => {
+          console.error("Dream Core observer error:", error);
+        });
 
         learnerStore.saveLearner(learnerProfile);
       }

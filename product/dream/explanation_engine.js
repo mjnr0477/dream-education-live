@@ -1,0 +1,1 @@
+function explain(action,identity){return {action,why:action?.reason||'Based on the current Dream record.',evidence_count:(identity.evidence||[]).length,uncertainty:'Recommendations are possibilities derived from recorded evidence, not determinations of destiny.',user_control:'The person decides whether to accept or ignore the suggested action.'};}module.exports={explain};
