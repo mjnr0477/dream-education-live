@@ -1602,6 +1602,49 @@ Return a learner-facing teaching response only.
       } else {
         console.log("12. Learning history saved");
       }
+
+      /*
+       * DREAM CORE — LEARNING ACTIVITY OBSERVER
+       *
+       * /api/learn does not receive a learner answer or assessment
+       * score, so this interaction is recorded only as learning
+       * activity evidence. It must not create or strengthen a
+       * demonstrated capability.
+       */
+      try {
+        const learnerStore = require("./product/data_engine");
+
+        const learnerRecord =
+          learnerStore.getLearner(learner_id) || {
+            learner_id,
+            name: learner_name || "Learner",
+            level: level || null
+          };
+
+        await safelyObserveLearningEvent({
+          learner: learnerRecord,
+          question,
+          learner_answer: "",
+          subject,
+          topic: topic || decision_topic,
+          score: 0,
+          understanding: null,
+          feedback: "Learner engaged with this learning question.",
+          evidence_type: "learning_activity",
+          record_capability: false
+        }, (error) => {
+          console.error("Dream Core learning observer error:", error);
+        });
+
+        learnerStore.saveLearner(learnerRecord);
+
+        console.log("12.1 Dream Core learning activity recorded");
+      } catch (dreamObserverError) {
+        console.error(
+          "Dream Core activity save error:",
+          dreamObserverError.message || dreamObserverError
+        );
+      }
     }
 
     console.log("13. Sending successful response");
@@ -7555,6 +7598,425 @@ app.get("/api/product/school/:school_id/dashboard", async (req, res) => {
 });
 
 
+
+/* ============================================================
+   DREAM DEVELOPMENT API
+   Goals → Gaps → Projects → Evidence → Passport → Discovery
+   Uses the existing Dream Core; does not replace adaptive learning.
+   ============================================================ */
+
+async function getAuthenticatedDevelopmentLearner(req, res) {
+  const auth = await getAuthenticatedAccount(req);
+
+  if (!auth.success) {
+    res.status(auth.status).json({
+      success: false,
+      error: auth.error
+    });
+    return null;
+  }
+
+  if (auth.account.role !== "learner") {
+    res.status(403).json({
+      success: false,
+      error: "Development actions are currently available to learners."
+    });
+    return null;
+  }
+
+  const learnerId = req.params.learner_id || req.body.learner_id;
+
+  if (!learnerId || auth.account.learner_id !== learnerId) {
+    res.status(403).json({
+      success: false,
+      error: "You are not authorized to modify this learner development record."
+    });
+    return null;
+  }
+
+  const store = require("./product/data_engine");
+  const learner = store.getLearner(learnerId);
+
+  if (!learner) {
+    res.status(404).json({
+      success: false,
+      error: "Learner not found."
+    });
+    return null;
+  }
+
+  learner.dream_core = learner.dream_core || {};
+  require("./product/dream/orchestrator").ensureIdentity(
+    learner,
+    learner
+  );
+
+  return { learner, store };
+}
+
+app.post("/api/product/learner/:learner_id/development/goal", async (req, res) => {
+  try {
+    const context = await getAuthenticatedDevelopmentLearner(req, res);
+    if (!context) return;
+
+    const { learner, store } = context;
+    const { title, description, desired_capabilities, deadline } = req.body;
+
+    if (!title || !String(title).trim()) {
+      return res.status(400).json({
+        success: false,
+        error: "Goal title is required."
+      });
+    }
+
+    const dream = require("./product/dream");
+    const identity = learner.dream_core;
+
+    const requestedCapabilities = Array.isArray(desired_capabilities)
+      ? desired_capabilities.filter(Boolean)
+      : [];
+
+    const normalizedCapabilities = requestedCapabilities.map((item) => {
+      if (typeof item === "object") {
+        return {
+          ...item,
+          id: item.id || item.capability_id,
+          name: item.name || item.id || item.capability_id || "Unnamed capability"
+        };
+      }
+
+      return {
+        id: String(item),
+        name: String(item)
+      };
+    }).filter((item) => item.id);
+
+    for (const capability of normalizedCapabilities) {
+      dream.capabilities.ensureCapability(identity, {
+        id: capability.id,
+        name: capability.name,
+        description: capability.description || ""
+      });
+    }
+
+    const goal = dream.goals.createGoal(identity, {
+      title: String(title).trim(),
+      description: String(description || "").trim(),
+      desired_capabilities: normalizedCapabilities,
+      deadline: deadline || null
+    });
+
+    dream.gaps.refreshGaps(identity);
+    learner.dream_core.next_actions = [
+      dream.actions.generateNextAction(learner.dream_core)
+    ];
+
+    learner.updated_at = new Date().toISOString();
+    store.saveLearner(learner);
+
+    return res.json({
+      success: true,
+      goal,
+      gaps: learner.dream_core.gaps,
+      development: require("./product/dream/development_engine")
+        .buildDevelopmentSnapshot(learner.dream_core, {})
+    });
+  } catch (error) {
+    console.error("Dream goal error:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Could not create development goal."
+    });
+  }
+});
+
+app.post("/api/product/learner/:learner_id/development/project", async (req, res) => {
+  try {
+    const context = await getAuthenticatedDevelopmentLearner(req, res);
+    if (!context) return;
+
+    const { learner, store } = context;
+    const {
+      title,
+      description,
+      goal_id,
+      capability_ids,
+      status
+    } = req.body;
+
+    if (!title || !String(title).trim()) {
+      return res.status(400).json({
+        success: false,
+        error: "Project title is required."
+      });
+    }
+
+    const dream = require("./product/dream");
+    const identity = learner.dream_core;
+
+    identity.projects = Array.isArray(identity.projects)
+      ? identity.projects
+      : [];
+
+    let goal = null;
+
+    if (goal_id) {
+      goal = dream.goals.findGoal(identity, goal_id);
+
+      if (!goal) {
+        return res.status(400).json({
+          success: false,
+          error: "The selected development goal does not exist."
+        });
+      }
+    }
+
+    const requestedCapabilityIds = Array.isArray(capability_ids)
+      ? capability_ids.filter(Boolean).map(String)
+      : [];
+
+    for (const capabilityId of requestedCapabilityIds) {
+      dream.capabilities.ensureCapability(identity, {
+        id: capabilityId,
+        name: capabilityId
+      });
+    }
+
+    const project = {
+      id: require("crypto").randomUUID(),
+      title: String(title).trim(),
+      description: String(description || "").trim(),
+      goal_ids: goal_id ? [goal_id] : [],
+      capability_ids: requestedCapabilityIds,
+      status: status || "active",
+      evidence_ids: [],
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    identity.projects.push(project);
+
+    if (goal) {
+      goal.project_ids = Array.isArray(goal.project_ids)
+        ? goal.project_ids
+        : [];
+
+      if (!goal.project_ids.includes(project.id)) {
+        goal.project_ids.push(project.id);
+      }
+
+      goal.updated_at = new Date().toISOString();
+    }
+
+    dream.gaps.refreshGaps(identity);
+
+    identity.next_actions = [
+      dream.actions.generateNextAction(identity)
+    ];
+
+    learner.updated_at = new Date().toISOString();
+    store.saveLearner(learner);
+
+    return res.json({
+      success: true,
+      project,
+      development: require("./product/dream/development_engine")
+        .buildDevelopmentSnapshot(identity, {})
+    });
+  } catch (error) {
+    console.error("Dream project error:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Could not create development project."
+    });
+  }
+});
+
+app.post("/api/product/learner/:learner_id/development/evidence", async (req, res) => {
+  try {
+    const context = await getAuthenticatedDevelopmentLearner(req, res);
+    if (!context) return;
+
+    const { learner, store } = context;
+    const {
+      title,
+      description,
+      type,
+      capability_ids,
+      goal_ids,
+      project_id,
+      source,
+      source_url,
+      confidence
+    } = req.body;
+
+    const identity = learner.dream_core;
+    const dream = require("./product/dream");
+
+    const capabilities = Array.isArray(capability_ids)
+      ? capability_ids.filter(Boolean).map(String)
+      : [];
+
+    const goals = Array.isArray(goal_ids)
+      ? goal_ids.filter(Boolean).map(String)
+      : [];
+
+    if (!title || !String(title).trim()) {
+      return res.status(400).json({
+        success: false,
+        error: "Evidence title is required."
+      });
+    }
+
+    if (project_id) {
+      const project = identity.projects.find(
+        (item) => item.id === project_id
+      );
+
+      if (!project) {
+        return res.status(400).json({
+          success: false,
+          error: "The selected development project does not exist."
+        });
+      }
+    }
+
+    for (const capabilityId of capabilities) {
+      dream.capabilities.ensureCapability(identity, {
+        id: capabilityId,
+        name: capabilityId
+      });
+    }
+
+    for (const goalId of goals) {
+      if (!dream.goals.findGoal(identity, goalId)) {
+        return res.status(400).json({
+          success: false,
+          error: "One or more referenced development goals do not exist."
+        });
+      }
+    }
+
+    const numericConfidence = Number(confidence);
+    const safeConfidence = Number.isFinite(numericConfidence)
+      ? Math.max(0, Math.min(1, numericConfidence))
+      : 0.7;
+
+    const evidence = dream.core.ingestEvidence(identity, {
+      type: type || "project",
+      title: String(title).trim(),
+      description: String(description || "").trim(),
+      capability_ids: capabilities,
+      goal_ids: goals,
+      source: source || "learner",
+      source_url: source_url || null,
+      confidence: safeConfidence,
+      verified: false,
+      metadata: {
+        project_id: project_id || null
+      }
+    });
+
+    if (project_id) {
+      const project = identity.projects.find(
+        item => item.id === project_id
+      );
+
+      if (project) {
+        project.evidence_ids = Array.isArray(project.evidence_ids)
+          ? project.evidence_ids
+          : [];
+
+        if (!project.evidence_ids.includes(evidence.id)) {
+          project.evidence_ids.push(evidence.id);
+        }
+
+        project.updated_at = new Date().toISOString();
+      }
+    }
+
+    dream.gaps.refreshGaps(identity);
+    identity.next_actions = [
+      dream.actions.generateNextAction(identity)
+    ];
+
+    learner.updated_at = new Date().toISOString();
+    store.saveLearner(learner);
+
+    return res.json({
+      success: true,
+      evidence,
+      capabilities: Object.values(identity.capabilities || {}),
+      gaps: identity.gaps,
+      passport: dream.passport.buildPassport(identity),
+      development: require("./product/dream/development_engine")
+        .buildDevelopmentSnapshot(identity, {})
+    });
+  } catch (error) {
+    console.error("Dream evidence error:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Could not record development evidence."
+    });
+  }
+});
+
+app.post("/api/product/learner/:learner_id/development/discovery", async (req, res) => {
+  try {
+    const context = await getAuthenticatedDevelopmentLearner(req, res);
+    if (!context) return;
+
+    const { learner, store } = context;
+    const { kind, value, strength, source } = req.body;
+    const dream = require("./product/dream");
+
+    if (!value || !String(value).trim()) {
+      return res.status(400).json({
+        success: false,
+        error: "Discovery value is required."
+      });
+    }
+
+    const numericStrength = Number(strength);
+    const safeStrength = Number.isFinite(numericStrength)
+      ? Math.max(0, Math.min(1, numericStrength))
+      : 0.7;
+
+    const signal = dream.discovery.recordSignal(
+      learner.dream_core,
+      {
+        kind: kind || "interest",
+        value: String(value).trim(),
+        strength: safeStrength,
+        source: source || "learner"
+      }
+    );
+
+    learner.dream_core.next_actions = [
+      dream.actions.generateNextAction(learner.dream_core)
+    ];
+
+    learner.updated_at = new Date().toISOString();
+    store.saveLearner(learner);
+
+    return res.json({
+      success: true,
+      signal,
+      discovery: dream.discovery.discoverySummary(
+        learner.dream_core
+      ),
+      development: require("./product/dream/development_engine")
+        .buildDevelopmentSnapshot(learner.dream_core, {})
+    });
+  } catch (error) {
+    console.error("Dream discovery error:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Could not record discovery signal."
+    });
+  }
+});
+
 app.get("/api/product/learner/:learner_id/dashboard", async (req, res) => {
   try {
     const auth = await getAuthenticatedAccount(req);
@@ -7802,6 +8264,12 @@ app.get("/api/product/learner/:learner_id/dashboard", async (req, res) => {
       next_topic: learner.next_topic || null
     };
 
+    const developmentEngine = require("./product/dream/development_engine");
+    const development = developmentEngine.buildDevelopmentSnapshot(
+      learner.dream_core || {},
+      {}
+    );
+
     res.json({
       success: true,
 
@@ -7846,7 +8314,9 @@ app.get("/api/product/learner/:learner_id/dashboard", async (req, res) => {
         topic: learner.next_topic || null
       },
 
-      learning_journey: learningJourney
+      learning_journey: learningJourney,
+
+      development
     });
   } catch (error) {
     console.error("Learner dashboard error:", error);

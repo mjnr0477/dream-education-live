@@ -5378,6 +5378,93 @@ function learnerDashboardMarkup(data) {
   const progress = learning.progress || {};
 
   const learningJourney = data.learning_journey || {};
+  const development = data.development || {};
+  const developmentCapabilities = Array.isArray(development.capabilities)
+    ? development.capabilities
+    : [];
+  const developmentGoals = Array.isArray(development.goals)
+    ? development.goals
+    : [];
+  const developmentGaps = Array.isArray(development.gaps)
+    ? development.gaps
+    : [];
+  const developmentEvidence = Array.isArray(development.evidence)
+    ? development.evidence
+    : [];
+  const developmentDirections = Array.isArray(development.directions)
+    ? development.directions
+    : [];
+
+  const capabilityHTML = developmentCapabilities.length
+    ? developmentCapabilities.slice(0, 8).map(function (item) {
+        return `
+          <div class="teacher-result-row">
+            <div>
+              <strong>${escapeHtml(item.name || item.id || "Capability")}</strong>
+              <span>${escapeHtml(item.state || "unknown")} · ${escapeHtml(String(item.evidence_ids?.length || 0))} evidence</span>
+            </div>
+            <strong>${escapeHtml(String(Math.round((Number(item.confidence) || 0) * 100)))}%</strong>
+          </div>
+        `;
+      }).join("")
+    : `<div class="teacher-result-empty">No capabilities demonstrated yet.</div>`;
+
+  const goalsHTML = developmentGoals.length
+    ? developmentGoals.slice(0, 6).map(function (item) {
+        return `
+          <div class="teacher-result-row">
+            <div>
+              <strong>${escapeHtml(item.title || "Goal")}</strong>
+              <span>${escapeHtml(item.status || "active")}</span>
+            </div>
+            <strong>${escapeHtml(String(Math.round((Number(item.progress) || 0) * 100)))}%</strong>
+          </div>
+        `;
+      }).join("")
+    : `<div class="teacher-result-empty">No goals created yet.</div>`;
+
+  const gapsHTML = developmentGaps.length
+    ? developmentGaps.slice(0, 8).map(function (item) {
+        return `
+          <div class="teacher-result-row">
+            <div>
+              <strong>${escapeHtml(item.name || item.capability_id || "Capability gap")}</strong>
+              <span>Target ${escapeHtml(String(Math.round((Number(item.target) || 0) * 100)))}%</span>
+            </div>
+            <strong>${escapeHtml(String(Math.round((Number(item.gap) || 0) * 100)))}%</strong>
+          </div>
+        `;
+      }).join("")
+    : `<div class="teacher-result-empty">No current capability gaps identified.</div>`;
+
+  const evidenceHTML = developmentEvidence.length
+    ? developmentEvidence.slice(-8).reverse().map(function (item) {
+        return `
+          <div class="teacher-result-row">
+            <div>
+              <strong>${escapeHtml(item.title || "Evidence")}</strong>
+              <span>${escapeHtml(item.type || "evidence")} · ${item.verified ? "verified" : "unverified"}</span>
+            </div>
+            <strong>${escapeHtml(String(Math.round((Number(item.confidence) || 0) * 100)))}%</strong>
+          </div>
+        `;
+      }).join("")
+    : `<div class="teacher-result-empty">No evidence recorded yet.</div>`;
+
+  const directionsHTML = developmentDirections.length
+    ? developmentDirections.slice(0, 6).map(function (item) {
+        return `
+          <div class="teacher-result-row">
+            <div>
+              <strong>${escapeHtml(item.name || item.id || "Direction")}</strong>
+              <span>Possibility — not a prescription</span>
+            </div>
+            <strong>${escapeHtml(String(Math.round((Number(item.score) || 0) * 100)))}%</strong>
+          </div>
+        `;
+      }).join("")
+    : `<div class="teacher-result-empty">No directions to explore yet.</div>`;
+
   const subjectHistory = Array.isArray(learningJourney.subject_history)
     ? learningJourney.subject_history
     : [];
@@ -5565,7 +5652,86 @@ function learnerDashboardMarkup(data) {
     </div>
 
     <div class="panel-card">
+      <span class="panel-kicker">MY DEVELOPMENT</span>
+      <h3>What you are becoming</h3>
+      <p>
+        Your learning creates evidence of capabilities, goals and progress.
+      </p>
+
+      <div class="teacher-dashboard-card-label">CAPABILITIES</div>
+      <div class="teacher-results-list">
+        ${capabilityHTML}
+      </div>
+
+      <div class="teacher-dashboard-card-label">GOALS</div>
+      <div class="teacher-results-list">
+        ${goalsHTML}
+      </div>
+
+      <div class="teacher-dashboard-card-label">GAPS</div>
+      <div class="teacher-results-list">
+        ${gapsHTML}
+      </div>
+
+      <div class="teacher-dashboard-card-label">EVIDENCE</div>
+      <div class="teacher-results-list">
+        ${evidenceHTML}
+      </div>
+
+      <div class="teacher-dashboard-card-label">DISCOVER</div>
+      <div class="teacher-results-list">
+        ${directionsHTML}
+      </div>
+
+      <div class="teacher-connection-detail">
+        <strong>DREAM PASSPORT</strong>
+        <span>${escapeHtml(String(development.passport?.demonstrated?.length || 0))} demonstrated</span>
+      </div>
+
+      <div class="teacher-dashboard-card-label">BUILD YOUR DEVELOPMENT</div>
+
+      <div class="panel-actions" style="margin-top:12px;">
+        <button class="panel-button primary" type="button"
+          data-panel-action="dream-goal">
+          + Goal
+        </button>
+
+        <button class="panel-button" type="button"
+          data-panel-action="dream-project">
+          + Project
+        </button>
+
+        <button class="panel-button" type="button"
+          data-panel-action="dream-evidence">
+          + Evidence
+        </button>
+
+        <button class="panel-button" type="button"
+          data-panel-action="dream-discovery">
+          + Discovery
+        </button>
+      </div>
+
+      <div class="teacher-connection-detail">
+        <strong>PROJECTS</strong>
+        <span>${escapeHtml(String(Array.isArray(development.projects) ? development.projects.length : 0))}</span>
+      </div>
+
+      <div class="teacher-connection-detail">
+        <strong>DISCOVERY SIGNALS</strong>
+        <span>${escapeHtml(String(
+          Object.values(development.discovery || {})
+            .reduce((total, items) => total + (Array.isArray(items) ? items.length : 0), 0)
+        ))}</span>
+      </div>
+    </div>
+
+    <div class="panel-card">
       <span class="panel-kicker">PROFILE</span>
+      <p>
+        Learner ID:
+        <strong>${escapeHtml(learner.learner_id || "Not available")}</strong>
+      </p>
       <p>
         Level:
         <strong>${escapeHtml(learner.level || "Not set")}</strong>
@@ -5655,6 +5821,16 @@ document.addEventListener("click", function (event) {
     closePanel();
     return;
   }
+
+  if (
+    action === "dream-goal" ||
+    action === "dream-project" ||
+    action === "dream-evidence" ||
+    action === "dream-discovery"
+  ) {
+    openDreamDevelopmentAction(action);
+    return;
+  }
 });
 
 document.addEventListener("click", function (event) {
@@ -5679,6 +5855,203 @@ document.addEventListener("click", function (event) {
     }
   }
 });
+
+
+async function openDreamDevelopmentAction(action) {
+  const panelBody = document.getElementById("panel-body");
+  if (!panelBody) return;
+
+  const auth =
+    window.DreamEducationUI &&
+    window.DreamEducationUI.getAuth
+      ? window.DreamEducationUI.getAuth()
+      : null;
+
+  const token =
+    auth && auth.session && auth.session.access_token
+      ? auth.session.access_token
+      : null;
+
+  const learnerId =
+    auth && auth.account && auth.account.learner_id
+      ? auth.account.learner_id
+      : null;
+
+  if (!token || !learnerId) {
+    alert("Please log in again before using Dream Development.");
+    return;
+  }
+
+  const labels = {
+    "dream-goal": "CREATE GOAL",
+    "dream-project": "CREATE PROJECT",
+    "dream-evidence": "ADD EVIDENCE",
+    "dream-discovery": "RECORD DISCOVERY"
+  };
+
+  let fields = "";
+
+  if (action === "dream-goal") {
+    fields = `
+      <input id="dream-title" class="panel-input" placeholder="Goal title" />
+      <textarea id="dream-description" class="panel-input" placeholder="What do you want to achieve?"></textarea>
+      <input id="dream-capabilities" class="panel-input"
+        placeholder="Required capabilities (comma separated)" />
+    `;
+  }
+
+  if (action === "dream-project") {
+    fields = `
+      <input id="dream-title" class="panel-input" placeholder="Project title" />
+      <textarea id="dream-description" class="panel-input" placeholder="What will you build or do?"></textarea>
+      <input id="dream-goal-id" class="panel-input" placeholder="Goal ID (optional)" />
+      <input id="dream-capabilities" class="panel-input"
+        placeholder="Capability IDs (comma separated)" />
+    `;
+  }
+
+  if (action === "dream-evidence") {
+    fields = `
+      <input id="dream-title" class="panel-input" placeholder="Evidence title" />
+      <textarea id="dream-description" class="panel-input" placeholder="What did you demonstrate or accomplish?"></textarea>
+      <input id="dream-capabilities" class="panel-input"
+        placeholder="Capability IDs (comma separated)" />
+      <input id="dream-project-id" class="panel-input" placeholder="Project ID (optional)" />
+      <input id="dream-confidence" class="panel-input"
+        type="number" min="0" max="1" step="0.05" value="0.7"
+        placeholder="Confidence 0–1" />
+    `;
+  }
+
+  if (action === "dream-discovery") {
+    fields = `
+      <input id="dream-kind" class="panel-input" value="interest"
+        placeholder="Signal type" />
+      <input id="dream-value" class="panel-input"
+        placeholder="What are you interested in exploring?" />
+      <input id="dream-strength" class="panel-input"
+        type="number" min="0" max="1" step="0.05" value="0.7"
+        placeholder="Strength 0–1" />
+    `;
+  }
+
+  panelBody.innerHTML = `
+    <div class="panel-card">
+      <span class="panel-kicker">DREAM DEVELOPMENT</span>
+      <h2>${escapeHtml(labels[action])}</h2>
+      <p>Build your development record from real goals, actions and evidence.</p>
+
+      <div style="display:grid;gap:12px;margin-top:18px;">
+        ${fields}
+        <button id="dream-submit-action"
+          class="panel-button primary" type="button">
+          Save
+        </button>
+        <button id="dream-cancel-action"
+          class="panel-button" type="button">
+          Cancel
+        </button>
+      </div>
+
+      <div id="dream-action-status"></div>
+    </div>
+  `;
+
+  document.getElementById("dream-cancel-action")
+    ?.addEventListener("click", openLearnerDashboard);
+
+  document.getElementById("dream-submit-action")
+    ?.addEventListener("click", async function () {
+      const status = document.getElementById("dream-action-status");
+
+      const value = id => {
+        const element = document.getElementById(id);
+        return element ? element.value.trim() : "";
+      };
+
+      const list = value("dream-capabilities")
+        .split(",")
+        .map(item => item.trim())
+        .filter(Boolean);
+
+      let endpoint = "";
+      let body = {};
+
+      if (action === "dream-goal") {
+        endpoint = "goal";
+        body = {
+          title: value("dream-title"),
+          description: value("dream-description"),
+          desired_capabilities: list.map(id => ({
+            id,
+            target: 0.75
+          }))
+        };
+      }
+
+      if (action === "dream-project") {
+        endpoint = "project";
+        body = {
+          title: value("dream-title"),
+          description: value("dream-description"),
+          goal_id: value("dream-goal-id") || null,
+          capability_ids: list
+        };
+      }
+
+      if (action === "dream-evidence") {
+        endpoint = "evidence";
+        body = {
+          title: value("dream-title"),
+          description: value("dream-description"),
+          capability_ids: list,
+          project_id: value("dream-project-id") || null,
+          type: "project",
+          confidence: Number(value("dream-confidence") || 0.7)
+        };
+      }
+
+      if (action === "dream-discovery") {
+        endpoint = "discovery";
+        body = {
+          kind: value("dream-kind") || "interest",
+          value: value("dream-value"),
+          strength: Number(value("dream-strength") || 0.7)
+        };
+      }
+
+      try {
+        status.innerHTML = "<p>Saving...</p>";
+
+        const response = await fetch(
+          "/api/product/learner/" +
+          encodeURIComponent(learnerId) +
+          "/development/" +
+          endpoint,
+          {
+            method: "POST",
+            headers: {
+              Authorization: "Bearer " + token,
+              "Content-Type": "application/json",
+              Accept: "application/json"
+            },
+            body: JSON.stringify(body)
+          }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(result.error || "Could not save development data.");
+        }
+
+        await openLearnerDashboard();
+      } catch (error) {
+        status.innerHTML =
+          "<p>" + escapeHtml(error.message || "Could not save.") + "</p>";
+      }
+    });
+}
 
 window.DreamEducationLearner = {
   fetchDashboard: fetchLearnerDashboard,

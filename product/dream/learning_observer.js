@@ -28,7 +28,9 @@ function observeLearningEvent({
   topic,
   score,
   understanding,
-  feedback
+  feedback,
+  evidence_type = "assessment",
+  record_capability = true
 }) {
   if (!learner || !learner.learner_id) {
     throw new Error("learner_required");
@@ -40,11 +42,11 @@ function observeLearningEvent({
   const cid = capabilityId(subject, topic);
 
   const evidence = dream.core.ingestEvidence(identity, {
-    type: "assessment",
+    type: evidence_type,
     title: `${subject || "Learning"}${topic ? ` — ${topic}` : ""} assessment`,
     description: feedback || "Learning assessment evidence.",
     source: "dream_learning_cycle",
-    capability_ids: [cid],
+    capability_ids: record_capability ? [cid] : [],
     confidence: 0.8,
     verified: false,
     metadata: {
