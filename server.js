@@ -3749,6 +3749,22 @@ app.get("/api/mastery/:learner_id/:topic", async (req, res) => {
 
 app.post("/api/session", async (req, res) => {
   try {
+    const auth = await getAuthenticatedAccount(req);
+
+    if (!auth.success) {
+      return res.status(auth.status).json({
+        success: false,
+        error: auth.error
+      });
+    }
+
+    if (auth.account.role !== "learner") {
+      return res.status(403).json({
+        success: false,
+        error: "Only learner accounts can submit learning sessions."
+      });
+    }
+
     const {
       learner_id,
       name,
@@ -3771,6 +3787,16 @@ app.post("/api/session", async (req, res) => {
         error: "learner_id, question and learner_answer are required"
       });
     }
+
+    const dataEngine = require("./product/data_engine");
+    const store = dataEngine.loadStore();
+
+    authorizeAccountForEntity(
+      store,
+      auth.account,
+      "learner",
+      learner_id
+    );
 
     /*
       1. SAVE / UPDATE LEARNER
