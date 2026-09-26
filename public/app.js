@@ -1799,7 +1799,10 @@ function teacherDashboardMarkup(data) {
         );
 
         return `
-          <article class="teacher-dashboard-card">
+          <article class="teacher-dashboard-card teacher-learner-card"
+            data-teacher-learner-id="${teacherEscapeHTML(learner.learner_id || "")}"
+            role="button"
+            tabindex="0">
             <div class="teacher-dashboard-card-label">LEARNER</div>
             <h3>${teacherEscapeHTML(name)}</h3>
             <p>${teacherEscapeHTML(level)}</p>
@@ -5233,6 +5236,30 @@ function renderParentSpace(data) {
     </div>
   `;
 }
+
+document.addEventListener("click", function (event) {
+  const card = event.target.closest(".teacher-learner-card");
+  if (!card) return;
+
+  const learnerId = card.dataset.teacherLearnerId;
+  if (learnerId) {
+    openTeacherLearnerView(learnerId);
+  }
+});
+
+document.addEventListener("keydown", function (event) {
+  if (event.key !== "Enter" && event.key !== " ") return;
+
+  const card = event.target.closest(".teacher-learner-card");
+  if (!card) return;
+
+  event.preventDefault();
+
+  const learnerId = card.dataset.teacherLearnerId;
+  if (learnerId) {
+    openTeacherLearnerView(learnerId);
+  }
+});
 
 async function openTeacherDashboard() {
   const panelElement = document.getElementById("experience-panel");

@@ -101,11 +101,12 @@ async function hydrateStore() {
         const postgresRows = postgresStore.totalRows(counts);
 
         if (postgresRows > 0) {
+          applyActiveConnectionsToRelations(postgresRemote);
           writeLocalStore(postgresRemote);
           console.log(
             "Dream product store: restored from PostgreSQL (" +
               postgresRows +
-              " rows)."
+              " rows) with relationships rebuilt."
           );
           return;
         }
