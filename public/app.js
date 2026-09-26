@@ -149,6 +149,7 @@
         }
       ],
       primary: "Enter school space",
+      action: "school-dashboard",
       secondary: "Close"
     },
 
@@ -434,9 +435,11 @@
       return "";
     }
 
+    const action = experience.action || "primary";
+
     return `
       <div class="panel-actions">
-        <button class="panel-action" data-panel-action="primary">
+        <button class="panel-action" data-panel-action="${escapeHTML(action)}">
           ${escapeHTML(experience.primary || "Continue")}
         </button>
 
