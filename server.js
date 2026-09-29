@@ -8355,6 +8355,253 @@ app.get("/api/product/learner/:learner_id/dashboard", async (req, res) => {
 });
 
 
+
+/*
+ * GLOBAL LEARNING INTELLIGENCE (GLI) FOUNDATION
+ *
+ * Additive integration layer. The existing adaptive engines remain
+ * authoritative and are not replaced or modified by these routes.
+ */
+const { buildLearnerGraph, buildPortableLearnerId } =
+  require("./product/gli/learner_graph_engine");
+const { generateProactiveActions } =
+  require("./product/gli/proactive_learning_engine");
+const { deduplicateEvents } =
+  require("./product/gli/offline_sync_engine");
+const { getPlatformManifest } =
+  require("./product/gli/platform_manifest");
+const gliPostgres = require("./infrastructure/database/postgres");
+
+async function getLearnerIntelligenceData(learnerId) {
+  const learner = getLearner(learnerId);
+  if (!learner) return null;
+
+  let assessments = Array.isArray(learner.assessments)
+    ? learner.assessments
+    : [];
+
+  let history = Array.isArray(learner.learning_history)
+    ? learner.learning_history
+    : [];
+
+  const assessmentQuery = await supabase
+    .from("learning_assessments")
+    .select("question, learner_answer, subject, topic, level, score, understanding, feedback, strengths, gaps, misconceptions, created_at")
+    .eq("learner_id", learnerId)
+    .order("created_at", { ascending: false });
+
+  if (!assessmentQuery.error && Array.isArray(assessmentQuery.data)) {
+    assessments = assessmentQuery.data;
+  }
+
+  const historyQuery = await supabase
+    .from("learning_history")
+    .select("question, subject, topic, level, answer, cached, created_at")
+    .eq("learner_id", learnerId)
+    .order("created_at", { ascending: false });
+
+  if (!historyQuery.error && Array.isArray(historyQuery.data)) {
+    history = historyQuery.data;
+  }
+
+  const profile = buildLearningProfile({
+    learner,
+    history,
+    assessments
+  });
+
+  return {
+    learner,
+    history,
+    assessments,
+    profile
+  };
+}
+
+app.get("/api/v1/platform/manifest", (req, res) => {
+  res.json({
+    success: true,
+    platform: getPlatformManifest()
+  });
+});
+
+app.get("/api/v1/learner/:learner_id/intelligence", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) {
+      return res.status(auth.status).json({
+        success: false,
+        error: auth.error
+      });
+    }
+
+    if (auth.account.learner_id !== req.params.learner_id) {
+      return res.status(403).json({
+        success: false,
+        error: "You are not authorized to access this learner intelligence."
+      });
+    }
+
+    const data = await getLearnerIntelligenceData(req.params.learner_id);
+    if (!data) {
+      return res.status(404).json({
+        success: false,
+        error: "Learner not found."
+      });
+    }
+
+    const graph = buildLearnerGraph(data.learner, data.profile);
+    const proactiveActions = generateProactiveActions({
+      learner: data.learner,
+      profile: data.profile
+    });
+
+    return res.json({
+      success: true,
+      learner: {
+        learner_id: data.learner.learner_id,
+        portable_id: buildPortableLearnerId(data.learner.learner_id),
+        name: data.learner.name || null,
+        level: data.learner.level || null
+      },
+      learning_profile: data.profile,
+      learner_graph: graph,
+      proactive_actions: proactiveActions
+    });
+  } catch (error) {
+    console.error("GLI learner intelligence error:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Learner intelligence could not be generated."
+    });
+  }
+});
+
+app.post("/api/v1/learner/:learner_id/offline-sync", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) {
+      return res.status(auth.status).json({
+        success: false,
+        error: auth.error
+      });
+    }
+
+    if (auth.account.learner_id !== req.params.learner_id) {
+      return res.status(403).json({
+        success: false,
+        error: "You are not authorized to sync this learner."
+      });
+    }
+
+    const events = deduplicateEvents(
+      Array.isArray(req.body?.events) ? req.body.events : []
+    ).filter(event => event.learner_id === req.params.learner_id);
+
+    if (events.length > 100) {
+      return res.status(413).json({
+        success: false,
+        error: "A maximum of 100 learning events may be synchronized at once."
+      });
+    }
+
+    if (gliPostgres.getPool() && events.length) {
+      for (const event of events) {
+        await gliPostgres.query(
+          `INSERT INTO dream_learning_events
+           (event_id, learner_id, event_type, payload, occurred_at, client_version)
+           VALUES ($1, $2, $3, $4::jsonb, $5, $6)
+           ON CONFLICT (event_id) DO NOTHING`,
+          [
+            event.event_id,
+            event.learner_id,
+            event.type,
+            JSON.stringify(event.payload),
+            event.occurred_at,
+            event.client_version
+          ]
+        );
+      }
+    }
+
+    return res.json({
+      success: true,
+      accepted: events.length,
+      rejected: 0,
+      event_ids: events.map(event => event.event_id)
+    });
+  } catch (error) {
+    console.error("GLI offline sync error:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Offline learning events could not be synchronized."
+    });
+  }
+});
+
+app.post("/api/v1/school/onboard", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) {
+      return res.status(auth.status).json({
+        success: false,
+        error: auth.error
+      });
+    }
+
+    if (auth.account.role !== "school") {
+      return res.status(403).json({
+        success: false,
+        error: "Only authenticated school accounts can onboard a school."
+      });
+    }
+
+    const name = String(req.body?.name || "").trim();
+    const location = String(req.body?.location || "").trim();
+
+    if (!name) {
+      return res.status(400).json({
+        success: false,
+        error: "School name is required."
+      });
+    }
+
+    const tenantId = "school_" + crypto.randomUUID();
+    const school = {
+      school_id: tenantId,
+      tenant_id: tenantId,
+      role: "school",
+      name,
+      location: location || null,
+      status: "active",
+      platform_version: getPlatformManifest().version,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    saveSchool(school);
+
+    return res.status(201).json({
+      success: true,
+      tenant: {
+        tenant_id: tenantId,
+        name: school.name,
+        status: school.status
+      },
+      next: {
+        step: "connect_learners_and_teachers",
+        api_namespace: "/api/v1"
+      }
+    });
+  } catch (error) {
+    console.error("GLI school onboarding error:", error);
+    return res.status(500).json({
+      success: false,
+      error: "School onboarding failed."
+    });
+  }
+});
+
 productStoreReady
   .then(() => {
     startDreamEducationServer();
