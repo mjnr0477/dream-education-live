@@ -3149,6 +3149,19 @@ app.post("/api/learning-cycle", async (req, res) => {
       mastered: score >= 80
     });
 
+    await recordGLIEventSafe({
+      learnerId: learner_id,
+      type: "learning_cycle_completed",
+      payload: {
+        subject: subject || nextSubject,
+        topic: topic || null,
+        score,
+        average_score,
+        difficulty,
+        understanding
+      }
+    });
+
     return res.json({
       success: true,
       learner_id,
@@ -8359,33 +8372,35 @@ app.get("/api/product/learner/:learner_id/dashboard", async (req, res) => {
 
 
 /*
- * GLOBAL LEARNING INTELLIGENCE (GLI) FOUNDATION
+ * GLOBAL LEARNING INTELLIGENCE (GLI)
  *
- * Additive integration layer. The existing adaptive engines remain
- * authoritative and are not replaced or modified by these routes.
+ * Production layer is additive. The existing adaptive engines remain
+ * authoritative and are never replaced by this integration.
  */
-const { buildLearnerGraph, buildPortableLearnerId } =
-  require("./product/gli/learner_graph_engine");
-const { generateProactiveActions } =
-  require("./product/gli/proactive_learning_engine");
-const { deduplicateEvents } =
-  require("./product/gli/offline_sync_engine");
-const { getPlatformManifest } =
-  require("./product/gli/platform_manifest");
+const { buildLearnerGraph, buildPortableLearnerId } = require("./product/gli/learner_graph_engine");
+const { generateProactiveActions } = require("./product/gli/proactive_learning_engine");
+const { deduplicateEvents } = require("./product/gli/offline_sync_engine");
+const { getPlatformManifest } = require("./product/gli/platform_manifest");
 const gliPostgres = require("./infrastructure/database/postgres");
-const { persistLearnerGraph, ingestKnowledgeDocument, searchKnowledge, issueCredential, listCredentials, verifyCredential } = require("./product/gli/gli_intelligence_service");
+const {
+  persistLearnerGraph,
+  ingestKnowledgeDocument,
+  searchKnowledge,
+  issueCredential,
+  listCredentials,
+  verifyCredential
+} = require("./product/gli/gli_intelligence_service");
+const { rateLimit, requestId, validateBodySize } = require("./product/gli/production_security");
+const { accountId, requireTenantRole } = require("./product/gli/tenant_access");
+const { recordLearningEvent, getLearningEvaluation } = require("./product/gli/telemetry_engine");
+const { createApiKey, authenticateApiKey } = require("./product/gli/developer_api");
 
 async function getLearnerIntelligenceData(learnerId) {
   const learner = getLearner(learnerId);
   if (!learner) return null;
 
-  let assessments = Array.isArray(learner.assessments)
-    ? learner.assessments
-    : [];
-
-  let history = Array.isArray(learner.learning_history)
-    ? learner.learning_history
-    : [];
+  let assessments = Array.isArray(learner.assessments) ? learner.assessments : [];
+  let history = Array.isArray(learner.learning_history) ? learner.learning_history : [];
 
   const assessmentQuery = await supabase
     .from("learning_assessments")
@@ -8393,9 +8408,7 @@ async function getLearnerIntelligenceData(learnerId) {
     .eq("learner_id", learnerId)
     .order("created_at", { ascending: false });
 
-  if (!assessmentQuery.error && Array.isArray(assessmentQuery.data)) {
-    assessments = assessmentQuery.data;
-  }
+  if (!assessmentQuery.error && Array.isArray(assessmentQuery.data)) assessments = assessmentQuery.data;
 
   const historyQuery = await supabase
     .from("learning_history")
@@ -8403,61 +8416,32 @@ async function getLearnerIntelligenceData(learnerId) {
     .eq("learner_id", learnerId)
     .order("created_at", { ascending: false });
 
-  if (!historyQuery.error && Array.isArray(historyQuery.data)) {
-    history = historyQuery.data;
-  }
+  if (!historyQuery.error && Array.isArray(historyQuery.data)) history = historyQuery.data;
 
-  const profile = buildLearningProfile({
-    learner,
-    history,
-    assessments
-  });
-
-  return {
-    learner,
-    history,
-    assessments,
-    profile
-  };
+  const profile = buildLearningProfile({ learner, history, assessments });
+  return { learner, history, assessments, profile };
 }
 
+app.use("/api/v1", requestId, rateLimit({ windowMs: 60_000, max: 120, prefix: "gli" }));
+app.use("/api/v1", validateBodySize(768 * 1024));
+
 app.get("/api/v1/platform/manifest", (req, res) => {
-  res.json({
-    success: true,
-    platform: getPlatformManifest()
-  });
+  res.json({ success: true, platform: getPlatformManifest() });
 });
 
 app.get("/api/v1/learner/:learner_id/intelligence", async (req, res) => {
   try {
     const auth = await getAuthenticatedAccount(req);
-    if (!auth.success) {
-      return res.status(auth.status).json({
-        success: false,
-        error: auth.error
-      });
-    }
-
-    if (auth.account.learner_id !== req.params.learner_id) {
-      return res.status(403).json({
-        success: false,
-        error: "You are not authorized to access this learner intelligence."
-      });
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    if (auth.account.learner_id !== req.params.learner_id && auth.account.owner_account !== true) {
+      return res.status(403).json({ success: false, error: "You are not authorized to access this learner intelligence." });
     }
 
     const data = await getLearnerIntelligenceData(req.params.learner_id);
-    if (!data) {
-      return res.status(404).json({
-        success: false,
-        error: "Learner not found."
-      });
-    }
+    if (!data) return res.status(404).json({ success: false, error: "Learner not found." });
 
     const graph = buildLearnerGraph(data.learner, data.profile);
-    const proactiveActions = generateProactiveActions({
-      learner: data.learner,
-      profile: data.profile
-    });
+    const proactiveActions = generateProactiveActions({ learner: data.learner, profile: data.profile });
     const graphPersistence = await persistLearnerGraph(req.params.learner_id, graph);
 
     return res.json({
@@ -8475,40 +8459,22 @@ app.get("/api/v1/learner/:learner_id/intelligence", async (req, res) => {
     });
   } catch (error) {
     console.error("GLI learner intelligence error:", error);
-    return res.status(500).json({
-      success: false,
-      error: "Learner intelligence could not be generated."
-    });
+    return res.status(500).json({ success: false, error: "Learner intelligence could not be generated." });
   }
 });
 
 app.post("/api/v1/learner/:learner_id/offline-sync", async (req, res) => {
   try {
     const auth = await getAuthenticatedAccount(req);
-    if (!auth.success) {
-      return res.status(auth.status).json({
-        success: false,
-        error: auth.error
-      });
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    if (auth.account.learner_id !== req.params.learner_id && auth.account.owner_account !== true) {
+      return res.status(403).json({ success: false, error: "You are not authorized to sync this learner." });
     }
 
-    if (auth.account.learner_id !== req.params.learner_id) {
-      return res.status(403).json({
-        success: false,
-        error: "You are not authorized to sync this learner."
-      });
-    }
+    const rawEvents = Array.isArray(req.body?.events) ? req.body.events : [];
+    if (rawEvents.length > 100) return res.status(413).json({ success: false, error: "A maximum of 100 learning events may be synchronized at once." });
 
-    const events = deduplicateEvents(
-      Array.isArray(req.body?.events) ? req.body.events : []
-    ).filter(event => event.learner_id === req.params.learner_id);
-
-    if (events.length > 100) {
-      return res.status(413).json({
-        success: false,
-        error: "A maximum of 100 learning events may be synchronized at once."
-      });
-    }
+    const events = deduplicateEvents(rawEvents).filter(event => event.learner_id === req.params.learner_id);
 
     if (gliPostgres.getPool() && events.length) {
       for (const event of events) {
@@ -8517,82 +8483,36 @@ app.post("/api/v1/learner/:learner_id/offline-sync", async (req, res) => {
            (event_id, learner_id, event_type, payload, occurred_at, client_version)
            VALUES ($1, $2, $3, $4::jsonb, $5, $6)
            ON CONFLICT (event_id) DO NOTHING`,
-          [
-            event.event_id,
-            event.learner_id,
-            event.type,
-            JSON.stringify(event.payload),
-            event.occurred_at,
-            event.client_version
-          ]
+          [event.event_id, event.learner_id, event.type, JSON.stringify(event.payload), event.occurred_at, event.client_version]
         );
       }
     } else if (events.length) {
       const store = loadStore();
-      store.gli_learning_events = Array.isArray(store.gli_learning_events)
-        ? store.gli_learning_events
-        : [];
-
-      const existing = new Set(
-        store.gli_learning_events.map(event => event.event_id)
-      );
-
-      for (const event of events) {
-        if (!existing.has(event.event_id)) {
-          store.gli_learning_events.push({
-            ...event,
-            received_at: new Date().toISOString()
-          });
-        }
-      }
-
-      store.gli_learning_events =
-        store.gli_learning_events.slice(-10000);
-
+      store.gli_learning_events = Array.isArray(store.gli_learning_events) ? store.gli_learning_events : [];
+      const existing = new Set(store.gli_learning_events.map(event => event.event_id));
+      for (const event of events) if (!existing.has(event.event_id)) store.gli_learning_events.push({ ...event, received_at: new Date().toISOString() });
+      store.gli_learning_events = store.gli_learning_events.slice(-10000);
       saveStore(store);
     }
 
-    return res.json({
-      success: true,
-      accepted: events.length,
-      rejected: 0,
-      event_ids: events.map(event => event.event_id)
-    });
+    return res.json({ success: true, accepted: events.length, rejected: rawEvents.length - events.length, event_ids: events.map(event => event.event_id) });
   } catch (error) {
     console.error("GLI offline sync error:", error);
-    return res.status(500).json({
-      success: false,
-      error: "Offline learning events could not be synchronized."
-    });
+    return res.status(500).json({ success: false, error: "Offline learning events could not be synchronized." });
   }
 });
 
 app.post("/api/v1/school/onboard", async (req, res) => {
   try {
     const auth = await getAuthenticatedAccount(req);
-    if (!auth.success) {
-      return res.status(auth.status).json({
-        success: false,
-        error: auth.error
-      });
-    }
-
-    if (auth.account.role !== "school") {
-      return res.status(403).json({
-        success: false,
-        error: "Only authenticated school accounts can onboard a school."
-      });
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    if (auth.account.role !== "school" && auth.account.owner_account !== true) {
+      return res.status(403).json({ success: false, error: "Only authenticated school accounts can onboard a school." });
     }
 
     const name = String(req.body?.name || "").trim();
     const location = String(req.body?.location || "").trim();
-
-    if (!name) {
-      return res.status(400).json({
-        success: false,
-        error: "School name is required."
-      });
-    }
+    if (!name) return res.status(400).json({ success: false, error: "School name is required." });
 
     const tenantId = "school_" + crypto.randomUUID();
     const school = {
@@ -8608,48 +8528,93 @@ app.post("/api/v1/school/onboard", async (req, res) => {
     };
 
     saveSchool(school);
-
     if (gliPostgres.getPool()) {
       await gliPostgres.query(
-        `INSERT INTO dream_school_tenants
-         (tenant_id, name, status, metadata)
-         VALUES ($1, $2, $3, $4::jsonb)
-         ON CONFLICT (tenant_id) DO UPDATE
-         SET name = EXCLUDED.name, status = EXCLUDED.status,
-             metadata = EXCLUDED.metadata, updated_at = NOW()`,
-        [tenantId, name, "active", JSON.stringify({ location: location || null, owner_account_id: auth.account.id || null })]
+        `INSERT INTO dream_school_tenants (tenant_id, name, status, metadata)
+         VALUES ($1, $2, 'active', $3::jsonb)
+         ON CONFLICT (tenant_id) DO UPDATE SET name = EXCLUDED.name, status = EXCLUDED.status,
+           metadata = EXCLUDED.metadata, updated_at = NOW()`,
+        [tenantId, name, JSON.stringify({ location: location || null, owner_account_id: accountId(auth.account) })]
+      );
+      await gliPostgres.query(
+        `INSERT INTO dream_tenant_memberships (tenant_id, account_id, role)
+         VALUES ($1, $2, 'owner') ON CONFLICT (tenant_id, account_id) DO UPDATE SET role = 'owner', status = 'active', updated_at = NOW()`,
+        [tenantId, accountId(auth.account)]
       );
     }
 
     return res.status(201).json({
       success: true,
-      tenant: {
-        tenant_id: tenantId,
-        name: school.name,
-        status: school.status
-      },
-      next: {
-        step: "connect_learners_and_teachers",
-        api_namespace: "/api/v1"
-      }
+      tenant: { tenant_id: tenantId, name: school.name, status: school.status },
+      next: { step: "connect_learners_and_teachers", api_namespace: "/api/v1" }
     });
   } catch (error) {
     console.error("GLI school onboarding error:", error);
-    return res.status(500).json({
-      success: false,
-      error: "School onboarding failed."
-    });
+    return res.status(500).json({ success: false, error: "School onboarding failed." });
   }
 });
+
+app.get("/api/v1/tenant/:tenant_id", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    const access = await requireTenantRole(req.params.tenant_id, auth.account);
+    if (!access.allowed) return res.status(403).json({ success: false, error: "Tenant access denied." });
+    const result = await gliPostgres.query(
+      `SELECT tenant_id, name, status, metadata, created_at, updated_at FROM dream_school_tenants WHERE tenant_id = $1`,
+      [req.params.tenant_id]
+    );
+    if (!result.rows.length) return res.status(404).json({ success: false, error: "Tenant not found." });
+    return res.json({ success: true, tenant: result.rows[0], membership: access.membership });
+  } catch (error) {
+    console.error("GLI tenant lookup error:", error);
+    return res.status(500).json({ success: false, error: "Tenant lookup failed." });
+  }
+});
+
+app.post("/api/v1/tenant/:tenant_id/members", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    const access = await requireTenantRole(req.params.tenant_id, auth.account, ["owner", "admin"]);
+    if (!access.allowed) return res.status(403).json({ success: false, error: "Tenant administrator access required." });
+
+    const memberAccountId = String(req.body?.account_id || "").trim();
+    const role = String(req.body?.role || "").trim();
+    if (!memberAccountId || !["admin", "teacher", "parent", "learner"].includes(role)) {
+      return res.status(400).json({ success: false, error: "Valid account_id and role are required." });
+    }
+
+    const result = await gliPostgres.query(
+      `INSERT INTO dream_tenant_memberships (tenant_id, account_id, role)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (tenant_id, account_id) DO UPDATE SET role = EXCLUDED.role, status = 'active', updated_at = NOW()
+       RETURNING tenant_id, account_id, role, status`,
+      [req.params.tenant_id, memberAccountId, role]
+    );
+    return res.status(201).json({ success: true, membership: result.rows[0] });
+  } catch (error) {
+    console.error("GLI tenant membership error:", error);
+    return res.status(500).json({ success: false, error: "Tenant membership update failed." });
+  }
+});
+
 app.post("/api/v1/knowledge/ingest", async (req, res) => {
   try {
     const auth = await getAuthenticatedAccount(req);
-    if (!auth.success || !["teacher", "school"].includes(auth.account.role)) {
-      return res.status(auth.success ? 403 : auth.status).json({ success: false, error: auth.success ? "Teacher or school access required." : auth.error });
-    }
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    const tenantId = String(req.body?.tenant_id || "").trim();
+    if (!tenantId) return res.status(400).json({ success: false, error: "tenant_id is required for tenant-scoped knowledge ingestion." });
+    const access = await requireTenantRole(tenantId, auth.account, ["owner", "admin", "teacher"]);
+    if (!access.allowed) return res.status(403).json({ success: false, error: "Tenant knowledge access denied." });
+
     const result = await ingestKnowledgeDocument({
-      source: req.body?.source, title: req.body?.title, uri: req.body?.uri,
-      content: req.body?.content, tenantId: req.body?.tenant_id || null, metadata: req.body?.metadata || {}
+      source: req.body?.source,
+      title: req.body?.title,
+      uri: req.body?.uri,
+      content: req.body?.content,
+      tenantId,
+      metadata: req.body?.metadata || {}
     });
     return res.status(201).json({ success: true, document: result });
   } catch (error) {
@@ -8662,7 +8627,11 @@ app.get("/api/v1/knowledge/search", async (req, res) => {
   try {
     const auth = await getAuthenticatedAccount(req);
     if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
-    return res.json({ success: true, results: await searchKnowledge(req.query?.q, req.query?.limit) });
+    const tenantId = String(req.query?.tenant_id || "").trim();
+    if (!tenantId) return res.status(400).json({ success: false, error: "tenant_id is required for tenant-scoped knowledge search." });
+    const access = await requireTenantRole(tenantId, auth.account);
+    if (!access.allowed) return res.status(403).json({ success: false, error: "Tenant knowledge access denied." });
+    return res.json({ success: true, results: await searchKnowledge(req.query?.q, req.query?.limit, tenantId) });
   } catch (error) {
     console.error("GLI knowledge search error:", error);
     return res.status(500).json({ success: false, error: "Knowledge search failed." });
@@ -8673,12 +8642,16 @@ app.post("/api/v1/learner/:learner_id/credentials", async (req, res) => {
   try {
     const auth = await getAuthenticatedAccount(req);
     if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
-    if (auth.account.learner_id !== req.params.learner_id && !["teacher", "school"].includes(auth.account.role)) {
-      return res.status(403).json({ success: false, error: "Not authorized." });
+    const learnerId = String(req.params.learner_id);
+    const isSelf = auth.account.learner_id === learnerId || auth.account.owner_account === true;
+    const tenantId = String(req.body?.tenant_id || "").trim();
+    if (!isSelf) {
+      if (!tenantId) return res.status(400).json({ success: false, error: "tenant_id is required for educator credential issuance." });
+      const access = await requireTenantRole(tenantId, auth.account, ["owner", "admin", "teacher"]);
+      if (!access.allowed) return res.status(403).json({ success: false, error: "Credential issuance denied." });
     }
-    return res.status(201).json({ success: true, credential: await issueCredential({
-      learnerId: req.params.learner_id, competency: req.body?.competency, evidence: req.body?.evidence || {}
-    })});
+    const credential = await issueCredential({ learnerId, competency: req.body?.competency, evidence: req.body?.evidence || {} });
+    return res.status(201).json({ success: true, credential });
   } catch (error) {
     console.error("GLI credential issue error:", error);
     return res.status(500).json({ success: false, error: "Credential issuance failed." });
@@ -8689,8 +8662,11 @@ app.get("/api/v1/learner/:learner_id/credentials", async (req, res) => {
   try {
     const auth = await getAuthenticatedAccount(req);
     if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
-    if (auth.account.learner_id !== req.params.learner_id && !["teacher", "school"].includes(auth.account.role)) {
-      return res.status(403).json({ success: false, error: "Not authorized." });
+    if (auth.account.learner_id !== req.params.learner_id && auth.account.owner_account !== true) {
+      const tenantId = String(req.query?.tenant_id || "").trim();
+      if (!tenantId) return res.status(400).json({ success: false, error: "tenant_id is required." });
+      const access = await requireTenantRole(tenantId, auth.account, ["owner", "admin", "teacher"]);
+      if (!access.allowed) return res.status(403).json({ success: false, error: "Credential access denied." });
     }
     return res.json({ success: true, credentials: await listCredentials(req.params.learner_id) });
   } catch (error) {
@@ -8699,6 +8675,32 @@ app.get("/api/v1/learner/:learner_id/credentials", async (req, res) => {
   }
 });
 
+app.post("/api/v1/credentials/:credential_id/revoke", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    const credentialResult = await gliPostgres.query(
+      `SELECT credential_id, learner_id, status FROM dream_competency_credentials WHERE credential_id = $1 LIMIT 1`,
+      [String(req.params.credential_id)]
+    );
+    if (!credentialResult.rows.length) return res.status(404).json({ success: false, error: "Credential not found." });
+    const credential = credentialResult.rows[0];
+    const tenantId = String(req.body?.tenant_id || "").trim();
+    if (auth.account.learner_id !== credential.learner_id && auth.account.owner_account !== true) {
+      if (!tenantId) return res.status(400).json({ success: false, error: "tenant_id is required." });
+      const access = await requireTenantRole(tenantId, auth.account, ["owner", "admin", "teacher"]);
+      if (!access.allowed) return res.status(403).json({ success: false, error: "Credential revocation denied." });
+    }
+    await gliPostgres.query(
+      `UPDATE dream_competency_credentials SET status = 'revoked', revoked_at = NOW(), revocation_reason = $2 WHERE credential_id = $1`,
+      [credential.credential_id, String(req.body?.reason || "revoked")]
+    );
+    return res.json({ success: true, credential_id: credential.credential_id, status: "revoked" });
+  } catch (error) {
+    console.error("GLI credential revoke error:", error);
+    return res.status(500).json({ success: false, error: "Credential revocation failed." });
+  }
+});
 
 app.get("/api/v1/credentials/:credential_id/verify", async (req, res) => {
   try {
@@ -8710,6 +8712,79 @@ app.get("/api/v1/credentials/:credential_id/verify", async (req, res) => {
   }
 });
 
+app.post("/api/v1/developer/keys", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    const tenantId = String(req.body?.tenant_id || "").trim();
+    if (!tenantId) return res.status(400).json({ success: false, error: "tenant_id is required." });
+    const access = await requireTenantRole(tenantId, auth.account, ["owner", "admin"]);
+    if (!access.allowed) return res.status(403).json({ success: false, error: "Tenant administrator access required." });
+    const scopes = Array.isArray(req.body?.scopes) && req.body.scopes.length
+      ? req.body.scopes.map(String).filter(scope => scope === "learner:intelligence")
+      : ["learner:intelligence"];
+    if (!scopes.length) return res.status(400).json({ success: false, error: "No supported API scope requested." });
+    const key = await createApiKey({ tenantId, scopes });
+    return res.status(201).json({ success: true, key });
+  } catch (error) {
+    console.error("GLI developer key creation error:", error);
+    return res.status(500).json({ success: false, error: "Developer API key creation failed." });
+  }
+});
+
+app.get("/api/v1/developer/intelligence/:learner_id", async (req, res) => {
+  try {
+    const key = await authenticateApiKey(req.headers["x-dream-api-key"]);
+    if (!key) return res.status(401).json({ success: false, error: "Invalid or revoked Dream API key." });
+    if (!Array.isArray(key.scopes) || !key.scopes.includes("learner:intelligence")) {
+      return res.status(403).json({ success: false, error: "API key scope does not allow learner intelligence." });
+    }
+
+    const membership = await gliPostgres.query(
+      `SELECT 1 FROM dream_tenant_memberships
+       WHERE tenant_id = $1 AND account_id = $2 AND status = 'active'
+       LIMIT 1`,
+      [key.tenant_id, String(req.params.learner_id)]
+    );
+    if (!membership.rows.length) return res.status(403).json({ success: false, error: "Learner is not a member of the API tenant." });
+
+    const data = await getLearnerIntelligenceData(req.params.learner_id);
+    if (!data) return res.status(404).json({ success: false, error: "Learner not found." });
+
+    const graph = buildLearnerGraph(data.learner, data.profile);
+    return res.json({
+      success: true,
+      tenant_id: key.tenant_id,
+      learner: {
+        learner_id: data.learner.learner_id,
+        portable_id: buildPortableLearnerId(data.learner.learner_id)
+      },
+      learning_profile: data.profile,
+      learner_graph: graph,
+      proactive_actions: generateProactiveActions({ learner: data.learner, profile: data.profile })
+    });
+  } catch (error) {
+    console.error("GLI developer intelligence error:", error);
+    return res.status(500).json({ success: false, error: "Developer intelligence request failed." });
+  }
+});
+
+app.get("/api/v1/owner/evaluation", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    if (auth.account.owner_account !== true) return res.status(403).json({ success: false, error: "Owner access required." });
+    return res.json({ success: true, evaluation: await getLearningEvaluation(req.query?.learner_id || null) });
+  } catch (error) {
+    console.error("GLI evaluation error:", error);
+    return res.status(500).json({ success: false, error: "Evaluation unavailable." });
+  }
+});
+
+async function recordGLIEventSafe(input) {
+  try { return await recordLearningEvent(input); }
+  catch (error) { console.warn("GLI telemetry skipped:", error.message); return { recorded: false, reason: "telemetry_error" }; }
+}
 
 productStoreReady
   .then(() => {
