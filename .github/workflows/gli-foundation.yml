@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - gli-safe-foundation-20260929
+      - gli-safe-foundation-20260929\n      - ultramodern-frontend-20260929
   pull_request:
     branches:
       - main
