@@ -51,4 +51,18 @@ async function authenticateApiKey(rawKey) {
   return result.rows[0];
 }
 
-module.exports = { createApiKey, authenticateApiKey };
+async function revokeApiKey(keyId) {
+  if (!gliPostgres.getPool()) throw new Error("Postgres is required for developer API keys.");
+
+  const result = await gliPostgres.query(
+    `UPDATE dream_developer_api_keys
+     SET status = 'revoked'
+     WHERE key_id = $1
+     RETURNING key_id, tenant_id, status`,
+    [String(keyId || "").trim()]
+  );
+
+  return result.rows[0] || null;
+}
+
+module.exports = { createApiKey, authenticateApiKey, revokeApiKey };
