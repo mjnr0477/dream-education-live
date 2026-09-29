@@ -8373,7 +8373,7 @@ const { deduplicateEvents } =
 const { getPlatformManifest } =
   require("./product/gli/platform_manifest");
 const gliPostgres = require("./infrastructure/database/postgres");
-const { persistLearnerGraph, ingestKnowledgeDocument, searchKnowledge, issueCredential, listCredentials } = require("./product/gli/gli_intelligence_service");
+const { persistLearnerGraph, ingestKnowledgeDocument, searchKnowledge, issueCredential, listCredentials, verifyCredential } = require("./product/gli/gli_intelligence_service");
 
 async function getLearnerIntelligenceData(learnerId) {
   const learner = getLearner(learnerId);
@@ -8458,6 +8458,7 @@ app.get("/api/v1/learner/:learner_id/intelligence", async (req, res) => {
       learner: data.learner,
       profile: data.profile
     });
+    const graphPersistence = await persistLearnerGraph(req.params.learner_id, graph);
 
     return res.json({
       success: true,
@@ -8469,7 +8470,8 @@ app.get("/api/v1/learner/:learner_id/intelligence", async (req, res) => {
       },
       learning_profile: data.profile,
       learner_graph: graph,
-      proactive_actions: proactiveActions
+      proactive_actions: proactiveActions,
+      graph_persistence: graphPersistence
     });
   } catch (error) {
     console.error("GLI learner intelligence error:", error);
@@ -8682,6 +8684,17 @@ app.get("/api/v1/learner/:learner_id/credentials", async (req, res) => {
   } catch (error) {
     console.error("GLI credential lookup error:", error);
     return res.status(500).json({ success: false, error: "Credential lookup failed." });
+  }
+});
+
+
+app.get("/api/v1/credentials/:credential_id/verify", async (req, res) => {
+  try {
+    const result = await verifyCredential(req.params.credential_id);
+    return res.status(result.reason === "not_found" ? 404 : 200).json({ success: true, ...result });
+  } catch (error) {
+    console.error("GLI credential verification error:", error);
+    return res.status(500).json({ success: false, error: "Credential verification failed." });
   }
 });
 
