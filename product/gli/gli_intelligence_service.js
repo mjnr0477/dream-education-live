@@ -83,7 +83,7 @@ async function ingestKnowledgeDocument(input) {
   return { ...document, chunks: record.chunks.length };
 }
 
-async function searchKnowledge(query, limit = 8) {
+async function searchKnowledge(query, limit = 8, tenantId = null) {
   if (!poolReady()) throw new Error("Postgres is required for knowledge search.");
   const q = String(query || "").trim();
   const safeLimit = Math.min(Math.max(Number(limit) || 8, 1), 20);
@@ -103,9 +103,10 @@ async function searchKnowledge(query, limit = 8) {
        FROM dream_knowledge_chunks c
        JOIN dream_knowledge_documents d ON d.id = c.document_id
        WHERE c.embedding IS NOT NULL
+         AND (d.tenant_id = $2 OR d.tenant_id IS NULL)
        ORDER BY c.embedding <=> $1::extensions.vector
-       LIMIT $2`,
-      [vectorLiteral, safeLimit]
+       LIMIT $3`,
+      [vectorLiteral, tenantId ? String(tenantId) : null, safeLimit]
     );
     if (result.rows.length) return result.rows;
   }
@@ -117,9 +118,10 @@ async function searchKnowledge(query, limit = 8) {
      FROM dream_knowledge_chunks c
      JOIN dream_knowledge_documents d ON d.id = c.document_id
      WHERE c.content ILIKE $1
+       AND (d.tenant_id = $2 OR d.tenant_id IS NULL)
      ORDER BY d.created_at DESC, c.chunk_index ASC
-     LIMIT $2`,
-    ["%" + q + "%", safeLimit]
+     LIMIT $3`,
+    ["%" + q + "%", tenantId ? String(tenantId) : null, safeLimit]
   );
   return result.rows;
 }
