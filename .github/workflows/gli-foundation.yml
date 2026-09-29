@@ -22,4 +22,7 @@ jobs:
       - run: node --check product/gli/proactive_learning_engine.js
       - run: node --check product/gli/offline_sync_engine.js
       - run: node --check product/gli/platform_manifest.js
-      - run: node -e "for (const f of ['./product/gli/learner_graph_engine','./product/gli/proactive_learning_engine','./product/gli/offline_sync_engine','./product/gli/platform_manifest']) require(f); console.log('GLI modules load successfully')"
+      - run: node --check product/gli/knowledge_intelligence_engine.js
+      - run: node --check product/gli/credential_engine.js
+      - run: node --check product/gli/tenant_engine.js
+      - run: node -e "for (const f of ['./product/gli/learner_graph_engine','./product/gli/proactive_learning_engine','./product/gli/offline_sync_engine','./product/gli/platform_manifest','./product/gli/knowledge_intelligence_engine','./product/gli/credential_engine','./product/gli/tenant_engine']) require(f); console.log('GLI modules load successfully')"
