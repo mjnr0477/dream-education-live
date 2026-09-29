@@ -27,11 +27,18 @@ function buildLearnerGraph(learner, profile = {}) {
     assessments: Number(data.assessments || 0)
   }));
 
+  const patterns = profile.patterns || {};
   return {
-    version: "1.0.0",
+    version: "1.1.0",
+    graph_type: "derived_learner_state",
     learner_id: learnerId,
     subject_nodes: subjectNodes,
     concept_nodes: concepts,
+    patterns: {
+      misconception_count: Number(patterns.misconception_count || 0),
+      recovered_topics: Array.isArray(patterns.recovered_topics) ? patterns.recovered_topics : [],
+      current_misconception_topics: Array.isArray(patterns.current_misconception_topics) ? patterns.current_misconception_topics : []
+    },
     relationships: concepts.map(concept => ({
       from: "learner:" + learnerId,
       to: concept.id,
