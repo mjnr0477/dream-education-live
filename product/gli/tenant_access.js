@@ -3,10 +3,19 @@
 const gliPostgres = require("../../infrastructure/database/postgres");
 
 function accountId(account) {
+  const roleIdField = {
+    learner: "learner_id",
+    teacher: "teacher_id",
+    parent: "parent_id",
+    school: "school_id"
+  };
+
+  const roleField = roleIdField[account?.role];
   return String(
     account?.account_id ||
     account?.id ||
     account?.user_id ||
+    (roleField ? account?.[roleField] : "") ||
     account?.learner_id ||
     ""
   ).trim();
@@ -27,7 +36,7 @@ async function getMembership(tenantId, account) {
 }
 
 async function requireTenantRole(tenantId, account, roles = []) {
-  if (account?.owner_account === true || account?.role === "owner") {
+  if (account?.owner_account === true) {
     return { allowed: true, membership: null, reason: "platform_owner" };
   }
 
