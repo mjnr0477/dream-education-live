@@ -1,0 +1,25 @@
+name: GLI Foundation Verification
+
+on:
+  push:
+    branches:
+      - gli-safe-foundation-20260929
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm install
+      - run: node --check server.js
+      - run: node --check product/gli/learner_graph_engine.js
+      - run: node --check product/gli/proactive_learning_engine.js
+      - run: node --check product/gli/offline_sync_engine.js
+      - run: node --check product/gli/platform_manifest.js
+      - run: node -e "for (const f of ['./product/gli/learner_graph_engine','./product/gli/proactive_learning_engine','./product/gli/offline_sync_engine','./product/gli/platform_manifest']) require(f); console.log('GLI modules load successfully')"
