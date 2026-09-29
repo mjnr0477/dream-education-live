@@ -3149,6 +3149,19 @@ app.post("/api/learning-cycle", async (req, res) => {
       mastered: score >= 80
     });
 
+    await recordGLIEventSafe({
+      learnerId: learner_id,
+      type: "learning_cycle_completed",
+      payload: {
+        subject: subject || nextSubject,
+        topic: topic || null,
+        score,
+        average_score,
+        difficulty,
+        understanding
+      }
+    });
+
     return res.json({
       success: true,
       learner_id,
