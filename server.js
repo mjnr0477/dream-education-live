@@ -8393,6 +8393,7 @@ const {
 const { rateLimit, requestId, validateBodySize } = require("./product/gli/production_security");
 const { accountId, requireTenantRole } = require("./product/gli/tenant_access");
 const { recordLearningEvent, getLearningEvaluation } = require("./product/gli/telemetry_engine");
+const { createApiKey, authenticateApiKey } = require("./product/gli/developer_api");
 
 async function getLearnerIntelligenceData(learnerId) {
   const learner = getLearner(learnerId);
@@ -8708,6 +8709,63 @@ app.get("/api/v1/credentials/:credential_id/verify", async (req, res) => {
   } catch (error) {
     console.error("GLI credential verification error:", error);
     return res.status(500).json({ success: false, error: "Credential verification failed." });
+  }
+});
+
+app.post("/api/v1/developer/keys", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    const tenantId = String(req.body?.tenant_id || "").trim();
+    if (!tenantId) return res.status(400).json({ success: false, error: "tenant_id is required." });
+    const access = await requireTenantRole(tenantId, auth.account, ["owner", "admin"]);
+    if (!access.allowed) return res.status(403).json({ success: false, error: "Tenant administrator access required." });
+    const scopes = Array.isArray(req.body?.scopes) && req.body.scopes.length
+      ? req.body.scopes.map(String).filter(scope => scope === "learner:intelligence")
+      : ["learner:intelligence"];
+    if (!scopes.length) return res.status(400).json({ success: false, error: "No supported API scope requested." });
+    const key = await createApiKey({ tenantId, scopes });
+    return res.status(201).json({ success: true, key });
+  } catch (error) {
+    console.error("GLI developer key creation error:", error);
+    return res.status(500).json({ success: false, error: "Developer API key creation failed." });
+  }
+});
+
+app.get("/api/v1/developer/intelligence/:learner_id", async (req, res) => {
+  try {
+    const key = await authenticateApiKey(req.headers["x-dream-api-key"]);
+    if (!key) return res.status(401).json({ success: false, error: "Invalid or revoked Dream API key." });
+    if (!Array.isArray(key.scopes) || !key.scopes.includes("learner:intelligence")) {
+      return res.status(403).json({ success: false, error: "API key scope does not allow learner intelligence." });
+    }
+
+    const membership = await gliPostgres.query(
+      `SELECT 1 FROM dream_tenant_memberships
+       WHERE tenant_id = $1 AND account_id = $2 AND status = 'active'
+       LIMIT 1`,
+      [key.tenant_id, String(req.params.learner_id)]
+    );
+    if (!membership.rows.length) return res.status(403).json({ success: false, error: "Learner is not a member of the API tenant." });
+
+    const data = await getLearnerIntelligenceData(req.params.learner_id);
+    if (!data) return res.status(404).json({ success: false, error: "Learner not found." });
+
+    const graph = buildLearnerGraph(data.learner, data.profile);
+    return res.json({
+      success: true,
+      tenant_id: key.tenant_id,
+      learner: {
+        learner_id: data.learner.learner_id,
+        portable_id: buildPortableLearnerId(data.learner.learner_id)
+      },
+      learning_profile: data.profile,
+      learner_graph: graph,
+      proactive_actions: generateProactiveActions({ learner: data.learner, profile: data.profile })
+    });
+  } catch (error) {
+    console.error("GLI developer intelligence error:", error);
+    return res.status(500).json({ success: false, error: "Developer intelligence request failed." });
   }
 });
 
