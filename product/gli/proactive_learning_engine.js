@@ -19,6 +19,7 @@ function generateProactiveActions({ learner, profile = {} } = {}) {
   }
 
   for (const topic of patterns.recovered_topics || []) {
+    if (seen.has(topic)) continue;
     actions.push({
       type: "recovery_consolidation",
       priority: "medium",
