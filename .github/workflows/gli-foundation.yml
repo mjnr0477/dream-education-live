@@ -3,6 +3,7 @@ name: GLI Foundation Verification
 on:
   push:
     branches:
+      - main
       - gli-safe-foundation-20260929
   pull_request:
     branches:
