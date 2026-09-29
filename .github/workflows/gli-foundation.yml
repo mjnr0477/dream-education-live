@@ -26,6 +26,11 @@ jobs:
       - run: node --check product/gli/knowledge_intelligence_engine.js
       - run: node --check product/gli/credential_engine.js
       - run: node --check product/gli/tenant_engine.js
+      - run: node --check product/gli/production_security.js
+      - run: node --check product/gli/tenant_access.js
+      - run: node --check product/gli/telemetry_engine.js
+      - run: node --check product/gli/developer_api.js
       - run: node --check product/gli/gli_intelligence_service.js
       - run: node -e "for (const f of ['./product/gli/learner_graph_engine','./product/gli/proactive_learning_engine','./product/gli/offline_sync_engine','./product/gli/platform_manifest','./product/gli/knowledge_intelligence_engine','./product/gli/credential_engine','./product/gli/tenant_engine']) require(f); console.log('GLI modules load successfully')"
+      - run: npm test
       - run: node -e "const {buildLearnerGraph}=require('./product/gli/learner_graph_engine'); const {generateProactiveActions}=require('./product/gli/proactive_learning_engine'); const p={overall:{weakest_subject:'Math'},patterns:{current_misconception_topics:['fractions'],recovered_topics:['algebra']},topics:{fractions:{current_state:'MISCONCEPTION'}}}; const g=buildLearnerGraph({learner_id:'ci'},p); const a=generateProactiveActions({learner:{active_subject:'Math'},profile:p}); if(!g.concept_nodes || !a.length || a[0].suggested_action!=='correct_then_reassess') process.exit(1); console.log('GLI behavior smoke test passed')"
