@@ -7764,9 +7764,6 @@ window.openMeetingRoom = function(data) {
     </button>
   </div>
 </div>
-              </button>
-            </div>
-          </div>
 
           <div id="subscription-message" class="subscription-message" aria-live="polite"></div>
         </div>
@@ -8013,7 +8010,7 @@ async function handlePayPalReturn() {
       window.DreamEducationUI &&
       typeof window.DreamEducationUI.openPanel === "function"
     ) {
-      window.DreamEducationUI.openPanel("subscribe");
+      openSubscription();
     }
   } catch (error) {
     console.error("PayPal return handling failed:", error);
