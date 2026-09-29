@@ -8372,7 +8372,8 @@ const { deduplicateEvents } =
   require("./product/gli/offline_sync_engine");
 const { getPlatformManifest } =
   require("./product/gli/platform_manifest");
-const gliPostgres = require("./infrastructure/database/postgres");\nconst { persistLearnerGraph, ingestKnowledgeDocument, searchKnowledge, issueCredential, listCredentials } = require("./product/gli/gli_intelligence_service");
+const gliPostgres = require("./infrastructure/database/postgres");
+const { persistLearnerGraph, ingestKnowledgeDocument, searchKnowledge, issueCredential, listCredentials } = require("./product/gli/gli_intelligence_service");
 
 async function getLearnerIntelligenceData(learnerId) {
   const learner = getLearner(learnerId);
