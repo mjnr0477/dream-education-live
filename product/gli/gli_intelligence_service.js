@@ -29,7 +29,7 @@ async function createEmbedding(text) {
     input: String(text)
   });
   const vector = result?.data?.[0]?.embedding;
-  return Array.isArray(vector) ? vector : null;
+  return Array.isArray(vector) && vector.length === 1536 ? vector : null;
 }
 
 async function persistLearnerGraph(learnerId, graph) {
