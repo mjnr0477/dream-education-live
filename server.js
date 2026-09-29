@@ -8398,7 +8398,7 @@ const {
 const { rateLimit, requestId, validateBodySize } = require("./product/gli/production_security");
 const { accountId, requireTenantRole } = require("./product/gli/tenant_access");
 const { recordLearningEvent, getLearningEvaluation } = require("./product/gli/telemetry_engine");
-const { createApiKey, authenticateApiKey } = require("./product/gli/developer_api");
+const { createApiKey, authenticateApiKey, revokeApiKey } = require("./product/gli/developer_api");
 
 async function getLearnerIntelligenceData(learnerId) {
   const learner = getLearner(learnerId);
@@ -8734,6 +8734,32 @@ app.post("/api/v1/developer/keys", async (req, res) => {
   } catch (error) {
     console.error("GLI developer key creation error:", error);
     return res.status(500).json({ success: false, error: "Developer API key creation failed." });
+  }
+});
+
+app.post("/api/v1/developer/keys/:key_id/revoke", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+
+    const result = await gliPostgres.query(
+      `SELECT tenant_id FROM dream_developer_api_keys WHERE key_id = $1 LIMIT 1`,
+      [String(req.params.key_id)]
+    );
+    if (!result.rows.length) return res.status(404).json({ success: false, error: "API key not found." });
+
+    const access = await requireTenantRole(
+      result.rows[0].tenant_id,
+      auth.account,
+      ["owner", "admin"]
+    );
+    if (!access.allowed) return res.status(403).json({ success: false, error: "Tenant administrator access required." });
+
+    const revoked = await revokeApiKey(req.params.key_id);
+    return res.json({ success: true, key: revoked });
+  } catch (error) {
+    console.error("GLI developer key revoke error:", error);
+    return res.status(500).json({ success: false, error: "Developer API key revocation failed." });
   }
 });
 
