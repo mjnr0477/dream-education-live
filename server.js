@@ -4369,6 +4369,8 @@ const {
 } = require("./product/traction_engine");
 
 const {
+  loadStore,
+  saveStore,
   saveLearner,
   getLearner,
   saveAccount,
@@ -8522,6 +8524,29 @@ app.post("/api/v1/learner/:learner_id/offline-sync", async (req, res) => {
           ]
         );
       }
+    } else if (events.length) {
+      const store = loadStore();
+      store.gli_learning_events = Array.isArray(store.gli_learning_events)
+        ? store.gli_learning_events
+        : [];
+
+      const existing = new Set(
+        store.gli_learning_events.map(event => event.event_id)
+      );
+
+      for (const event of events) {
+        if (!existing.has(event.event_id)) {
+          store.gli_learning_events.push({
+            ...event,
+            received_at: new Date().toISOString()
+          });
+        }
+      }
+
+      store.gli_learning_events =
+        store.gli_learning_events.slice(-10000);
+
+      saveStore(store);
     }
 
     return res.json({
