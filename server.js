@@ -8609,6 +8609,18 @@ app.post("/api/v1/school/onboard", async (req, res) => {
 
     saveSchool(school);
 
+    if (gliPostgres.getPool()) {
+      await gliPostgres.query(
+        `INSERT INTO dream_school_tenants
+         (tenant_id, name, status, metadata)
+         VALUES ($1, $2, $3, $4::jsonb)
+         ON CONFLICT (tenant_id) DO UPDATE
+         SET name = EXCLUDED.name, status = EXCLUDED.status,
+             metadata = EXCLUDED.metadata, updated_at = NOW()`,
+        [tenantId, name, "active", JSON.stringify({ location: location || null, owner_account_id: auth.account.id || null })]
+      );
+    }
+
     return res.status(201).json({
       success: true,
       tenant: {
