@@ -29,3 +29,17 @@ CREATE INDEX IF NOT EXISTS idx_dream_credentials_learner_status
 
 CREATE INDEX IF NOT EXISTS idx_dream_learning_events_type_time
   ON dream_learning_events (event_type, occurred_at DESC);
+
+CREATE TABLE IF NOT EXISTS dream_developer_api_keys (
+  key_id TEXT PRIMARY KEY,
+  tenant_id TEXT NOT NULL REFERENCES dream_school_tenants(tenant_id) ON DELETE CASCADE,
+  key_prefix TEXT NOT NULL,
+  key_hash TEXT NOT NULL UNIQUE,
+  scopes JSONB NOT NULL DEFAULT '[]'::jsonb,
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','revoked')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  last_used_at TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS idx_dream_developer_api_keys_tenant
+  ON dream_developer_api_keys (tenant_id, status);
