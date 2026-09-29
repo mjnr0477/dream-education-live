@@ -67,115 +67,95 @@ async function retrieveKnowledge(query, options = {}) {
   }
 
   const verifiedCandidates = [];
+  const candidatesForVerification = rankedSources
+    .filter(source =>
+      source &&
+      String(source.extract || "").trim().length >= 80 &&
+      Number(source.relevance_score || 0) >= 6
+    )
+    .slice(0, 8);
 
-  for (const candidate of rankedSources) {
-    try {
-      if (
-        candidate.provider === "wikipedia" ||
-        candidate.source === "Wikipedia"
-      ) {
-        const candidatePage =
-          await sourceEngine.getWikipediaPage(candidate.title);
+  // Verify the strongest candidates concurrently. This preserves the
+  // existing ranking/verification rules while removing avoidable serial
+  // network waits, especially when several Wikipedia candidates are present.
+  const verificationResults = await Promise.all(
+    candidatesForVerification.map(async candidate => {
+      try {
+        let candidateWithContent = candidate;
 
         if (
-          candidatePage &&
-          String(candidatePage.extract || "").trim()
+          candidate.provider === "wikipedia" ||
+          candidate.source === "Wikipedia"
         ) {
-          const enrichedCandidate = {
+          const candidatePage =
+            await sourceEngine.getWikipediaPage(candidate.title);
+
+          if (
+            !candidatePage ||
+            !String(candidatePage.extract || "").trim()
+          ) {
+            return null;
+          }
+
+          candidateWithContent = {
             ...candidate,
             extract: candidatePage.extract,
             _knowledgePage: candidatePage
           };
-
-          const candidateVerification =
-            verifier.verifySource(
-              enrichedCandidate,
-              query
-            );
-
-          console.log(
-            "Knowledge candidate verification:",
-            JSON.stringify({
-              provider:
-                enrichedCandidate.provider ||
-                enrichedCandidate.source,
-              title: enrichedCandidate.title,
-              relevance:
-                candidateVerification.relevance_score,
-              verified:
-                candidateVerification.verified
-            })
-          );
-
-          if (candidateVerification.verified) {
-            verifiedCandidates.push({
-              source: enrichedCandidate,
-              verification: candidateVerification
-            });
-          } else {
-            console.log(
-              "Knowledge candidate rejected:",
-              enrichedCandidate.title
-            );
-          }
         }
-      } else {
+
         const candidateExtract = String(
-          candidate.extract ||
-          candidate.snippet ||
+          candidateWithContent.extract ||
+          candidateWithContent.snippet ||
           ""
         ).trim();
 
-        if (candidateExtract.length >= 80) {
-          const candidateWithContent = {
-            ...candidate,
-            extract: candidateExtract
-          };
+        if (candidateExtract.length < 80) {
+          return null;
+        }
 
-          const candidateVerification =
-            verifier.verifySource(
-              candidateWithContent,
-              query
-            );
-
-          console.log(
-            "Knowledge candidate verification:",
-            JSON.stringify({
-              provider:
-                candidateWithContent.provider ||
-                candidateWithContent.source,
-              title: candidateWithContent.title,
-              relevance:
-                candidateVerification.relevance_score,
-              verified:
-                candidateVerification.verified
-            })
+        const candidateVerification =
+          verifier.verifySource(
+            candidateWithContent,
+            query
           );
 
-          if (candidateVerification.verified) {
-            verifiedCandidates.push({
-              source: candidateWithContent,
-              verification: candidateVerification
-            });
-          } else {
-            console.log(
-              "Knowledge candidate rejected:",
-              candidateWithContent.title
-            );
-          }
-        }
-      }
-    } catch (error) {
-      console.warn(
-        "Knowledge provider failed:",
-        candidate.source ||
-        candidate.provider ||
-        "unknown",
-        error.message
-      );
-    }
-  }
+        console.log(
+          "Knowledge candidate verification:",
+          JSON.stringify({
+            provider:
+              candidateWithContent.provider ||
+              candidateWithContent.source,
+            title: candidateWithContent.title,
+            relevance: candidateVerification.relevance_score,
+            verified: candidateVerification.verified
+          })
+        );
 
+        if (!candidateVerification.verified) {
+          return null;
+        }
+
+        return {
+          source: candidateWithContent,
+          verification: candidateVerification
+        };
+      } catch (error) {
+        console.warn(
+          "Knowledge provider failed:",
+          candidate.source ||
+          candidate.provider ||
+          "unknown",
+          error.message
+        );
+        return null;
+      }
+    })
+  );
+
+  verificationResults
+    .filter(Boolean)
+    .forEach(result => verifiedCandidates.push(result));
   if (!verifiedCandidates.length) {
     return {
       success: false,
