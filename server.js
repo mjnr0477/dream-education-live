@@ -8372,7 +8372,7 @@ const { deduplicateEvents } =
   require("./product/gli/offline_sync_engine");
 const { getPlatformManifest } =
   require("./product/gli/platform_manifest");
-const gliPostgres = require("./infrastructure/database/postgres");
+const gliPostgres = require("./infrastructure/database/postgres");\nconst { persistLearnerGraph, ingestKnowledgeDocument, searchKnowledge, issueCredential, listCredentials } = require("./product/gli/gli_intelligence_service");
 
 async function getLearnerIntelligenceData(learnerId) {
   const learner = getLearner(learnerId);
@@ -8626,6 +8626,64 @@ app.post("/api/v1/school/onboard", async (req, res) => {
     });
   }
 });
+\napp.post("/api/v1/knowledge/ingest", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success || !["teacher", "school"].includes(auth.account.role)) {
+      return res.status(auth.success ? 403 : auth.status).json({ success: false, error: auth.success ? "Teacher or school access required." : auth.error });
+    }
+    const result = await ingestKnowledgeDocument({
+      source: req.body?.source, title: req.body?.title, uri: req.body?.uri,
+      content: req.body?.content, tenantId: req.body?.tenant_id || null, metadata: req.body?.metadata || {}
+    });
+    return res.status(201).json({ success: true, document: result });
+  } catch (error) {
+    console.error("GLI knowledge ingest error:", error);
+    return res.status(500).json({ success: false, error: "Knowledge ingestion failed." });
+  }
+});
+
+app.get("/api/v1/knowledge/search", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    return res.json({ success: true, results: await searchKnowledge(req.query?.q, req.query?.limit) });
+  } catch (error) {
+    console.error("GLI knowledge search error:", error);
+    return res.status(500).json({ success: false, error: "Knowledge search failed." });
+  }
+});
+
+app.post("/api/v1/learner/:learner_id/credentials", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    if (auth.account.learner_id !== req.params.learner_id && !["teacher", "school"].includes(auth.account.role)) {
+      return res.status(403).json({ success: false, error: "Not authorized." });
+    }
+    return res.status(201).json({ success: true, credential: await issueCredential({
+      learnerId: req.params.learner_id, competency: req.body?.competency, evidence: req.body?.evidence || {}
+    })});
+  } catch (error) {
+    console.error("GLI credential issue error:", error);
+    return res.status(500).json({ success: false, error: "Credential issuance failed." });
+  }
+});
+
+app.get("/api/v1/learner/:learner_id/credentials", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    if (auth.account.learner_id !== req.params.learner_id && !["teacher", "school"].includes(auth.account.role)) {
+      return res.status(403).json({ success: false, error: "Not authorized." });
+    }
+    return res.json({ success: true, credentials: await listCredentials(req.params.learner_id) });
+  } catch (error) {
+    console.error("GLI credential lookup error:", error);
+    return res.status(500).json({ success: false, error: "Credential lookup failed." });
+  }
+});
+
 
 productStoreReady
   .then(() => {
