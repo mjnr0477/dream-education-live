@@ -420,15 +420,23 @@ function developmentAnswer(
         : null;
 
       trustedTeaching =
-        `Here is what the information means:\n\n` +
+        `Here is what the information means:
+
+` +
         `${formula
-          ? `The molecular formula is ${formula}. This tells us what one molecule of the substance is made of. In this formula, C represents carbon, H represents hydrogen, and O represents oxygen. The numbers tell us how many atoms of each element are present: 9 carbon atoms, 8 hydrogen atoms, and 4 oxygen atoms.\n\n`
+          ? `The molecular formula is ${formula}. This tells us what one molecule of the substance is made of. In this formula, C represents carbon, H represents hydrogen, and O represents oxygen. The numbers tell us how many atoms of each element are present: 9 carbon atoms, 8 hydrogen atoms, and 4 oxygen atoms.
+
+`
           : ""}` +
         `${weight
-          ? `The molecular weight is ${weight}. In practical chemistry, this tells us the mass of one mole of the substance. So one mole of aspirin has a mass of 180.16 grams.\n\n`
+          ? `The molecular weight is ${weight}. In practical chemistry, this tells us the mass of one mole of the substance. So one mole of aspirin has a mass of 180.16 grams.
+
+`
           : ""}` +
         `${iupacFact
-          ? `Its IUPAC name is ${iupacFact.replace("IUPAC name:", "").trim()}, which is the systematic chemical name for aspirin.\n\n`
+          ? `Its IUPAC name is ${iupacFact.replace("IUPAC name:", "").trim()}, which is the systematic chemical name for aspirin.
+
+`
           : ""}` +
         `The important connection is this: the formula tells us **what atoms are present and how many**, while the molecular weight tells us **how much one mole of those molecules weighs**.`;
     } else if (nistFact) {
@@ -437,10 +445,14 @@ function developmentAnswer(
         .trim();
 
       trustedTeaching =
-        `Here is what the trusted information means:\n\n` +
+        `Here is what the trusted information means:
+
+` +
         `The NIST reference gives the speed of light in a vacuum as ${constant}. ` +
         `This is a fundamental physical constant. It tells us how fast light travels through empty space. ` +
-        `The value is exact, not an experimental estimate.\n\n` +
+        `The value is exact, not an experimental estimate.
+
+` +
         `This constant is important in physics because it connects measurements of distance and time and appears in major physical relationships such as Einstein's mass-energy relationship.`;
     } else if (openAlexFacts.length) {
       const papers = [];
@@ -468,7 +480,9 @@ function developmentAnswer(
       }
 
       trustedTeaching =
-        `Here is what the research literature retrieved through OpenAlex tells us:\n\n` +
+        `Here is what the research literature retrieved through OpenAlex tells us:
+
+` +
         papers.map((paper, index) => {
           let text =
             `${index + 1}. ${paper.title}`;
@@ -478,29 +492,41 @@ function developmentAnswer(
           }
 
           if (paper.authors) {
-            text += `\nAuthors: ${paper.authors}`;
+            text += `
+Authors: ${paper.authors}`;
           }
 
           if (paper.abstract) {
             text +=
-              `\nWhat the paper's abstract reports: ${paper.abstract}`;
+              `
+What the paper's abstract reports: ${paper.abstract}`;
           } else {
             text +=
-              `\nAn abstract was not available in the OpenAlex result for this paper.`;
+              `
+An abstract was not available in the OpenAlex result for this paper.`;
           }
 
           return text;
-        }).join("\n\n") +
-        `\n\nThese are research-literature results retrieved through OpenAlex. ` +
+        }).join("
+
+") +
+        `
+
+These are research-literature results retrieved through OpenAlex. ` +
         `The paper information is presented as evidence to help explain the learner's question; ` +
         `the existence of a paper does not by itself prove that every conclusion in it is established fact.`;
     } else {
       trustedTeaching =
-        `Here is what the trusted information tells us:\n\n` +
+        `Here is what the trusted information tells us:
+
+` +
         trustedFacts
           .map(fact => `- ${fact}`)
-          .join("\n") +
-        `\n\nLet's use these facts to understand the question rather than simply memorising them.`;
+          .join("
+") +
+        `
+
+Let's use these facts to understand the question rather than simply memorising them.`;
     }
   }
 
@@ -550,17 +576,30 @@ function developmentAnswer(
 
         const label = labels[action] || action;
 
-        return `Step ${index + 1} — ${label}:\n${work}`;
+        return `Step ${index + 1} — ${label}:
+${work}`;
       })
-      .join("\n\n");
+      .join("
+
+");
 
     response =
-      `Let's solve this together, step by step.\n\n` +
-      `Problem:\n${question}\n\n` +
-      `Here's how we solve it:\n\n` +
+      `Let's solve this together, step by step.
+
+` +
+      `Problem:
+${question}
+
+` +
+      `Here's how we solve it:
+
+` +
       `${stepExplanation || `The verified result is ${solvedResult}.`}` +
-      `\n\n` +
-      `Verified answer:\n${
+      `
+
+` +
+      `Verified answer:
+${
         solvedResult &&
         typeof solvedResult === "object"
           ? Object.entries(solvedResult)
@@ -571,44 +610,83 @@ function developmentAnswer(
 
                 return `${label}: ${value}`;
               })
-              .join("\n")
+              .join("
+")
           : solvedResult
-      }\n\n` +
-      `The important part is understanding why each step works, not just memorising the final answer.\n\n` +
+      }
+
+` +
+      `The important part is understanding why each step works, not just memorising the final answer.
+
+` +
       `Now try the problem yourself without looking back. Explain what you would do first and why.`;
 
   } else if (move === "correct_misconception") {
     response =
-      `Let's correct one important idea about ${lessonTopic}.\n\n` +
-      `${definition || `The key idea is ${lessonTopic}.`}\n\n` +
-      `Let's separate the correct idea from the misconception and focus on what the evidence tells us.\n\n` +
-      `${keyIdeas.length ? `Key points to remember:\n- ${keyIdeas.join("\n- ")}\n\n` : ""}` +
-      `Question: "${question}"\n\n` +
+      `Let's correct one important idea about ${lessonTopic}.
+
+` +
+      `${definition || `The key idea is ${lessonTopic}.`}
+
+` +
+      `Let's separate the correct idea from the misconception and focus on what the evidence tells us.
+
+` +
+      `${keyIdeas.length ? `Key points to remember:
+- ${keyIdeas.join("
+- ")}
+
+` : ""}` +
+      `Question: "${question}"
+
+` +
       `Now explain the corrected idea in your own words and say why it makes sense.`;
   }
 
   else if (move === "teach_factor") {
     response =
-      `Let's start with what matters most.\n\n` +
+      `Let's start with what matters most.
+
+` +
       `In ${lessonTopic}, an important part of understanding the situation is identifying the factor that changes. ` +
-      `Here, focus on ${target}.\n\n` +
-      `For example, when one condition changes while the others stay suitable, that changing condition can affect what happens next.\n\n` +
-      `Question: "${question}"\n\n` +
+      `Here, focus on ${target}.
+
+` +
+      `For example, when one condition changes while the others stay suitable, that changing condition can affect what happens next.
+
+` +
+      `Question: "${question}"
+
+` +
       `What is the important factor here, and why does it matter?`;
 
   } else if (move === "teach_process") {
     response =
-      `Now let's connect the pieces and understand how ${lessonTopic} works.\n\n` +
-      `Knowing the factor is only the beginning. We also need to understand the process that connects that factor to the result.\n\n` +
-      `Think step by step: what changes first, what happens because of that change, and how does that lead to the result?\n\n` +
-      `Question: "${question}"\n\n` +
+      `Now let's connect the pieces and understand how ${lessonTopic} works.
+
+` +
+      `Knowing the factor is only the beginning. We also need to understand the process that connects that factor to the result.
+
+` +
+      `Think step by step: what changes first, what happens because of that change, and how does that lead to the result?
+
+` +
+      `Question: "${question}"
+
+` +
       `Explain the process in your own words.`;
 
   } else if (move === "teach_outcome") {
     response =
-      `You've reached the part where we connect the process to its result.\n\n` +
-      `When the important condition changes, the process can also change. The next step is to explain what that change means for the final outcome.\n\n` +
-      `Question: "${question}"\n\n` +
+      `You've reached the part where we connect the process to its result.
+
+` +
+      `When the important condition changes, the process can also change. The next step is to explain what that change means for the final outcome.
+
+` +
+      `Question: "${question}"
+
+` +
       `What would you expect to happen, and what is your reason?`;
 
   } else if (
@@ -616,38 +694,70 @@ function developmentAnswer(
     move === "build_reasoning"
   ) {
     response =
-      `Let's strengthen your reasoning about ${lessonTopic}.\n\n` +
-      `A strong explanation should connect the important factor to what happens during the process and then to the result.\n\n` +
-      `Think of it as a chain: factor → process → outcome.\n\n` +
-      `Question: "${question}"\n\n` +
+      `Let's strengthen your reasoning about ${lessonTopic}.
+
+` +
+      `A strong explanation should connect the important factor to what happens during the process and then to the result.
+
+` +
+      `Think of it as a chain: factor → process → outcome.
+
+` +
+      `Question: "${question}"
+
+` +
       `Try to explain the whole chain rather than giving only the final answer.`;
 
   } else if (move === "consolidate_recovery") {
     response =
-      `Good. Let's make sure the corrected idea is becoming solid.\n\n` +
-      `The goal now is not simply to remember the answer, but to use the idea correctly in a slightly different situation.\n\n` +
-      `Question: "${question}"\n\n` +
+      `Good. Let's make sure the corrected idea is becoming solid.
+
+` +
+      `The goal now is not simply to remember the answer, but to use the idea correctly in a slightly different situation.
+
+` +
+      `Question: "${question}"
+
+` +
       `Explain your reasoning and show how the idea you have learned applies here.`;
 
   } else if (move === "progress") {
     response =
-      `You've built a good understanding of ${lessonTopic}. Now let's use that understanding in a new situation.\n\n` +
-      `Instead of only recalling the idea, think about how you would apply it here.\n\n` +
-      `Question: "${question}"\n\n` +
+      `You've built a good understanding of ${lessonTopic}. Now let's use that understanding in a new situation.
+
+` +
+      `Instead of only recalling the idea, think about how you would apply it here.
+
+` +
+      `Question: "${question}"
+
+` +
       `Explain how you reached your answer.`;
 
   } else if (move === "challenge") {
     response =
-      `Ready for a challenge?\n\n` +
-      `This time, the situation may be less familiar. The important thing is to transfer what you already understand rather than rely on memorising a particular example.\n\n` +
-      `Question: "${question}"\n\n` +
+      `Ready for a challenge?
+
+` +
+      `This time, the situation may be less familiar. The important thing is to transfer what you already understand rather than rely on memorising a particular example.
+
+` +
+      `Question: "${question}"
+
+` +
       `Give your answer and explain the reasoning that led you there.`;
 
   } else {
     response =
-      `Let's build the foundation for ${lessonTopic}.\n\n` +
-      `Start with the basic idea and connect it to what you already know.\n\n` +
-      `Question: "${question}"\n\n` +
+      `Let's build the foundation for ${lessonTopic}.
+
+` +
+      `Start with the basic idea and connect it to what you already know.
+
+` +
+      `Question: "${question}"
+
+` +
       `Explain what you think is happening and why.`;
   }
 
@@ -667,59 +777,104 @@ function developmentAnswer(
       : keyIdeas.slice(0, 4);
 
     response =
-      `Let's answer your question about ${lessonTopic}.\\n\\n` +
-      `${definition ? `The main idea is simple:\\n${definition}\\n\\n` : ""}` +
+      `Let's answer your question about ${lessonTopic}.\
+\
+` +
+      `${definition ? `The main idea is simple:\
+${definition}\
+\
+` : ""}` +
       `${focusedIdeas.length
-        ? `Here are the important parts to understand:\\n` +
+        ? `Here are the important parts to understand:\
+` +
           focusedIdeas
             .map((idea, index) => `${index + 1}. ${idea}`)
-            .join("\\n") +
-          "\\n\\n"
+            .join("\
+") +
+          "\
+\
+"
         : ""}` +
-      `${equation ? `Put the idea together like this:\\n${equation}\\n\\n` : ""}` +
+      `${equation ? `Put the idea together like this:\
+${equation}\
+\
+` : ""}` +
       `${examples.length
-        ? `For example:\\n${examples[0]}\\n\\n`
+        ? `For example:\
+${examples[0]}\
+\
+`
         : ""}` +
-      `So, the key thing to remember is not just the words. Understand how the parts connect to the main idea.\\n\\n` +
+      `So, the key thing to remember is not just the words. Understand how the parts connect to the main idea.\
+\
+` +
       `Now tell me in your own words: what is the main idea, and what are the most important things that make it happen?`;
 
   } else if (method === "discussion") {
     const discussionIdeas = keyIdeas.slice(0, 3);
 
     response =
-      `Let's explore ${lessonTopic} together.\\n\\n` +
-      `${definition ? `First, here's the idea we are going to discuss:\\n${definition}\\n\\n` : ""}` +
+      `Let's explore ${lessonTopic} together.\
+\
+` +
+      `${definition ? `First, here's the idea we are going to discuss:\
+${definition}\
+\
+` : ""}` +
       `${discussionIdeas.length
-        ? `Think about these important points:\\n` +
+        ? `Think about these important points:\
+` +
           discussionIdeas
             .map((idea, index) => `${index + 1}. ${idea}`)
-            .join("\\n") +
-          "\\n\\n"
+            .join("\
+") +
+          "\
+\
+"
         : ""}` +
-      `Let's reason about it rather than simply memorise it.\\n\\n` +
-      `Imagine you are explaining this idea to another learner. What would you say first, and why?\\n\\n` +
+      `Let's reason about it rather than simply memorise it.\
+\
+` +
+      `Imagine you are explaining this idea to another learner. What would you say first, and why?\
+\
+` +
       `Your turn: give your answer and explain your reasoning.`;
 
   } else if (method === "examples") {
     const exampleText = examples.length
       ? examples
           .map((example, index) => `${index + 1}. ${example}`)
-          .join("\\n")
+          .join("\
+")
       : `Imagine a real situation where ${target} matters.`;
 
     response =
-      `Let's learn ${lessonTopic} through examples.\\n\\n` +
-      `${definition ? `First, understand the main idea:\\n${definition}\\n\\n` : ""}` +
-      `Example 1:\\n${exampleText}\\n\\n` +
+      `Let's learn ${lessonTopic} through examples.\
+\
+` +
+      `${definition ? `First, understand the main idea:\
+${definition}\
+\
+` : ""}` +
+      `Example 1:\
+${exampleText}\
+\
+` +
       `${keyIdeas.length
-        ? `Notice what the example demonstrates:\\n` +
+        ? `Notice what the example demonstrates:\
+` +
           keyIdeas
             .slice(0, 3)
             .map((idea, index) => `${index + 1}. ${idea}`)
-            .join("\\n") +
-          "\\n\\n"
+            .join("\
+") +
+          "\
+\
+"
         : ""}` +
-      `The important part is the connection between the example and the concept.\\n\\n` +
+      `The important part is the connection between the example and the concept.\
+\
+` +
       `Now create your own example and explain why it demonstrates ${lessonTopic}.`;
 
   } else if (!hasVerifiedSpecialistResult && method === "step_by_step") {
@@ -727,59 +882,89 @@ function developmentAnswer(
 
     if (definition) {
       steps.push(
-        `Step 1 — Start with the main idea:\\n${definition}`
+        `Step 1 — Start with the main idea:\
+${definition}`
       );
     }
 
     if (keyIdeas.length) {
       steps.push(
-        `Step 2 — Identify what is needed:\\n${keyIdeas.slice(0, 3)
+        `Step 2 — Identify what is needed:\
+${keyIdeas.slice(0, 3)
           .map((idea, index) => `${index + 1}. ${idea}`)
-          .join("\\n")}`
+          .join("\
+")}`
       );
     }
 
     if (keyIdeas.length > 3) {
       steps.push(
-        `Step 3 — Follow what happens:\\n${keyIdeas.slice(3)
+        `Step 3 — Follow what happens:\
+${keyIdeas.slice(3)
           .map((idea, index) => `${index + 1}. ${idea}`)
-          .join("\\n")}`
+          .join("\
+")}`
       );
     } else {
       steps.push(
-        `Step 3 — Connect the idea:\\nThink about how the parts work together to produce the result.`
+        `Step 3 — Connect the idea:\
+Think about how the parts work together to produce the result.`
       );
     }
 
     if (equation) {
       steps.push(
-        `Step 4 — Put the process together:\\n${equation}`
+        `Step 4 — Put the process together:\
+${equation}`
       );
     }
 
     if (examples.length) {
       steps.push(
-        `Step 5 — See it in a real situation:\\n${examples[0]}`
+        `Step 5 — See it in a real situation:\
+${examples[0]}`
       );
     }
 
     response =
-      `Let's work through ${lessonTopic} step by step.\\n\\n` +
-      steps.join("\\n\\n") +
-      `\\n\\nNow teach it back to me in your own words. Start with what happens first, then explain what happens next and what the process produces.`;
+      `Let's work through ${lessonTopic} step by step.\
+\
+` +
+      steps.join("\
+\
+") +
+      `\
+\
+Now teach it back to me in your own words. Start with what happens first, then explain what happens next and what the process produces.`;
 
   } else if (method === "problem_solving") {
     const problemExample = examples[0] ||
       `A learner encounters a situation involving ${lessonTopic}.`;
 
     response =
-      `Let's learn ${lessonTopic} by solving a problem.\\n\\n` +
-      `Here's the situation:\\n${problemExample}\\n\\n` +
-      `${definition ? `What you need to know first:\\n${definition}\\n\\n` : ""}` +
-      `Step 1: Identify what the situation is asking you to understand.\\n\\n` +
-      `Step 2: Identify the important information or factors involved.\\n\\n` +
-      `Step 3: Use the concept to reason from the information to an answer.\\n\\n` +
-      `Step 4: Explain why your answer makes sense.\\n\\n` +
+      `Let's learn ${lessonTopic} by solving a problem.\
+\
+` +
+      `Here's the situation:\
+${problemExample}\
+\
+` +
+      `${definition ? `What you need to know first:\
+${definition}\
+\
+` : ""}` +
+      `Step 1: Identify what the situation is asking you to understand.\
+\
+` +
+      `Step 2: Identify the important information or factors involved.\
+\
+` +
+      `Step 3: Use the concept to reason from the information to an answer.\
+\
+` +
+      `Step 4: Explain why your answer makes sense.\
+\
+` +
       `Now solve the situation yourself. Show your reasoning, not just the final answer.`;
 
   } else if (method === "custom") {
@@ -788,18 +973,30 @@ function developmentAnswer(
       "a clear and learner-friendly approach";
 
     response =
-      `I'll teach ${lessonTopic} using the approach you requested: "${customMethod}".\\n\\n` +
-      `${definition ? `The foundation is:\\n${definition}\\n\\n` : ""}` +
+      `I'll teach ${lessonTopic} using the approach you requested: "${customMethod}".\
+\
+` +
+      `${definition ? `The foundation is:\
+${definition}\
+\
+` : ""}` +
       `${keyIdeas.length
-        ? `The important ideas to work with are:\\n` +
+        ? `The important ideas to work with are:\
+` +
           keyIdeas
             .slice(0, 4)
             .map((idea, index) => `${index + 1}. ${idea}`)
-            .join("\\n") +
-          "\\n\\n"
+            .join("\
+") +
+          "\
+\
+"
         : ""}` +
       `${examples.length
-        ? `A useful real-world connection is:\\n${examples[0]}\\n\\n`
+        ? `A useful real-world connection is:\
+${examples[0]}\
+\
+`
         : ""}` +
       `Now use the same approach to explain what you have understood.`;
 
@@ -844,59 +1041,95 @@ function developmentAnswer(
       const focusedIdeas = keyIdeas.slice(0, 3);
 
       response =
-        `Let's make ${lessonTopic} clear and simple.\n\n` +
-        `${definition ? `The main idea is:\n${definition}\n\n` : ""}` +
+        `Let's make ${lessonTopic} clear and simple.
+
+` +
+        `${definition ? `The main idea is:
+${definition}
+
+` : ""}` +
         `${focusedIdeas.length
-          ? `Focus on these important points:\n` +
+          ? `Focus on these important points:
+` +
             focusedIdeas
               .map((idea, index) => `${index + 1}. ${idea}`)
-              .join("\n") +
-            "\n\n"
+              .join("
+") +
+            "
+
+"
           : ""}` +
         `${examples.length
-          ? `A simple example:\n${examples[0]}\n\n`
+          ? `A simple example:
+${examples[0]}
+
+`
           : ""}` +
         `Now explain the main idea in your own words.`;
     } else if (autoMethod === "step_by_step") {
       const autoSteps = [];
 
       if (definition) {
-        autoSteps.push(`Step 1 — Start with the main idea:\n${definition}`);
+        autoSteps.push(`Step 1 — Start with the main idea:
+${definition}`);
       }
 
       if (keyIdeas.length) {
         autoSteps.push(
-          `Step 2 — Identify the important parts:\n` +
+          `Step 2 — Identify the important parts:
+` +
           keyIdeas
             .slice(0, 3)
             .map((idea, index) => `${index + 1}. ${idea}`)
-            .join("\n")
+            .join("
+")
         );
       }
 
       autoSteps.push(
-        `Step 3 — Connect the ideas:\n` +
+        `Step 3 — Connect the ideas:
+` +
         `Think about how the parts work together and lead to the result.`
       );
 
       response =
-        `Let's build your understanding of ${lessonTopic} step by step.\n\n` +
-        autoSteps.join("\n\n") +
-        `\n\nNow explain the process in your own words, starting with what happens first.`;
+        `Let's build your understanding of ${lessonTopic} step by step.
+
+` +
+        autoSteps.join("
+
+") +
+        `
+
+Now explain the process in your own words, starting with what happens first.`;
     } else if (autoMethod === "examples") {
       response =
-        `Let's strengthen your understanding of ${lessonTopic} using examples.\n\n` +
-        `${definition ? `First, remember the core idea:\n${definition}\n\n` : ""}` +
+        `Let's strengthen your understanding of ${lessonTopic} using examples.
+
+` +
+        `${definition ? `First, remember the core idea:
+${definition}
+
+` : ""}` +
         `${examples.length
-          ? `Look at this example:\n${examples[0]}\n\n`
-          : `Imagine a real situation where ${lessonTopic} matters.\n\n`}` +
+          ? `Look at this example:
+${examples[0]}
+
+`
+          : `Imagine a real situation where ${lessonTopic} matters.
+
+`}` +
         `${keyIdeas.length
-          ? `Notice these important connections:\n` +
+          ? `Notice these important connections:
+` +
             keyIdeas
               .slice(0, 3)
               .map((idea, index) => `${index + 1}. ${idea}`)
-              .join("\n") +
-            "\n\n"
+              .join("
+") +
+            "
+
+"
           : ""}` +
         `Now create or explain another example that shows you understand the idea.`;
     } else {
@@ -905,12 +1138,22 @@ function developmentAnswer(
         `A learner encounters a new situation involving ${lessonTopic}.`;
 
       response =
-        `You've built enough understanding of ${lessonTopic} to apply it.\n\n` +
-        `Here's a new situation:\n${problemExample}\n\n` +
+        `You've built enough understanding of ${lessonTopic} to apply it.
+
+` +
+        `Here's a new situation:
+${problemExample}
+
+` +
         `${definition
-          ? `Use this core concept as your foundation:\n${definition}\n\n`
+          ? `Use this core concept as your foundation:
+${definition}
+
+`
           : ""}` +
-        `Work out what should happen and explain why.\n\n` +
+        `Work out what should happen and explain why.
+
+` +
         `Do not rely only on memory. Show the reasoning that connects the concept to your answer.`;
     }
   }
@@ -927,7 +1170,9 @@ function developmentAnswer(
             : "";
 
   if (method === "auto" && adaptiveGuidance) {
-    response += `\n\n${adaptiveGuidance}`;
+    response += `
+
+${adaptiveGuidance}`;
   }
 
   if (
@@ -938,7 +1183,10 @@ function developmentAnswer(
     !response.includes(retrieved_knowledge.definition)
   ) {
     response =
-      `Answer:\n${retrieved_knowledge.definition}\n\n` +
+      `Answer:
+${retrieved_knowledge.definition}
+
+` +
       response;
   }
 
@@ -953,7 +1201,11 @@ function developmentAnswer(
     trustedTeaching
   ) {
     response +=
-      `\n\n${trustedTeaching}\n\n` +
+      `
+
+${trustedTeaching}
+
+` +
       `These facts are being used as the factual foundation for this explanation.`;
   }
 
