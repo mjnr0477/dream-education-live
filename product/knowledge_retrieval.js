@@ -70,8 +70,7 @@ async function retrieveKnowledge(query, options = {}) {
   const candidatesForVerification = rankedSources
     .filter(source =>
       source &&
-      String(source.extract || "").trim().length >= 80 &&
-      Number(source.relevance_score || 0) >= 6
+      String(source.extract || "").trim().length >= 80
     )
     .slice(0, 8);
 
