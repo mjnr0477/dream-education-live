@@ -8641,7 +8641,7 @@ app.post("/api/v1/school/onboard", async (req, res) => {
     });
   }
 });
-\napp.post("/api/v1/knowledge/ingest", async (req, res) => {
+app.post("/api/v1/knowledge/ingest", async (req, res) => {
   try {
     const auth = await getAuthenticatedAccount(req);
     if (!auth.success || !["teacher", "school"].includes(auth.account.role)) {
