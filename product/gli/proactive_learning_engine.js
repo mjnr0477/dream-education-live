@@ -4,7 +4,11 @@ function generateProactiveActions({ learner, profile = {} } = {}) {
   const actions = [];
   const patterns = profile.patterns || {};
 
+  const topicProfiles = profile.topics || {};
+  const seen = new Set();
+
   for (const topic of patterns.current_misconception_topics || []) {
+    seen.add(topic);
     actions.push({
       type: "misconception_intervention",
       priority: "high",
