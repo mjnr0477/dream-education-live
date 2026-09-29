@@ -1102,19 +1102,16 @@ app.post("/api/learn", async (req, res) => {
      * INTELLIGENCE ROUTING
      * ============================================================
      *
-     * Run the independent intelligence paths concurrently:
-     *
-     *   1. Universal specialist solver
-     *   2. Dream/curriculum knowledge
-     *   3. External knowledge retrieval
-     *
-     * A verified specialist result remains authoritative for
-     * problems that require calculation or solving.
+     * Resolve local curriculum first. For curriculum-covered
+     * questions, external network retrieval is unnecessary because
+     * the curriculum is already the authoritative teaching source.
+     * This removes avoidable network latency without changing the
+     * existing adaptive decision or teaching engines.
      */
 
-    console.log("2.3 Starting parallel intelligence routing");
+    console.log("2.3 Starting intelligence routing");
 
-    const curriculumPromise = Promise.resolve().then(() => {
+    const curriculumContent = await Promise.resolve().then(() => {
       const dreamContent = findDreamContent({
         level,
         subject_or_discipline: subject,
@@ -1129,73 +1126,81 @@ app.post("/api/learn", async (req, res) => {
       });
     });
 
-      const specialistVerified =
-        specialistResult &&
-        specialistResult.solved === true &&
-        specialistResult.verified === true;
-
-      const knowledgePromise = specialistVerified
-      ? Promise.resolve({
-          success: false,
-          skipped: true,
-          error: "Skipped because verified specialist result is authoritative."
-        })
-      : Promise.all([
-          retrieveKnowledge(question, {
-            limit: 5
-          }).catch((knowledgeError) => {
-            console.error(
-              "2.7 KNOWLEDGE RETRIEVAL ERROR:",
-              knowledgeError.message
-            );
-
-            return {
-              success: false,
-              error: knowledgeError.message
-            };
-          }),
-
-          getTrustedInformation(
-            question,
-            queryInfo
-          ).catch((trustedError) => {
-            console.error(
-              "2.7 TRUSTED INFORMATION ERROR:",
-              trustedError.message
-            );
-
-            return {
-              success: false,
-              routed: false,
-              sources: [],
-              error: trustedError.message
-            };
-          })
-        ]).then(([knowledge, trusted]) => ({
-          success:
-            !!knowledge?.success ||
-            !!trusted?.success,
-
-          knowledge:
-            knowledge?.knowledge || null,
-
-          trusted_sources:
-            trusted?.sources || [],
-
-          trusted_information:
-            trusted || null
-        }));
-
-    const [curriculumContent, knowledgeResult] =
-      await Promise.all([
-        curriculumPromise,
-        knowledgePromise
-      ]);
-
     console.log(
       "2.5 Curriculum content:",
       curriculumContent ? "FOUND" : "NOT FOUND"
     );
+
+    const specialistVerified =
+      specialistResult &&
+      specialistResult.solved === true &&
+      specialistResult.verified === true;
+
+    let knowledgeResult;
+
+    if (specialistVerified) {
+      knowledgeResult = {
+        success: false,
+        skipped: true,
+        error: "Skipped because verified specialist result is authoritative."
+      };
+    } else if (curriculumContent) {
+      knowledgeResult = {
+        success: false,
+        skipped: true,
+        error: "Skipped because structured curriculum content is available."
+      };
+    } else {
+      console.log("2.6 No local curriculum match; using external knowledge.");
+
+      const [knowledge, trusted] = await Promise.all([
+        retrieveKnowledge(question, {
+          limit: 5
+        }).catch((knowledgeError) => {
+          console.error(
+            "2.7 KNOWLEDGE RETRIEVAL ERROR:",
+            knowledgeError.message
+          );
+
+          return {
+            success: false,
+            error: knowledgeError.message
+          };
+        }),
+
+        getTrustedInformation(
+          question,
+          queryInfo
+        ).catch((trustedError) => {
+          console.error(
+            "2.7 TRUSTED INFORMATION ERROR:",
+            trustedError.message
+          );
+
+          return {
+            success: false,
+            routed: false,
+            sources: [],
+            error: trustedError.message
+          };
+        })
+      ]);
+
+      knowledgeResult = {
+        success:
+          !!knowledge?.success ||
+          !!trusted?.success,
+
+        knowledge:
+          knowledge?.knowledge || null,
+
+        trusted_sources:
+          trusted?.sources || [],
+
+        trusted_information:
+          trusted || null
+      };
+    }
 
     let retrievedKnowledge = null;
 
@@ -8393,7 +8398,7 @@ const {
 const { rateLimit, requestId, validateBodySize } = require("./product/gli/production_security");
 const { accountId, requireTenantRole } = require("./product/gli/tenant_access");
 const { recordLearningEvent, getLearningEvaluation } = require("./product/gli/telemetry_engine");
-const { createApiKey, authenticateApiKey } = require("./product/gli/developer_api");
+const { createApiKey, authenticateApiKey, revokeApiKey } = require("./product/gli/developer_api");
 
 async function getLearnerIntelligenceData(learnerId) {
   const learner = getLearner(learnerId);
@@ -8729,6 +8734,32 @@ app.post("/api/v1/developer/keys", async (req, res) => {
   } catch (error) {
     console.error("GLI developer key creation error:", error);
     return res.status(500).json({ success: false, error: "Developer API key creation failed." });
+  }
+});
+
+app.post("/api/v1/developer/keys/:key_id/revoke", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+
+    const result = await gliPostgres.query(
+      `SELECT tenant_id FROM dream_developer_api_keys WHERE key_id = $1 LIMIT 1`,
+      [String(req.params.key_id)]
+    );
+    if (!result.rows.length) return res.status(404).json({ success: false, error: "API key not found." });
+
+    const access = await requireTenantRole(
+      result.rows[0].tenant_id,
+      auth.account,
+      ["owner", "admin"]
+    );
+    if (!access.allowed) return res.status(403).json({ success: false, error: "Tenant administrator access required." });
+
+    const revoked = await revokeApiKey(req.params.key_id);
+    return res.json({ success: true, key: revoked });
+  } catch (error) {
+    console.error("GLI developer key revoke error:", error);
+    return res.status(500).json({ success: false, error: "Developer API key revocation failed." });
   }
 });
 
