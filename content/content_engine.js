@@ -8,8 +8,20 @@ const KNOWLEDGE_FILE = path.join(
   "knowledge.json"
 );
 
+// Cache parsed curriculum in memory. The file timestamp is checked so local
+// curriculum edits are picked up without restarting the server.
+let knowledgeCache = null;
+let knowledgeCacheMtimeMs = 0;
+
 function loadKnowledge() {
-  return JSON.parse(fs.readFileSync(KNOWLEDGE_FILE, "utf8"));
+  const stats = fs.statSync(KNOWLEDGE_FILE);
+  if (knowledgeCache && knowledgeCacheMtimeMs === stats.mtimeMs) {
+    return knowledgeCache;
+  }
+
+  knowledgeCache = JSON.parse(fs.readFileSync(KNOWLEDGE_FILE, "utf8"));
+  knowledgeCacheMtimeMs = stats.mtimeMs;
+  return knowledgeCache;
 }
 
 function getConcept({ subject, level, strand, topic, concept }) {
