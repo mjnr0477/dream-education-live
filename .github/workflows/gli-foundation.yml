@@ -18,7 +18,7 @@ jobs:
         with:
           node-version: 24
       - run: npm install
-      - run: node --check server.js
+      - run: node --check server.js\n      - run: node --check public/app.js\n      - run: node --check public/gli-command-center.js
       - run: node --check product/gli/learner_graph_engine.js
       - run: node --check product/gli/proactive_learning_engine.js
       - run: node --check product/gli/offline_sync_engine.js
