@@ -4373,6 +4373,7 @@ const {
   saveStore,
   saveLearner,
   getLearner,
+  saveSchool,
   saveAccount,
   getAccount,
   getAccountByEmail,
