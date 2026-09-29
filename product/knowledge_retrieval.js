@@ -6,6 +6,36 @@ const extractor = require("./knowledge_extractor.js");
 async function retrieveKnowledge(query, options = {}) {
   const limit = options.limit || 5;
 
+  // Tenant-scoped GLI knowledge is additive to the existing verified-provider
+  // retrieval path. If it is unavailable, the original path remains authoritative.
+  if (options.tenantId) {
+    try {
+      const { searchKnowledge } = require("./gli/gli_intelligence_service");
+      const tenantResults = await searchKnowledge(query, limit, options.tenantId);
+      if (tenantResults.length) {
+        return {
+          success: true,
+          query,
+          source: {
+            title: tenantResults[0].title,
+            name: tenantResults[0].source,
+            verification_score: null,
+            scope: "tenant"
+          },
+          knowledge: {
+            concept: tenantResults[0].title,
+            definition: tenantResults[0].content,
+            key_ideas: tenantResults.slice(1).map(item => item.content),
+            examples: [],
+            evidence: tenantResults
+          }
+        };
+      }
+    } catch (error) {
+      console.warn("GLI tenant knowledge unavailable; continuing with existing retrieval:", error.message);
+    }
+  }
+
   const results = await sourceEngine.searchSources(query, limit);
 
   if (!results.sources.length) {
