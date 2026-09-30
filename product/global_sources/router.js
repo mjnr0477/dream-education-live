@@ -6,6 +6,7 @@ const doaj = require("./providers/doaj");
 const unpaywall = require("./providers/unpaywall");
 const science = require("./providers/science");
 
+
 const FAMILY_MAP = {
   mathematics:["openalex","doaj"],
   mathematics_education:["openalex","doaj","mit_ocw","openstax"],
@@ -14,7 +15,7 @@ const FAMILY_MAP = {
   physics:["openalex","doaj","arxiv","nist"],
   medicine:["pubmed","pubmed_central","europe_pmc","openalex"],
   computer_science:["openalex","arxiv","github","stack_exchange"],
-  environment:["gbif","noaa","usgs","openalex"],
+  environment:["gbif","noaa","usgs","openalex","doaj"],
   space:["nasa","openalex","arxiv"],
   economics:["world_bank","oecd","openalex"],
   general:["wikipedia","wikidata","openalex","crossref","datacite","doaj"]
@@ -25,6 +26,8 @@ const PROVIDERS = {
   doaj,
   unpaywall,
 
+  // Trusted scientific providers are real network-backed providers,
+  // not catalog-only placeholders.
   pubchem:{search:science.pubchem},
   gbif:{search:science.gbif},
   uniprot:{search:science.uniprot},
