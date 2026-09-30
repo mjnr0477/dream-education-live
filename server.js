@@ -18,6 +18,8 @@ const {
 } = require("./product/connection_engine");
 const { solveProblem } = require("./product/problem_solver_engine.js");
 const { safelyObserveLearningEvent } = require("./product/dream/learning_observer");
+const { buildLearningSession } = require("./product/learning_session_engine");
+const { buildTeacherIntelligence, buildParentIntelligence, buildSchoolIntelligence } = require("./product/role_intelligence_engine");
 
 const express = require("express");
 const {
@@ -3274,6 +3276,58 @@ app.post("/api/learning-cycle", async (req, res) => {
       mastered: score >= 80
     });
 
+    // Build a meaningful, evidence-grounded session without replacing the
+    // protected adaptive engines. Knowledge retrieval is bounded so a slow
+    // provider cannot block the learning cycle indefinitely.
+    let meaningfulSession = null;
+    try {
+      const knowledgeResult = await Promise.race([
+        retrieveKnowledge(question, { limit: 5 }),
+        new Promise(resolve => setTimeout(() => resolve({
+          success: false,
+          error: "Evidence retrieval timed out."
+        }), 2800))
+      ]);
+
+      meaningfulSession = buildLearningSession({
+        question,
+        learnerAnswer: learner_answer,
+        subject,
+        topic,
+        level,
+        score,
+        understanding,
+        feedback,
+        evidence: knowledgeResult?.evidence || [],
+        crossSourceVerification: knowledgeResult?.cross_source_verification || null,
+        priorAverage: previousAverage,
+        attemptNumber: scores.length
+      });
+
+      await supabase
+        .from("dream_learning_sessions")
+        .insert({
+          learner_id,
+          question,
+          subject: subject || null,
+          topic: topic || null,
+          level: level || null,
+          score,
+          understanding,
+          mastery_state: meaningfulSession.mastery_state,
+          next_action: meaningfulSession.next_action,
+          session_payload: meaningfulSession,
+          evidence: meaningfulSession.evidence,
+          evidence_status: meaningfulSession.evidence_status,
+          attempt_number: scores.length,
+          prior_average: previousAverage,
+          improvement_from_prior: meaningfulSession.improvement_from_prior,
+          completed_at: meaningfulSession.completed_at
+        });
+    } catch (sessionError) {
+      console.warn("Meaningful session enrichment skipped:", sessionError.message);
+    }
+
     await recordGLIEventSafe({
       learnerId: learner_id,
       type: "learning_cycle_completed",
@@ -3304,6 +3358,7 @@ app.post("/api/learning-cycle", async (req, res) => {
         total_questions: previousQuestions.length,
         subject_counts: subjectCounts
       },
+      meaningful_session: meaningfulSession,
       next_question: {
         subject: nextSubject,
         question: nextQuestion
@@ -3318,6 +3373,234 @@ app.post("/api/learning-cycle", async (req, res) => {
       error: "Learning cycle failed",
       details: error.message
     });
+  }
+});
+
+
+
+
+// ============================================================
+// MEANINGFUL LEARNING SESSION
+// Evidence-grounded session layer over the protected adaptive loop.
+// ============================================================
+app.post("/api/v1/learner/:learner_id/learning-session", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success:false, error:auth.error });
+
+    const learnerId = String(req.params.learner_id || "").trim();
+    if (!learnerId) return res.status(400).json({ success:false, error:"learner_id is required" });
+
+    if (
+      auth.account.role === "learner" &&
+      String(auth.account.learner_id || "") !== learnerId &&
+      auth.account.owner_account !== true
+    ) {
+      return res.status(403).json({ success:false, error:"Learner access denied." });
+    }
+
+    const {
+      question,
+      learner_answer,
+      subject,
+      topic,
+      level,
+      score = 0,
+      understanding = "needs_practice",
+      feedback = "",
+      evidence = [],
+      cross_source_verification = null,
+      prior_average = null,
+      attempt_number = 1
+    } = req.body || {};
+
+    if (!question || !learner_answer) {
+      return res.status(400).json({ success:false, error:"question and learner_answer are required" });
+    }
+
+    const session = buildLearningSession({
+      question,
+      learnerAnswer: learner_answer,
+      subject,
+      topic,
+      level,
+      score,
+      understanding,
+      feedback,
+      evidence,
+      crossSourceVerification: cross_source_verification,
+      priorAverage: prior_average,
+      attemptNumber: attempt_number
+    });
+
+    const { data, error } = await supabase
+      .from("dream_learning_sessions")
+      .insert({
+        learner_id: learnerId,
+        question,
+        subject: subject || null,
+        topic: topic || null,
+        level: level || null,
+        score: Number(score) || 0,
+        understanding,
+        mastery_state: session.mastery_state,
+        next_action: session.next_action,
+        session_payload: session,
+        evidence: session.evidence,
+        evidence_status: session.evidence_status,
+        attempt_number: Number(attempt_number) || 1,
+        prior_average: Number.isFinite(Number(prior_average)) ? Number(prior_average) : null,
+        improvement_from_prior: session.improvement_from_prior,
+        completed_at: session.completed_at
+      })
+      .select("session_id,created_at")
+      .single();
+
+    if (error) throw error;
+
+    return res.json({
+      success: true,
+      session_id: data.session_id,
+      session
+    });
+  } catch (error) {
+    console.error("Meaningful learning session error:", error);
+    return res.status(500).json({
+      success:false,
+      error:"Meaningful learning session could not be created."
+    });
+  }
+});
+
+app.get("/api/v1/learner/:learner_id/learning-sessions", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success:false, error:auth.error });
+
+    const learnerId = String(req.params.learner_id || "").trim();
+    if (
+      auth.account.role === "learner" &&
+      String(auth.account.learner_id || "") !== learnerId &&
+      auth.account.owner_account !== true
+    ) return res.status(403).json({ success:false, error:"Learner access denied." });
+
+    const { data, error } = await supabase
+      .from("dream_learning_sessions")
+      .select("session_id,question,subject,topic,score,understanding,mastery_state,next_action,evidence,evidence_status,attempt_number,prior_average,improvement_from_prior,completed_at,created_at")
+      .eq("learner_id", learnerId)
+      .order("created_at", { ascending:false })
+      .limit(20);
+
+    if (error) throw error;
+    return res.json({ success:true, learner_id:learnerId, sessions:data || [] });
+  } catch (error) {
+    console.error("Learning sessions history error:", error);
+    return res.status(500).json({ success:false, error:"Learning session history could not be loaded." });
+  }
+});
+
+// ============================================================
+// ROLE INTELLIGENCE
+// Turns existing connections + learning evidence into actionable
+// teacher, parent and school views without replacing protected engines.
+// ============================================================
+app.get("/api/v1/role/:role/intelligence", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success:false, error:auth.error });
+
+    const role = String(req.params.role || "").toLowerCase();
+    if (!["teacher","parent","school"].includes(role)) {
+      return res.status(400).json({ success:false, error:"Unsupported role." });
+    }
+    if (auth.account.role !== role && auth.account.owner_account !== true) {
+      return res.status(403).json({ success:false, error:"Role access denied." });
+    }
+
+    const dataEngine = require("./product/data_engine");
+    const connectionEngine = require("./product/connection_engine");
+    const store = dataEngine.loadStore();
+    const entityId = connectionEngine.getAccountEntityId(auth.account);
+    const profile =
+      role === "teacher"
+        ? (store.teachers || {})[entityId]
+        : role === "parent"
+          ? (store.parents || {})[entityId]
+          : (store.schools || {})[entityId];
+
+    if (!profile) return res.status(404).json({ success:false, error:"Role profile not found." });
+
+    const active = Object.values(store.connections || {}).filter(connection =>
+      connection &&
+      connection.status === "active" &&
+      (
+        (connection.from_role === role && connection.from_id === entityId) ||
+        (connection.to_role === role && connection.to_id === entityId)
+      )
+    );
+
+    const learnerIds = new Set();
+
+    for (const connection of active) {
+      if (connection.from_role === "learner") learnerIds.add(String(connection.from_id));
+      if (connection.to_role === "learner") learnerIds.add(String(connection.to_id));
+    }
+
+    if (Array.isArray(profile.learners)) {
+      profile.learners.forEach(id => learnerIds.add(String(id)));
+    }
+    if (Array.isArray(profile.children)) {
+      profile.children.forEach(id => learnerIds.add(String(id)));
+    }
+
+    const learners = Array.from(learnerIds)
+      .map(id => (store.learners || {})[id])
+      .filter(Boolean);
+
+    if (role === "school" && !learners.length && Array.isArray(profile.learners)) {
+      return res.json({
+        success:true,
+        intelligence:buildSchoolIntelligence({ school:profile, learners:[], assessments:[], teachers:Object.values(store.teachers || {}) })
+      });
+    }
+
+    const ids = learners.map(l => l.learner_id);
+    let assessments = [];
+
+    if (ids.length) {
+      const { data, error } = await supabase
+        .from("learning_assessments")
+        .select("learner_id,question,subject,topic,score,understanding,created_at")
+        .in("learner_id", ids)
+        .order("created_at", { ascending:false })
+        .limit(1000);
+      if (error) throw error;
+      assessments = data || [];
+    }
+
+    let intelligence;
+    if (role === "teacher") {
+      intelligence = buildTeacherIntelligence({ teacher:profile, learners, assessments });
+    } else if (role === "parent") {
+      intelligence = buildParentIntelligence({ parent:profile, children:learners, assessments });
+    } else {
+      intelligence = buildSchoolIntelligence({
+        school:profile,
+        learners,
+        assessments,
+        teachers:Object.values(store.teachers || {})
+      });
+    }
+
+    return res.json({
+      success:true,
+      intelligence,
+      connected_learners:learners.length,
+      active_connections:active.length
+    });
+  } catch (error) {
+    console.error("Role intelligence error:", error);
+    return res.status(500).json({ success:false, error:"Role intelligence could not be built." });
   }
 });
 

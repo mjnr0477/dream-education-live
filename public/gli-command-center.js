@@ -194,8 +194,44 @@
     $("#panel-description").textContent = "One modern control surface connected to your existing learning platform.";
     body.innerHTML = roleHub(a);
     const role = roleOf(a);
-    if (role === "learner") await renderLearnerDashboard(body,a);
-    else bindRoleModules(body);
+    if (role === "learner") {
+      await renderLearnerDashboard(body,a);
+    } else {
+      await renderRoleIntelligenceDashboard(body,a,role);
+      bindRoleModules(body);
+    }
+  }
+
+
+  async function renderRoleIntelligenceDashboard(root, a, role) {
+    root.innerHTML = '<div class="gli-loading"><span></span><p>Building your role intelligence…</p></div>';
+    try {
+      const data = await getJSON("/api/v1/role/"+encodeURIComponent(role)+"/intelligence");
+      const intel = data.intelligence || {};
+      const signal = intel.class_signal || intel.family_signal || intel.institution_signal || {};
+      const priorities = firstArray(intel.teaching_priorities, intel.children, intel.priority_learners);
+      const average = num(signal.average_score);
+
+      root.innerHTML =
+        '<div class="gli-dashboard">' +
+        '<div class="gli-dashboard-head"><div><span class="gli-kicker">ROLE INTELLIGENCE</span><h3>'+esc(intel.headline || "Learning intelligence")+'</h3><p>Actionable signals built from your connected learning relationships and verified assessment history.</p></div><button class="gli-refresh" data-gli-refresh>Refresh ↻</button></div>' +
+        '<div class="gli-kpis">' +
+          '<article><span>Connected learners</span><strong>'+num(data.connected_learners)+'</strong><small>Active learning relationships</small></article>' +
+          '<article><span>Average signal</span><strong>'+Math.round(average)+'%</strong><small>Assessment evidence</small></article>' +
+          '<article><span>Assessments</span><strong>'+num(signal.assessments)+'</strong><small>Recorded learning evidence</small></article>' +
+          '<article><span>Support focus</span><strong>'+num(signal.learners_needing_support)+'</strong><small>Learners needing attention</small></article>' +
+        '</div>' +
+        '<div class="gli-card"><span>WHAT NEEDS ATTENTION</span><h4>People and topics that can guide your next action</h4>' +
+          (priorities.length ? '<div class="gli-role-list">'+priorities.slice(0,12).map(item =>
+            '<article><div><strong>'+esc(item.name || item.learner_id || "Learner")+'</strong><small>'+esc(item.focus_topics?.join(", ") || item.topic || "Continue monitoring progress")+'</small></div><b>'+Math.round(num(item.average_score))+'%</b></article>'
+          ).join("")+'</div>' : '<div class="gli-empty">No connected learner signal is available yet.</div>') +
+        '</div>' +
+        '<div class="gli-footer-note">This workspace turns learning evidence into a clear next action. It does not replace the protected adaptive engine.</div>' +
+      '</div>';
+      $("[data-gli-refresh]",root)?.addEventListener("click", () => renderRoleIntelligenceDashboard(root,a,role));
+    } catch (error) {
+      root.innerHTML = '<div class="gli-empty">Role intelligence is not available yet: '+esc(error.message)+'</div>';
+    }
   }
 
   function bindRoleModules(root) {
