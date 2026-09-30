@@ -131,10 +131,10 @@ function pairRelationship(left, right) {
     NEGATION_RE.test(leftText) !== NEGATION_RE.test(rightText);
 
   let relationship = "independent";
-  if (exactMatch || (strongTopic && (sameNumbers || numeric === null))) {
-    relationship = "supporting";
-  } else if (numberConflict || negationConflict) {
+  if (numberConflict || negationConflict) {
     relationship = "conflicting";
+  } else if (exactMatch || (strongTopic && (sameNumbers || numeric === null))) {
+    relationship = "supporting";
   } else if (sameTopic) {
     relationship = "related";
   }
