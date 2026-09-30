@@ -10,6 +10,7 @@ const { decideNextAction } = require("./decision_engine");
 const { assessLearning } = require("./assessment_engine");
 const { determineDifficulty } = require("./difficulty_engine");
 const queryEngine = require("./product/query_engine.js");
+const { retrieveKnowledge } = require("./product/knowledge_retrieval");
 
 const {
   createValidatedConnection,
@@ -3276,6 +3277,58 @@ app.post("/api/learning-cycle", async (req, res) => {
       mastered: score >= 80
     });
 
+    // Build a meaningful, evidence-grounded session without replacing the
+    // protected adaptive engines. Knowledge retrieval is bounded so a slow
+    // provider cannot block the learning cycle indefinitely.
+    let meaningfulSession = null;
+    try {
+      const knowledgeResult = await Promise.race([
+        retrieveKnowledge(question, { limit: 5 }),
+        new Promise(resolve => setTimeout(() => resolve({
+          success: false,
+          error: "Evidence retrieval timed out."
+        }), 2800))
+      ]);
+
+      meaningfulSession = buildLearningSession({
+        question,
+        learnerAnswer: learner_answer,
+        subject,
+        topic,
+        level,
+        score,
+        understanding,
+        feedback,
+        evidence: knowledgeResult?.evidence || [],
+        crossSourceVerification: knowledgeResult?.cross_source_verification || null,
+        priorAverage: previousAverage,
+        attemptNumber: scores.length
+      });
+
+      await supabase
+        .from("dream_learning_sessions")
+        .insert({
+          learner_id,
+          question,
+          subject: subject || null,
+          topic: topic || null,
+          level: level || null,
+          score,
+          understanding,
+          mastery_state: meaningfulSession.mastery_state,
+          next_action: meaningfulSession.next_action,
+          session_payload: meaningfulSession,
+          evidence: meaningfulSession.evidence,
+          evidence_status: meaningfulSession.evidence_status,
+          attempt_number: scores.length,
+          prior_average: previousAverage,
+          improvement_from_prior: meaningfulSession.improvement_from_prior,
+          completed_at: meaningfulSession.completed_at
+        });
+    } catch (sessionError) {
+      console.warn("Meaningful session enrichment skipped:", sessionError.message);
+    }
+
     await recordGLIEventSafe({
       learnerId: learner_id,
       type: "learning_cycle_completed",
@@ -3306,6 +3359,7 @@ app.post("/api/learning-cycle", async (req, res) => {
         total_questions: previousQuestions.length,
         subject_counts: subjectCounts
       },
+      meaningful_session: meaningfulSession,
       next_question: {
         subject: nextSubject,
         question: nextQuestion
