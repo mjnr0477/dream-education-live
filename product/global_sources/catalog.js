@@ -34,14 +34,14 @@ const SOURCES = [
   {id:"europe_pmc",name:"Europe PMC",family:"biomedical",access:"api",license:"mixed/open",status:"connected"},
 
   // CHEMISTRY / PHYSICS
-  {id:"pubchem",name:"PubChem",family:"chemistry",access:"rest",license:"public-domain/open",status:"ready"},
+  {id:"pubchem",name:"PubChem",family:"chemistry",access:"rest",license:"public-domain/open",status:"connected"},
   {id:"nist",name:"NIST",family:"science",access:"web/api",license:"mixed",status:"ready"},
   {id:"arxiv",name:"arXiv",family:"research",access:"api",license:"mixed",status:"connected"},
-  {id:"rcsb_pdb",name:"RCSB Protein Data Bank",family:"biology",access:"api",license:"CC0/data-open",status:"ready"},
-  {id:"uniprot",name:"UniProt",family:"biology",access:"rest",license:"CC BY 4.0",status:"ready"},
+  {id:"rcsb_pdb",name:"RCSB Protein Data Bank",family:"biology",access:"api",license:"CC0/data-open",status:"connected"},
+  {id:"uniprot",name:"UniProt",family:"biology",access:"rest",license:"CC BY 4.0",status:"connected"},
 
   // BIOLOGY / ENVIRONMENT
-  {id:"gbif",name:"GBIF",family:"biology",access:"rest",license:"mixed-open",status:"ready"},
+  {id:"gbif",name:"GBIF",family:"biology",access:"rest",license:"mixed-open",status:"connected"},
   {id:"usgs",name:"USGS",family:"earth",access:"api",license:"mixed/open",status:"ready"},
   {id:"noaa",name:"NOAA",family:"earth",access:"api",license:"public/open",status:"connected"},
   {id:"nasa",name:"NASA",family:"space",access:"api",license:"public-domain/mixed",status:"connected"},
