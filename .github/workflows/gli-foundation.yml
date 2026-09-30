@@ -4,7 +4,8 @@ on:
   push:
     branches:
       - main
-      - gli-safe-foundation-20260929\n      - ultramodern-frontend-20260929
+      - gli-safe-foundation-20260929
+      - ultramodern-frontend-20260929
   pull_request:
     branches:
       - main
@@ -18,7 +19,9 @@ jobs:
         with:
           node-version: 24
       - run: npm install
-      - run: node --check server.js\n      - run: node --check public/app.js\n      - run: node --check public/gli-command-center.js
+      - run: node --check server.js
+      - run: node --check public/app.js
+      - run: node --check public/gli-command-center.js
       - run: node --check product/gli/learner_graph_engine.js
       - run: node --check product/gli/proactive_learning_engine.js
       - run: node --check product/gli/offline_sync_engine.js
@@ -36,6 +39,7 @@ jobs:
       - run: node --check product/global_sources/providers/data.js
       - run: node --check product/global_sources/providers/repositories.js
       - run: node --check product/source_engine.js
+      - run: node --check product/cross_source_verifier.js
       - run: node --check product/gli/gli_intelligence_service.js
       - run: node -e "for (const f of ['./product/gli/learner_graph_engine','./product/gli/proactive_learning_engine','./product/gli/offline_sync_engine','./product/gli/platform_manifest','./product/gli/knowledge_intelligence_engine','./product/gli/credential_engine','./product/gli/tenant_engine']) require(f); console.log('GLI modules load successfully')"
       - run: npm test
