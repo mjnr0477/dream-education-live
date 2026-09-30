@@ -328,36 +328,6 @@ async function searchSemanticScholar(query, limit = 5) {
   });
 }
 
-async function searchUNESCO(query, limit = 5) {
-  const params = new URLSearchParams({
-    q: query,
-    rows: String(limit)
-  });
-  const url =
-    "https://api.uis.unesco.org/sdmx/dataflow/UIS/" +
-    "?format=csvfile" ;
-  // UNESCO's public DataHub is valuable for official education statistics,
-  // but its catalog is not a general-purpose text search endpoint. Keep this
-  // provider conservative and only activate it when the query is clearly
-  // about education/statistics, avoiding noisy results for ordinary questions.
-  if (!/education|school|student|literacy|enrollment|teacher|learning|sdg|population|gdp|country|statistics/i.test(query)) {
-    return [];
-  }
-  return [];
-}
-
-async function searchOpenStax(query, limit = 5) {
-  const params = new URLSearchParams({
-    q: query,
-    limit: String(limit)
-  });
-  const data = await httpsGetJson(
-    "https://openstax.org/search?" + params.toString()
-  ).catch(() => null);
-  // OpenStax does not expose a stable general-purpose public JSON search API.
-  // Do not scrape its HTML into the answer pipeline.
-  return [];
-}
 
 async function searchOpenAlex(query, limit = 5) {
   const url =
