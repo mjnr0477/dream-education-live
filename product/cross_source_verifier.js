@@ -115,7 +115,8 @@ function pairRelationship(left, right) {
   const similarity = jaccard(leftText, rightText);
   const numeric = numberAgreement(leftText, rightText);
 
-  const sameTopic = similarity >= 0.18;
+  const exactMatch = leftText.toLowerCase() === rightText.toLowerCase();
+  const sameTopic = exactMatch || similarity >= 0.18;
   const strongTopic = similarity >= 0.32;
   const sameNumbers = numeric !== null && numeric >= 0.5;
   const numberConflict =
@@ -130,7 +131,7 @@ function pairRelationship(left, right) {
     NEGATION_RE.test(leftText) !== NEGATION_RE.test(rightText);
 
   let relationship = "independent";
-  if (strongTopic && (sameNumbers || numeric === null)) {
+  if (exactMatch || (strongTopic && (sameNumbers || numeric === null))) {
     relationship = "supporting";
   } else if (numberConflict || negationConflict) {
     relationship = "conflicting";
