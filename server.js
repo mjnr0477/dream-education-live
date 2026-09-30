@@ -10,7 +10,6 @@ const { decideNextAction } = require("./decision_engine");
 const { assessLearning } = require("./assessment_engine");
 const { determineDifficulty } = require("./difficulty_engine");
 const queryEngine = require("./product/query_engine.js");
-const { retrieveKnowledge } = require("./product/knowledge_retrieval");
 
 const {
   createValidatedConnection,
