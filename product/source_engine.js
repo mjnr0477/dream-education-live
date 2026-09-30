@@ -204,6 +204,7 @@ function rankSources(sources, query = "") {
     library_of_congress: 3,
     open_library: 2,
     datacite: 2,
+    semantic_scholar: 5,
     duckduckgo: 0,
     searxng: 0
   };
@@ -300,6 +301,33 @@ async function searchDuckDuckGo(query, limit = 5) {
 
   return results.slice(0, limit);
 }
+
+
+async function searchSemanticScholar(query, limit = 5) {
+  const params = new URLSearchParams({
+    query,
+    limit: String(limit),
+    fields: "title,abstract,url,year,externalIds"
+  });
+  const data = await httpsGetJson(
+    "https://api.semanticscholar.org/graph/v1/paper/search?" + params.toString()
+  );
+  return (data.data || []).map(item => {
+    const abstract = String(item.abstract || "").trim();
+    return {
+      title: String(item.title || query).trim(),
+      snippet: abstract || String(item.title || query).trim(),
+      extract: abstract || String(item.title || query).trim(),
+      source: "Semantic Scholar",
+      provider: "semantic_scholar",
+      source_type: "academic_research",
+      url: item.url || (item.paperId ? `https://www.semanticscholar.org/paper/${item.paperId}` : "https://www.semanticscholar.org/"),
+      publication_year: item.year || null,
+      has_usable_content: (abstract || "").length >= 80
+    };
+  });
+}
+
 
 async function searchOpenAlex(query, limit = 5) {
   const url =
@@ -872,6 +900,7 @@ async function searchSources(query, limit = 5) {
     { name: "wikidata", run: () => searchWikidata(searchQuery, limit) },
     { name: "duckduckgo", run: () => searchDuckDuckGo(searchQuery, limit) },
     { name: "openalex", run: () => searchOpenAlex(searchQuery, limit) },
+    { name: "semantic_scholar", run: () => searchSemanticScholar(searchQuery, limit) },
 
     // NEW FREE / OPEN PROVIDERS — ADDITIVE
     { name: "ncbi_pubmed", run: () => searchNCBIPubMed(searchQuery, limit) },
