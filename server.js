@@ -959,6 +959,21 @@ function developmentAnswer(
       `These facts are being used as the factual foundation for this explanation.`;
   }
 
+  const crossSourceStatus =
+    retrieved_knowledge?.cross_source_verification?.status || null;
+
+  if (
+    !hasVerifiedSpecialistResult &&
+    crossSourceStatus === "conflict_detected"
+  ) {
+    response =
+      "The retrieved evidence contains a disagreement between sources. " +
+      "I am using the highest-authority verified evidence available, but " +
+      "the disagreement should be treated as uncertainty rather than as " +
+      "a settled fact.\n\n" +
+      response;
+  }
+
   return response;
 }
 // Baseline HTTP security headers.
@@ -1742,6 +1757,19 @@ Return a learner-facing teaching response only.
           verification_score: source.verification_score,
           relevance_score: source.relevance_score
         });
+      });
+    }
+
+    if (retrievedKnowledge?.cross_source_verification) {
+      answerSources.push({
+        type: "cross_source_verification",
+        status: retrievedKnowledge.cross_source_verification.status,
+        independent_source_count:
+          retrievedKnowledge.cross_source_verification.independent_source_count,
+        supporting_relationships:
+          retrievedKnowledge.cross_source_verification.supporting_relationships,
+        conflicting_relationships:
+          retrievedKnowledge.cross_source_verification.conflicting_relationships
       });
     }
 

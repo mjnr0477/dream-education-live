@@ -2,6 +2,7 @@ const searchEngine = require("./search_engine.js");
 const sourceEngine = require("./source_engine.js");
 const verifier = require("./source_verifier.js");
 const extractor = require("./knowledge_extractor.js");
+const { verifyCrossSourceEvidence, buildEvidenceSummary } = require("./cross_source_verifier.js");
 
 async function retrieveKnowledge(query, options = {}) {
   const limit = options.limit || 5;
@@ -208,10 +209,51 @@ async function retrieveKnowledge(query, options = {}) {
       })
       .sort((a, b) => b.final_score - a.final_score);
 
-  const verifiedSource = finalRankedCandidates[0].source;
+  /*
+   * Cross-source verification is performed after individual source
+   * verification. This prevents one merely plausible result from
+   * being treated as corroborated evidence.
+   */
+  const crossSource = verifyCrossSourceEvidence(
+    finalRankedCandidates.map(item => ({
+      ...item.source,
+      verification_score: item.verification.score,
+      relevance_score: item.verification.relevance_score
+    }))
+  );
+
+  const crossRanked = new Map(
+    (crossSource.ranked_sources || []).map(item => [
+      String(item.provider || item.source || "").toLowerCase(),
+      item
+    ])
+  );
+
+  const crossRankedCandidates = finalRankedCandidates
+    .map(item => {
+      const key = String(
+        item.source.provider ||
+        item.source.source ||
+        item.source.title ||
+        ""
+      ).toLowerCase();
+      const cross = crossRanked.get(key);
+
+      return {
+        ...item,
+        cross_source: cross || null,
+        final_score:
+          item.final_score +
+          Number(cross?.supporting_sources || 0) * 8 -
+          Number(cross?.conflicting_sources || 0) * 18
+      };
+    })
+    .sort((a, b) => b.final_score - a.final_score);
+
+  const verifiedSource = crossRankedCandidates[0].source;
 
   const verification =
-    finalRankedCandidates[0].verification;
+    crossRankedCandidates[0].verification;
 
   const page =
     verifiedSource._knowledgePage || null;
@@ -251,14 +293,18 @@ async function retrieveKnowledge(query, options = {}) {
       name: verifiedSource.source,
       verification_score: verification.score
     },
-    evidence: finalRankedCandidates.slice(0, 3).map(item => ({
+    evidence: crossRankedCandidates.slice(0, 5).map(item => ({
       title: item.source.title,
       name: item.source.source,
       provider: item.source.provider || null,
       url: item.source.url || null,
       verification_score: item.verification.score,
-      relevance_score: item.verification.relevance_score
+      relevance_score: item.verification.relevance_score,
+      cross_source_status: item.cross_source?.verification_status || "single_source",
+      supporting_sources: item.cross_source?.supporting_sources || 0,
+      conflicting_sources: item.cross_source?.conflicting_sources || 0
     })),
+    cross_source_verification: buildEvidenceSummary(crossSource),
     knowledge
   };
 }
