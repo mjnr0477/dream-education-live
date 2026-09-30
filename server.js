@@ -93,6 +93,8 @@ setInterval(() => {
 const client = new OpenAI({
   apiKey: process.env.AI_API_KEY,
   baseURL: process.env.AI_BASE_URL,
+  timeout: 5000,
+  maxRetries: 0
 });
 
 const supabase = createClient(
@@ -1221,11 +1223,18 @@ app.post("/api/learn", async (req, res) => {
             subject ||
             "this topic",
           trusted_sources:
-            knowledgeResult.trusted_sources
+            knowledgeResult.trusted_sources,
+          evidence:
+            knowledgeResult.knowledge?.evidence || []
         };
       } else {
         retrievedKnowledge =
-          knowledgeResult.knowledge || null;
+          knowledgeResult.knowledge
+            ? {
+                ...knowledgeResult.knowledge,
+                evidence: knowledgeResult.knowledge.evidence || []
+              }
+            : null;
       }
 
       if (
@@ -1498,63 +1507,96 @@ Return a learner-facing teaching response only.
         let primaryAIError = null;
 
         try {
-          for (let attempt = 1; attempt <= 3; attempt++) {
-            try {
-              response = await client.chat.completions.create({
-                model: process.env.AI_MODEL || "gemini-3.8-flash",
-                messages: [
-                  {
-                    role: "user",
-                    content: prompt
-                  }
-                ]
-              });
-              break;
-            } catch (err) {
-              if (err?.status !== 503 || attempt === 3) throw err;
-              console.log(`AI temporarily unavailable; retrying (${attempt}/3)...`);
-              await new Promise(r => setTimeout(r, attempt * 2000));
-            }
-          }
-        } catch (err) {
-          primaryAIError = err;
-          console.log("Primary AI unavailable; trying configured free AI providers...");
-        }
-
-        if (!response) {
-          const freeAI = await generateFreeAI({
+          response = await client.chat.completions.create({
+            model: process.env.AI_MODEL || "gemini-3.8-flash",
             messages: [
               {
                 role: "user",
                 content: prompt
               }
-            ],
-            maxTokens: 1200,
-            temperature: 0.2
-          });
-
-          if (!freeAI.success) {
-            throw primaryAIError || new Error(
-              freeAI.message || "No AI provider returned a usable response."
-            );
-          }
-
-          response = {
-            choices: [
-              {
-                message: {
-                  content: freeAI.content
-                }
-              }
             ]
-          };
-
-          console.log(`7. Free AI answer created (${freeAI.provider})`);
-        } else {
-          console.log("7. AI answer created");
+          });
+        } catch (err) {
+          primaryAIError = err;
+          console.log(
+            "Primary AI unavailable within the fast response window; trying configured free AI providers..."
+          );
         }
 
-        answer = response.choices?.[0]?.message?.content;
+        if (!response) {
+          const freeAI = await Promise.race([
+            generateFreeAI({
+              messages: [
+                {
+                  role: "user",
+                  content: prompt
+                }
+              ],
+              maxTokens: 1200,
+              temperature: 0.2
+            }),
+            new Promise(resolve =>
+              setTimeout(
+                () =>
+                  resolve({
+                    success: false,
+                    status: "timeout",
+                    message: "Free AI provider response timed out."
+                  }),
+                4500
+              )
+            )
+          ]);
+
+          if (!freeAI.success) {
+            /*
+             * Never leave the learner waiting indefinitely.
+             * If evidence exists, use the verified evidence directly.
+             * The system must not fabricate an unsupported factual answer.
+             */
+            if (retrievedKnowledge) {
+              answer = developmentAnswer(
+                question,
+                subject,
+                level,
+                {
+                  learning_method: "explanation",
+                  topic,
+                  decision_topic,
+                  curriculum_content: curriculumContent,
+                  retrieved_knowledge: retrievedKnowledge,
+                  specialist_result: specialistResult
+                }
+              );
+            } else {
+              throw primaryAIError || new Error(
+                freeAI.message || "No verified answer source or AI provider returned a usable response."
+              );
+            }
+          } else {
+            response = {
+              choices: [
+                {
+                  message: {
+                    content: freeAI.content
+                  }
+                }
+              ]
+            };
+
+            console.log(`7. Free AI answer created (${freeAI.provider})`);
+          }
+        }
+
+        if (!answer) {
+          answer = response?.choices?.[0]?.message?.content;
+        }
+
+        if (!answer || !String(answer).trim()) {
+          throw new Error(
+            "Dream Education did not receive a usable answer."
+          );
+        }
       }
 
       cache[cacheKey] = {
@@ -1654,11 +1696,61 @@ Return a learner-facing teaching response only.
 
     console.log("13. Sending successful response");
 
+    const answerSources = [];
+
+    if (specialistVerified) {
+      answerSources.push({
+        type: "specialist",
+        name: specialistResult?.solver || "verified specialist solver"
+      });
+    }
+
+    if (curriculumContent) {
+      answerSources.push({
+        type: "curriculum",
+        name: "Dream Education curriculum"
+      });
+    }
+
+    if (retrievedKnowledge?.trusted_sources?.length) {
+      retrievedKnowledge.trusted_sources.forEach(source => {
+        answerSources.push({
+          type: "trusted",
+          name: source.source,
+          query: source.query || null
+        });
+      });
+    }
+
+    if (retrievedKnowledge?.source) {
+      answerSources.push({
+        type: "verified",
+        name: retrievedKnowledge.source.name,
+        title: retrievedKnowledge.source.title,
+        verification_score: retrievedKnowledge.source.verification_score
+      });
+    }
+
+    if (Array.isArray(retrievedKnowledge?.evidence)) {
+      retrievedKnowledge.evidence.forEach(source => {
+        answerSources.push({
+          type: "evidence",
+          name: source.name,
+          title: source.title,
+          provider: source.provider,
+          url: source.url,
+          verification_score: source.verification_score,
+          relevance_score: source.relevance_score
+        });
+      });
+    }
+
     return res.json({
       success: true,
       answer,
       cached,
       ai_mode: AI_MODE,
+      answer_sources: answerSources,
       saved_to_supabase: !!learner_id,
       learning_history_saved: !!learner_id
     });

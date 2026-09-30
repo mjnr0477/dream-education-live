@@ -167,26 +167,58 @@ async function retrieveKnowledge(query, options = {}) {
    * Every verified candidate now competes in the final ranking.
    * Only after this ranking do we select the strongest source.
    */
-  const finalRankedCandidates =
-    verifier.rankSources(
-      verifiedCandidates.map(item => item.source),
-      query
-    );
+  const authority = {
+    official: 100,
+    government: 100,
+    academic_research: 90,
+    scientific_research: 90,
+    biomedical_research: 90,
+    life_science_research: 90,
+    academic: 85,
+    scientific_reference: 82,
+    technical: 80,
+    educational: 78,
+    library_reference: 72,
+    research_metadata: 68,
+    digital_library: 66,
+    structured_knowledge: 62,
+    reference: 60,
+    web_reference: 35,
+    general: 20
+  };
 
-  const verifiedSource = finalRankedCandidates[0];
+  /*
+   * Evidence is now ranked by authority first, then verification
+   * relevance. This prevents a generic web result from displacing
+   * a connected official, scientific or academic source.
+   */
+  const finalRankedCandidates =
+    verifiedCandidates
+      .map(item => {
+        const source = item.source;
+        const verification = item.verification;
+
+        return {
+          ...item,
+          final_score:
+            (authority[source.source_type] || 20) +
+            (verification.relevance_score || 0) +
+            (verification.score || 0)
+        };
+      })
+      .sort((a, b) => b.final_score - a.final_score);
+
+  const verifiedSource = finalRankedCandidates[0].source;
 
   const verification =
-    verifier.verifySource(
-      verifiedSource,
-      query
-    );
+    finalRankedCandidates[0].verification;
 
   const page =
     verifiedSource._knowledgePage || null;
 
   const relevanceScore =
     Number(
-      finalRankedCandidates[0]?.relevance_score || 0
+      verification.relevance_score || 0
     );
 
   if (!verification.verified) {
@@ -219,6 +251,14 @@ async function retrieveKnowledge(query, options = {}) {
       name: verifiedSource.source,
       verification_score: verification.score
     },
+    evidence: finalRankedCandidates.slice(0, 3).map(item => ({
+      title: item.source.title,
+      name: item.source.source,
+      provider: item.source.provider || null,
+      url: item.source.url || null,
+      verification_score: item.verification.score,
+      relevance_score: item.verification.relevance_score
+    })),
     knowledge
   };
 }

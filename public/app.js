@@ -6878,6 +6878,23 @@ function renderDreamAnswer(result, payload) {
     result.answer ||
     "Dream Education did not return an answer.";
 
+  const answerSourceMarkup = Array.isArray(result.answer_sources) && result.answer_sources.length
+    ? '<ul class="answer-source-list">' +
+      result.answer_sources
+        .filter(function (source) { return source && source.name; })
+        .slice(0, 6)
+        .map(function (source) {
+          const name = escapeHtml(source.name);
+          const title = source.title ? ' — ' + escapeHtml(source.title) : '';
+          const url = source.url
+            ? ' <a href="' + escapeHtml(source.url) + '" target="_blank" rel="noopener noreferrer">source</a>'
+            : '';
+          return '<li><strong>' + name + '</strong>' + title + url + '</li>';
+        })
+        .join('') +
+      '</ul>'
+    : '<p>No external source was required; the answer came from a verified Dream Education learning source.</p>';
+
   panelBody.innerHTML = `
     <div class="panel-card">
       <span class="panel-kicker">DREAM EDUCATION ANSWER</span>
@@ -6905,6 +6922,13 @@ function renderDreamAnswer(result, payload) {
         Source mode:
         <strong>${result.cached ? "Cached answer" : "Fresh answer"}</strong>
       </p>
+    </div>
+
+    <div class="panel-card">
+      <span class="panel-kicker">EVIDENCE USED</span>
+      <div class="dream-answer">
+        ${answerSourceMarkup}
+      </div>
     </div>
 
     <div class="panel-actions">

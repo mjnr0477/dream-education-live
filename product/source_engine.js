@@ -169,29 +169,72 @@ function deduplicateSources(sources) {
   });
 }
 
-function rankSources(sources) {
+function rankSources(sources, query = "") {
   const authority = {
-    official: 10,
-    academic_research: 8,
-    academic: 8,
-    technical: 7,
-    educational: 7,
-    reference: 6,
-    structured_knowledge: 5,
-    scientific_research: 8,
-    scientific_reference: 7,
-    web_reference: 4,
-    general: 2
+    official: 100,
+    government: 100,
+    academic_research: 90,
+    scientific_research: 90,
+    biomedical_research: 90,
+    life_science_research: 90,
+    academic: 85,
+    scientific_reference: 82,
+    technical: 80,
+    educational: 78,
+    library_reference: 72,
+    research_metadata: 68,
+    digital_library: 66,
+    structured_knowledge: 62,
+    reference: 60,
+    web_reference: 35,
+    general: 20
   };
 
+  const providerBoost = {
+    nist: 12,
+    pubchem: 12,
+    ncbi_pubmed: 10,
+    europe_pmc: 10,
+    nasa: 10,
+    noaa: 10,
+    wikipedia: 6,
+    wikidata: 4,
+    openalex: 4,
+    crossref: 3,
+    library_of_congress: 3,
+    open_library: 2,
+    datacite: 2,
+    duckduckgo: 0,
+    searxng: 0
+  };
+
+  const analyzed = query
+    ? queryEngine.analyzeQuery(query)
+    : { search_terms: [] };
+
   return [...(sources || [])]
-    .map(source => ({
-      source,
-      score:
-        (source.has_usable_content ? 20 : 0) +
-        (authority[source.source_type] || 0) +
-        Math.min(source.content_length || 0, 1000) / 1000
-    }))
+    .map(source => {
+      const contentScore = source.has_usable_content ? 20 : 0;
+      const authorityScore = authority[source.source_type] || 0;
+      const providerScore = providerBoost[source.provider] || 0;
+      const relevanceScore = Math.min(
+        (analyzed.search_terms || []).filter(term =>
+          String(source.title || "").toLowerCase()
+            .includes(String(term).toLowerCase())
+        ).length * 2,
+        10
+      );
+
+      return {
+        source,
+        score:
+          contentScore +
+          authorityScore +
+          providerScore +
+          relevanceScore +
+          Math.min(source.content_length || 0, 1000) / 1000
+      };
+    })
     .sort((a, b) => b.score - a.score)
     .map(item => item.source);
 }
@@ -820,7 +863,7 @@ async function searchSources(query, limit = 5) {
       intent: queryInfo.intent
     })
   );
-  const FAST_RETRIEVAL_DEADLINE = 4500;
+  const FAST_RETRIEVAL_DEADLINE = 2800;
 
   const providers = [
     // EXISTING PROVIDERS — PRESERVED
