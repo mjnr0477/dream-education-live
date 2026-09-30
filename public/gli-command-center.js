@@ -173,7 +173,10 @@
       '</div>' +
       '<div class="gli-footer-note">Protected adaptive engines remain authoritative. This dashboard is an intelligence and visualization layer over existing learning data.</div>' +
     '</div>';
-    $("[data-gli-refresh]",root)?.addEventListener("click", () => renderLearnerDashboard(root,a));\n    $(".gli-action-card button",root).forEach(btn => btn.addEventListener("click", () => {\n      if (typeof window.openAdaptiveQuestion === "function") window.openAdaptiveQuestion();\n    }));
+    $("[data-gli-refresh]",root)?.addEventListener("click", () => renderLearnerDashboard(root,a));
+    $(".gli-action-card button",root).forEach(btn => btn.addEventListener("click", () => {
+      if (typeof window.openAdaptiveQuestion === "function") window.openAdaptiveQuestion();
+    }));
   }
 
   async function renderRoleDashboard() {
