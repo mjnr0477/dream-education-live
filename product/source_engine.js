@@ -1,6 +1,7 @@
 const https = require("https");
 const queryEngine = require("./query_engine.js");
 const globalSourceBridge = require("./global_sources/bridge.js");
+const globalSourceRouter = require("./global_sources/router.js");
 
 const USER_AGENT = "DreamEducation/1.0 knowledge-search";
 const PROVIDER_TIMEOUT = 3500;
@@ -913,6 +914,19 @@ async function searchSources(query, limit = 5) {
     { name: "datacite", run: () => searchDataCite(searchQuery, limit) },
     { name: "open_library", run: () => searchOpenLibrary(searchQuery, limit) },
     { name: "searxng", run: () => searchSearXNG(searchQuery, limit) },
+
+    // TRUSTED GLOBAL SOURCE MESH — subject-aware, network-backed providers.
+    // This is blocking so connected specialist sources can contribute to the
+    // first answer instead of waiting for background cache enrichment.
+    {
+      name: "trusted_global_mesh",
+      run: () => globalSourceRouter.search(searchQuery, {
+        domain: queryInfo.subject,
+        subject: queryInfo.subject,
+        topic: queryInfo.topic,
+        intent: queryInfo.intent
+      }, limit)
+    },
 
     // GLOBAL SOURCE EXPANSION — ADDITIVE
     {

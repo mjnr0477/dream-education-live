@@ -20,10 +20,11 @@ async function pubchem(query, limit = 5) {
       source:"PubChem",
       title:String(item.Title || query),
       extract:[
-        item.IUPACName,
-        item.CanonicalSMILES,
-        item.InChI
-      ].filter(Boolean).join(" | "),
+        `PubChem chemical record for ${item.Title || query}.`,
+        item.IUPACName ? `IUPAC name: ${item.IUPACName}.` : "",
+        item.CanonicalSMILES ? `Canonical SMILES: ${item.CanonicalSMILES}.` : "",
+        item.InChI ? `InChI: ${item.InChI}.` : ""
+      ].filter(Boolean).join(" ") ,
       url:`https://pubchem.ncbi.nlm.nih.gov/compound/${item.CID || ""}`
     }));
 }
@@ -40,13 +41,14 @@ async function gbif(query, limit = 5) {
     source:"GBIF",
     title:String(item.scientificName || item.species || ""),
     extract:[
-      item.kingdom,
-      item.phylum,
-      item.class,
-      item.order,
-      item.family,
-      item.genus
-    ].filter(Boolean).join(" > "),
+      `GBIF taxonomic record for ${item.scientificName || item.species || query}.`,
+      item.kingdom ? `Kingdom: ${item.kingdom}.` : "",
+      item.phylum ? `Phylum: ${item.phylum}.` : "",
+      item.class ? `Class: ${item.class}.` : "",
+      item.order ? `Order: ${item.order}.` : "",
+      item.family ? `Family: ${item.family}.` : "",
+      item.genus ? `Genus: ${item.genus}.` : ""
+    ].filter(Boolean).join(" "),
     url:item.key
       ? `https://www.gbif.org/species/${item.key}`
       : ""
@@ -66,7 +68,15 @@ async function uniprot(query, limit = 5) {
     provider:"uniprot",
     source:"UniProt",
     title:String(item.uniProtkbId || item.primaryAccession || ""),
-    extract:String(item.proteinDescription?.recommendedName?.fullName?.value || ""),
+    extract:[
+      `UniProt protein record ${item.primaryAccession || item.uniProtkbId || query}.`,
+      item.proteinDescription?.recommendedName?.fullName?.value
+        ? `Protein name: ${item.proteinDescription.recommendedName.fullName.value}.`
+        : "",
+      item.organism?.scientificName?.value
+        ? `Organism: ${item.organism.scientificName.value}.`
+        : ""
+    ].filter(Boolean).join(" "),
     url:`https://www.uniprot.org/uniprotkb/${item.primaryAccession || ""}`
   })).filter(x => x.title);
 }
@@ -101,7 +111,7 @@ async function rcsb(query, limit = 5) {
     provider:"rcsb_pdb",
     source:"RCSB PDB",
     title:String(item.identifier || ""),
-    extract:String(item.score || ""),
+    extract:`RCSB Protein Data Bank structure record ${item.identifier || query} matching the learner query. The RCSB PDB provides programmatic access to archived macromolecular structure data and search results.`,
     url:`https://www.rcsb.org/structure/${item.identifier || ""}`
   }));
 }
