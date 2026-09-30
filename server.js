@@ -1223,11 +1223,18 @@ app.post("/api/learn", async (req, res) => {
             subject ||
             "this topic",
           trusted_sources:
-            knowledgeResult.trusted_sources
+            knowledgeResult.trusted_sources,
+          evidence:
+            knowledgeResult.knowledge?.evidence || []
         };
       } else {
         retrievedKnowledge =
-          knowledgeResult.knowledge || null;
+          knowledgeResult.knowledge
+            ? {
+                ...knowledgeResult.knowledge,
+                evidence: knowledgeResult.knowledge.evidence || []
+              }
+            : null;
       }
 
       if (
@@ -1721,6 +1728,20 @@ Return a learner-facing teaching response only.
         name: retrievedKnowledge.source.name,
         title: retrievedKnowledge.source.title,
         verification_score: retrievedKnowledge.source.verification_score
+      });
+    }
+
+    if (Array.isArray(retrievedKnowledge?.evidence)) {
+      retrievedKnowledge.evidence.forEach(source => {
+        answerSources.push({
+          type: "evidence",
+          name: source.name,
+          title: source.title,
+          provider: source.provider,
+          url: source.url,
+          verification_score: source.verification_score,
+          relevance_score: source.relevance_score
+        });
       });
     }
 
