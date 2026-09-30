@@ -5,6 +5,9 @@ const openalex = require("./providers/openalex");
 const doaj = require("./providers/doaj");
 const unpaywall = require("./providers/unpaywall");
 const science = require("./providers/science");
+const biomedical = require("./providers/biomedical");
+const data = require("./providers/data");
+const repositories = require("./providers/repositories");
 
 
 const FAMILY_MAP = {
@@ -13,12 +16,12 @@ const FAMILY_MAP = {
   biology:["openalex","doaj","pubmed","europe_pmc","gbif","uniprot","rcsb_pdb"],
   chemistry:["openalex","doaj","pubchem","nist"],
   physics:["openalex","doaj","arxiv","nist"],
-  medicine:["pubmed","pubmed_central","europe_pmc","openalex"],
+  medicine:["pubmed","pubmed_central","europe_pmc","ncbi_bookshelf","openalex"],
   computer_science:["openalex","arxiv","github","stack_exchange"],
   environment:["gbif","noaa","usgs","openalex","doaj"],
   space:["nasa","openalex","arxiv"],
-  economics:["world_bank","oecd","openalex"],
-  general:["wikipedia","wikidata","openalex","crossref","datacite","doaj"]
+  economics:["world_bank","openalex","doaj"],
+  general:["wikipedia","wikidata","openalex","crossref","datacite","doaj","zenodo","figshare"]
 };
 
 const PROVIDERS = {
@@ -31,7 +34,12 @@ const PROVIDERS = {
   pubchem:{search:science.pubchem},
   gbif:{search:science.gbif},
   uniprot:{search:science.uniprot},
-  rcsb_pdb:{search:science.rcsb}
+  rcsb_pdb:{search:science.rcsb},
+  pubmed_central:{search:biomedical.pubmedCentral},
+  ncbi_bookshelf:{search:biomedical.ncbiBookshelf},
+  world_bank:{search:data.worldBank},
+  zenodo:{search:repositories.zenodo},
+  figshare:{search:repositories.figshare}
 };
 
 function providerIds(queryInfo = {}) {
