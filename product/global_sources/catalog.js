@@ -13,7 +13,7 @@ const SOURCES = [
   {id:"crossref",name:"Crossref",family:"research",access:"rest",license:"metadata/open",status:"connected"},
   {id:"datacite",name:"DataCite",family:"research",access:"rest",license:"metadata/open",status:"connected"},
   {id:"openaire",name:"OpenAIRE",family:"research",access:"rest",license:"mixed",status:"ready"},
-  {id:"doaj",name:"DOAJ",family:"research",access:"rest",license:"open-access-index",status:"ready"},
+  {id:"doaj",name:"DOAJ",family:"research",access:"rest",license:"open-access-index",status:"connected"},
   {id:"unpaywall",name:"Unpaywall",family:"research",access:"rest",license:"open-access-metadata",status:"ready"},
   {id:"core",name:"CORE",family:"research",access:"rest",license:"mixed/open",status:"planned"},
   {id:"base",name:"BASE",family:"research",access:"oai/web",license:"mixed",status:"planned"},
@@ -29,8 +29,8 @@ const SOURCES = [
 
   // BIOMEDICAL
   {id:"pubmed",name:"PubMed",family:"biomedical",access:"api",license:"metadata/open",status:"connected"},
-  {id:"pubmed_central",name:"PubMed Central",family:"biomedical",access:"api",license:"mixed",status:"ready"},
-  {id:"ncbi_bookshelf",name:"NCBI Bookshelf",family:"biomedical",access:"api",license:"mixed",status:"ready"},
+  {id:"pubmed_central",name:"PubMed Central",family:"biomedical",access:"api",license:"mixed",status:"connected"},
+  {id:"ncbi_bookshelf",name:"NCBI Bookshelf",family:"biomedical",access:"api",license:"mixed",status:"connected"},
   {id:"europe_pmc",name:"Europe PMC",family:"biomedical",access:"api",license:"mixed/open",status:"connected"},
 
   // CHEMISTRY / PHYSICS
@@ -48,7 +48,7 @@ const SOURCES = [
 
   // DATA / IDENTIFIERS
   {id:"data_commons",name:"Data Commons",family:"data",access:"api",license:"mixed",status:"planned"},
-  {id:"world_bank",name:"World Bank Open Data",family:"economics",access:"api",license:"CC BY 4.0",status:"ready"},
+  {id:"world_bank",name:"World Bank Open Data",family:"economics",access:"api",license:"CC BY 4.0",status:"connected"},
   {id:"un_data",name:"UN Data",family:"global",access:"api/web",license:"mixed",status:"planned"},
   {id:"oecd",name:"OECD Data",family:"economics",access:"api",license:"mixed/open",status:"planned"},
 
@@ -57,8 +57,8 @@ const SOURCES = [
   {id:"stack_exchange",name:"Stack Exchange",family:"software",access:"api",license:"CC BY-SA",status:"ready"},
 
   // ARCHIVES / REPOSITORIES
-  {id:"zenodo",name:"Zenodo",family:"research",access:"api",license:"record-specific",status:"ready"},
-  {id:"figshare",name:"Figshare",family:"research",access:"api",license:"record-specific",status:"ready"}
+  {id:"zenodo",name:"Zenodo",family:"research",access:"api",license:"record-specific",status:"connected"},
+  {id:"figshare",name:"Figshare",family:"research",access:"api",license:"record-specific",status:"connected"}
 ];
 
 function listSources() {
