@@ -2,6 +2,7 @@
 
 const { buildValueEvidence } = require("./gli/value_evidence_engine");
 const { buildOutcomeRetentionIntelligence } = require("./gli/outcome_retention_intelligence");
+const { buildValueCommandCenter } = require("./gli/value_command_center");
 const fs = require("fs");
 const path = require("path");
 
@@ -286,7 +287,9 @@ function getMetrics(now = new Date()) {
 
     value_evidence: buildValueEvidence(data, now),
 
-    outcome_retention: buildOutcomeRetentionIntelligence(data, now)
+    outcome_retention: buildOutcomeRetentionIntelligence(data, now),
+
+    value_command_center: buildValueCommandCenter(data, now)
   };
 }
 
