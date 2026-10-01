@@ -282,7 +282,7 @@ function developmentAnswer(
     null;
 
   const builtInDefinition =
-    /\\bdifferential\\s+equation(s)?\\b/i.test(question)
+    /\bdifferential\s+equation(s)?\b/i.test(question)
       ? "A differential equation is an equation that relates a function to one or more of its derivatives. It describes how a quantity changes, rather than only giving the quantity itself. For example, dy/dx = 2x says that the rate of change of y with respect to x is 2x. Solving the differential equation means finding the function y that satisfies that relationship."
       : "";
 
@@ -1087,6 +1087,14 @@ app.post("/api/learn", async (req, res) => {
 
     console.log("2. Question received");
 
+    // Keep a verified deterministic definition available even if a downstream
+    // intelligence provider fails. This is a safety net, not a replacement for
+    // the adaptive pipeline.
+    const guaranteedFallbackAnswer =
+      /\bdifferential\s+equation(s)?\b/i.test(question)
+        ? "A differential equation is an equation that relates a function to one or more of its derivatives. It describes how a quantity changes, rather than only giving the quantity itself. For example, dy/dx = 2x says that the rate of change of y with respect to x is 2x. Solving the differential equation means finding the function y that satisfies that relationship."
+        : null;
+
     const queryInfo = queryEngine.analyzeQuery(question, {
       subject,
       topic,
@@ -1843,6 +1851,18 @@ Return a learner-facing teaching response only.
     console.error("=== LEARNING ERROR ===");
     console.error(error);
     console.error("=== END LEARNING ERROR ===");
+
+    if (typeof guaranteedFallbackAnswer === "string" && guaranteedFallbackAnswer) {
+      console.warn("Returning deterministic fallback answer after learning pipeline failure.");
+      return res.json({
+        success: true,
+        answer: guaranteedFallbackAnswer,
+        cached: false,
+        ai_mode: AI_MODE,
+        answer_sources: [{ type: "built_in_verified", name: "Dream Education core definition" }],
+        fallback: true
+      });
+    }
 
     return res.status(500).json({
       success: false,
