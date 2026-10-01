@@ -26,4 +26,9 @@ assert.strictEqual(evidence.learner_engagement.active_learners_30d, 2);
 assert.strictEqual(evidence.commercial_signal.paying_customers, 1);
 assert.strictEqual(evidence.value_proof_status, "early_evidence");
 
+const { getMetrics } = require("../product/traction_engine");
+const metrics = getMetrics();
+assert(metrics.value_evidence);
+assert.strictEqual(typeof metrics.value_evidence.value_proof_status, "string");
+
 console.log("Value evidence smoke test passed");

@@ -1,5 +1,6 @@
 "use strict";
 
+const { buildValueEvidence } = require("./gli/value_evidence_engine");
 const fs = require("fs");
 const path = require("path");
 
@@ -280,7 +281,9 @@ function getMetrics(now = new Date()) {
       activities: data.activities.length,
       outcomes: data.outcomes.length,
       payments: data.payments.length
-    }
+    },
+
+    value_evidence: buildValueEvidence(data, now)
   };
 }
 
