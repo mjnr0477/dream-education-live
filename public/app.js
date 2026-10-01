@@ -6393,6 +6393,59 @@ function renderAssessmentResult(result, learnerId, token) {
   const trajectory = result.trajectory || {};
   const decision = result.decision || {};
   const next = result.next_question || {};
+  const session = result.meaningful_session || null;
+  const sessionEvidence = session && Array.isArray(session.evidence)
+    ? session.evidence
+    : [];
+
+  const evidenceMarkup = sessionEvidence.length
+    ? sessionEvidence.slice(0, 5).map(function (source) {
+        const status = source.cross_source_status || session.evidence_status || "verified";
+        const support = Number(source.supporting_sources || 0);
+        const conflict = Number(source.conflicting_sources || 0);
+        return `
+          <article class="panel-card learning-evidence-item">
+            <span class="panel-kicker">EVIDENCE · ${escapeHtml(status)}</span>
+            <h3>${escapeHtml(source.title || source.provider || "Verified source")}</h3>
+            <p>${escapeHtml(source.provider || "Connected source")}</p>
+            <p>
+              ${support ? "Corroborated by " + support + " source(s)." : "Independently verified evidence."}
+              ${conflict ? " " + conflict + " conflicting source(s) detected." : ""}
+            </p>
+            ${source.url ? '<a href="' + escapeHtml(source.url) + '" target="_blank" rel="noopener noreferrer">Open source</a>' : ""}
+          </article>`;
+      }).join("")
+    : '<div class="panel-card"><span class="panel-kicker">EVIDENCE</span><p>No verified external evidence was available for this attempt. The protected learning engines remain authoritative.</p></div>';
+
+  const meaningfulMarkup = session
+    ? `
+      <section class="panel-card learning-session-purpose">
+        <span class="panel-kicker">YOUR LEARNING SESSION</span>
+        <h2>${escapeHtml(session.learning_objective || "Build understanding")}</h2>
+        <p>${escapeHtml(session.teaching?.objective || "Strengthen your understanding through guided practice.")}</p>
+        <div class="panel-actions">
+          <span class="panel-status">Phase: ${escapeHtml(session.current_phase || "reflection")}</span>
+          <span class="panel-status">Next action: ${escapeHtml(session.next_action || "continue")}</span>
+        </div>
+      </section>
+
+      <section class="panel-card">
+        <span class="panel-kicker">WHAT TO DO NOW</span>
+        <h3>${escapeHtml(session.teaching?.instruction || "Explain the idea in your own words.")}</h3>
+        <p>${escapeHtml(session.retrieval_prompt || "")}</p>
+      </section>
+
+      <section class="panel-card">
+        <span class="panel-kicker">APPLY IT</span>
+        <p>${escapeHtml(session.application_prompt || next.question || "Apply what you learned to a new example.")}</p>
+      </section>
+
+      <section>
+        <div class="panel-kicker" style="margin:18px 0 8px;">EVIDENCE USED</div>
+        <div class="learning-evidence-grid">${evidenceMarkup}</div>
+      </section>
+    `
+    : "";
 
   panelBody.innerHTML = `
     <div class="panel-card">
