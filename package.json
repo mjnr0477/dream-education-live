@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node scripts/gli-smoke-test.js && node scripts/gli-advanced-smoke-test.js",
-    "test:gli-advanced": "node scripts/gli-advanced-smoke-test.js"
+    "test": "node scripts/gli-smoke-test.js && node scripts/gli-advanced-smoke-test.js && node scripts/gli-memory-portfolio-smoke-test.js",
+    "test:gli-advanced": "node scripts/gli-advanced-smoke-test.js",
+    "test:gli-memory": "node scripts/gli-memory-portfolio-smoke-test.js"
   },
   "keywords": [],
   "author": "",
