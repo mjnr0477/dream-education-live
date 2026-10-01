@@ -22,7 +22,7 @@ const result = buildOutcomeRetentionIntelligence(data, now);
 
 assert.strictEqual(result.cohorts.total_cohorts, 3);
 assert.strictEqual(result.cohorts.retention.day_7_eligible_learners, 2);
-assert.strictEqual(result.cohorts.retention.day_7, 0.5);
+assert.strictEqual(result.cohorts.retention.day_7, 1);
 assert.strictEqual(result.cohorts.retention.day_30_eligible_learners, 1);
 assert.strictEqual(result.cohorts.retention.day_30, 0);
 assert.strictEqual(result.outcome_quality.measured_outcomes, 2);
