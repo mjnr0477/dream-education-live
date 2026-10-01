@@ -23,4 +23,6 @@ jobs:
       - run: node --check product/gli/curriculum_intelligence.js
       - run: node --check product/gli/learning_portfolio_engine.js
       - run: node --check product/gli/platform_readiness.js
+      - run: node --check public/app.js
+      - run: node --check public/frontend-workspace.js
       - run: npm test
