@@ -8834,6 +8834,8 @@ const { selectLearningMethod } = require("./product/gli/learning_method_intellig
 const { buildCurriculumIntelligence } = require("./product/gli/curriculum_intelligence");
 const { buildLearningPortfolio } = require("./product/gli/learning_portfolio_engine");
 const { buildPlatformReadiness } = require("./product/gli/platform_readiness");
+const { buildPersonalLearningMemory } = require("./product/gli/personal_learning_memory");
+const { buildProjectPortfolio } = require("./product/gli/project_portfolio_engine");
 
 async function getLearnerIntelligenceData(learnerId) {
   const learner = getLearner(learnerId);
@@ -8903,6 +8905,15 @@ app.get("/api/v1/learner/:learner_id/intelligence", async (req, res) => {
       profile: data.profile,
       assessments: data.assessments
     });
+    const personalMemory = buildPersonalLearningMemory({
+      learner: data.learner,
+      history: data.history,
+      profile: data.profile
+    });
+    const projectPortfolio = buildProjectPortfolio({
+      learnerId: req.params.learner_id,
+      projects: Array.isArray(data.learner.projects) ? data.learner.projects : []
+    });
     const platformReadiness = buildPlatformReadiness({
       dependencies: {
         database: Boolean(gliPostgres.getPool()),
@@ -8928,6 +8939,8 @@ app.get("/api/v1/learner/:learner_id/intelligence", async (req, res) => {
       learning_method_intelligence: methodIntelligence,
       curriculum_intelligence: curriculumIntelligence,
       learning_portfolio: portfolio,
+      personal_learning_memory: personalMemory,
+      project_portfolio: projectPortfolio,
       platform_readiness: platformReadiness,
       graph_persistence: graphPersistence
     });
