@@ -75,18 +75,28 @@
   }
 
   async function getJSON(url, auth) {
-    const response = await fetch(url, {
-      method: "GET",
-      headers: headers(auth),
-      credentials: "same-origin"
-    });
-    const data = await response.json().catch(function () {
-      return { success: false, error: "Invalid server response." };
-    });
-    if (!response.ok || data.success === false) {
-      throw new Error(data.error || "Request failed.");
+    const controller = new AbortController();
+    const timeout = setTimeout(function () {
+      controller.abort();
+    }, 8000);
+
+    try {
+      const response = await fetch(url, {
+        method: "GET",
+        headers: headers(auth),
+        credentials: "same-origin",
+        signal: controller.signal
+      });
+      const data = await response.json().catch(function () {
+        return { success: false, error: "Invalid server response." };
+      });
+      if (!response.ok || data.success === false) {
+        throw new Error(data.error || "Request failed.");
+      }
+      return data;
+    } finally {
+      clearTimeout(timeout);
     }
-    return data;
   }
 
   function metric(label, value, detail) {
