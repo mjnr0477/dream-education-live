@@ -55,7 +55,15 @@
       content.appendChild(command);
     }
 
-    // The next-generation landing replaces the legacy landing sections visually.\n    // Keep their DOM/routes intact so existing panel actions remain available, but avoid\n    // rendering the old landing twice on the same page.\n    document.querySelectorAll(".gateway-section, .statement-section, .cta-section").forEach(function (section) {\n      section.classList.add("de-legacy-landing-hidden");\n      section.setAttribute("aria-hidden", "true");\n    });\n\n    var gatewaySection = document.querySelector(".gateway-section");
+    // The next-generation landing replaces the legacy landing sections visually.
+    // Keep their DOM/routes intact so existing panel actions remain available, but avoid
+    // rendering the old landing twice on the same page.
+    document.querySelectorAll(".gateway-section, .statement-section, .cta-section").forEach(function (section) {
+      section.classList.add("de-legacy-landing-hidden");
+      section.setAttribute("aria-hidden", "true");
+    });
+
+    var gatewaySection = document.querySelector(".gateway-section");
     if (!gatewaySection || gatewaySection.dataset.nextgenRoles === "1") return;
     gatewaySection.dataset.nextgenRoles = "1";
 
@@ -82,7 +90,13 @@
       '</article>' +
       '<article class="de-feature-card"><span class="de-command-kicker">KNOWLEDGE</span><h3>Evidence</h3><p>Ground learning experiences in connected knowledge sources.</p><div class="de-feature-icon" aria-hidden="true">◌</div></article>' +
       '<article class="de-feature-card"><span class="de-command-kicker">PORTFOLIO</span><h3>Proof</h3><p>Turn learning activity into visible evidence of growth.</p><div class="de-feature-icon" aria-hidden="true">↗</div></article>';
-    gatewaySection.parentNode.insertBefore(featureGrid, gatewaySection);\n\n    // The legacy gateway is intentionally hidden above; the new role cards are the\n    // single visible entry point for the same existing panel actions.\n    roleStrip.querySelectorAll("[data-action=\"open\"]").forEach(function (button) {\n      button.setAttribute("aria-label", button.textContent.trim() + " workspace");\n    });
+    gatewaySection.parentNode.insertBefore(featureGrid, gatewaySection);
+
+    // The legacy gateway is intentionally hidden above; the new role cards are the
+    // single visible entry point for the same existing panel actions.
+    roleStrip.querySelectorAll("[data-action=\"open\"]").forEach(function (button) {
+      button.setAttribute("aria-label", button.textContent.trim() + " workspace");
+    });
 
     enableMagnetics();
   }
