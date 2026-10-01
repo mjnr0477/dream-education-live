@@ -94,11 +94,55 @@ function solveWithUniversalSolver(question) {
       return;
     }
 
-    pending = { resolve };
+    let settled = false;
 
-    worker.stdin.write(
-      JSON.stringify({ question }) + "\n"
-    );
+    const finish = (result) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      resolve(result);
+    };
+
+    const timeout = setTimeout(() => {
+      if (pending) {
+        pending = null;
+      }
+
+      if (worker) {
+        try {
+          worker.kill();
+        } catch (error) {
+          console.error("Universal solver cleanup error:", error.message);
+        }
+        worker = null;
+        buffer = "";
+      }
+
+      finish({
+        success: false,
+        solved: false,
+        routed: true,
+        error: "Universal solver timed out."
+      });
+    }, 3500);
+
+    pending = {
+      resolve: finish
+    };
+
+    try {
+      worker.stdin.write(
+        JSON.stringify({ question }) + "\n"
+      );
+    } catch (error) {
+      pending = null;
+      finish({
+        success: false,
+        solved: false,
+        routed: true,
+        error: error.message
+      });
+    }
   });
 }
 
