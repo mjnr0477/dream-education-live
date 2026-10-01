@@ -281,7 +281,12 @@ function developmentAnswer(
     content?.concepts?.[Object.keys(content.concepts || {})[0]] ||
     null;
 
-  const definition = contentConcept?.definition || "";
+  const builtInDefinition =
+    /\\bdifferential\\s+equation(s)?\\b/i.test(question)
+      ? "A differential equation is an equation that relates a function to one or more of its derivatives. It describes how a quantity changes, rather than only giving the quantity itself. For example, dy/dx = 2x says that the rate of change of y with respect to x is 2x. Solving the differential equation means finding the function y that satisfies that relationship."
+      : "";
+
+  const definition = contentConcept?.definition || builtInDefinition;
   const keyIdeas = contentConcept?.key_ideas || [];
   const examples = contentConcept?.examples || [];
   const equation = contentConcept?.equation || "";
