@@ -1303,8 +1303,13 @@ document.addEventListener("click", function (event) {
       const targetPanel = trigger.dataset.panel || "learn";
       const auth = window.DreamEducationUI && window.DreamEducationUI.getAuth ? window.DreamEducationUI.getAuth() : null;
 
+      /*
+       * Learner dashboard opening is handled by the dedicated learner
+       * listener above. Do not open it again here: both document listeners
+       * receive the same click event, and the previous implementation
+       * launched two dashboard requests at once.
+       */
       if (targetPanel === "learn" && auth && auth.success) {
-        openLearnerDashboard();
         return;
       }
 
