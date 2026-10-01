@@ -1577,31 +1577,48 @@ Return a learner-facing teaching response only.
         }
 
         if (!response) {
-          const freeAI = await Promise.race([
-            generateFreeAI({
-              messages: [
-                {
-                  role: "user",
-                  content: prompt
-                }
-              ],
-              maxTokens: 1200,
-              temperature: 0.2
-            }),
-            new Promise(resolve =>
-              setTimeout(
-                () =>
-                  resolve({
-                    success: false,
-                    status: "timeout",
-                    message: "Free AI provider response timed out."
-                  }),
-                4500
-              )
-            )
-          ]);
+          let freeAI;
 
-          if (!freeAI.success) {
+          try {
+            freeAI = await Promise.race([
+              Promise.resolve().then(() =>
+                generateFreeAI({
+                  messages: [
+                    {
+                      role: "user",
+                      content: prompt
+                    }
+                  ],
+                  maxTokens: 1200,
+                  temperature: 0.2
+                })
+              ),
+              new Promise(resolve =>
+                setTimeout(
+                  () =>
+                    resolve({
+                      success: false,
+                      status: "timeout",
+                      message: "Free AI provider response timed out."
+                    }),
+                  4500
+                )
+              )
+            ]);
+          } catch (freeAIError) {
+            console.error(
+              "Free AI router error:",
+              freeAIError.message || freeAIError
+            );
+
+            freeAI = {
+              success: false,
+              status: "router_error",
+              message: freeAIError.message || "Free AI provider failed."
+            };
+          }
+
+          if (!freeAI || !freeAI.success) {
             /*
              * Never leave the learner waiting indefinitely.
              * If evidence exists, use the verified evidence directly.
@@ -1652,6 +1669,8 @@ Return a learner-facing teaching response only.
         }
       }
 
+      // Cache persistence is non-critical. A disk write failure must
+      // never turn an already-generated learner answer into a 500 error.
       cache[cacheKey] = {
         question,
         subject: subject || "General",
@@ -1660,8 +1679,15 @@ Return a learner-facing teaching response only.
         createdAt: new Date().toISOString()
       };
 
-      saveCache(cache);
-      console.log("8. Answer cached");
+      try {
+        saveCache(cache);
+        console.log("8. Answer cached");
+      } catch (cacheError) {
+        console.error(
+          "8. CACHE SAVE ERROR (answer preserved):",
+          cacheError.message || cacheError
+        );
+      }
     }
 
     if (learner_id) {
@@ -1864,10 +1890,79 @@ Return a learner-facing teaching response only.
       });
     }
 
-    return res.status(500).json({
+    /*
+     * Final local-curriculum recovery.
+     *
+     * If a non-essential stage fails after the learner question has
+     * already been understood, try the existing Dream Education
+     * curriculum one last time. This never invents facts: the recovery
+     * only succeeds when the local curriculum actually contains
+     * matching content.
+     */
+    try {
+      const emergencyContent = findDreamContent({
+        level: req.body?.level,
+        subject_or_discipline: req.body?.subject,
+        question: requestedQuestion
+      }) || findRelevantContent({
+        subject: req.body?.subject,
+        level: req.body?.level,
+        topic: req.body?.topic || req.body?.decision_topic,
+        question: requestedQuestion
+      });
+
+      if (emergencyContent) {
+        const emergencyAnswer = developmentAnswer(
+          requestedQuestion,
+          req.body?.subject,
+          req.body?.level,
+          {
+            topic: req.body?.topic,
+            decision_topic: req.body?.decision_topic,
+            learning_method: "explanation",
+            curriculum_content: emergencyContent
+          }
+        );
+
+        if (
+          typeof emergencyAnswer === "string" &&
+          emergencyAnswer.trim().length >= 20
+        ) {
+          console.warn(
+            "Returning local curriculum recovery answer after learning pipeline failure."
+          );
+
+          return res.json({
+            success: true,
+            answer: emergencyAnswer,
+            cached: false,
+            ai_mode: AI_MODE,
+            answer_sources: [
+              {
+                type: "curriculum_recovery",
+                name: "Dream Education curriculum"
+              }
+            ],
+            fallback: true
+          });
+        }
+      }
+    } catch (recoveryError) {
+      console.error(
+        "Curriculum recovery error:",
+        recoveryError.message || recoveryError
+      );
+    }
+
+    /*
+     * Correctness is more important than fabrication. If no verified
+     * specialist result, curriculum evidence, trusted retrieval, or AI
+     * response is available, do not manufacture an answer.
+     */
+    return res.status(503).json({
       success: false,
-      message: "Dream Education could not complete the lesson.",
-      debug: error.message
+      message: "Dream Education could not verify a correct answer yet.",
+      retryable: true
     });
   }
 });
