@@ -576,7 +576,7 @@
         headers.Authorization = "Bearer " + token;
       }
 
-      const response = await fetch(
+      const response = await fetchWithTimeout(
         "/api/product/school/" +
         encodeURIComponent(schoolId) +
         "/dashboard",
@@ -1722,7 +1722,7 @@ async function fetchTeacherDashboard() {
       controller.abort();
     }, 10000);
 
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       "/api/product/teacher/" +
         encodeURIComponent(teacherId) +
         "/dashboard",
@@ -2075,7 +2075,7 @@ async function openTeacherLearnerView(learnerId) {
   panelElement.setAttribute("aria-hidden", "false");
 
   try {
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       "/api/product/teacher/learner/" + encodeURIComponent(learnerId),
       {
         method: "GET",
@@ -3170,7 +3170,7 @@ async function openTeacherConnections() {
       "Authorization": "Bearer " + token
     };
 
-    const connectionsResponse = await fetch(
+    const connectionsResponse = await fetchWithTimeout(
       "/api/product/connections?type=teacher_learner",
       {
         method: "GET",
@@ -3197,7 +3197,7 @@ async function openTeacherConnections() {
     let teacherData = { success: true, learners: [] };
 
     try {
-      const teacherResponse = await fetch(
+      const teacherResponse = await fetchWithTimeout(
         "/api/product/teacher/" +
           encodeURIComponent(teacherId) +
           "/dashboard",
@@ -3234,7 +3234,7 @@ async function openTeacherConnections() {
 
     for (const learnerId of connectedLearnerIds) {
       try {
-        const learnerResponse = await fetch(
+        const learnerResponse = await fetchWithTimeout(
           "/api/product/learner/" +
             encodeURIComponent(learnerId),
           {
@@ -4079,7 +4079,7 @@ async function openMeetings() {
 
   try {
     const [meetingsResponse, connectionsResponse] = await Promise.all([
-      fetch("/api/product/meetings", {
+      fetchWithTimeout("/api/product/meetings", {
         method: "GET",
         headers
       }),
@@ -4178,7 +4178,7 @@ async function openMeetings() {
         button.textContent = "Joining...";
 
         try {
-          const response = await fetch(
+          const response = await fetchWithTimeout(
             "/api/product/meetings/" +
               encodeURIComponent(meetingId) +
               "/join",
@@ -4379,7 +4379,7 @@ async function openMeetings() {
         createButton.textContent = "Creating...";
 
         try {
-          const response = await fetch("/api/product/meetings", {
+          const response = await fetchWithTimeout("/api/product/meetings", {
             method: "POST",
             headers,
             body: JSON.stringify({
@@ -4505,7 +4505,7 @@ async function openTeacherAnalytics() {
   }
 
   try {
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       "/api/product/results/teacher/" +
         encodeURIComponent(teacherId),
       {
@@ -4765,7 +4765,7 @@ async function openParentChildOverview(learnerId) {
   `;
 
   try {
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       "/api/product/parent/" +
         encodeURIComponent(parentId) +
         "/child/" +
@@ -5032,7 +5032,7 @@ async function openParentSpace() {
   `;
 
   try {
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       "/api/product/parent/" +
         encodeURIComponent(parentId) +
         "/dashboard",
@@ -5400,7 +5400,7 @@ async function fetchLearnerDashboard() {
     let response;
 
     try {
-      response = await fetch(
+      response = await fetchWithTimeout(
         "/api/product/learner/" +
         encodeURIComponent(learnerId) +
         "/dashboard",
@@ -6120,7 +6120,7 @@ async function openDreamDevelopmentAction(action) {
       try {
         status.innerHTML = "<p>Saving...</p>";
 
-        const response = await fetch(
+        const response = await fetchWithTimeout(
           "/api/product/learner/" +
           encodeURIComponent(learnerId) +
           "/development/" +
