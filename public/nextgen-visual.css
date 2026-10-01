@@ -309,3 +309,9 @@ body.de-nextgen {
   .de-magnetic { transition: none !important; }
   .de-magnetic { transform: none !important; }
 }
+
+
+/* Keep the legacy landing DOM for compatibility, but render only one landing experience. */
+.de-nextgen-visual .de-legacy-landing-hidden {
+  display: none !important;
+}
