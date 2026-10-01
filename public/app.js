@@ -1968,7 +1968,6 @@ function teacherDashboardMarkup(data) {
         <button
           class="panel-button primary"
           type="button"
-          Test Learner View
         </button>
 
         <button
