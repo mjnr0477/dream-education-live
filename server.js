@@ -3454,8 +3454,8 @@ app.post("/api/v1/learner/:learner_id/learning-session", async (req, res) => {
       score,
       understanding,
       feedback,
-      evidence,
-      crossSourceVerification: cross_source_verification,
+      evidence: sessionEvidence,
+      crossSourceVerification: sessionCrossSourceVerification,
       priorAverage: prior_average,
       attemptNumber: attempt_number
     });
