@@ -8829,6 +8829,7 @@ const { rateLimit, requestId, validateBodySize } = require("./product/gli/produc
 const { accountId, requireTenantRole } = require("./product/gli/tenant_access");
 const { recordLearningEvent, getLearningEvaluation } = require("./product/gli/telemetry_engine");
 const { createApiKey, authenticateApiKey, revokeApiKey } = require("./product/gli/developer_api");
+const { buildAdvancedLearnerIntelligence } = require("./product/gli/advanced_learner_intelligence");
 
 async function getLearnerIntelligenceData(learnerId) {
   const learner = getLearner(learnerId);
@@ -8877,6 +8878,10 @@ app.get("/api/v1/learner/:learner_id/intelligence", async (req, res) => {
 
     const graph = buildLearnerGraph(data.learner, data.profile);
     const proactiveActions = generateProactiveActions({ learner: data.learner, profile: data.profile });
+    const advancedIntelligence = buildAdvancedLearnerIntelligence({
+      profile: data.profile,
+      assessments: data.assessments
+    });
     const graphPersistence = await persistLearnerGraph(req.params.learner_id, graph);
 
     return res.json({
@@ -8890,6 +8895,7 @@ app.get("/api/v1/learner/:learner_id/intelligence", async (req, res) => {
       learning_profile: data.profile,
       learner_graph: graph,
       proactive_actions: proactiveActions,
+      advanced_intelligence: advancedIntelligence,
       graph_persistence: graphPersistence
     });
   } catch (error) {
