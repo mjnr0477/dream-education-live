@@ -6359,6 +6359,42 @@ function renderAdaptiveQuestion(data, learnerId, token) {
         );
       }
 
+      // Enrich this completed assessment through the existing
+      // evidence-grounded learning-session service.
+      try {
+        const sessionResponse = await fetch(
+          "/api/v1/learner/" + encodeURIComponent(learnerId) + "/learning-session",
+          {
+            method: "POST",
+            headers: {
+              Authorization: "Bearer " + token,
+              "Content-Type": "application/json",
+              Accept: "application/json"
+            },
+            body: JSON.stringify({
+              question: question.question || "",
+              learner_answer: learnerAnswer,
+              subject: question.subject || data.subject || "General",
+              topic: question.topic || data.topic || null,
+              level: question.level || null,
+              score: Number(result.assessment?.score || 0),
+              understanding: result.assessment?.understanding || "needs_practice",
+              feedback: result.assessment?.feedback || "",
+              evidence: result.answer_sources || [],
+              cross_source_verification: result.cross_source_verification || null,
+              prior_average: Number(result.trajectory?.previous_score ?? NaN),
+              attempt_number: Number(result.mastery?.assessments || 1)
+            })
+          }
+        );
+        const sessionData = await sessionResponse.json().catch(() => null);
+        if (sessionResponse.ok && sessionData?.success) {
+          result.meaningful_session = sessionData.session;
+        }
+      } catch (sessionError) {
+        console.warn("Meaningful learning-session enrichment skipped:", sessionError);
+      }
+
       renderAssessmentResult(result, learnerId, token);
     } catch (error) {
       console.error("Adaptive answer submission error:", error);
