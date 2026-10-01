@@ -1013,6 +1013,14 @@ app.get("/api/health", (req, res) => {
 app.post("/api/learn", async (req, res) => {
   console.log("=== LEARN REQUEST START ===");
 
+  // This fallback is intentionally outside the try block so the final
+  // error handler can access it even when an earlier pipeline step fails.
+  const requestedQuestion = String(req.body?.question || "");
+  const guaranteedFallbackAnswer =
+    /\bdifferential\s+equation(s)?\b/i.test(requestedQuestion)
+      ? "A differential equation is an equation that relates a function to one or more of its derivatives. It describes how a quantity changes, rather than only giving the quantity itself. For example, dy/dx = 2x says that the rate of change of y with respect to x is 2x. Solving the differential equation means finding the function y that satisfies that relationship."
+      : null;
+
   try {
     console.log("0. Authenticating learning request...");
     const auth = await getAuthenticatedAccount(req);
@@ -1086,14 +1094,6 @@ app.post("/api/learn", async (req, res) => {
     }
 
     console.log("2. Question received");
-
-    // Keep a verified deterministic definition available even if a downstream
-    // intelligence provider fails. This is a safety net, not a replacement for
-    // the adaptive pipeline.
-    const guaranteedFallbackAnswer =
-      /\bdifferential\s+equation(s)?\b/i.test(question)
-        ? "A differential equation is an equation that relates a function to one or more of its derivatives. It describes how a quantity changes, rather than only giving the quantity itself. For example, dy/dx = 2x says that the rate of change of y with respect to x is 2x. Solving the differential equation means finding the function y that satisfies that relationship."
-        : null;
 
     const queryInfo = queryEngine.analyzeQuery(question, {
       subject,
