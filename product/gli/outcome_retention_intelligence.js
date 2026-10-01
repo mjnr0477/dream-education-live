@@ -19,9 +19,6 @@ function unique(values) {
   return [...new Set(values.filter(Boolean))];
 }
 
-function daysBetween(a, b) {
-  return Math.floor((b - a) / 86400000);
-}
 
 function buildOutcomeRetentionIntelligence(data = {}, now = new Date()) {
   const activities = Array.isArray(data.activities) ? data.activities : [];
