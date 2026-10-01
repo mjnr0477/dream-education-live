@@ -34,10 +34,29 @@
   async function getJSON(url, options) {
     const headers = Object.assign({ Accept: "application/json" }, options && options.headers);
     if (token()) headers.Authorization = "Bearer " + token();
-    const response = await fetch(url, Object.assign({}, options || {}, { headers }));
-    const data = await response.json().catch(() => ({ success:false, error:"Invalid server response." }));
-    if (!response.ok || data.success === false) throw new Error(data.error || "Request failed.");
-    return data;
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+
+    try {
+      const response = await fetch(
+        url,
+        Object.assign({}, options || {}, {
+          headers,
+          signal: controller.signal
+        })
+      );
+      const data = await response.json().catch(() => ({
+        success:false,
+        error:"Invalid server response."
+      }));
+      if (!response.ok || data.success === false) {
+        throw new Error(data.error || "Request failed.");
+      }
+      return data;
+    } finally {
+      clearTimeout(timeout);
+    }
   }
 
   function roleOf(a) {
