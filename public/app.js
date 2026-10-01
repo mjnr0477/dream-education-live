@@ -5903,9 +5903,23 @@ async function openLearnerDashboard() {
     </div>
   `;
 
-  const data = await fetchLearnerDashboard();
-
-  panelBody.innerHTML = learnerDashboardMarkup(data);
+  try {
+    const data = await fetchLearnerDashboard();
+    panelBody.innerHTML = learnerDashboardMarkup(data);
+  } catch (error) {
+    console.error("Learner dashboard render error:", error);
+    panelBody.innerHTML = `
+      <div class="panel-card">
+        <span class="panel-kicker">LEARNER DASHBOARD</span>
+        <h2>Dashboard could not be rendered</h2>
+        <p>${escapeHtml(error && error.message ? error.message : "An unexpected dashboard error occurred.")}</p>
+        <div class="panel-actions">
+          <button class="panel-action" type="button" data-panel-action="refresh-dashboard">Try again</button>
+          <button class="panel-action secondary" type="button" data-panel-action="close">Close</button>
+        </div>
+      </div>
+    `;
+  }
 }
 
 
