@@ -1,6 +1,6 @@
 "use strict";
 
-const VERSION = "1.1.0";
+const VERSION = "1.2.0";
 
 function getPlatformManifest() {
   return {
@@ -21,7 +21,13 @@ function getPlatformManifest() {
       "learning_portfolio",
       "project_portfolio",
       "platform_readiness",
-      "value_evidence"
+      "value_evidence",
+      "institutional_adoption_intelligence",
+      "learning_passport",
+      "commercial_intelligence",
+      "security_posture_intelligence",
+      "developer_api_readiness",
+      "value_command_center"
     ],
     protected_engines: [
       "assessment_engine",
