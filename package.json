@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "node server.js",
     "test": "node scripts/gli-smoke-test.js && node scripts/gli-advanced-smoke-test.js && node scripts/gli-memory-portfolio-smoke-test.js && node scripts/value-evidence-smoke-test.js && node scripts/outcome-retention-smoke-test.js && node scripts/institutional-adoption-smoke-test.js && node scripts/learning-passport-smoke-test.js && node scripts/commercial-intelligence-smoke-test.js && node scripts/security-posture-smoke-test.js && node scripts/developer-api-readiness-smoke-test.js && node scripts/value-command-center-smoke-test.js && node scripts/frontend-workspace-smoke-test.js && node scripts/frontend-completeness-smoke-test.js",
     "test:gli-advanced": "node scripts/gli-advanced-smoke-test.js",
     "test:gli-memory": "node scripts/gli-memory-portfolio-smoke-test.js",
