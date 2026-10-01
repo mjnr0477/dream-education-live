@@ -1659,7 +1659,7 @@ Return a learner-facing teaching response only.
     if (learner_id) {
       console.log("9. Saving learner");
 
-      const { error: learnerError } = await supabase
+      const learnerSave = supabase
         .from("dream_learners")
         .upsert(
           {
@@ -1670,6 +1670,19 @@ Return a learner-facing teaching response only.
           { onConflict: "learner_id" }
         );
 
+      const { error: learnerError } = await Promise.race([
+        learnerSave,
+        new Promise(resolve =>
+          setTimeout(
+            () =>
+              resolve({
+                error: new Error("Learner save timed out.")
+              }),
+            2000
+          )
+        )
+      ]);
+
       if (learnerError) {
         console.error("LEARNER SAVE ERROR:", learnerError);
       } else {
@@ -1678,7 +1691,7 @@ Return a learner-facing teaching response only.
 
       console.log("11. Saving learning history");
 
-      const { error: historyError } = await supabase
+      const historySave = supabase
         .from("learning_history")
         .insert([{
           learner_id,
@@ -1688,6 +1701,19 @@ Return a learner-facing teaching response only.
           answer,
           cached
         }]);
+
+      const { error: historyError } = await Promise.race([
+        historySave,
+        new Promise(resolve =>
+          setTimeout(
+            () =>
+              resolve({
+                error: new Error("Learning history save timed out.")
+              }),
+            2000
+          )
+        )
+      ]);
 
       if (historyError) {
         console.error("HISTORY SAVE ERROR:", historyError);
