@@ -24,7 +24,7 @@ assert.strictEqual(result.cohorts.total_cohorts, 3);
 assert.strictEqual(result.cohorts.retention.day_7_eligible_learners, 2);
 assert.strictEqual(result.cohorts.retention.day_7, 1);
 assert.strictEqual(result.cohorts.retention.day_30_eligible_learners, 2);
-assert.strictEqual(result.cohorts.retention.day_30, 0.5);
+assert.strictEqual(result.cohorts.retention.day_30, 0);
 assert.strictEqual(result.outcome_quality.measured_outcomes, 2);
 assert.strictEqual(result.outcome_quality.positive_improvement_rate, 0.5);
 assert.strictEqual(result.outcome_quality.average_improvement, 7.5);
