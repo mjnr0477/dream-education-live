@@ -1135,6 +1135,17 @@ app.post("/api/learn", async (req, res) => {
 
     console.log("2.3 Starting intelligence routing");
 
+    const withTimeout = (promise, ms, label) =>
+      Promise.race([
+        Promise.resolve(promise),
+        new Promise((_, reject) =>
+          setTimeout(
+            () => reject(new Error(label + " timed out.")),
+            ms
+          )
+        )
+      ]);
+
     const curriculumContent = await Promise.resolve().then(() => {
       const dreamContent = findDreamContent({
         level,
@@ -1178,9 +1189,13 @@ app.post("/api/learn", async (req, res) => {
       console.log("2.6 No local curriculum match; using external knowledge.");
 
       const [knowledge, trusted] = await Promise.all([
-        retrieveKnowledge(question, {
-          limit: 5
-        }).catch((knowledgeError) => {
+        withTimeout(
+          retrieveKnowledge(question, {
+            limit: 5
+          }),
+          5000,
+          "Knowledge retrieval"
+        ).catch((knowledgeError) => {
           console.error(
             "2.7 KNOWLEDGE RETRIEVAL ERROR:",
             knowledgeError.message
@@ -1192,9 +1207,13 @@ app.post("/api/learn", async (req, res) => {
           };
         }),
 
-        getTrustedInformation(
-          question,
-          queryInfo
+        withTimeout(
+          getTrustedInformation(
+            question,
+            queryInfo
+          ),
+          5000,
+          "Trusted information retrieval"
         ).catch((trustedError) => {
           console.error(
             "2.7 TRUSTED INFORMATION ERROR:",
@@ -1529,15 +1548,19 @@ Return a learner-facing teaching response only.
         let primaryAIError = null;
 
         try {
-          response = await client.chat.completions.create({
-            model: process.env.AI_MODEL || "gemini-3.8-flash",
-            messages: [
-              {
-                role: "user",
-                content: prompt
-              }
-            ]
-          });
+          response = await withTimeout(
+            client.chat.completions.create({
+              model: process.env.AI_MODEL || "gemini-3.8-flash",
+              messages: [
+                {
+                  role: "user",
+                  content: prompt
+                }
+              ]
+            }),
+            8000,
+            "Primary AI"
+          );
         } catch (err) {
           primaryAIError = err;
           console.log(
