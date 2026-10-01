@@ -5711,7 +5711,7 @@ function learnerDashboardMarkup(data) {
       </div>
     </div>
 
-    ${meaningfulMarkup}
+    ${getMeaningfulMarkup(session, evidenceMarkup)}
 
     <div class="panel-card">
       <span class="panel-kicker">NEXT STEP</span>
@@ -6549,7 +6549,8 @@ function renderAssessmentResult(result, learnerId, token) {
       }).join("")
     : '<div class="panel-card"><span class="panel-kicker">EVIDENCE</span><p>No verified external evidence was available for this attempt. The protected learning engines remain authoritative.</p></div>';
 
-  const meaningfulMarkup = session
+  function getMeaningfulMarkup(session, evidenceMarkup) {
+    return session
     ? `
       <section class="panel-card learning-session-purpose">
         <span class="panel-kicker">YOUR LEARNING SESSION</span>
@@ -6578,6 +6579,7 @@ function renderAssessmentResult(result, learnerId, token) {
       </section>
     `
     : "";
+  }
 
   panelBody.innerHTML = `
     <div class="panel-card">
