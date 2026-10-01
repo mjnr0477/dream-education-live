@@ -20,7 +20,8 @@ function getPlatformManifest() {
       "personal_learning_memory",
       "learning_portfolio",
       "project_portfolio",
-      "platform_readiness"
+      "platform_readiness",
+      "value_evidence"
     ],
     protected_engines: [
       "assessment_engine",
