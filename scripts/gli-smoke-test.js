@@ -13,7 +13,8 @@ for (const file of [
   "../product/gli/production_security",
   "../product/gli/tenant_access",
   "../product/gli/telemetry_engine",
-  "../product/gli/developer_api"
+  "../product/gli/developer_api",
+  "../product/gli/advanced_learner_intelligence"
 ]) require(file);
 
 const { buildLearnerGraph } = require("../product/gli/learner_graph_engine");
