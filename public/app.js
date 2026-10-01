@@ -1652,6 +1652,23 @@ if (action === "chat") {
 
 })();
 
+async function fetchWithTimeout(input, options, timeoutMs) {
+  const controller = new AbortController();
+  const timeout = setTimeout(function () {
+    controller.abort();
+  }, Number(timeoutMs) || 8000);
+
+  const requestOptions = Object.assign({}, options || {}, {
+    signal: controller.signal
+  });
+
+  try {
+    return await fetch(input, requestOptions);
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 /* ============================================================
    TEACHER DASHBOARD — BACKEND INTEGRATION
    Uses the authenticated teacher account.
@@ -5892,7 +5909,12 @@ document.addEventListener("click", function (event) {
     return;
   }
 
-  if (action === "close-dashboard") {
+  if (action === "back-to-dashboard") {
+    openLearnerDashboard();
+    return;
+  }
+
+  if (action === "close-dashboard" || action === "close") {
     closePanel();
     return;
   }
