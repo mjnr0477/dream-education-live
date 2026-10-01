@@ -67,10 +67,10 @@ for (const route of requiredServerRoutes) {
 for (const token of [
   "/nextgen-visual.js?v=20261001",
   "/frontend-workspace.js?v=20261001",
-  'data-action="open" data-panel="learn"',
-  'data-action="open" data-panel="teach"',
-  'data-action="open" data-panel="connect"',
-  'data-action="open" data-panel="school"'
+  'card("LEARNER", "Learn", "Adaptive learning built around your progress.", "learn"',
+  'card("TEACHER", "Teach", "See learning evidence and guide learners.", "teach"',
+  'card("PARENT", "Support", "Stay connected to meaningful learning progress.", "connect"',
+  'card("SCHOOL", "Scale", "Bring your learning community together.", "school"'
 ]) {
   if (!index.includes(token) && !nextgen.includes(token)) {
     throw new Error("Required frontend surface missing: " + token);
