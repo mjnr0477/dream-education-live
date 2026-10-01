@@ -89,11 +89,55 @@ function solveWithMathWorker(question) {
       return;
     }
 
-    mathPending = { resolve };
+    let settled = false;
 
-    mathWorker.stdin.write(
-      JSON.stringify({ question }) + "\n"
-    );
+    const finish = (result) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      resolve(result);
+    };
+
+    const timeout = setTimeout(() => {
+      if (mathPending) {
+        mathPending = null;
+      }
+
+      if (mathWorker) {
+        try {
+          mathWorker.kill();
+        } catch (error) {
+          console.error("Math specialist cleanup error:", error.message);
+        }
+        mathWorker = null;
+        mathBuffer = "";
+      }
+
+      finish({
+        success: false,
+        solved: false,
+        solver: "sympy",
+        verified: false,
+        error: "Math specialist timed out."
+      });
+    }, 3500);
+
+    mathPending = { resolve: finish };
+
+    try {
+      mathWorker.stdin.write(
+        JSON.stringify({ question }) + "\n"
+      );
+    } catch (error) {
+      mathPending = null;
+      finish({
+        success: false,
+        solved: false,
+        solver: "sympy",
+        verified: false,
+        error: error.message
+      });
+    }
   });
 }
 
