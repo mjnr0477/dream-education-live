@@ -37,5 +37,6 @@ This branch is the isolated development line for the Global Learning Intelligenc
 - Public anon and authenticated SELECT access to backend-owned GLI tables was verified as disabled.
 - Public/authenticated execution of rls_auto_enable() was verified as disabled.
 - Node smoke-test and CI verification files were added for repeatable validation.
-- A local clone/test attempt was blocked by the current execution environment's DNS/network restriction; therefore local npm test execution could not be honestly claimed as passed.
-- The branch must remain unmerged until repository CI or an equivalent local test environment reports green.
+- Local execution in this environment was previously blocked by DNS/network restrictions, so it is not used as release evidence.
+- GitHub Actions now provides fresh verification on the branch: Dream Education Verification and GLI Foundation Verification both completed successfully for the current head commit.
+- The branch remains isolated from main and is ready for review; merge into main is deliberately not performed without explicit approval.
