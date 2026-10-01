@@ -7498,10 +7498,30 @@ async function getAuthenticatedAccount(req) {
     };
   }
 
-  const {
-    data: userData,
-    error: userError
-  } = await supabaseAuth.auth.getUser(accessToken);
+  let userData;
+  let userError;
+
+  try {
+    const authResult = await Promise.race([
+      supabaseAuth.auth.getUser(accessToken),
+      new Promise((_, reject) =>
+        setTimeout(
+          () => reject(new Error("Authentication service timeout.")),
+          5000
+        )
+      )
+    ]);
+
+    userData = authResult.data;
+    userError = authResult.error;
+  } catch (error) {
+    console.error("Authentication verification timeout/error:", error.message);
+    return {
+      success: false,
+      status: 503,
+      error: "Authentication service is taking too long to respond. Please try again."
+    };
+  }
 
   if (userError || !userData?.user) {
     return {
