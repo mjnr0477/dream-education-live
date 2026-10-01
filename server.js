@@ -3418,6 +3418,33 @@ app.post("/api/v1/learner/:learner_id/learning-session", async (req, res) => {
       return res.status(400).json({ success:false, error:"question and learner_answer are required" });
     }
 
+    let sessionEvidence = Array.isArray(evidence) ? evidence : [];
+    let sessionCrossSourceVerification = cross_source_verification || null;
+
+    if (!sessionEvidence.length) {
+      try {
+        const knowledgeResult = await Promise.race([
+          retrieveKnowledge(question, {
+            subject,
+            topic,
+            level,
+            intent: "learning"
+          }),
+          new Promise(resolve => setTimeout(() => resolve({
+            evidence: [],
+            cross_source_verification: null
+          }), 2800))
+        ]);
+        sessionEvidence = Array.isArray(knowledgeResult?.evidence)
+          ? knowledgeResult.evidence
+          : [];
+        sessionCrossSourceVerification =
+          knowledgeResult?.cross_source_verification || null;
+      } catch (knowledgeError) {
+        console.warn("Learning-session evidence retrieval skipped:", knowledgeError.message);
+      }
+    }
+
     const session = buildLearningSession({
       question,
       learnerAnswer: learner_answer,
@@ -3427,8 +3454,8 @@ app.post("/api/v1/learner/:learner_id/learning-session", async (req, res) => {
       score,
       understanding,
       feedback,
-      evidence,
-      crossSourceVerification: cross_source_verification,
+      evidence: sessionEvidence,
+      crossSourceVerification: sessionCrossSourceVerification,
       priorAverage: prior_average,
       attemptNumber: attempt_number
     });
