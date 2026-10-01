@@ -222,6 +222,23 @@
     }
   };
 
+  async function fetchWithTimeout(input, options, timeoutMs) {
+    const controller = new AbortController();
+    const timeout = setTimeout(function () {
+      controller.abort();
+    }, Number(timeoutMs) || 8000);
+
+    const requestOptions = Object.assign({}, options || {}, {
+      signal: controller.signal
+    });
+
+    try {
+      return await fetch(input, requestOptions);
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
   function escapeHTML(value) {
     return String(value == null ? "" : value)
       .replace(/&/g, "&amp;")
@@ -1968,11 +1985,6 @@ function teacherDashboardMarkup(data) {
           type="button"
           data-panel-action="teacher-connections">
           Connections
-        </button>
-
-        <button
-          class="panel-button primary"
-          type="button"
         </button>
 
         <button
@@ -4054,7 +4066,7 @@ async function openMeetings() {
         method: "GET",
         headers
       }),
-      fetch("/api/product/connections?status=active", {
+      fetchWithTimeout("/api/product/connections?status=active", {
         method: "GET",
         headers
       })
