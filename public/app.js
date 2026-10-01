@@ -5357,7 +5357,14 @@ window.DreamEducationTeacher = {
    Uses the authenticated learner account.
    ============================================================ */
 
+let learnerDashboardRequest = null;
+
 async function fetchLearnerDashboard() {
+  if (learnerDashboardRequest) {
+    return learnerDashboardRequest;
+  }
+
+  learnerDashboardRequest = (async function () {
   const auth =
     window.DreamEducationUI && window.DreamEducationUI.getAuth
       ? window.DreamEducationUI.getAuth()
@@ -5395,18 +5402,19 @@ async function fetchLearnerDashboard() {
     const controller = new AbortController();
     const timeout = setTimeout(function () {
       controller.abort();
-    }, 7000);
+    }, 9000);
 
     let response;
 
     try {
-      response = await fetchWithTimeout(
+      response = await fetch(
         "/api/product/learner/" +
         encodeURIComponent(learnerId) +
         "/dashboard",
         {
           method: "GET",
           headers,
+          credentials: "same-origin",
           signal: controller.signal
         }
       );
@@ -5444,6 +5452,13 @@ async function fetchLearnerDashboard() {
           ? "The learner dashboard took too long to respond. Please try again."
           : "Could not connect to the learner dashboard."
     };
+  }
+  })();
+
+  try {
+    return await learnerDashboardRequest;
+  } finally {
+    learnerDashboardRequest = null;
   }
 }
 
