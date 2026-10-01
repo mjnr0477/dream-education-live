@@ -8572,26 +8572,69 @@ app.get("/api/product/learner/:learner_id/dashboard", async (req, res) => {
         )
       : 0;
 
-    const { data: learningAssessments, error: learningAssessmentsError } =
-      await supabase
-        .from("learning_assessments")
-        .select("question, learner_answer, subject, topic, level, score, understanding, feedback, strengths, gaps, misconceptions, created_at")
-        .eq("learner_id", learnerId)
-        .order("created_at", { ascending: false });
+    /*
+     * Dashboard loading must not be held hostage by the analytics tables.
+     * The learner record is already available from the local/durable product
+     * store, so remote history is an enhancement rather than a prerequisite.
+     *
+     * Query both tables in parallel and give them a short budget. If Supabase
+     * is slow, unavailable, or the tables are temporarily inaccessible, the
+     * dashboard still renders immediately from the learner record/results.
+     */
+    const dashboardQueryTimeout = (promise, timeoutMs = 1200) =>
+      Promise.race([
+        promise,
+        new Promise(resolve =>
+          setTimeout(() => resolve({ data: null, timedOut: true }), timeoutMs)
+        )
+      ]);
 
-    if (learningAssessmentsError) throw learningAssessmentsError;
+    const localAssessmentFallback = Array.isArray(learner.assessments)
+      ? learner.assessments
+      : [];
 
-    const { data: learningHistory, error: learningHistoryError } =
-      await supabase
-        .from("learning_history")
-        .select("question, subject, topic, level, answer, cached, created_at")
-        .eq("learner_id", learnerId)
-        .order("created_at", { ascending: false });
+    const [learningAssessmentsResult, learningHistoryResult] =
+      await Promise.all([
+        dashboardQueryTimeout(
+          supabase
+            .from("learning_assessments")
+            .select("question, learner_answer, subject, topic, level, score, understanding, feedback, strengths, gaps, misconceptions, created_at")
+            .eq("learner_id", learnerId)
+            .order("created_at", { ascending: false })
+        ),
+        dashboardQueryTimeout(
+          supabase
+            .from("learning_history")
+            .select("question, subject, topic, level, answer, cached, created_at")
+            .eq("learner_id", learnerId)
+            .order("created_at", { ascending: false })
+        )
+      ]);
 
-    if (learningHistoryError) throw learningHistoryError;
+    if (learningAssessmentsResult?.error) {
+      console.warn(
+        "Learner dashboard: learning_assessments unavailable; using local learner record.",
+        learningAssessmentsResult.error.message || learningAssessmentsResult.error
+      );
+    }
 
-    const journeyAssessments = learningAssessments || [];
-    const journeyHistory = learningHistory || [];
+    if (learningHistoryResult?.error) {
+      console.warn(
+        "Learner dashboard: learning_history unavailable; continuing without remote history.",
+        learningHistoryResult.error.message || learningHistoryResult.error
+      );
+    }
+
+    const journeyAssessments =
+      Array.isArray(learningAssessmentsResult?.data) &&
+      learningAssessmentsResult.data.length
+        ? learningAssessmentsResult.data
+        : localAssessmentFallback;
+
+    const journeyHistory =
+      Array.isArray(learningHistoryResult?.data)
+        ? learningHistoryResult.data
+        : [];
 
     const subjectMap = {};
 
