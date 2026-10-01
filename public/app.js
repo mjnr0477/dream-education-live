@@ -5358,17 +5358,39 @@ async function fetchLearnerDashboard() {
       headers.Authorization = "Bearer " + auth.session.access_token;
     }
 
-    const response = await fetch(
-      "/api/product/learner/" +
-      encodeURIComponent(learnerId) +
-      "/dashboard",
-      {
-        method: "GET",
-        headers
-      }
-    );
+    const controller = new AbortController();
+    const timeout = setTimeout(function () {
+      controller.abort();
+    }, 7000);
 
-    const data = await response.json();
+    let response;
+
+    try {
+      response = await fetch(
+        "/api/product/learner/" +
+        encodeURIComponent(learnerId) +
+        "/dashboard",
+        {
+          method: "GET",
+          headers,
+          signal: controller.signal
+        }
+      );
+    } finally {
+      clearTimeout(timeout);
+    }
+
+    const responseText = await response.text();
+    let data;
+
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      return {
+        success: false,
+        error: "The learner dashboard returned an invalid server response."
+      };
+    }
 
     if (!response.ok || !data.success) {
       return {
@@ -5379,9 +5401,14 @@ async function fetchLearnerDashboard() {
 
     return data;
   } catch (error) {
+    console.error("Learner dashboard error:", error);
+
     return {
       success: false,
-      error: "Could not connect to the learner dashboard."
+      error:
+        error && error.name === "AbortError"
+          ? "The learner dashboard took too long to respond. Please try again."
+          : "Could not connect to the learner dashboard."
     };
   }
 }
