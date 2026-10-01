@@ -1,6 +1,7 @@
 "use strict";
 
 const { buildValueEvidence } = require("./gli/value_evidence_engine");
+const { buildOutcomeRetentionIntelligence } = require("./gli/outcome_retention_intelligence");
 const fs = require("fs");
 const path = require("path");
 
@@ -283,7 +284,9 @@ function getMetrics(now = new Date()) {
       payments: data.payments.length
     },
 
-    value_evidence: buildValueEvidence(data, now)
+    value_evidence: buildValueEvidence(data, now),
+
+    outcome_retention: buildOutcomeRetentionIntelligence(data, now)
   };
 }
 
