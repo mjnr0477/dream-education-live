@@ -5636,6 +5636,8 @@ function learnerDashboardMarkup(data) {
       </div>
     </div>
 
+    ${meaningfulMarkup}
+
     <div class="panel-card">
       <span class="panel-kicker">NEXT STEP</span>
       <h3>${escapeHtml(
