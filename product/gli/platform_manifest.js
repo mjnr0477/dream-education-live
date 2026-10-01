@@ -1,6 +1,6 @@
 "use strict";
 
-const VERSION = "1.0.0";
+const VERSION = "1.1.0";
 
 function getPlatformManifest() {
   return {
@@ -11,7 +11,16 @@ function getPlatformManifest() {
       "proactive_learning",
       "offline_event_sync",
       "school_onboarding",
-      "developer_api"
+      "developer_api",
+      "retention_intelligence",
+      "misconception_intelligence",
+      "transfer_intelligence",
+      "learning_method_intelligence",
+      "curriculum_intelligence",
+      "personal_learning_memory",
+      "learning_portfolio",
+      "project_portfolio",
+      "platform_readiness"
     ],
     protected_engines: [
       "assessment_engine",

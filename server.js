@@ -8829,6 +8829,13 @@ const { rateLimit, requestId, validateBodySize } = require("./product/gli/produc
 const { accountId, requireTenantRole } = require("./product/gli/tenant_access");
 const { recordLearningEvent, getLearningEvaluation } = require("./product/gli/telemetry_engine");
 const { createApiKey, authenticateApiKey, revokeApiKey } = require("./product/gli/developer_api");
+const { buildAdvancedLearnerIntelligence } = require("./product/gli/advanced_learner_intelligence");
+const { selectLearningMethod } = require("./product/gli/learning_method_intelligence");
+const { buildCurriculumIntelligence } = require("./product/gli/curriculum_intelligence");
+const { buildLearningPortfolio } = require("./product/gli/learning_portfolio_engine");
+const { buildPlatformReadiness } = require("./product/gli/platform_readiness");
+const { buildPersonalLearningMemory } = require("./product/gli/personal_learning_memory");
+const { buildProjectPortfolio } = require("./product/gli/project_portfolio_engine");
 
 async function getLearnerIntelligenceData(learnerId) {
   const learner = getLearner(learnerId);
@@ -8877,6 +8884,44 @@ app.get("/api/v1/learner/:learner_id/intelligence", async (req, res) => {
 
     const graph = buildLearnerGraph(data.learner, data.profile);
     const proactiveActions = generateProactiveActions({ learner: data.learner, profile: data.profile });
+    const advancedIntelligence = buildAdvancedLearnerIntelligence({
+      profile: data.profile,
+      assessments: data.assessments
+    });
+    const activeTopic = data.learner.active_topic || data.profile.overall?.weakest_subject || null;
+    const topicProfile = activeTopic ? (data.profile.topics?.[activeTopic] || {}) : {};
+    const methodIntelligence = selectLearningMethod({
+      misconception: advancedIntelligence.misconceptions.count > 0,
+      latest_score: topicProfile.latest_score,
+      transfer_ready: advancedIntelligence.transfer.ready_topics.includes(activeTopic),
+      preferred_method: data.learner.preferred_learning_method
+    });
+    const curriculumIntelligence = buildCurriculumIntelligence({
+      concepts: Object.keys(data.profile.topics || {}).map(topic => ({ name: topic })),
+      profile: data.profile
+    });
+    const portfolio = buildLearningPortfolio({
+      learner: data.learner,
+      profile: data.profile,
+      assessments: data.assessments
+    });
+    const personalMemory = buildPersonalLearningMemory({
+      learner: data.learner,
+      history: data.history,
+      profile: data.profile
+    });
+    const projectPortfolio = buildProjectPortfolio({
+      learnerId: req.params.learner_id,
+      projects: Array.isArray(data.learner.projects) ? data.learner.projects : []
+    });
+    const platformReadiness = buildPlatformReadiness({
+      dependencies: {
+        database: Boolean(gliPostgres.getPool()),
+        authentication: true,
+        adaptive_engine: true,
+        knowledge_layer: true
+      }
+    });
     const graphPersistence = await persistLearnerGraph(req.params.learner_id, graph);
 
     return res.json({
@@ -8890,6 +8935,13 @@ app.get("/api/v1/learner/:learner_id/intelligence", async (req, res) => {
       learning_profile: data.profile,
       learner_graph: graph,
       proactive_actions: proactiveActions,
+      advanced_intelligence: advancedIntelligence,
+      learning_method_intelligence: methodIntelligence,
+      curriculum_intelligence: curriculumIntelligence,
+      learning_portfolio: portfolio,
+      personal_learning_memory: personalMemory,
+      project_portfolio: projectPortfolio,
+      platform_readiness: platformReadiness,
       graph_persistence: graphPersistence
     });
   } catch (error) {
