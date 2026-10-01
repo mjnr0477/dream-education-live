@@ -25,4 +25,5 @@ jobs:
       - run: node --check product/gli/platform_readiness.js
       - run: node --check public/app.js
       - run: node --check public/frontend-workspace.js
+      - run: node --check public/nextgen-visual.js
       - run: npm test
