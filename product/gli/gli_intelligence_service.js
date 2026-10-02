@@ -4,6 +4,7 @@ const crypto = require("crypto");
 const OpenAI = require("openai");
 const gliPostgres = require("../../infrastructure/database/postgres");
 const { buildDocumentRecord } = require("./knowledge_intelligence_engine");
+const { persistEvidence, persistDecision } = require("./evidence_ledger");
 
 function poolReady() {
   return Boolean(gliPostgres.getPool());
@@ -126,6 +127,14 @@ async function searchKnowledge(query, limit = 8, tenantId = null) {
   return result.rows;
 }
 
+async function recordLearningEvidence(input) {
+  return persistEvidence(input);
+}
+
+async function recordLearningDecision(input) {
+  return persistDecision(input);
+}
+
 async function issueCredential({ learnerId, competency, evidence = {} }) {
   if (!poolReady()) throw new Error("Postgres is required for credential issuance.");
   if (!String(competency || "").trim()) throw new Error("Competency is required.");
@@ -193,5 +202,7 @@ module.exports = {
   searchKnowledge,
   issueCredential,
   listCredentials,
-  verifyCredential
+  verifyCredential,
+  recordLearningEvidence,
+  recordLearningDecision
 };
