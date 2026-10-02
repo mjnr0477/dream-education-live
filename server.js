@@ -22,6 +22,7 @@ const { safelyObserveLearningEvent } = require("./product/dream/learning_observe
 const { buildLearningSession } = require("./product/learning_session_engine");
 const { buildTeacherIntelligence, buildParentIntelligence, buildSchoolIntelligence } = require("./product/role_intelligence_engine");
 const { listLearnerEvidence } = require("./product/gli/evidence_ledger");
+const { recordAdaptiveDecision } = require("./product/gli/adaptive_decision_evidence");
 
 const express = require("express");
 const {
@@ -4800,6 +4801,18 @@ console.log("STATE-AWARE TEACHING ANALYSIS:", teachingAnalysis);
       "Let's continue building your understanding step by step.";
 
     console.log("ADAPTIVE QUESTION ENGINE:", adaptiveQuestion);
+
+    recordAdaptiveDecision({
+      learnerId: learner_id,
+      decision: sessionDecision,
+      learningState,
+      difficulty: difficultyAnalysis?.difficulty || null,
+      nextQuestion,
+      subject,
+      topic
+    }).catch(error => {
+      console.warn("Adaptive decision provenance skipped:", error.message);
+    });
 
     console.log("FINAL SESSION DEBUG:", {
       understanding,
