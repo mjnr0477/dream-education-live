@@ -53,8 +53,10 @@ async function persistEvidence(input) {
   if (!record.learner_id) return { persisted: false, reason: "learner_id_required" };
   if (!gliPostgres.getPool()) return { persisted: false, reason: "postgres_unavailable" };
 
-  const result = await gliPostgres.query(
-    `INSERT INTO dream_learning_evidence_ledger
+  let result;
+  try {
+    result = await gliPostgres.query(
+      `INSERT INTO dream_learning_evidence_ledger
       (learner_id, session_id, evidence_type, concept_key, source, source_uri,
        content_hash, evidence, confidence, observed_at, metadata)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9,$10,$11::jsonb)
@@ -65,8 +67,12 @@ async function persistEvidence(input) {
       record.source, record.source_uri, record.content_hash,
       JSON.stringify(record.evidence), record.confidence, record.observed_at,
       JSON.stringify(record.metadata)
-    ]
-  );
+      ]
+    );
+  } catch (error) {
+    console.warn("GLI evidence ledger write skipped:", error.message);
+    return { persisted: false, reason: "ledger_write_failed" };
+  }
 
   return { persisted: true, evidence: result.rows[0] };
 }
@@ -87,7 +93,9 @@ async function persistDecision({
   if (!gliPostgres.getPool()) return { persisted: false, reason: "postgres_unavailable" };
 
   const safeDecision = stable(decision);
-  const result = await gliPostgres.query(
+  let result;
+  try {
+    result = await gliPostgres.query(
     `INSERT INTO dream_learning_decisions
       (learner_id, decision_type, decision, evidence_ids, input_hash, model_provider, model_name)
      VALUES ($1,$2,$3::jsonb,$4::jsonb,$5,$6,$7)
@@ -100,8 +108,12 @@ async function persistDecision({
       hashPayload(safeDecision),
       modelProvider ? String(modelProvider).slice(0, 120) : null,
       modelName ? String(modelName).slice(0, 160) : null
-    ]
-  );
+      ]
+    );
+  } catch (error) {
+    console.warn("GLI decision ledger write skipped:", error.message);
+    return { persisted: false, reason: "decision_write_failed" };
+  }
 
   return { persisted: true, decision: result.rows[0] };
 }
