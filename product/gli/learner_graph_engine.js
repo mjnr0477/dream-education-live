@@ -6,7 +6,7 @@ function hashId(value) {
   return crypto.createHash("sha256").update(String(value)).digest("hex");
 }
 
-function buildLearnerGraph(learner, profile = {}) {
+function buildLearnerGraph(learner, profile = {}, intelligence = {}) {
   const learnerId = learner?.learner_id || null;
   const topics = profile.topics || {};
   const subjects = profile.subjects || {};
@@ -27,19 +27,42 @@ function buildLearnerGraph(learner, profile = {}) {
     assessments: Number(data.assessments || 0)
   }));
 
+  const evidenceConcepts = new Map(
+    (Array.isArray(intelligence.concepts) ? intelligence.concepts : [])
+      .filter(concept => concept && concept.concept_key)
+      .map(concept => [normalizeConcept(concept.concept_key), concept])
+  );
+
+  const enrichedConcepts = concepts.map(concept => {
+    const evidence = evidenceConcepts.get(normalizeConcept(concept.label));
+    if (!evidence) return concept;
+    return {
+      ...concept,
+      evidence_confidence: evidence.confidence ?? null,
+      evidence_signal: evidence.signal || "insufficient_evidence",
+      evidence_count: Number(evidence.evidence_count || 0),
+      evidence_types: {
+        assessment: Number(evidence.assessment_count || 0),
+        retrieval: Number(evidence.retrieval_count || 0),
+        outcome: Number(evidence.outcome_count || 0)
+      },
+      evidence_latest_observed_at: evidence.latest_observed_at || null
+    };
+  });
+
   const patterns = profile.patterns || {};
   return {
     version: "1.1.0",
     graph_type: "derived_learner_state",
     learner_id: learnerId,
     subject_nodes: subjectNodes,
-    concept_nodes: concepts,
+    concept_nodes: enrichedConcepts,
     patterns: {
       misconception_count: Number(patterns.misconception_count || 0),
       recovered_topics: Array.isArray(patterns.recovered_topics) ? patterns.recovered_topics : [],
       current_misconception_topics: Array.isArray(patterns.current_misconception_topics) ? patterns.current_misconception_topics : []
     },
-    relationships: concepts.map(concept => ({
+    relationships: enrichedConcepts.map(concept => ({
       from: "learner:" + learnerId,
       to: concept.id,
       type: "learning_state",
@@ -48,6 +71,10 @@ function buildLearnerGraph(learner, profile = {}) {
     })),
     generated_at: new Date().toISOString()
   };
+}
+
+function normalizeConcept(value) {
+  return String(value || "").trim().toLowerCase().replace(/\\s+/g, " ");
 }
 
 function buildPortableLearnerId(learnerId) {
