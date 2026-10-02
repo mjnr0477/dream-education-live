@@ -9146,12 +9146,20 @@ app.get("/api/v1/learner/:learner_id/intelligence", async (req, res) => {
       learnerId: req.params.learner_id,
       projects: Array.isArray(data.learner.projects) ? data.learner.projects : []
     });
+    let knowledgeLayerReady = false;
+    try {
+      knowledgeLayerReady = Boolean(loadKnowledge());
+    } catch (_) {
+      knowledgeLayerReady = false;
+    }
+
     const platformReadiness = buildPlatformReadiness({
       dependencies: {
         database: Boolean(gliPostgres.getPool()),
-        authentication: true,
-        adaptive_engine: true,
-        knowledge_layer: true
+        authentication: typeof getAuthenticatedAccount === "function",
+        adaptive_engine: typeof buildLearningProfile === "function",
+        knowledge_layer: knowledgeLayerReady,
+        owner_free_forever: typeof isOwnerAccount === "function"
       }
     });
     const graphPersistence = await persistLearnerGraph(req.params.learner_id, graph);
