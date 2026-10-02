@@ -9155,7 +9155,8 @@ app.get("/api/v1/learner/:learner_id/intelligence", async (req, res) => {
     });
     const curriculumIntelligence = buildCurriculumIntelligence({
       concepts: Object.keys(data.profile.topics || {}).map(topic => ({ name: topic })),
-      profile: data.profile
+      profile: data.profile,
+      evidenceIntelligence
     });
     const portfolio = buildLearningPortfolio({
       learner: data.learner,
