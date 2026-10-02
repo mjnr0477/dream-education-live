@@ -47,8 +47,8 @@ function learnerSummary(learner, assessments = [], evidence = []) {
   };
 }
 
-function buildTeacherIntelligence({teacher, learners = [], assessments = []} = {}) {
-  const summaries = learners.map(l => learnerSummary(l, assessments));
+function buildTeacherIntelligence({teacher, learners = [], assessments = [], evidenceByLearner = {}} = {}) {
+  const summaries = learners.map(l => learnerSummary(l, assessments, evidenceByLearner[l.learner_id] || []));
   return {
     role: "teacher",
     headline: "Know who needs teaching next.",
@@ -65,8 +65,8 @@ function buildTeacherIntelligence({teacher, learners = [], assessments = []} = {
   };
 }
 
-function buildParentIntelligence({parent, children = [], assessments = []} = {}) {
-  const summaries = children.map(l => learnerSummary(l, assessments));
+function buildParentIntelligence({parent, children = [], assessments = [], evidenceByLearner = {}} = {}) {
+  const summaries = children.map(l => learnerSummary(l, assessments, evidenceByLearner[l.learner_id] || []));
   return {
     role: "parent",
     headline: "Understand progress and know how to support learning.",
@@ -80,8 +80,8 @@ function buildParentIntelligence({parent, children = [], assessments = []} = {})
   };
 }
 
-function buildSchoolIntelligence({school, learners = [], assessments = [], teachers = []} = {}) {
-  const summaries = learners.map(l => learnerSummary(l, assessments));
+function buildSchoolIntelligence({school, learners = [], assessments = [], teachers = [], evidenceByLearner = {}} = {}) {
+  const summaries = learners.map(l => learnerSummary(l, assessments, evidenceByLearner[l.learner_id] || []));
   return {
     role: "school",
     headline: "See learning patterns across the institution.",
