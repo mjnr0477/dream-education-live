@@ -77,6 +77,77 @@ async function persistEvidence(input) {
   return { persisted: true, evidence: result.rows[0] };
 }
 
+async function listLearnerEvidence(learnerId, { conceptKey = null, evidenceType = null, limit = 50 } = {}) {
+  const normalizedLearnerId = String(learnerId || "").trim();
+  if (!normalizedLearnerId) return [];
+  if (!gliPostgres.getPool()) return [];
+
+  const safeLimit = Math.min(Math.max(Number(limit) || 50, 1), 200);
+  const params = [normalizedLearnerId];
+  const filters = ["learner_id = $1"];
+
+  if (conceptKey) {
+    params.push(String(conceptKey).trim());
+    filters.push("concept_key = $" + params.length);
+  }
+
+  if (evidenceType) {
+    params.push(String(evidenceType).trim());
+    filters.push("evidence_type = $" + params.length);
+  }
+
+  params.push(safeLimit);
+
+  try {
+    const result = await gliPostgres.query(
+      `SELECT evidence_id, learner_id, evidence_type, concept_key, source,
+              source_uri, content_hash, evidence, confidence, observed_at, created_at, metadata
+       FROM dream_learning_evidence_ledger
+       WHERE ${filters.join(" AND ")}
+       ORDER BY observed_at DESC
+       LIMIT ${params.length}`,
+      params
+    );
+    return result.rows;
+  } catch (error) {
+    console.warn("GLI evidence ledger read skipped:", error.message);
+    return [];
+  }
+}
+
+async function listLearnerDecisions(learnerId, { decisionType = null, limit = 50 } = {}) {
+  const normalizedLearnerId = String(learnerId || "").trim();
+  if (!normalizedLearnerId) return [];
+  if (!gliPostgres.getPool()) return [];
+
+  const safeLimit = Math.min(Math.max(Number(limit) || 50, 1), 200);
+  const params = [normalizedLearnerId];
+  const filters = ["learner_id = $1"];
+
+  if (decisionType) {
+    params.push(String(decisionType).trim());
+    filters.push("decision_type = $" + params.length);
+  }
+
+  params.push(safeLimit);
+
+  try {
+    const result = await gliPostgres.query(
+      `SELECT decision_id, learner_id, decision_type, decision, evidence_ids,
+              input_hash, model_provider, model_name, created_at
+       FROM dream_learning_decisions
+       WHERE ${filters.join(" AND ")}
+       ORDER BY created_at DESC
+       LIMIT ${params.length}`,
+      params
+    );
+    return result.rows;
+  } catch (error) {
+    console.warn("GLI decision ledger read skipped:", error.message);
+    return [];
+  }
+}
+
 async function persistDecision({
   learnerId,
   decisionType,
@@ -118,4 +189,12 @@ async function persistDecision({
   return { persisted: true, decision: result.rows[0] };
 }
 
-module.exports={stable,hashPayload,normalizeEvidence,persistEvidence,persistDecision};
+module.exports={
+  stable,
+  hashPayload,
+  normalizeEvidence,
+  persistEvidence,
+  persistDecision,
+  listLearnerEvidence,
+  listLearnerDecisions
+};
