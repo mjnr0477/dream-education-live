@@ -4,7 +4,8 @@ const crypto = require("crypto");
 const OpenAI = require("openai");
 const gliPostgres = require("../../infrastructure/database/postgres");
 const { buildDocumentRecord } = require("./knowledge_intelligence_engine");
-const { persistEvidence, persistDecision } = require("./evidence_ledger");
+const { persistEvidence, persistDecision, listLearnerEvidence, listLearnerDecisions } = require("./evidence_ledger");
+const { buildLearnerIntelligenceSnapshot } = require("./learner_intelligence_fusion");
 
 function poolReady() {
   return Boolean(gliPostgres.getPool());
@@ -135,6 +136,16 @@ async function recordLearningDecision(input) {
   return persistDecision(input);
 }
 
+async function buildLearnerIntelligenceFromEvidence(learnerId, options = {}) {
+  const evidence = await listLearnerEvidence(learnerId, options);
+  const profile = options.profile || {};
+  return buildLearnerIntelligenceSnapshot({ profile, evidence });
+}
+
+async function getLearnerDecisionHistory(learnerId, options = {}) {
+  return listLearnerDecisions(learnerId, options);
+}
+
 async function issueCredential({ learnerId, competency, evidence = {} }) {
   if (!poolReady()) throw new Error("Postgres is required for credential issuance.");
   if (!String(competency || "").trim()) throw new Error("Competency is required.");
@@ -204,5 +215,7 @@ module.exports = {
   listCredentials,
   verifyCredential,
   recordLearningEvidence,
-  recordLearningDecision
+  recordLearningDecision,
+  buildLearnerIntelligenceFromEvidence,
+  getLearnerDecisionHistory
 };
