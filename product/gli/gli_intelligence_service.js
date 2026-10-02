@@ -3,7 +3,7 @@
 const crypto = require("crypto");
 const OpenAI = require("openai");
 const gliPostgres = require("../../infrastructure/database/postgres");
-const { buildDocumentRecord } = require("./knowledge_intelligence_engine");
+const { buildDocumentRecord, enrichKnowledgeResult } = require("./knowledge_intelligence_engine");
 const { persistEvidence, persistDecision, listLearnerEvidence, listLearnerDecisions } = require("./evidence_ledger");
 const { buildLearnerIntelligenceSnapshot } = require("./learner_intelligence_fusion");
 
@@ -110,7 +110,7 @@ async function searchKnowledge(query, limit = 8, tenantId = null) {
        LIMIT $3`,
       [vectorLiteral, tenantId ? String(tenantId) : null, safeLimit]
     );
-    if (result.rows.length) return result.rows;
+    if (result.rows.length) return result.rows.map(row => enrichKnowledgeResult(row));
   }
 
   const result = await gliPostgres.query(
@@ -125,7 +125,7 @@ async function searchKnowledge(query, limit = 8, tenantId = null) {
      LIMIT $3`,
     ["%" + q + "%", tenantId ? String(tenantId) : null, safeLimit]
   );
-  return result.rows;
+  return result.rows.map(row => enrichKnowledgeResult(row));
 }
 
 async function recordLearningEvidence(input) {
