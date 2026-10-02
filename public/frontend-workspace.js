@@ -156,14 +156,20 @@
     );
 
     try {
+      const auth = getAuth();
       const intelligence = await getJSON(
         "/api/intelligence/" + encodeURIComponent(info.id),
-        getAuth()
+        auth
+      );
+      const nextQuestionData = await getJSON(
+        "/api/next-question/" + encodeURIComponent(info.id),
+        auth
       );
 
       const profile = intelligence.learning_profile || {};
       const decision = intelligence.decision || {};
       const recommendation = intelligence.recommendation || {};
+      const nextQuestion = nextQuestionData.next_question || {};
       const subjects = intelligence.subject_performance || {};
       const recent = Array.isArray(intelligence.recent_learning)
         ? intelligence.recent_learning
@@ -208,6 +214,11 @@
               action("Ask Dream AI", "ask") +
               action("Refresh intelligence", "workspace") +
             '</div>' +
+          '</section>' +
+          '<section class="de-section">' +
+            '<div class="de-section-title"><h3>Next learning question</h3><span>' + escapeHTML(nextQuestion.subject || "General") + '</span></div>' +
+            '<p>' + escapeHTML(nextQuestion.question || "What would you like to learn today?") + '</p>' +
+            '<small class="de-muted">' + escapeHTML(nextQuestionData.based_on ? "Generated from your recorded learning history." : "No previous learning history was available.") + '</small>' +
           '</section>' +
           '<div class="de-columns">' +
             '<section class="de-section"><div class="de-section-title"><h3>Subject picture</h3><span>Evidence</span></div>' +
