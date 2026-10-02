@@ -43,10 +43,10 @@ function getDependents(id) {
 
   return graph.relationships
     .filter(r =>
-      r.from === id &&
+      r.to === id &&
       r.relationship === "prerequisite"
     )
-    .map(r => getKnowledge(r.to))
+    .map(r => getKnowledge(r.from))
     .filter(Boolean);
 }
 
