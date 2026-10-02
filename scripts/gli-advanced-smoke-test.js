@@ -29,6 +29,7 @@ assert.strictEqual(advanced.next_best_action.action, "correct");
 assert.strictEqual(selectLearningMethod({ misconception: true }).selected_method, "explanation");
 assert.strictEqual(buildCurriculumIntelligence({ concepts: ["fractions"], profile }).nodes.length, 1);
 assert.strictEqual(buildLearningPortfolio({ learner: { learner_id: "ci" }, assessments: [] }).learner_id, "ci");
-assert.strictEqual(buildPlatformReadiness({ dependencies: { database: true } }).ready, true);
+assert.strictEqual(buildPlatformReadiness({ dependencies: { database: true, authentication: true, adaptive_engine: true, knowledge_layer: true, owner_free_forever: true } }).ready, true);
+assert.strictEqual(buildPlatformReadiness({ dependencies: { database: true, authentication: true, adaptive_engine: true, knowledge_layer: false, owner_free_forever: true } }).ready, false);
 
 console.log("GLI advanced smoke test passed");

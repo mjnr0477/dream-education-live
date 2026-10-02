@@ -3,6 +3,11 @@ const https = require("https");
 const CLIENT_ID = process.env.PAYPAL_CLIENT_ID;
 const CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET;
 const ENVIRONMENT = (process.env.PAYPAL_ENVIRONMENT || "sandbox").toLowerCase();
+const REQUEST_TIMEOUT_MS = Math.max(
+  1000,
+  Number(process.env.PAYPAL_REQUEST_TIMEOUT_MS) || 10000
+);
+const MAX_RESPONSE_BYTES = 1024 * 1024;
 
 const BASE_URL =
   ENVIRONMENT === "live"
@@ -24,8 +29,14 @@ function request(method, path, body = null, headers = {}) {
       },
       res => {
         let data = "";
+        let responseBytes = 0;
 
         res.on("data", chunk => {
+          responseBytes += Buffer.byteLength(chunk);
+          if (responseBytes > MAX_RESPONSE_BYTES) {
+            req.destroy(new Error("PayPal response exceeded the safety limit."));
+            return;
+          }
           data += chunk;
         });
 
@@ -52,6 +63,10 @@ function request(method, path, body = null, headers = {}) {
         });
       }
     );
+
+    req.setTimeout(REQUEST_TIMEOUT_MS, () => {
+      req.destroy(new Error("PayPal API request timed out."));
+    });
 
     req.on("error", reject);
 
