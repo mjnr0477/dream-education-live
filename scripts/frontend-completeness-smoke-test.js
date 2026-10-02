@@ -32,7 +32,6 @@ const requiredFrontendRoutes = [
   "/api/adaptive",
   "/api/next-question",
   "/api/session",
-  "/api/learning-cycle",
   "/api/product/teacher",
   "/api/product/parent",
   "/api/product/school",
