@@ -80,7 +80,7 @@ function buildAssessmentEvidence({
     confidence: confidenceFromAssessment(assessment),
     evidence: {
       question_hash: crypto.createHash("sha256").update(String(question || "")).digest("hex"),
-      learner_answer,
+      learner_answer: learnerAnswer,
       subject: String(subject || "").slice(0, 160),
       topic: String(topic || "").slice(0, 160),
       level: String(level || "").slice(0, 160),
