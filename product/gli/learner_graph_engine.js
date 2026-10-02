@@ -74,7 +74,7 @@ function buildLearnerGraph(learner, profile = {}, intelligence = {}) {
 }
 
 function normalizeConcept(value) {
-  return String(value || "").trim().toLowerCase().replace(/\\s+/g, " ");
+  return String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
 }
 
 function buildPortableLearnerId(learnerId) {
