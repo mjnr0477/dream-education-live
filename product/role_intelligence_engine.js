@@ -10,12 +10,24 @@ function avg(values) {
   return xs.length ? Math.round(xs.reduce((a,b)=>a+b,0) / xs.length) : 0;
 }
 
-function learnerSummary(learner, assessments = []) {
+function learnerSummary(learner, assessments = [], evidence = []) {
   const rows = assessments.filter(a => a.learner_id === learner.learner_id);
   const scores = rows.map(a => n(a.score)).filter(x => x >= 0 && x <= 100);
   const recent = rows.slice(0, 8);
   const weak = recent.filter(a => n(a.score) < 60).slice(0, 5);
   const strong = recent.filter(a => n(a.score) >= 80).slice(0, 5);
+  const evidenceRows = Array.isArray(evidence) ? evidence : [];
+  const evidenceConfidences = evidenceRows
+    .map(row => n(row.confidence))
+    .filter(x => x >= 0 && x <= 1);
+  const evidenceConfidence = evidenceConfidences.length
+    ? Math.round((evidenceConfidences.reduce((a,b)=>a+b,0) / evidenceConfidences.length) * 100) / 100
+    : null;
+  const evidenceByType = evidenceRows.reduce((out, row) => {
+    const type = String(row.evidence_type || "interaction");
+    out[type] = (out[type] || 0) + 1;
+    return out;
+  }, {});
   return {
     learner_id: learner.learner_id,
     name: learner.name || "Learner",
@@ -25,7 +37,13 @@ function learnerSummary(learner, assessments = []) {
     recent_scores: recent.map(a => n(a.score)),
     focus_topics: weak.map(a => a.topic || a.subject).filter(Boolean).slice(0, 5),
     strengths: strong.map(a => a.topic || a.subject).filter(Boolean).slice(0, 5),
-    last_activity: rows[0]?.created_at || null
+    last_activity: rows[0]?.created_at || null,
+    evidence: {
+      count: evidenceRows.length,
+      confidence: evidenceConfidence,
+      by_type: evidenceByType,
+      latest_observed_at: evidenceRows[0]?.observed_at || null
+    }
   };
 }
 
