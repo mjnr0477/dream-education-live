@@ -4724,19 +4724,6 @@ const sessionDecision = decideNextAction({
 console.log("SESSION LEARNING PROFILE:", sessionProfile);
 console.log("SESSION DECISION:", sessionDecision);
 
-    // Additive decision provenance: persist the selected adaptive action
-    // without changing the protected decision engine or learner response.
-    recordAdaptiveDecision({
-      learnerId: learner_id,
-      decision: sessionDecision,
-      learningState,
-      difficulty: difficultyAnalysis?.difficulty || null,
-      subject,
-      topic
-    }).catch(error => {
-      console.warn("Adaptive decision provenance skipped:", error.message);
-    });
-
 /*
   STATE-AWARE EVIDENCE TEACHING
 
