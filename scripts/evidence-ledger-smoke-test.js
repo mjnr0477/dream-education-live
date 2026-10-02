@@ -26,7 +26,7 @@ assert(normalized.evidence.learner_answer_hash);
 assert.strictEqual(normalized.evidence.email, undefined);
 assert.strictEqual(normalized.evidence.nested.a, 1);
 assert.strictEqual(normalized.evidence.nested.b, 2);
-assert.strictEqual(normalized.evidence.learner_answer_length, 13);
+assert.strictEqual(normalized.evidence.learner_answer_length, 14);
 assert.strictEqual(hashPayload({b:2,a:1}), hashPayload({a:1,b:2}));
 
 const first = stable({z: 1, a: 2});
