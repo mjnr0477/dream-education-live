@@ -21,6 +21,7 @@ const { solveProblem } = require("./product/problem_solver_engine.js");
 const { safelyObserveLearningEvent } = require("./product/dream/learning_observer");
 const { buildLearningSession } = require("./product/learning_session_engine");
 const { buildTeacherIntelligence, buildParentIntelligence, buildSchoolIntelligence } = require("./product/role_intelligence_engine");
+const { listLearnerEvidence } = require("./product/gli/evidence_ledger");
 
 const express = require("express");
 const {
@@ -3775,17 +3776,23 @@ app.get("/api/v1/role/:role/intelligence", async (req, res) => {
       assessments = data || [];
     }
 
+    const evidenceResults = await Promise.all(
+      ids.map(async learnerId => [learnerId, await listLearnerEvidence(learnerId, { limit: 100 })])
+    );
+    const evidenceByLearner = Object.fromEntries(evidenceResults);
+
     let intelligence;
     if (role === "teacher") {
-      intelligence = buildTeacherIntelligence({ teacher:profile, learners, assessments });
+      intelligence = buildTeacherIntelligence({ teacher:profile, learners, assessments, evidenceByLearner });
     } else if (role === "parent") {
-      intelligence = buildParentIntelligence({ parent:profile, children:learners, assessments });
+      intelligence = buildParentIntelligence({ parent:profile, children:learners, assessments, evidenceByLearner });
     } else {
       intelligence = buildSchoolIntelligence({
         school:profile,
         learners,
         assessments,
-        teachers:Object.values(store.teachers || {})
+        teachers:Object.values(store.teachers || {}),
+        evidenceByLearner
       });
     }
 
