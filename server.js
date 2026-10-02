@@ -8,6 +8,7 @@ const { calculateMastery } = require("./mastery_engine");
 const { buildLearningProfile } = require("./learning_profile_engine");
 const { decideNextAction } = require("./decision_engine");
 const { assessLearning } = require("./assessment_engine");
+const { recordAssessmentEvidence } = require("./product/gli/assessment_evidence_bridge");
 const { determineDifficulty } = require("./difficulty_engine");
 const queryEngine = require("./product/query_engine.js");
 
@@ -4494,6 +4495,21 @@ app.post("/api/session", async (req, res) => {
       console.error("Current assessment save error:", currentAssessmentError);
       throw currentAssessmentError;
     }
+
+    // Additive GLI evidence capture. The protected assessment engine remains
+    // the source of truth for scoring; evidence persistence must never break
+    // the learner's core session.
+    recordAssessmentEvidence({
+      learnerId: learner_id,
+      question,
+      learnerAnswer: learner_answer,
+      subject,
+      topic,
+      level,
+      assessment
+    }).catch(error => {
+      console.warn("Assessment evidence capture skipped:", error.message);
+    });
 
 
     const { error: historySaveError } = await supabase
