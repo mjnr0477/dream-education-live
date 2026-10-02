@@ -9071,7 +9071,8 @@ const {
   searchKnowledge,
   issueCredential,
   listCredentials,
-  verifyCredential
+  verifyCredential,
+  buildLearnerIntelligenceFromEvidence
 } = require("./product/gli/gli_intelligence_service");
 const { rateLimit, requestId, validateBodySize } = require("./product/gli/production_security");
 const { accountId, requireTenantRole } = require("./product/gli/tenant_access");
@@ -9130,7 +9131,8 @@ app.get("/api/v1/learner/:learner_id/intelligence", async (req, res) => {
     const data = await getLearnerIntelligenceData(req.params.learner_id);
     if (!data) return res.status(404).json({ success: false, error: "Learner not found." });
 
-    const graph = buildLearnerGraph(data.learner, data.profile);
+    const evidenceIntelligence = await buildLearnerIntelligenceFromEvidence(req.params.learner_id, { limit: 200 });
+    const graph = buildLearnerGraph(data.learner, data.profile, evidenceIntelligence);
     const proactiveActions = generateProactiveActions({ learner: data.learner, profile: data.profile });
     const advancedIntelligence = buildAdvancedLearnerIntelligence({
       profile: data.profile,
@@ -9189,6 +9191,7 @@ app.get("/api/v1/learner/:learner_id/intelligence", async (req, res) => {
         level: data.learner.level || null
       },
       learning_profile: data.profile,
+      evidence_intelligence: evidenceIntelligence,
       learner_graph: graph,
       proactive_actions: proactiveActions,
       advanced_intelligence: advancedIntelligence,
@@ -9520,7 +9523,8 @@ app.get("/api/v1/developer/intelligence/:learner_id", async (req, res) => {
     const data = await getLearnerIntelligenceData(req.params.learner_id);
     if (!data) return res.status(404).json({ success: false, error: "Learner not found." });
 
-    const graph = buildLearnerGraph(data.learner, data.profile);
+    const evidenceIntelligence = await buildLearnerIntelligenceFromEvidence(req.params.learner_id, { limit: 200 });
+    const graph = buildLearnerGraph(data.learner, data.profile, evidenceIntelligence);
     return res.json({
       success: true,
       tenant_id: key.tenant_id,
@@ -9529,6 +9533,7 @@ app.get("/api/v1/developer/intelligence/:learner_id", async (req, res) => {
         portable_id: buildPortableLearnerId(data.learner.learner_id)
       },
       learning_profile: data.profile,
+      evidence_intelligence: evidenceIntelligence,
       learner_graph: graph,
       proactive_actions: generateProactiveActions({ learner: data.learner, profile: data.profile })
     });
