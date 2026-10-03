@@ -37,6 +37,7 @@ const OpenAI = require("openai");
 const { generateAI: generateFreeAI } = require("./product/ai/ai_provider_router");
 const { recordAIEvaluationEvidence } = require("./product/gli/ai_evaluation_evidence");
 const { recordLearningOutcomeFeedback } = require("./product/gli/learning_outcome_evaluation");
+const { buildLearningOutcomeSummary } = require("./product/gli/outcome_intelligence");
 const { createClient } = require("@supabase/supabase-js");
 
 const app = express();
@@ -9279,6 +9280,10 @@ app.get("/api/v1/learner/:learner_id/intelligence", async (req, res) => {
 
     const evidenceIntelligence = await buildLearnerIntelligenceFromEvidence(req.params.learner_id, { limit: 200 });
     const decisionHistory = await getLearnerDecisionHistory(req.params.learner_id, { limit: 100 });
+    const outcomeSummary = buildLearningOutcomeSummary({
+      evidence: evidenceIntelligence,
+      decisions: decisionHistory
+    });
     const graph = buildLearnerGraph(data.learner, data.profile, evidenceIntelligence);
     const proactiveActions = generateProactiveActions({ learner: data.learner, profile: data.profile });
     const advancedIntelligence = buildAdvancedLearnerIntelligence({
@@ -9341,6 +9346,7 @@ app.get("/api/v1/learner/:learner_id/intelligence", async (req, res) => {
       learning_profile: data.profile,
       evidence_intelligence: evidenceIntelligence,
       decision_history: decisionHistory,
+      outcome_summary: outcomeSummary,
       learner_graph: graph,
       proactive_actions: proactiveActions,
       advanced_intelligence: advancedIntelligence,
