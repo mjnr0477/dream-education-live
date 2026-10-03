@@ -8,7 +8,8 @@ const summary = buildLearningOutcomeSummary({
     concepts: {
       photosynthesis: {
         confidence: 0.9,
-        evidence_types: { outcome: 2 }
+        evidence_types: { outcome: 2 },
+        evidence: { evaluation: { metrics: { correctness: 1 } } }
       }
     }
   },
@@ -19,5 +20,7 @@ const summary = buildLearningOutcomeSummary({
 
 assert.strictEqual(summary.outcome_evidence_concepts, 1);
 assert.strictEqual(summary.feedback_decisions, 1);
+assert.strictEqual(summary.observed_outcomes, 1);
+assert.strictEqual(summary.average_observed_correctness, 1);
 assert.strictEqual(summary.status, "strong_outcome_signal");
 console.log("Learning outcome intelligence smoke test passed.");
