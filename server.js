@@ -9184,6 +9184,72 @@ app.get("/api/v1/platform/manifest", (req, res) => {
   res.json({ success: true, platform: getPlatformManifest() });
 });
 
+app.get("/api/v1/learner/:learner_id/evidence-timeline", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    if (auth.account.learner_id !== req.params.learner_id && auth.account.owner_account !== true) {
+      return res.status(403).json({ success: false, error: "You are not authorized to access this learner timeline." });
+    }
+
+    const learner = getLearner(req.params.learner_id);
+    if (!learner) return res.status(404).json({ success: false, error: "Learner not found." });
+
+    const requestedLimit = Math.min(Math.max(Number(req.query.limit) || 50, 1), 100);
+    const [evidence, decisions] = await Promise.all([
+      listLearnerEvidence(req.params.learner_id, { limit: requestedLimit }),
+      getLearnerDecisionHistory(req.params.learner_id, { limit: requestedLimit })
+    ]);
+
+    const timeline = [
+      ...evidence.map(item => ({
+        id: item.evidence_id,
+        kind: "evidence",
+        type: item.evidence_type,
+        concept_key: item.concept_key,
+        source: item.source,
+        confidence: item.confidence,
+        observed_at: item.observed_at,
+        created_at: item.created_at,
+        metadata: item.metadata || {}
+      })),
+      ...decisions.map(item => ({
+        id: item.decision_id,
+        kind: "decision",
+        type: item.decision_type,
+        concept_key: item.decision?.topic || item.decision?.selected?.topic || null,
+        source: item.model_provider || null,
+        confidence: null,
+        observed_at: item.created_at,
+        created_at: item.created_at,
+        metadata: {
+          model_provider: item.model_provider || null,
+          model_name: item.model_name || null,
+          evidence_ids: item.evidence_ids || []
+        }
+      }))
+    ].sort((a, b) => {
+      const at = Date.parse(a.observed_at || a.created_at || "") || 0;
+      const bt = Date.parse(b.observed_at || b.created_at || "") || 0;
+      return bt - at;
+    }).slice(0, requestedLimit);
+
+    return res.json({
+      success: true,
+      learner_id: req.params.learner_id,
+      timeline,
+      counts: {
+        evidence: evidence.length,
+        decisions: decisions.length,
+        returned: timeline.length
+      }
+    });
+  } catch (error) {
+    console.error("Learner evidence timeline error:", error);
+    return res.status(500).json({ success: false, error: "Learner evidence timeline could not be built." });
+  }
+});
+
 app.get("/api/v1/learner/:learner_id/intelligence", async (req, res) => {
   try {
     const auth = await getAuthenticatedAccount(req);
