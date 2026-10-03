@@ -5,13 +5,15 @@ const {
 } = require("./ai_evaluation_engine");
 const {
   persistEvidence,
-  persistDecision
+  persistDecision,
+  hashPayload
 } = require("./evidence_ledger");
 
 function buildAIEvaluationEvidence({
   learnerId,
   sessionId = null,
   conceptKey = null,
+  question = null,
   provider = null,
   model = null,
   correctness = null,
@@ -38,7 +40,10 @@ function buildAIEvaluationEvidence({
       model: model ? String(model).trim() : null
     },
     confidence: evaluation.quality,
-    metadata
+    metadata: {
+      ...metadata,
+      question_hash: question ? hashPayload({ question }) : null
+    }
   };
 }
 
