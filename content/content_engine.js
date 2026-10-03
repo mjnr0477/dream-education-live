@@ -162,8 +162,33 @@ function findUniversalRelevantContent({ subject, level, topic, question } = {}) 
   const normalizedSubject = String(subject || "").trim().toLowerCase();
   const normalizedLevel = String(level || "").trim().toLowerCase();
 
-  const effectiveSubject = generic.has(normalizedSubject) ? null : subject;
-  const effectiveLevel = generic.has(normalizedLevel) ? null : level;
+  const knowledge = loadKnowledge();
+  const subjects = Object.keys(knowledge.subjects || {});
+
+  /*
+   * A learner's profile level/subject is context, not a hard
+   * knowledge boundary. If the supplied value is not an actual
+   * curriculum key, do not let it hide an otherwise verified answer.
+   */
+  const subjectKey =
+    subjects.find(name => name === subject) || null;
+
+  const levelKeys = subjectKey
+    ? Object.keys(knowledge.subjects?.[subjectKey]?.levels || {})
+    : [];
+
+  const levelKey =
+    levelKeys.find(name => name === level) || null;
+
+  const effectiveSubject =
+    generic.has(normalizedSubject) || !subjectKey
+      ? null
+      : subject;
+
+  const effectiveLevel =
+    generic.has(normalizedLevel) || !levelKey
+      ? null
+      : level;
 
   const direct = findRelevantContent({
     subject: effectiveSubject,
@@ -173,9 +198,6 @@ function findUniversalRelevantContent({ subject, level, topic, question } = {}) 
   });
 
   if (direct) return direct;
-
-  const knowledge = loadKnowledge();
-  const subjects = Object.keys(knowledge.subjects || {});
 
   for (const subjectName of subjects) {
     if (effectiveSubject && subjectName !== effectiveSubject) continue;
