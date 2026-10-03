@@ -2470,6 +2470,29 @@ Return valid JSON only.
 const dreamChatUsers = new Map();
 const dreamChatMessages = [];
 
+function hydrateChatStore(store) {
+  const persistedUsers = store?.chat_users && typeof store.chat_users === "object"
+    ? store.chat_users
+    : {};
+  const persistedMessages = Array.isArray(store?.chat_messages)
+    ? store.chat_messages
+    : [];
+
+  for (const [id, profile] of Object.entries(persistedUsers)) {
+    if (profile && id) dreamChatUsers.set(id, profile);
+  }
+
+  if (!dreamChatMessages.length && persistedMessages.length) {
+    dreamChatMessages.push(...persistedMessages.slice(-5000));
+  }
+}
+
+function persistChatState(store) {
+  store.chat_users = Object.fromEntries(dreamChatUsers.entries());
+  store.chat_messages = dreamChatMessages.slice(-5000);
+  require("./product/data_engine").saveStore(store);
+}
+
 function chatEntityId(account) {
   if (!account) return "";
   const fields = {
@@ -2589,6 +2612,7 @@ app.post("/api/chat/users", async (req, res) => {
     }
 
     const store = require("./product/data_engine").loadStore();
+    hydrateChatStore(store);
     const profile = chatProfile(store, account);
 
     profile.display_name = displayName;
@@ -2596,6 +2620,7 @@ app.post("/api/chat/users", async (req, res) => {
     profile.updated_at = new Date().toISOString();
 
     dreamChatUsers.set(profile.user_id, profile);
+    persistChatState(store);
 
     return res.json({
       success: true,
@@ -2616,6 +2641,7 @@ app.get("/api/chat/users", async (req, res) => {
     if (!account) return;
 
     const store = require("./product/data_engine").loadStore();
+    hydrateChatStore(store);
     const myId = chatEntityId(account);
 
     const connections = Object.values(store.connections || {})
@@ -2766,6 +2792,7 @@ app.get("/api/chat/messages", async (req, res) => {
     }
 
     const store = require("./product/data_engine").loadStore();
+    hydrateChatStore(store);
 
     if (!activeChatConnection(
       store,
@@ -2780,20 +2807,21 @@ app.get("/api/chat/messages", async (req, res) => {
     }
 
     const myId = chatEntityId(account);
+    const messages = dreamChatMessages
+      .filter(message =>
+        message.conversation_id === conversationId &&
+        (
+          (message.sender_id === myId &&
+           message.recipient_id === recipientId) ||
+          (message.sender_id === recipientId &&
+           message.recipient_id === myId)
+        )
+      )
+      .slice(-100);
 
     return res.json({
       success: true,
-      messages: dreamChatMessages
-        .filter(message =>
-          message.conversation_id === conversationId &&
-          (
-            (message.sender_id === myId &&
-             message.recipient_id === recipientId) ||
-            (message.sender_id === recipientId &&
-             message.recipient_id === myId)
-          )
-        )
-        .slice(-100)
+      messages
     });
   } catch (error) {
     console.error("Chat message load error:", error);
@@ -2848,6 +2876,7 @@ app.post("/api/chat/messages", async (req, res) => {
     }
 
     const store = require("./product/data_engine").loadStore();
+    hydrateChatStore(store);
 
     if (!activeChatConnection(
       store,
@@ -2875,9 +2904,11 @@ app.post("/api/chat/messages", async (req, res) => {
 
     dreamChatMessages.push(message);
 
-    if (dreamChatMessages.length > 1000) {
-      dreamChatMessages.shift();
+    if (dreamChatMessages.length > 5000) {
+      dreamChatMessages.splice(0, dreamChatMessages.length - 5000);
     }
+
+    persistChatState(store);
 
     return res.json({
       success: true,
