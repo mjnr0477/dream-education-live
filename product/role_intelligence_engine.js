@@ -10,13 +10,14 @@ function avg(values) {
   return xs.length ? Math.round(xs.reduce((a,b)=>a+b,0) / xs.length) : 0;
 }
 
-function learnerSummary(learner, assessments = [], evidence = []) {
+function learnerSummary(learner, assessments = [], evidence = [], decisions = []) {
   const rows = assessments.filter(a => a.learner_id === learner.learner_id);
   const scores = rows.map(a => n(a.score)).filter(x => x >= 0 && x <= 100);
   const recent = rows.slice(0, 8);
   const weak = recent.filter(a => n(a.score) < 60).slice(0, 5);
   const strong = recent.filter(a => n(a.score) >= 80).slice(0, 5);
   const evidenceRows = Array.isArray(evidence) ? evidence : [];
+  const decisionRows = Array.isArray(decisions) ? decisions : [];
   const evidenceConfidences = evidenceRows
     .map(row => n(row.confidence))
     .filter(x => x >= 0 && x <= 1);
@@ -43,12 +44,21 @@ function learnerSummary(learner, assessments = [], evidence = []) {
       confidence: evidenceConfidence,
       by_type: evidenceByType,
       latest_observed_at: evidenceRows[0]?.observed_at || null
+    },
+    adaptive_decisions: {
+      count: decisionRows.length,
+      latest_at: decisionRows[0]?.created_at || null,
+      by_type: decisionRows.reduce((out, row) => {
+        const type = String(row.decision_type || "unknown");
+        out[type] = (out[type] || 0) + 1;
+        return out;
+      }, {})
     }
   };
 }
 
-function buildTeacherIntelligence({teacher, learners = [], assessments = [], evidenceByLearner = {}} = {}) {
-  const summaries = learners.map(l => learnerSummary(l, assessments, evidenceByLearner[l.learner_id] || []));
+function buildTeacherIntelligence({teacher, learners = [], assessments = [], evidenceByLearner = {}, decisionByLearner = {}} = {}) {
+  const summaries = learners.map(l => learnerSummary(l, assessments, evidenceByLearner[l.learner_id] || [], decisionByLearner[l.learner_id] || []));
   return {
     role: "teacher",
     headline: "Know who needs teaching next.",
@@ -65,8 +75,8 @@ function buildTeacherIntelligence({teacher, learners = [], assessments = [], evi
   };
 }
 
-function buildParentIntelligence({parent, children = [], assessments = [], evidenceByLearner = {}} = {}) {
-  const summaries = children.map(l => learnerSummary(l, assessments, evidenceByLearner[l.learner_id] || []));
+function buildParentIntelligence({parent, children = [], assessments = [], evidenceByLearner = {}, decisionByLearner = {}} = {}) {
+  const summaries = children.map(l => learnerSummary(l, assessments, evidenceByLearner[l.learner_id] || [], decisionByLearner[l.learner_id] || []));
   return {
     role: "parent",
     headline: "Understand progress and know how to support learning.",
@@ -80,8 +90,8 @@ function buildParentIntelligence({parent, children = [], assessments = [], evide
   };
 }
 
-function buildSchoolIntelligence({school, learners = [], assessments = [], teachers = [], evidenceByLearner = {}} = {}) {
-  const summaries = learners.map(l => learnerSummary(l, assessments, evidenceByLearner[l.learner_id] || []));
+function buildSchoolIntelligence({school, learners = [], assessments = [], teachers = [], evidenceByLearner = {}, decisionByLearner = {}} = {}) {
+  const summaries = learners.map(l => learnerSummary(l, assessments, evidenceByLearner[l.learner_id] || [], decisionByLearner[l.learner_id] || []));
   return {
     role: "school",
     headline: "See learning patterns across the institution.",
