@@ -9092,7 +9092,8 @@ const {
   issueCredential,
   listCredentials,
   verifyCredential,
-  buildLearnerIntelligenceFromEvidence
+  buildLearnerIntelligenceFromEvidence,
+  getLearnerDecisionHistory
 } = require("./product/gli/gli_intelligence_service");
 const { rateLimit, requestId, validateBodySize } = require("./product/gli/production_security");
 const { accountId, requireTenantRole } = require("./product/gli/tenant_access");
@@ -9152,6 +9153,7 @@ app.get("/api/v1/learner/:learner_id/intelligence", async (req, res) => {
     if (!data) return res.status(404).json({ success: false, error: "Learner not found." });
 
     const evidenceIntelligence = await buildLearnerIntelligenceFromEvidence(req.params.learner_id, { limit: 200 });
+    const decisionHistory = await getLearnerDecisionHistory(req.params.learner_id, { limit: 100 });
     const graph = buildLearnerGraph(data.learner, data.profile, evidenceIntelligence);
     const proactiveActions = generateProactiveActions({ learner: data.learner, profile: data.profile });
     const advancedIntelligence = buildAdvancedLearnerIntelligence({
@@ -9213,6 +9215,7 @@ app.get("/api/v1/learner/:learner_id/intelligence", async (req, res) => {
       },
       learning_profile: data.profile,
       evidence_intelligence: evidenceIntelligence,
+      decision_history: decisionHistory,
       learner_graph: graph,
       proactive_actions: proactiveActions,
       advanced_intelligence: advancedIntelligence,
