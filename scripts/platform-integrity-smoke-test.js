@@ -66,17 +66,34 @@ const outcomeSummary = outcome.buildLearningOutcomeSummary();
 assert.strictEqual(outcomeSummary.status, "insufficient_outcome_evidence");
 
 const security = require(path.join(root, "product/gli/production_security"));
-const securityReport = security.buildProductionSecurityPosture({
-  environment: { name: "production" },
-  configuration: {
-    authentication: true,
-    rate_limiting: true,
-    request_ids: true,
-    body_limits: true,
-    service_role_database: true
+assert.strictEqual(typeof security.rateLimit, "function");
+assert.strictEqual(typeof security.requestId, "function");
+assert.strictEqual(typeof security.validateBodySize, "function");
+
+const requestIdMiddleware = security.requestId;
+const request = { headers: {}, socket: { remoteAddress: "127.0.0.1" } };
+const responseHeaders = {};
+const response = { setHeader(name, value) { responseHeaders[name] = value; } };
+let nextCalled = false;
+requestIdMiddleware(request, response, () => { nextCalled = true; });
+assert.strictEqual(nextCalled, true);
+assert.ok(request.request_id);
+assert.strictEqual(responseHeaders["X-Request-Id"], request.request_id);
+
+let rejected = false;
+const oversizedResponse = {
+  status(code) {
+    assert.strictEqual(code, 413);
+    return { json(payload) {
+      rejected = payload && payload.success === false;
+    }};
   }
-});
-assert.strictEqual(securityReport.status, "ready");
-assert.strictEqual(securityReport.score, 1);
+};
+security.validateBodySize(10)(
+  { headers: { "content-length": "11" } },
+  oversizedResponse,
+  () => { throw new Error("Oversized request was not rejected"); }
+);
+assert.strictEqual(rejected, true);
 
 console.log("Platform integrity guardrails smoke test passed.");
