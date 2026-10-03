@@ -240,6 +240,88 @@
     }
   }
 
+  function roleMetricValue(intelligence, role) {
+    if (role === "teacher") {
+      const signal = intelligence.class_signal || {};
+      return [
+        metric("Learners", signal.learners || 0, "Connected learners"),
+        metric("Assessments", signal.assessments || 0, "Recorded assessments"),
+        metric("Average", signal.average_score || 0, "Class evidence")
+      ].join("");
+    }
+
+    if (role === "parent") {
+      const signal = intelligence.family_signal || {};
+      return [
+        metric("Children", signal.children || 0, "Connected learners"),
+        metric("Average", signal.average_score || 0, "Family evidence"),
+        metric("Needs support", signal.children_needing_support || 0, "Current learning signal")
+      ].join("");
+    }
+
+    const signal = intelligence.institution_signal || {};
+    return [
+      metric("Learners", signal.learners || 0, "Institutional learning"),
+      metric("Teachers", signal.teachers || 0, "Connected educators"),
+      metric("Average", signal.average_score || 0, "Assessment evidence"),
+      metric("Needs support", signal.learners_needing_support || 0, "Current learning signal")
+    ].join("");
+  }
+
+  function renderRolePriority(intelligence, role) {
+    if (role === "teacher") {
+      const rows = Array.isArray(intelligence.teaching_priorities)
+        ? intelligence.teaching_priorities
+        : [];
+
+      return rows.length
+        ? rows.map(function (item) {
+            return '<div class="de-list-item">' +
+              '<strong>' + escapeHTML(item.name || item.learner_id || "Learner") + '</strong>' +
+              '<span>Average ' + escapeHTML(item.average_score) +
+              (item.focus_topics && item.focus_topics.length
+                ? " · Focus: " + escapeHTML(item.focus_topics.slice(0, 2).join(", "))
+                : "") +
+              '</span></div>';
+          }).join("")
+        : '<p class="de-muted">No teaching priority has been identified yet.</p>';
+    }
+
+    if (role === "parent") {
+      const rows = Array.isArray(intelligence.children)
+        ? intelligence.children
+        : [];
+
+      return rows.length
+        ? rows.map(function (item) {
+            return '<div class="de-list-item">' +
+              '<strong>' + escapeHTML(item.name || item.learner_id || "Learner") + '</strong>' +
+              '<span>Average ' + escapeHTML(item.average_score) +
+              (item.focus_topics && item.focus_topics.length
+                ? " · Focus: " + escapeHTML(item.focus_topics.slice(0, 2).join(", "))
+                : "") +
+              '</span></div>';
+          }).join("")
+        : '<p class="de-muted">No connected children have learning evidence yet.</p>';
+    }
+
+    const rows = Array.isArray(intelligence.priority_learners)
+      ? intelligence.priority_learners
+      : [];
+
+    return rows.length
+      ? rows.map(function (item) {
+          return '<div class="de-list-item">' +
+            '<strong>' + escapeHTML(item.name || item.learner_id || "Learner") + '</strong>' +
+            '<span>Average ' + escapeHTML(item.average_score) +
+            (item.focus_topics && item.focus_topics.length
+              ? " · Focus: " + escapeHTML(item.focus_topics.slice(0, 2).join(", "))
+              : "") +
+            '</span></div>';
+        }).join("")
+      : '<p class="de-muted">No priority learner signal is available yet.</p>';
+  }
+
   async function loadRoleWorkspace(info) {
     renderShell(info,
       '<div class="de-loading"><span></span><p>Loading role intelligence...</p></div>'
@@ -251,38 +333,34 @@
         getAuth()
       );
       const intelligence = data.intelligence || {};
-      const entries = Object.entries(intelligence)
-        .filter(function (entry) {
-          return ["string", "number", "boolean"].includes(typeof entry[1]);
-        })
-        .slice(0, 12);
-
-      const cards = entries.length
-        ? entries.map(function (entry) {
-            return metric(
-              entry[0].replace(/_/g, " "),
-              entry[1],
-              "Current evidence"
-            );
-          }).join("")
-        : metric("Connected learners", data.connected_learners || 0, "Active learning relationships");
+      const roleTitle = info.role === "teacher"
+        ? "Teaching priorities"
+        : info.role === "parent"
+          ? "Family learning"
+          : "Institution priorities";
 
       panelBody.innerHTML =
         '<div class="de-workspace">' +
-          '<div class="de-metrics">' + cards + '</div>' +
+          '<div class="de-metrics">' + roleMetricValue(intelligence, info.role) + '</div>' +
           '<section class="de-section de-highlight">' +
             '<span class="de-eyebrow">ROLE INTELLIGENCE</span>' +
-            '<h3>Evidence connected to your role.</h3>' +
-            '<p>Dream Education is using the existing learning relationships and assessment evidence available to this account.</p>' +
+            '<h3>' + escapeHTML(intelligence.headline || "Evidence connected to your role.") + '</h3>' +
+            '<p>Use the learning evidence already connected to this account to decide what needs attention next.</p>' +
             '<div class="de-actions">' +
               action("Refresh intelligence", "workspace", true) +
+              action("Open Chat", "chat") +
+              action("Open Meetings", "meetings") +
               action("Connections", "connections") +
-              action("Account", "account") +
             '</div>' +
+          '</section>' +
+          '<section class="de-section">' +
+            '<div class="de-section-title"><h3>' + escapeHTML(roleTitle) + '</h3><span>' + escapeHTML(data.connected_learners || 0) + ' learners</span></div>' +
+            '<div class="de-list">' + renderRolePriority(intelligence, info.role) + '</div>' +
           '</section>' +
           '<div class="de-actions de-bottom-actions">' +
             (info.role === "school" ? action("School dashboard", "school") : "") +
-            action("Open Intelligence", "intelligence") +
+            action("Connections", "connections") +
+            action("Account", "account") +
             action("Close", "close") +
           '</div>' +
         '</div>';
@@ -290,7 +368,6 @@
       renderError(error.message);
     }
   }
-
   async function openWorkspace() {
     const auth = getAuth();
     if (!auth || !auth.account) {
@@ -471,6 +548,18 @@
     if (name === "progress") return loadProgress();
     if (name === "sessions") return loadSessions();
     if (name === "connections") return openConnections();
+    if (name === "chat") {
+      if (window.DreamEducationChat && typeof window.DreamEducationChat.open === "function") {
+        window.DreamEducationChat.open();
+      }
+      return;
+    }
+    if (name === "meetings") {
+      const button = document.querySelector('[data-panel-action="meetings"]');
+      if (button) button.click();
+      else openConnections();
+      return;
+    }
     if (name === "intelligence") return openIntelligence();
     if (name === "adaptive") return openAdaptive();
     if (name === "ask") return openAsk();
