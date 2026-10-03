@@ -1,4 +1,4 @@
-const { getConcept, findRelevantContent, findDreamContent, loadKnowledge } = require("./content/content_engine");
+const { getConcept, findRelevantContent, findUniversalRelevantContent, findDreamContent, loadKnowledge } = require("./content/content_engine");
 require("dotenv").config();
 const { generateEvidenceTeaching } = require("./evidence_teaching_engine");
 const { generateAdaptiveQuestion } = require("./adaptive_question_engine");
@@ -1167,7 +1167,7 @@ app.post("/api/learn", async (req, res) => {
         question
       });
 
-      return dreamContent || findRelevantContent({
+      return dreamContent || findUniversalRelevantContent({
         subject,
         level,
         topic: topic || decision_topic,
@@ -1947,7 +1947,7 @@ Return a learner-facing teaching response only.
         level: req.body?.level,
         subject_or_discipline: req.body?.subject,
         question: requestedQuestion
-      }) || findRelevantContent({
+      }) || findUniversalRelevantContent({
         subject: req.body?.subject,
         level: req.body?.level,
         topic: req.body?.topic || req.body?.decision_topic,
