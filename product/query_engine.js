@@ -102,8 +102,10 @@ function detectQuestionType(q, intent) {
 }
 
 function detectSubject(q) {
-  // Specific scientific concepts must outrank generic words such as "speed".
-  if (/\b(speed of light|light in a vacuum|speed of light in vacuum)\b/.test(q)) {
+  // Specific scientific concepts must outrank generic mathematics words.
+  // "time" and "distance" can appear in mathematics, but questions about
+  // relativity/time dilation are physics questions.
+  if (/\b(speed of light|light in a vacuum|speed of light in vacuum|relativity|relative time|time is relative|time relative|time dilation|gravitational time dilation|special relativity|general relativity)\b/.test(q)) {
     return "physics";
   }
 
@@ -123,6 +125,7 @@ function detectSubject(q) {
 function detectTopic(q, subject) {
   // Specific physics concepts must outrank the generic speed/distance/time topic.
   const topics = [
+    [/\b(relativity|relative time|time is relative|time relative|time dilation|gravitational time dilation|special relativity|general relativity)\b/, "relativity"],
     [/\b(speed of light|light in a vacuum|speed of light in vacuum)\b/, "waves_and_light"],
     [/\b(algebra|equation|equations)\b/, "algebra"],
     [/\b(fraction|fractions)\b/, "fractions"],
@@ -448,149 +451,3 @@ function analyzeQuery(query, context = {}) {
   ];
 
   // Remove generic task words when the understanding layer has
-  // already identified the actual concept/focus.
-  const understandingStopWords = new Set([
-    "define",
-    "definition",
-    "term",
-    "explain",
-    "why",
-    "causes",
-    "caused",
-    "cause",
-    "how",
-    "does",
-    "do",
-    "did",
-    "what",
-    "are",
-    "is",
-    "me",
-    "about",
-    "please",
-    "understand",
-    "understanding",
-    "confused",
-    "confusion",
-    "help",
-    "dont",
-    "don't",
-    "i",
-    "am",
-    "im"
-  ]);
-
-  search_terms = search_terms.filter(
-    word => !understandingStopWords.has(word)
-  );
-
-  const search_query = [
-    questionUnderstanding.concept,
-    ...search_terms
-  ]
-    .filter(Boolean)
-    .filter((x, i, a) => a.indexOf(x) === i)
-    .join(" ")
-    .trim();
-
-  // The understanding concept is already included when it contributes
-  // to the search. Do not duplicate the same phrase.
-  const normalizedConcept =
-    String(questionUnderstanding.concept || "").trim().toLowerCase();
-
-  const normalizedSearchTerms = search_terms
-    .map(term => String(term || "").trim())
-    .filter(Boolean);
-
-  const finalSearchTerms = normalizedSearchTerms.filter(term => {
-    const lower = term.toLowerCase();
-    return !normalizedConcept ||
-      lower !== normalizedConcept;
-  });
-
-  const final_search_query = (() => {
-    const concept = String(questionUnderstanding.concept || "").trim();
-    const terms = finalSearchTerms
-      .map(term => String(term || "").trim())
-      .filter(Boolean);
-
-    if (!concept) {
-      return [...new Set(terms)].join(" ").trim();
-    }
-
-    const conceptWords = new Set(
-      concept.toLowerCase().split(/\s+/).filter(Boolean)
-    );
-
-    const remainingTerms = terms.filter(term => {
-      return !conceptWords.has(term.toLowerCase());
-    });
-
-    return [concept, ...new Set(remainingTerms)].join(" ").trim();
-  })();
-
-  return {
-    original,
-    normalized,
-    intent,
-    subject: effective_subject,
-    topic: effective_topic,
-    inferred_subject,
-    inferred_topic,
-    selected_subject: selected_subject || null,
-    selected_topic: selected_topic || null,
-    level,
-    context_used,
-    context_conflict,
-    question_type,
-    ...requirements,
-
-    requested_task: questionUnderstanding.requested_task,
-    concept: questionUnderstanding.concept,
-    question_focus: questionUnderstanding.question_focus,
-    ambiguity: questionUnderstanding.ambiguity,
-    ambiguity_reasons: questionUnderstanding.ambiguity_reasons,
-    needs_clarification: questionUnderstanding.needs_clarification,
-    confidence: questionUnderstanding.confidence,
-
-    search_terms,
-    search_query: final_search_query || search_query || normalized,
-
-    understanding: {
-      subject: effective_subject,
-      topic: effective_topic,
-      inferred_subject,
-      inferred_topic,
-      selected_subject: selected_subject || null,
-      selected_topic: selected_topic || null,
-      level,
-      context_used,
-      context_conflict,
-      intent,
-      question_type,
-      ...requirements,
-      requested_task: questionUnderstanding.requested_task,
-      concept: questionUnderstanding.concept,
-      question_focus: questionUnderstanding.question_focus,
-      ambiguity: questionUnderstanding.ambiguity,
-      ambiguity_reasons: questionUnderstanding.ambiguity_reasons,
-      needs_clarification: questionUnderstanding.needs_clarification,
-      confidence: questionUnderstanding.confidence
-    }
-  };
-}
-
-module.exports = {
-  analyzeQuery,
-  normalizeText,
-  detectIntent,
-  detectQuestionType,
-  detectSubject,
-  detectTopic,
-  detectRequirements
-};
-
-if (require.main === module) {
-  const query = process.argv.slice(2).join(" ");
-  console.log(JSON.stringify(analyzeQuery(query), null, 2));
-}
