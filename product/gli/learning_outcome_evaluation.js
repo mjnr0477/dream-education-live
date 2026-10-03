@@ -252,21 +252,32 @@ async function recordLearningOutcomeFeedback({
     };
   }
 
+  const actualCorrectness = feedback.correctness;
+  const evaluationMetrics = evaluation.evidence?.evaluation?.metrics || {};
+
+  const outcomeEvidence = {
+    teaching_evaluation_evidence_id: evaluation.evidence_id,
+    evaluation: {
+      metrics: {
+        ...evaluationMetrics,
+        correctness: actualCorrectness
+      }
+    },
+    outcome: {
+      score: assessment.score,
+      understanding: assessment.understanding,
+      match_basis: feedback.match_basis,
+      gap_ms: feedback.gap_ms
+    }
+  };
+
   const evidenceResult = await persistEvidence({
     learner_id: normalizedLearnerId,
     session_id: assessment.session_id || evaluation.session_id || null,
     evidence_type: "outcome",
     concept_key: assessment.concept_key || evaluation.concept_key || null,
     source: "learning_outcome",
-    evidence: {
-      outcome: {
-        score: assessment.score,
-        understanding: assessment.understanding,
-        match_basis: feedback.match_basis,
-        gap_ms: feedback.gap_ms
-      },
-      teaching_evaluation_evidence_id: evaluation.evidence_id
-    },
+    evidence: outcomeEvidence,
     confidence: feedback.correctness,
     metadata: {
       source: "api/session",

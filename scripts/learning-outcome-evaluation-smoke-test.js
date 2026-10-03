@@ -29,6 +29,13 @@ const feedback = buildOutcomeFeedback({ evaluation, assessment });
 assert.strictEqual(feedback.outcome_available, true);
 assert.strictEqual(feedback.correctness, 1);
 
+const normalized = normalizeOutcomeAssessment({
+  score: 80,
+  understanding: "strong",
+  concept_key: "photosynthesis"
+});
+assert.strictEqual(normalized.score, 0.8);
+
 const unmatched = buildOutcomeFeedback({
   evaluation,
   assessment: {
