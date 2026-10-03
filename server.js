@@ -225,6 +225,7 @@ function createCacheKey(
     .digest("hex");
 }
 const { retrieveKnowledge } = require("./product/knowledge_retrieval.js");
+const { buildVerifiedEvidenceAnswer } = require("./product/verified_answer_recovery.js");
 const {
   getTrustedInformation
 } = require("./product/trusted_information_gateway.js");
@@ -1994,6 +1995,71 @@ Return a learner-facing teaching response only.
       console.error(
         "Curriculum recovery error:",
         recoveryError.message || recoveryError
+      );
+    }
+
+    /*
+     * Final verified-evidence recovery.
+     *
+     * A non-essential stage (for example an AI provider, cache,
+     * telemetry, or another teaching-stage dependency) can fail
+     * after a question has already been retrieved and verified.
+     * In that case, do one bounded retry through the existing
+     * knowledge retrieval/verifier pipeline and teach only from
+     * the verified structured evidence. No unverified answer is
+     * generated here.
+     */
+    try {
+      if (requestedQuestion.trim()) {
+        const verifiedRecovery = await Promise.race([
+          retrieveKnowledge(requestedQuestion, { limit: 5 }),
+          new Promise(resolve =>
+            setTimeout(
+              () => resolve({
+                success: false,
+                error: "Verified evidence recovery timed out."
+              }),
+              5000
+            )
+          )
+        ]);
+
+        const verifiedAnswer = buildVerifiedEvidenceAnswer(
+          requestedQuestion,
+          verifiedRecovery
+        );
+
+        if (verifiedAnswer) {
+          console.warn(
+            "Returning verified evidence recovery answer after learning pipeline failure."
+          );
+
+          return res.json({
+            success: true,
+            answer: verifiedAnswer,
+            cached: false,
+            ai_mode: AI_MODE,
+            answer_sources: [
+              {
+                type: "verified_evidence_recovery",
+                name:
+                  verifiedRecovery.source?.name ||
+                  verifiedRecovery.knowledge?.source ||
+                  "verified knowledge source",
+                title:
+                  verifiedRecovery.source?.title ||
+                  verifiedRecovery.knowledge?.title ||
+                  null
+              }
+            ],
+            fallback: true
+          });
+        }
+      }
+    } catch (verifiedRecoveryError) {
+      console.error(
+        "Verified evidence recovery error:",
+        verifiedRecoveryError.message || verifiedRecoveryError
       );
     }
 
