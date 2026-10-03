@@ -110,7 +110,7 @@ function sourceAdequacy(source, queryInfo, question) {
   const topicAnchors = TOPIC_ANCHORS[queryInfo?.topic] || [];
   const subjectAnchors = DOMAIN_ANCHORS[queryInfo?.subject] || [];
 
-  const topicMatch = overlapScore(text, topicAnchors);
+  const topicMatch = overlapScore(text, strictTopicAnchors);
   const subjectMatch = overlapScore(text, subjectAnchors);
   const queryTokens = normalize(question).split(" ").filter(x => x.length > 2);
   const queryMatch = overlapScore(text, queryTokens);
