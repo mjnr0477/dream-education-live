@@ -2012,7 +2012,7 @@ Return a learner-facing teaching response only.
 
         const emergencyAnswer = emergencyDefinition.length >= 20
           ? `Answer:\n${emergencyDefinition}${emergencyKeyIdeas.length
-              ? `\\n\\nKey ideas:\\n- ${emergencyKeyIdeas.join("\\n- ")}`
+              ? `\n\nKey ideas:\n- ${emergencyKeyIdeas.join("\n- ")}`
               : ""}`
           : developmentAnswer(
               requestedQuestion,
