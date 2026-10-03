@@ -35,6 +35,7 @@ const fs = require("fs");
 const crypto = require("crypto");
 const OpenAI = require("openai");
 const { generateAI: generateFreeAI } = require("./product/ai/ai_provider_router");
+const { recordAIEvaluationEvidence } = require("./product/gli/ai_evaluation_evidence");
 const { createClient } = require("@supabase/supabase-js");
 
 const app = express();
@@ -1557,6 +1558,9 @@ Return a learner-facing teaching response only.
 
         let response;
         let primaryAIError = null;
+        const teachingStartedAt = Date.now();
+        let teachingProvider = null;
+        let teachingModel = process.env.AI_MODEL || "gemini-3.8-flash";
 
         try {
           response = await withTimeout(
@@ -1621,6 +1625,11 @@ Return a learner-facing teaching response only.
             };
           }
 
+          if (freeAI && freeAI.success) {
+            teachingProvider = freeAI.provider || "free_ai_router";
+            teachingModel = freeAI.model || freeAI.model_name || null;
+          }
+
           if (!freeAI || !freeAI.success) {
             /*
              * Never leave the learner waiting indefinitely.
@@ -1670,6 +1679,22 @@ Return a learner-facing teaching response only.
             "Dream Education did not receive a usable answer."
           );
         }
+      }
+
+      if (learner_id && answer) {
+        recordAIEvaluationEvidence({
+          learnerId: learner_id,
+          conceptKey: topic || decision_topic || null,
+          provider: teachingProvider || "primary_ai",
+          model: teachingModel,
+          correctness: null,
+          evidenceGrounding: retrievedKnowledge ? 1 : 0,
+          learnerAlignment: 1,
+          latencyMs: Date.now() - teachingStartedAt,
+          metadata: { source: "api/session", retrieval_available: !!retrievedKnowledge }
+        }).catch(error => {
+          console.warn("AI teaching evaluation provenance skipped:", error.message);
+        });
       }
 
       // Cache persistence is non-critical. A disk write failure must
