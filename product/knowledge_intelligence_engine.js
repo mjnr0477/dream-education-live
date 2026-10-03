@@ -108,6 +108,9 @@ function sourceAdequacy(source, queryInfo, question) {
   const topic = normalize(queryInfo?.topic);
 
   const topicAnchors = TOPIC_ANCHORS[queryInfo?.topic] || [];
+  const strictTopicAnchors = queryInfo?.topic === "relativity"
+    ? ["relativity", "time dilation", "gravitational time dilation", "special relativity", "general relativity", "spacetime"]
+    : topicAnchors;
   const subjectAnchors = DOMAIN_ANCHORS[queryInfo?.subject] || [];
 
   const topicMatch = overlapScore(text, strictTopicAnchors);
