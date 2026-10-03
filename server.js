@@ -3782,18 +3782,24 @@ app.get("/api/v1/role/:role/intelligence", async (req, res) => {
     );
     const evidenceByLearner = Object.fromEntries(evidenceResults);
 
+    const decisionResults = await Promise.all(
+      ids.map(async learnerId => [learnerId, await getLearnerDecisionHistory(learnerId, { limit: 100 })])
+    );
+    const decisionByLearner = Object.fromEntries(decisionResults);
+
     let intelligence;
     if (role === "teacher") {
-      intelligence = buildTeacherIntelligence({ teacher:profile, learners, assessments, evidenceByLearner });
+      intelligence = buildTeacherIntelligence({ teacher:profile, learners, assessments, evidenceByLearner, decisionByLearner });
     } else if (role === "parent") {
-      intelligence = buildParentIntelligence({ parent:profile, children:learners, assessments, evidenceByLearner });
+      intelligence = buildParentIntelligence({ parent:profile, children:learners, assessments, evidenceByLearner, decisionByLearner });
     } else {
       intelligence = buildSchoolIntelligence({
         school:profile,
         learners,
         assessments,
         teachers:Object.values(store.teachers || {}),
-        evidenceByLearner
+        evidenceByLearner,
+        decisionByLearner
       });
     }
 
