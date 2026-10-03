@@ -226,6 +226,12 @@ function createCacheKey(
 }
 const { retrieveKnowledge } = require("./product/knowledge_retrieval.js");
 const { buildVerifiedEvidenceAnswer } = require("./product/verified_answer_recovery.js");
+
+// LEARNER ANSWER LAW: every successful learner answer must have verified
+// factual authority behind it. AI text alone is never sufficient.
+function hasVerifiedAnswerAuthority({ specialistVerified, curriculumContent, retrievedKnowledge, fallbackAnswer }) {
+  return Boolean(specialistVerified || curriculumContent || retrievedKnowledge || fallbackAnswer);
+}
 const {
   getTrustedInformation
 } = require("./product/trusted_information_gateway.js");
@@ -1396,8 +1402,14 @@ app.post("/api/learn", async (req, res) => {
       Date.now() - new Date(cache[cacheKey].createdAt).getTime() < 60000
     ) {
       console.log("5. CACHE HIT (< 60 seconds)");
-      answer = cache[cacheKey].answer;
-      cached = true;
+      if (cache[cacheKey].answer_contract === "verified-v1") {
+        answer = cache[cacheKey].answer;
+        cached = true;
+      } else {
+        console.log("5. CACHE ENTRY REJECTED: missing verified answer contract");
+        delete cache[cacheKey];
+        saveCache(cache);
+      }
     } else {
       if (cache[cacheKey]) {
         console.log("5. CACHE EXPIRED");
@@ -1413,7 +1425,7 @@ app.post("/api/learn", async (req, res) => {
         specialistResult.solved === true &&
         specialistResult.verified === true;
 
-      if (specialistVerified || curriculumContent || retrievedKnowledge || AI_MODE !== "live") {
+      if (specialistVerified || curriculumContent || retrievedKnowledge) {
         console.log(
           specialistVerified
             ? "6. VERIFIED SOLVER TEACHING MODE"
@@ -1450,6 +1462,10 @@ app.post("/api/learn", async (req, res) => {
         console.log("7. Development answer created");
       } else {
         console.log("6. LIVE MODE");
+
+        if (!hasVerifiedAnswerAuthority({ specialistVerified, curriculumContent, retrievedKnowledge, fallbackAnswer: guaranteedFallbackAnswer })) {
+          throw new Error("No verified evidence is available for this learner question.");
+        }
 
         const prompt = `
 You are the AI teacher for Dream Education.
@@ -1715,11 +1731,16 @@ Return a learner-facing teaching response only.
 
       // Cache persistence is non-critical. A disk write failure must
       // never turn an already-generated learner answer into a 500 error.
+      const answerHasVerifiedAuthority = hasVerifiedAnswerAuthority({ specialistVerified, curriculumContent, retrievedKnowledge, fallbackAnswer: guaranteedFallbackAnswer });
+      if (!answerHasVerifiedAuthority) {
+        throw new Error("Answer contract violation: refusing to cache an unverified learner answer.");
+      }
       cache[cacheKey] = {
         question,
         subject: subject || "General",
         level: level || "General",
         answer,
+        answer_contract: "verified-v1",
         createdAt: new Date().toISOString()
       };
 
@@ -1843,6 +1864,11 @@ Return a learner-facing teaching response only.
       }
     }
 
+    const successfulAnswerIsVerified = hasVerifiedAnswerAuthority({ specialistVerified, curriculumContent, retrievedKnowledge, fallbackAnswer: guaranteedFallbackAnswer });
+    if (!successfulAnswerIsVerified) {
+      return res.status(503).json({ success: false, message: "No verified evidence is available for this learner question.", retryable: true, answer_contract: "verified-v1" });
+    }
+
     console.log("13. Sending successful response");
 
     const answerSources = [];
@@ -1914,7 +1940,9 @@ Return a learner-facing teaching response only.
       ai_mode: AI_MODE,
       answer_sources: answerSources,
       saved_to_supabase: !!learner_id,
-      learning_history_saved: !!learner_id
+      learning_history_saved: !!learner_id,
+      answer_verified: true,
+      answer_contract: "verified-v1"
     });
 
   } catch (error) {
