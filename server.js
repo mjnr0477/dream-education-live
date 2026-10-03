@@ -36,6 +36,7 @@ const crypto = require("crypto");
 const OpenAI = require("openai");
 const { generateAI: generateFreeAI } = require("./product/ai/ai_provider_router");
 const { recordAIEvaluationEvidence } = require("./product/gli/ai_evaluation_evidence");
+const { recordLearningOutcomeFeedback } = require("./product/gli/learning_outcome_evaluation");
 const { createClient } = require("@supabase/supabase-js");
 
 const app = express();
@@ -1691,7 +1692,8 @@ Return a learner-facing teaching response only.
       if (learner_id && answer && teachingGeneratedByAI) {
         recordAIEvaluationEvidence({
           learnerId: learner_id,
-          conceptKey: topic || decision_topic || null,
+          conceptKey: topic || decision_topic || subject || null,
+          question,
           provider: teachingProvider || "primary_ai",
           model: teachingModel,
           correctness: null,
@@ -1699,7 +1701,7 @@ Return a learner-facing teaching response only.
           learnerAlignment: 1,
           latencyMs: Date.now() - teachingStartedAt,
           metadata: {
-            source: "api/session",
+            source: "api/learn",
             retrieval_available: !!retrievedKnowledge,
             evaluation_basis: "proxy_signals",
             correctness_unavailable: true
@@ -4560,6 +4562,20 @@ app.post("/api/session", async (req, res) => {
       assessment
     }).catch(error => {
       console.warn("Assessment evidence capture skipped:", error.message);
+    });
+
+    // Additive GLI outcome feedback: correlate this real assessment result
+    // with the most recent AI teaching evaluation. This is non-blocking and
+    // never changes the protected assessment or adaptive decision.
+    recordLearningOutcomeFeedback({
+      learnerId: learner_id,
+      question,
+      sessionId: null,
+      conceptKey: topic || subject || null,
+      score,
+      understanding
+    }).catch(error => {
+      console.warn("Learning outcome feedback skipped:", error.message);
     });
 
 
