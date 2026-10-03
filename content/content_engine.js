@@ -145,6 +145,64 @@ function findRelevantContent({ subject, level, topic, question }) {
 
 module.exports.findRelevantContent = findRelevantContent;
 
+/*
+ * Universal curriculum recovery.
+ *
+ * The learning UI can legitimately submit generic context such as
+ * subject="General" or omit level/subject entirely. The normal lookup
+ * intentionally respects supplied curriculum filters, but doing so can
+ * leave an otherwise well-covered concept invisible to the recovery path.
+ *
+ * This helper first preserves the normal filtered lookup, then searches
+ * the existing curriculum across compatible subjects/levels. It never
+ * creates knowledge; it only reuses an existing curriculum match.
+ */
+function findUniversalRelevantContent({ subject, level, topic, question } = {}) {
+  const generic = new Set(["", "general", "all", "any", "unknown"]);
+  const normalizedSubject = String(subject || "").trim().toLowerCase();
+  const normalizedLevel = String(level || "").trim().toLowerCase();
+
+  const effectiveSubject = generic.has(normalizedSubject) ? null : subject;
+  const effectiveLevel = generic.has(normalizedLevel) ? null : level;
+
+  const direct = findRelevantContent({
+    subject: effectiveSubject,
+    level: effectiveLevel,
+    topic,
+    question
+  });
+
+  if (direct) return direct;
+
+  const knowledge = loadKnowledge();
+  const subjects = Object.keys(knowledge.subjects || {});
+
+  for (const subjectName of subjects) {
+    if (effectiveSubject && subjectName !== effectiveSubject) continue;
+
+    const levels = Object.keys(
+      knowledge.subjects?.[subjectName]?.levels || {}
+    );
+
+    for (const levelName of levels) {
+      if (effectiveLevel && levelName !== effectiveLevel) continue;
+
+      const match = findRelevantContent({
+        subject: subjectName,
+        level: levelName,
+        topic,
+        question
+      });
+
+      if (match) return match;
+    }
+  }
+
+  return null;
+}
+
+module.exports.findUniversalRelevantContent = findUniversalRelevantContent;
+
 
 // =====================================================
 // UNIVERSAL CONTENT STRUCTURE
