@@ -1984,17 +1984,47 @@ Return a learner-facing teaching response only.
       });
 
       if (emergencyContent) {
-        const emergencyAnswer = developmentAnswer(
-          requestedQuestion,
-          req.body?.subject,
-          req.body?.level,
-          {
-            topic: req.body?.topic,
-            decision_topic: req.body?.decision_topic,
-            learning_method: "explanation",
-            curriculum_content: emergencyContent
-          }
-        );
+        /*
+         * Prefer a direct definition from verified curriculum evidence
+         * during emergency recovery. This path must remain independent
+         * of the teaching formatter: if a later teaching-stage component
+         * fails, the learner can still receive the factual answer that
+         * the curriculum already verifies.
+         */
+        const emergencyConcept =
+          emergencyContent?.knowledge ||
+          emergencyContent?.concepts?.[
+            Object.keys(emergencyContent?.concepts || {})[0]
+          ] ||
+          null;
+
+        const emergencyDefinition =
+          typeof emergencyConcept?.definition === "string"
+            ? emergencyConcept.definition.trim()
+            : "";
+
+        const emergencyKeyIdeas = Array.isArray(emergencyConcept?.key_ideas)
+          ? emergencyConcept.key_ideas
+              .map(item => String(item || "").trim())
+              .filter(Boolean)
+              .slice(0, 4)
+          : [];
+
+        const emergencyAnswer = emergencyDefinition.length >= 20
+          ? `Answer:\n${emergencyDefinition}${emergencyKeyIdeas.length
+              ? `\\n\\nKey ideas:\\n- ${emergencyKeyIdeas.join("\\n- ")}`
+              : ""}`
+          : developmentAnswer(
+              requestedQuestion,
+              req.body?.subject,
+              req.body?.level,
+              {
+                topic: req.body?.topic,
+                decision_topic: req.body?.decision_topic,
+                learning_method: "explanation",
+                curriculum_content: emergencyContent
+              }
+            );
 
         if (
           typeof emergencyAnswer === "string" &&
