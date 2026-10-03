@@ -1560,6 +1560,7 @@ Return a learner-facing teaching response only.
         let primaryAIError = null;
         const teachingStartedAt = Date.now();
         let teachingProvider = null;
+        let teachingGeneratedByAI = false;
         let teachingModel = process.env.AI_MODEL || "gemini-3.8-flash";
 
         try {
@@ -1626,6 +1627,7 @@ Return a learner-facing teaching response only.
           }
 
           if (freeAI && freeAI.success) {
+            teachingGeneratedByAI = true;
             teachingProvider = freeAI.provider || "free_ai_router";
             teachingModel = freeAI.model || freeAI.model_name || null;
           }
@@ -1681,7 +1683,7 @@ Return a learner-facing teaching response only.
         }
       }
 
-      if (learner_id && answer) {
+      if (learner_id && answer && teachingGeneratedByAI) {
         recordAIEvaluationEvidence({
           learnerId: learner_id,
           conceptKey: topic || decision_topic || null,
@@ -1691,7 +1693,12 @@ Return a learner-facing teaching response only.
           evidenceGrounding: retrievedKnowledge ? 1 : 0,
           learnerAlignment: 1,
           latencyMs: Date.now() - teachingStartedAt,
-          metadata: { source: "api/session", retrieval_available: !!retrievedKnowledge }
+          metadata: {
+            source: "api/session",
+            retrieval_available: !!retrievedKnowledge,
+            evaluation_basis: "proxy_signals",
+            correctness_unavailable: true
+          }
         }).catch(error => {
           console.warn("AI teaching evaluation provenance skipped:", error.message);
         });
