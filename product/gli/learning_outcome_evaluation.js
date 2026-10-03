@@ -24,6 +24,10 @@ function correlateTeachingOutcome({
   const assessmentSession = normalizeKey(assessment.session_id);
   const evaluationConcept = normalizeKey(evaluation.concept_key);
   const assessmentConcept = normalizeKey(assessment.concept_key);
+  const evaluationQuestionHash =
+    evaluation.question_hash || evaluation.metadata?.question_hash || null;
+  const assessmentQuestionHash =
+    assessment.question_hash || assessment.metadata?.question_hash || null;
 
   const sessionMatch =
     Boolean(evaluationSession && assessmentSession) &&
@@ -32,6 +36,10 @@ function correlateTeachingOutcome({
   const conceptMatch =
     Boolean(evaluationConcept && assessmentConcept) &&
     evaluationConcept === assessmentConcept;
+
+  const questionMatch =
+    Boolean(evaluationQuestionHash && assessmentQuestionHash) &&
+    evaluationQuestionHash === assessmentQuestionHash;
 
   const evaluatedAt = normalizeTimestamp(
     evaluation.observed_at || evaluation.created_at
@@ -46,17 +54,23 @@ function correlateTeachingOutcome({
     assessedAt >= evaluatedAt &&
     assessedAt - evaluatedAt <= maxGapMs;
 
-  const matched = sessionMatch || (conceptMatch && chronologicalMatch);
+  const matched =
+    sessionMatch ||
+    (questionMatch && chronologicalMatch) ||
+    (conceptMatch && chronologicalMatch);
 
   return {
     matched,
     match_basis: sessionMatch
       ? "session"
-      : conceptMatch && chronologicalMatch
-        ? "concept_and_time"
-        : null,
+      : questionMatch && chronologicalMatch
+        ? "question_and_time"
+        : conceptMatch && chronologicalMatch
+          ? "concept_and_time"
+          : null,
     session_match: sessionMatch,
     concept_match: conceptMatch,
+    question_match: questionMatch,
     chronological_match: chronologicalMatch,
     gap_ms:
       evaluatedAt !== null && assessedAt !== null
