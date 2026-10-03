@@ -102,8 +102,10 @@ function detectQuestionType(q, intent) {
 }
 
 function detectSubject(q) {
-  // Specific scientific concepts must outrank generic words such as "speed".
-  if (/\b(speed of light|light in a vacuum|speed of light in vacuum)\b/.test(q)) {
+  // Specific scientific concepts must outrank generic mathematics words.
+  // "time" and "distance" can appear in mathematics, but relativity/time
+  // dilation questions are physics questions.
+  if (/\b(speed of light|light in a vacuum|speed of light in vacuum|relativity|relative time|time is relative|time relative|time dilation|gravitational time dilation|special relativity|general relativity)\b/.test(q)) {
     return "physics";
   }
 
@@ -123,6 +125,7 @@ function detectSubject(q) {
 function detectTopic(q, subject) {
   // Specific physics concepts must outrank the generic speed/distance/time topic.
   const topics = [
+    [/\b(relativity|relative time|time is relative|time relative|time dilation|gravitational time dilation|special relativity|general relativity)\b/, "relativity"],
     [/\b(speed of light|light in a vacuum|speed of light in vacuum)\b/, "waves_and_light"],
     [/\b(algebra|equation|equations)\b/, "algebra"],
     [/\b(fraction|fractions)\b/, "fractions"],
