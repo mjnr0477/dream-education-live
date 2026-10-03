@@ -40,5 +40,27 @@ const unmatched = buildOutcomeFeedback({
 });
 assert.strictEqual(unmatched.matched, false);
 assert.strictEqual(unmatched.correctness, null);
+const questionCorrelated = correlateTeachingOutcome({
+  evaluation: {
+    concept_key: null,
+    question_hash: "q-1",
+    observed_at: "2026-10-03T10:00:00Z"
+  },
+  assessment: {
+    concept_key: null,
+    question_hash: "q-1",
+    observed_at: "2026-10-03T10:05:00Z"
+  }
+});
+assert.strictEqual(questionCorrelated.matched, true);
+assert.strictEqual(questionCorrelated.match_basis, "question_and_time");
+
+const normalizedOutcome = normalizeOutcomeAssessment({
+  score: 80,
+  understanding: "strong",
+  concept_key: "photosynthesis"
+});
+assert.strictEqual(normalizedOutcome.score, 0.8);
+
 
 console.log("Learning outcome evaluation correlation smoke test passed.");
