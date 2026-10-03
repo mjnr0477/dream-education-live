@@ -3,7 +3,9 @@
 const assert = require("assert");
 const {
   correlateTeachingOutcome,
-  buildOutcomeFeedback
+  buildOutcomeFeedback,
+  normalizeOutcomeAssessment,
+  selectTeachingEvaluation
 } = require("../product/gli/learning_outcome_evaluation");
 
 const evaluation = {
