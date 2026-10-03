@@ -298,6 +298,7 @@ async function retrieveKnowledge(query, options = {}) {
       name: item.source.source,
       provider: item.source.provider || null,
       url: item.source.url || null,
+      extract: String(item.source.extract || "").trim().slice(0, 2000),
       verification_score: item.verification.score,
       relevance_score: item.verification.relevance_score,
       cross_source_status: item.cross_source?.verification_status || "single_source",
