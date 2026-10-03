@@ -410,9 +410,32 @@ function verifySource(source, query = "") {
       queryInfo.question_type === "general_question"
     );
 
+  /*
+   * A high-confidence exact-title source is already strongly anchored
+   * to the requested concept. Requiring a literal definition pattern
+   * here can reject valid explanatory/reference passages and leave the
+   * learning route with no verified source even when the best source is
+   * clearly about the requested concept.
+   *
+   * Keep the strict definition check as the default, but allow the
+   * narrowly-scoped exact-title/high-relevance case as a verified
+   * concept anchor. This does not bypass source/content/relevance
+   * verification below.
+   */
+  const exactTitleConcept =
+    Boolean(queryInfo?.topic) &&
+    normalize(source.title || "") === normalize(queryInfo.topic);
+
+  const strongExactConceptAnchor =
+    exactTitleConcept &&
+    relevance >= 10 &&
+    Boolean(source.extract) &&
+    String(source.extract).trim().length > 100;
+
   const conceptEvidence =
     !conceptualQuestion ||
-    hasConceptAnchoredAnswer(source, queryInfo);
+    hasConceptAnchoredAnswer(source, queryInfo) ||
+    strongExactConceptAnchor;
 
   const explanationWithoutTopic =
     queryInfo &&
