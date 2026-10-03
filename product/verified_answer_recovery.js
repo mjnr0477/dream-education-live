@@ -12,7 +12,13 @@ function buildVerifiedEvidenceAnswer(question, retrieval) {
         .slice(0, 4)
     : [];
 
-  if (definition.length < 20) return null;
+  const evidence = Array.isArray(retrieval.evidence)
+    ? retrieval.evidence
+        .filter(item => String(item?.extract || "").trim().length >= 40)
+        .slice(0, 3)
+    : [];
+
+  if (definition.length < 20 && !evidence.length) return null;
 
   const sourceName =
     retrieval.source?.name ||
