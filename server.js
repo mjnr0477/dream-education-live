@@ -224,7 +224,7 @@ function createCacheKey(
     .update(normalized)
     .digest("hex");
 }
-const { retrieveKnowledge } = require("./product/knowledge_retrieval.js");
+const { retrieveKnowledgeIntelligence } = require("./product/knowledge_intelligence_engine.js");
 const { buildVerifiedEvidenceAnswer } = require("./product/verified_answer_recovery.js");
 
 // LEARNER ANSWER LAW: every successful learner answer must have verified
