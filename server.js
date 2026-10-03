@@ -1584,6 +1584,11 @@ Return a learner-facing teaching response only.
           );
         }
 
+        if (response) {
+          teachingGeneratedByAI = true;
+          teachingProvider = "primary_ai";
+        }
+
         if (!response) {
           let freeAI;
 
