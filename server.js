@@ -7726,8 +7726,27 @@ app.get("/api/product/learner/:learner_id/overview", (req, res) => {
   DREAM EDUCATION PARENT CHILD OVERVIEW
 */
 
-app.get("/api/product/parent/:parent_id/child/:learner_id/overview", (req, res) => {
+app.get("/api/product/parent/:parent_id/child/:learner_id/overview", async (req, res) => {
   try {
+    const auth = await getAuthenticatedAccount(req);
+
+    if (!auth.success) {
+      return res.status(auth.status).json({
+        success: false,
+        error: auth.error
+      });
+    }
+
+    if (
+      auth.account.role !== "parent" ||
+      auth.account.parent_id !== String(req.params.parent_id || "")
+    ) {
+      return res.status(403).json({
+        success: false,
+        error: "You are not authorized to view this child overview."
+      });
+    }
+
     const store = require("./product/data_engine").loadStore();
 
     const parent = store.parents?.[req.params.parent_id];
