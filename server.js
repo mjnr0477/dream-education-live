@@ -36,7 +36,7 @@ const crypto = require("crypto");
 const OpenAI = require("openai");
 const { generateAI: generateFreeAI } = require("./product/ai/ai_provider_router");
 const { recordAIEvaluationEvidence } = require("./product/gli/ai_evaluation_evidence");
-const { recordLearningOutcomeFeedback } = require("./product/gli/learning_outcome_feedback");
+const { recordLearningOutcomeFeedback } = require("./product/gli/learning_outcome_evaluation");
 const { createClient } = require("@supabase/supabase-js");
 
 const app = express();
