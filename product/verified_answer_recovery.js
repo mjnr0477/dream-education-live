@@ -25,10 +25,19 @@ function buildVerifiedEvidenceAnswer(question, retrieval) {
     knowledge.source ||
     "verified knowledge source";
 
+  const evidenceSummary = evidence
+    .map(item => String(item.extract || item.snippet || "").trim())
+    .filter(Boolean)
+    .join("\n\n");
+
+  const factualBody = definition || evidenceSummary;
+
+  if (!factualBody) return null;
+
   let answer =
     `Based on verified learning evidence from ${sourceName}:
 
-${definition}`;
+${factualBody}`;
 
   if (keyIdeas.length) {
     answer +=
