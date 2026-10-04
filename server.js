@@ -2070,14 +2070,21 @@ Return a learner-facing teaching response only.
     try {
       if (requestedQuestion.trim()) {
         const verifiedRecovery = await Promise.race([
-          retrieveKnowledge(requestedQuestion, { limit: 5 }),
+          retrieveKnowledgeIntelligence(requestedQuestion, {
+            limit: 8,
+            context: {
+              subject: req.body?.subject,
+              topic: req.body?.topic || req.body?.decision_topic,
+              level: req.body?.level
+            }
+          }),
           new Promise(resolve =>
             setTimeout(
               () => resolve({
                 success: false,
                 error: "Verified evidence recovery timed out."
               }),
-              5000
+              8000
             )
           )
         ]);
