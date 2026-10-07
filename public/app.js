@@ -7191,6 +7191,9 @@ function renderDreamAnswer(result, payload) {
         Source mode:
         <strong>${result.cached ? "Cached answer" : "Fresh answer"}</strong>
       </p>
+      <div class="panel-actions">
+        <button id="listen-dream-answer" class="panel-action secondary" type="button">🔊 Listen to explanation</button>
+      </div>
     </div>
 
     <div class="panel-card dream-learning-resources">
@@ -7225,6 +7228,29 @@ function renderDreamAnswer(result, payload) {
       </button>
     </div>
   `;
+
+  const listenButton = document.getElementById("listen-dream-answer");
+  if (listenButton) {
+    listenButton.addEventListener("click", function () {
+      if (!("speechSynthesis" in window)) {
+        listenButton.textContent = "🔊 Audio unavailable on this device";
+        return;
+      }
+      if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+        listenButton.textContent = "🔊 Listen to explanation";
+        return;
+      }
+      const utterance = new SpeechSynthesisUtterance(String(answer || ""));
+      utterance.rate = 0.95;
+      utterance.pitch = 1;
+      listenButton.textContent = "⏹ Stop listening";
+      utterance.addEventListener("end", function () {
+        listenButton.textContent = "🔊 Listen to explanation";
+      });
+      window.speechSynthesis.speak(utterance);
+    });
+  }
 
   const anotherButton =
     document.getElementById("ask-another-dream-question");
