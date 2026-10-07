@@ -3,7 +3,12 @@
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
-const { searchSources, getWikipediaPage } = require('./source_engine');
+const {
+  searchSources,
+  getWikipediaPage,
+  searchWikipedia,
+  searchDuckDuckGo
+} = require('./source_engine');
 const { searchAuthorizedSources, loadConnectors } = require('./authorized_source_engine');
 
 function normalizeQuery(value) {
@@ -147,7 +152,27 @@ async function publicSearch(query, limit = 8) {
   if (!normalized) return { success: false, error: 'A search request is required.' };
 
   const result = await searchSources(normalized, Math.min(Number(limit) || 8, 12));
-  const sources = Array.isArray(result?.sources) ? result.sources : [];
+  let sources = Array.isArray(result?.sources) ? result.sources : [];
+
+  // Reliability fallback: if the full source mesh returns nothing usable,
+  // query two stable public providers directly instead of returning an empty search.
+  if (!sources.length) {
+    const fallbackResults = await Promise.all([
+      Promise.race([
+        searchWikipedia(normalized, Math.min(Number(limit) || 8, 6)),
+        new Promise(resolve => setTimeout(() => resolve([]), 2500))
+      ]),
+      Promise.race([
+        searchDuckDuckGo(normalized, Math.min(Number(limit) || 8, 6)),
+        new Promise(resolve => setTimeout(() => resolve([]), 2500))
+      ])
+    ]);
+
+    sources = fallbackResults
+      .flat()
+      .filter(item => String(item?.extract || item?.snippet || '').trim().length >= 30);
+  }
+
   let expanded = sources;
 
   const wikipedia = sources.find(item => String(item?.provider || '').toLowerCase() === 'wikipedia');
