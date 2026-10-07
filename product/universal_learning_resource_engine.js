@@ -596,10 +596,13 @@ async function discoverLearningResources(query, options = {}) {
 
       return normalized;
     })
+    // Learner-facing materials are intentionally limited to the three supported modes:
+    // inline text, embedded/playable video, and playable audio. Other provider
+    // capabilities may still exist internally, but they never become learner materials.
     .filter(resource => {
       if (resource.type === "text") return Boolean(resource.content);
       if (resource.type === "video" || resource.type === "audio") return resource.playable_in_app;
-      return true;
+      return false;
     })
     .filter(resource => resource.url || resource.media_url || resource.embed_url);
 
