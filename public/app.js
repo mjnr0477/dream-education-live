@@ -6165,43 +6165,74 @@ async function openMultimodalLearning() {
   }
 
   function renderLearningResourceCard(resource) {
-    const type = String(resource.type || "web").toLowerCase();
-    const title = escapeHtml(resource.title || "Learning resource");
-    const description = escapeHtml(String(resource.description || "").replace(/<[^>]*>/g, "").slice(0, 420));
-    const provider = escapeHtml(resource.provider || "source");
-    const url = String(resource.url || resource.media_url || "").trim();
-    const mediaUrl = String(resource.media_url || "").trim();
-    const embedUrl = String(resource.embed_url || "").trim();
-    const safeHref = /^https?:\/\//i.test(url) ? url : "";
+    const type = String(resource.type || "resource").toLowerCase();
+    const provider = escapeHtml(resource.provider || "learning source");
+    const title = escapeHtml(resource.title || resource.name || "Learning material");
+    const description = escapeHtml(resource.description || "");
+    const mediaUrl = resource.media_url || resource.url || "";
+    const embedUrl = resource.embed_url || "";
+    const safeMediaUrl = /^https?:\/\//i.test(mediaUrl) ? mediaUrl : "";
+    const safeEmbedUrl = /^https?:\/\//i.test(embedUrl) ? embedUrl : "";
+    const resourceId = escapeHtml(String(resource.id || resource.url || resource.title || Math.random()));
     let visual = "";
 
-    if (type === "image" && mediaUrl && /^https?:\/\//i.test(mediaUrl)) {
-      visual = '<a class="de-resource-image-link" href="' + escapeHtml(safeHref || mediaUrl) + '" target="_blank" rel="noopener noreferrer"><img class="de-resource-image" src="' + escapeHtml(mediaUrl) + '" alt="' + title + '" loading="lazy"></a>';
-    } else if (type === "video" && embedUrl && /^https?:\/\//i.test(embedUrl)) {
-      visual = '<div class="de-resource-video"><iframe src="' + escapeHtml(embedUrl) + '" title="' + title + '" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>';
-    } else if (type === "audio" && mediaUrl && /^https?:\/\//i.test(mediaUrl)) {
-      visual = '<div class="de-resource-audio"><div class="de-resource-audio-title">Listen now</div><audio class="de-resource-audio-player" controls preload="none" src="' + escapeHtml(mediaUrl) + '"></audio></div>';
-    } else if (type === "audio" && embedUrl && /^https?:\/\//i.test(embedUrl)) {
-      visual = '<div class="de-resource-video"><iframe src="' + escapeHtml(embedUrl) + '" title="' + title + '" loading="lazy" allow="autoplay; fullscreen"></iframe></div>';
-    } else if (type === "video" && mediaUrl && /^https?:\/\//i.test(mediaUrl)) {
-      visual = '<video class="de-resource-video-player" controls preload="metadata" src="' + escapeHtml(mediaUrl) + '"></video>';
-    } else if ((type === "experiment" || type === "interactive") && embedUrl && /^https?:\/\//i.test(embedUrl)) {
-      visual = '<div class="de-resource-video de-resource-experiment"><iframe src="' + escapeHtml(embedUrl) + '" title="' + title + '" loading="lazy" allow="fullscreen; autoplay"></iframe></div>';
-    } else if (type === "video" && resource.thumbnail) {
-      visual = '<a class="de-resource-image-link" href="' + escapeHtml(safeHref) + '" target="_blank" rel="noopener noreferrer"><img class="de-resource-image" src="' + escapeHtml(resource.thumbnail) + '" alt="' + title + '" loading="lazy"></a>';
+    if (type === "image" && safeMediaUrl) {
+      visual =
+        '<figure class="de-media-stage de-media-image-stage">' +
+          '<img class="de-resource-image" src="' + escapeHtml(safeMediaUrl) + '" alt="' + title + '" loading="lazy">' +
+          '<figcaption>' + title + '</figcaption>' +
+        '</figure>';
+    } else if (type === "audio" && safeMediaUrl) {
+      visual =
+        '<div class="de-media-stage de-media-audio-stage">' +
+          '<div class="de-media-icon" aria-hidden="true">🎧</div>' +
+          '<div><strong>' + title + '</strong><p>Play the audio here.</p></div>' +
+          '<audio class="de-resource-audio" controls preload="metadata" src="' + escapeHtml(safeMediaUrl) + '"></audio>' +
+        '</div>';
+    } else if (type === "video" && safeMediaUrl) {
+      visual =
+        '<div class="de-media-stage de-media-video-stage">' +
+          '<video class="de-resource-video" controls playsinline preload="metadata" ' +
+            (resource.thumbnail ? 'poster="' + escapeHtml(resource.thumbnail) + '" ' : '') +
+            'src="' + escapeHtml(safeMediaUrl) + '">' +
+          '</video>' +
+          '<div class="de-media-caption">' + title + '</div>' +
+        '</div>';
+    } else if ((type === "video" || type === "audio") && safeEmbedUrl) {
+      visual =
+        '<div class="de-media-stage de-media-embed-stage">' +
+          '<iframe src="' + escapeHtml(safeEmbedUrl) + '" title="' + title + '" loading="lazy" allow="fullscreen; autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>' +
+        '</div>';
+    } else if ((type === "experiment" || type === "interactive") && safeEmbedUrl) {
+      visual =
+        '<div class="de-media-stage de-media-embed-stage de-resource-experiment">' +
+          '<iframe src="' + escapeHtml(safeEmbedUrl) + '" title="' + title + '" loading="lazy" allow="fullscreen; autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>' +
+        '</div>';
+    } else if (safeEmbedUrl) {
+      visual =
+        '<div class="de-media-stage de-media-embed-stage">' +
+          '<iframe src="' + escapeHtml(safeEmbedUrl) + '" title="' + title + '" loading="lazy" allow="fullscreen; autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>' +
+        '</div>';
     }
 
-    return '<article class="de-resource-card">' +
+    const directMedia = Boolean(visual);
+    const reason = resource.relevance_reason || "Selected for this learning request";
+
+    return '<article class="de-resource-card" data-resource-id="' + resourceId + '">' +
       visual +
       '<div class="de-resource-card-body">' +
-        '<div class="de-resource-meta"><span>' + escapeHtml(type) + '</span><span>' + provider + '</span>' +
-          (resource.relevance_reason ? '<span>' + escapeHtml(resource.relevance_reason) + '</span>' : '') +
-          (resource.license ? '<span>' + escapeHtml(resource.license) + '</span>' : '') +
+        '<div class="de-resource-meta">' +
+          '<span>' + escapeHtml(type) + '</span>' +
+          '<span>' + provider + '</span>' +
+          '<span>' + escapeHtml(reason) + '</span>' +
         '</div>' +
         '<h4>' + title + '</h4>' +
         (description ? '<p>' + description + '</p>' : '') +
+        (directMedia
+          ? '<div class="de-media-status">✓ Material is displayed here — no link required to use it.</div>'
+          : '<div class="de-media-status de-media-warning">This source could not be embedded directly.</div>') +
         '<div class="de-resource-actions">' +
-          (safeHref ? '<a class="de-action de-resource-open" href="' + escapeHtml(safeHref) + '" target="_blank" rel="noopener noreferrer" data-resource-open="1">Open source</a>' : '') +
+          (safeMediaUrl && !directMedia ? '<a class="de-action" href="' + escapeHtml(safeMediaUrl) + '" target="_blank" rel="noopener noreferrer">Open source</a>' : '') +
           '<button class="de-action primary" type="button" data-resource-complete="1">I learned this</button>' +
         '</div>' +
       '</div>' +
