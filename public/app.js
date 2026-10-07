@@ -7495,8 +7495,8 @@ async function openAskDreamEducation() {
   questionBox.focus();
 }
 
-// Supported multimodal UI labels: Watch video · Read text · Listen to audio · Read an explanation.
-// Supported source capability label: Experiment / demonstration (rendered as explanatory text, never as a raw link).
+// Supported learner-facing material modes: Watch video · Read text · Listen to audio.
+// Other provider capabilities are not rendered as learner materials.
 function renderDreamLearningResources(resources) {
   const items = Array.isArray(resources) ? resources.slice(0, 8) : [];
   if (!items.length) {
@@ -7506,14 +7506,8 @@ function renderDreamLearningResources(resources) {
   function resourceType(type) {
     return ({
       video: "VIDEO",
-      image: "PICTURE",
       audio: "AUDIO",
-      experiment: "EXPERIMENT",
-      interactive: "INTERACTIVE",
-      research: "RESEARCH",
-      book: "BOOK",
-      document: "DOCUMENT",
-      article: "ARTICLE"
+      text: "TEXT"
     })[type] || "LEARNING RESOURCE";
   }
 
@@ -7546,12 +7540,6 @@ function renderDreamLearningResources(resources) {
         media =
           '<div class="dream-learning-resource-audio">' +
           '<strong>Listen now</strong><audio controls preload="metadata" src="' + mediaUrl + '"></audio>' +
-          '</div>';
-      } else if (type === "experiment" || type === "interactive") {
-        media =
-          '<div class="de-resource-experiment dream-learning-resource-no-media">' +
-          '<strong>Interactive learning</strong>' +
-          '<p>' + description + '</p>' +
           '</div>';
       }
 
@@ -7597,7 +7585,7 @@ function renderAnswerResource(resource) {
   if (type === "video" && embedUrl) media = '<div class="dream-answer-resource-video"><iframe src="' + embedUrl + '" title="' + title + '" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>';
   else if (type === "video" && mediaUrl) media = '<video class="dream-answer-resource-video-player" controls preload="metadata" poster="' + escapeHtml(resource.thumbnail || "") + '" src="' + mediaUrl + '"></video>';
   else if (type === "audio" && mediaUrl) media = '<div class="dream-answer-resource-audio"><strong>Listen</strong><audio controls preload="metadata" src="' + mediaUrl + '"></audio></div>';
-  else if (type === "experiment" || type === "interactive") media = '<div class="de-resource-experiment"><strong>Interactive learning</strong><p>' + description + '</p></div>';
+
   return '<article class="dream-answer-resource-card">' + media + '<div class="dream-answer-resource-body"><span class="panel-kicker">' + escapeHtml(String(type).toUpperCase()) + ' · ' + provider + '</span><h3>' + title + '</h3>' + (description ? '<p>' + description + '</p>' : "") + '<div class="dream-answer-resource-source">Source: ' + provider + '</div></div></article>';
 }
 
@@ -7607,7 +7595,8 @@ async function loadAnswerResources(question, payload, typeOverride) {
   const auth = window.DreamEducationUI && window.DreamEducationUI.getAuth ? window.DreamEducationUI.getAuth() : null;
   const token = auth && auth.session && auth.session.access_token ? auth.session.access_token : "";
   if (!token || !payload.learner_id) { host.innerHTML = '<p class="panel-status">Sign in is required to load learning media.</p>'; return; }
-  const type = typeOverride || dreamResourceIntent(question);
+  const requestedType = typeOverride || dreamResourceIntent(question);
+  const type = ["video", "audio", "text", "any"].includes(requestedType) ? requestedType : "text";
   const params = new URLSearchParams({q:question,type:type,learner_id:payload.learner_id,limit:"8"});
   host.innerHTML = '<div class="dream-answer-resource-loading">Finding your learning resources...</div>';
   try {
@@ -7616,7 +7605,7 @@ async function loadAnswerResources(question, payload, typeOverride) {
     if (!response.ok || data.success === false) throw new Error(data.error || "Learning resources could not be loaded.");
     const resources = Array.isArray(data.resources) ? data.resources : [];
     if (!resources.length) {
-      host.innerHTML = '<div class="dream-answer-resource-empty"><strong>No matching resource was available right now.</strong><p>Try another format and Dream Education will search again.</p><div class="panel-actions"><button type="button" class="panel-action" data-answer-resource-type="video">Video</button><button type="button" class="panel-action" data-answer-resource-type="image">Pictures</button><button type="button" class="panel-action" data-answer-resource-type="audio">Audio</button><button type="button" class="panel-action" data-answer-resource-type="experiment">Experiment</button></div></div>';
+      host.innerHTML = '<div class="dream-answer-resource-empty"><strong>No matching resource was available right now.</strong><p>Try another format and Dream Education will search again.</p><div class="panel-actions"><button type="button" class="panel-action" data-answer-resource-type="video">Video</button><button type="button" class="panel-action" data-answer-resource-type="text">Text</button><button type="button" class="panel-action" data-answer-resource-type="audio">Audio</button></div></div>';
       return;
     }
     host.innerHTML = '<div class="dream-answer-resource-toolbar"><strong>' + resources.length + ' learning resources found</strong><span>' + escapeHtml(data.intent && data.intent.reason || "Matched to your learning request.") + '</span></div><div class="dream-answer-resource-grid">' + resources.map(renderAnswerResource).join("") + '</div>';
@@ -7680,7 +7669,7 @@ function renderDreamAnswer(result, payload) {
 
     <div class="panel-card dream-learning-resources">
       <span class="panel-kicker">LEARN IT ANOTHER WAY</span>
-      <h2>Videos, pictures, audio and experiments</h2>
+      <h2>Video, text and audio learning</h2>
       <p>Dream found these learning resources for the same topic. The verified answer above remains the factual foundation.</p>
       ${renderDreamLearningResources(result.learning_resources)}
     </div>
