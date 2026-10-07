@@ -151,62 +151,53 @@
   }
 
   function resourceTypeLabel(type) {
-    return ({
-      video: "Video",
-      image: "Picture",
-      audio: "Audio",
-      book: "Book",
-      document: "Document",
-      article: "Article",
-      research: "Research",
-      experiment: "Experiment",
-      interactive: "Interactive",
-      web: "Web"
-    })[type] || "Resource";
+    return ({ video: "Video", audio: "Audio", text: "Text" })[type] || "Learning material";
   }
 
   function renderResource(resource, index) {
-    const type = resource.type || "web";
-    const title = resource.title || "Learning resource";
-    const description = resource.description || "Open this resource to continue learning.";
-    const safeUrl = resource.url || resource.media_url || resource.embed_url || "";
+    const type = resource.type || "text";
+    const title = resource.title || "Learning material";
+    const description = resource.description || "";
+    const content = resource.content || description || "This material is ready to study.";
     const mediaUrl = resource.media_url || "";
     const embedUrl = resource.embed_url || "";
-    const provider = resource.provider || "Learning source";
+    const provider = resource.source || resource.provider || "Learning source";
     let media = "";
 
-    if (type === "image" && mediaUrl) {
-      media = '<a class="de-resource-image-link" href="' + escapeHTML(safeUrl) + '" target="_blank" rel="noopener noreferrer">' +
-        '<img class="de-resource-image" src="' + escapeHTML(mediaUrl) + '" alt="' + escapeHTML(title) + '" loading="lazy">' +
-      '</a>';
-    } else if (type === "video" && embedUrl) {
-      media = '<div class="de-resource-video"><iframe src="' + escapeHTML(embedUrl) +
-        '" title="' + escapeHTML(title) + '" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>';
+    if (type === "video" && embedUrl) {
+      media = '<div class="de-resource-video"><iframe src="' + escapeHTML(embedUrl) + '" title="' + escapeHTML(title) + '" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>';
     } else if (type === "video" && mediaUrl) {
-      media = '<video class="de-resource-video-player" controls preload="metadata" poster="' + escapeHTML(resource.thumbnail || "") + '" src="' + escapeHTML(mediaUrl) + '"></video>';
+      media = '<video class="de-resource-video-player" controls preload="metadata" src="' + escapeHTML(mediaUrl) + '" data-resource-media="video"></video>';
     } else if (type === "audio" && mediaUrl) {
-      media = '<div class="de-resource-audio"><div class="de-resource-audio-title">Listen here</div><audio controls preload="metadata" src="' + escapeHTML(mediaUrl) + '"></audio></div>';
-    } else if (resource.thumbnail) {
-      media = '<a class="de-resource-image-link" href="' + escapeHTML(safeUrl) + '" target="_blank" rel="noopener noreferrer">' +
-        '<img class="de-resource-image de-resource-thumb" src="' + escapeHTML(resource.thumbnail) + '" alt="" loading="lazy">' +
-      '</a>';
+      media = '<div class="de-resource-audio"><div class="de-resource-audio-title">Listen here</div><audio controls preload="metadata" src="' + escapeHTML(mediaUrl) + '" data-resource-media="audio"></audio></div>';
+    } else if (type === "text") {
+      media = '<div class="de-resource-text">' + escapeHTML(content).replace(/\n/g, "<br>") + '</div>';
     }
 
     const attribution = [resource.creator, resource.license].filter(Boolean).join(" · ");
-    return '<article class="de-resource-card" data-resource-index="' + index + '">' +
-      media +
-      '<div class="de-resource-card-body">' +
-        '<div class="de-resource-meta"><span>' + escapeHTML(resourceTypeLabel(type)) + '</span><span>' + escapeHTML(provider) + '</span></div>' +
-        '<h4>' + escapeHTML(title) + '</h4>' +
-        '<p>' + escapeHTML(description.slice(0, 420)) + '</p>' +
-        (attribution ? '<small class="de-muted">' + escapeHTML(attribution) + '</small>' : '') +
-        (safeUrl ? '<a class="de-resource-open" href="' + escapeHTML(safeUrl) + '" target="_blank" rel="noopener noreferrer">Open original resource ↗</a>' : '') +
-        '<div class="de-resource-actions">' +
-          '<button type="button" class="de-action" data-resource-complete="' + index + '">I finished this</button>' +
-          '<button type="button" class="de-action" data-resource-check="' + index + '">Check my understanding</button>' +
-        '</div>' +
-      '</div>' +
-    '</article>';
+    return '<article class="de-resource-card" data-resource-index="' + index + '">' + media +
+      '<div class="de-resource-card-body"><div class="de-resource-meta"><span>' + escapeHTML(resourceTypeLabel(type)) + '</span><span>' + escapeHTML(provider) + '</span></div>' +
+      '<h4>' + escapeHTML(title) + '</h4>' +
+      (description && type !== "text" ? '<p>' + escapeHTML(description.slice(0, 420)) + '</p>' : '') +
+      (attribution ? '<small class="de-muted">' + escapeHTML(attribution) + '</small>' : '') +
+      '<div class="de-resource-source">Source: ' + escapeHTML(provider) + '</div>' +
+      '<div class="de-resource-actions"><button type="button" class="de-action" data-resource-complete="' + index + '">Mark complete</button><button type="button" class="de-action" data-resource-check="' + index + '">Check my understanding</button></div></div></article>';
+  }
+
+  function wireResourceMediaCompletion(container) {
+    if (!container) return;
+    container.querySelectorAll("[data-resource-media]").forEach(function (media) {
+      media.addEventListener("ended", function () {
+        const card = media.closest("[data-resource-index]");
+        if (!card) return;
+        const index = Number(card.getAttribute("data-resource-index"));
+        const resource = (window.__dreamResourceResults || [])[index];
+        if (!resource) return;
+        recordResourceProgress(resource, true).catch(function () {});
+        const complete = card.querySelector("[data-resource-complete]");
+        if (complete) { complete.disabled = true; complete.textContent = "Completed ✓"; }
+      }, { once: true });
+    });
   }
 
   function renderResourceResults(data) {
@@ -324,13 +315,10 @@
           '<div class="de-resource-search-row">' +
             '<input id="de-resource-query" name="q" type="search" required maxlength="300" placeholder="e.g. photosynthesis, electricity, Python loops" value="' + escapeHTML(initialQuery || "") + '">' +
             '<select id="de-resource-type" name="type" aria-label="Learning format">' +
-              '<option value="any">Anything that helps</option>' +
+              '<option value="any">All learning materials</option>' +
+              '<option value="text">Text</option>' +
               '<option value="video">Video</option>' +
-              '<option value="image">Pictures / diagrams</option>' +
               '<option value="audio">Audio</option>' +
-              '<option value="experiment">Experiment / simulation</option>' +
-              '<option value="research">Research / evidence</option>' +
-              '<option value="book">Books / documents</option>' +
             '</select>' +
             '<button class="de-action primary" type="submit">Find resources</button>' +
           '</div>' +
@@ -359,6 +347,7 @@
         });
         const data = await getJSON("/api/v1/learning/resources?" + params.toString(), auth);
         results.innerHTML = renderResourceResults(data);
+        wireResourceMediaCompletion(results);
       } catch (error) {
         results.innerHTML = '<div class="de-error"><strong>Resource search failed.</strong><p>' +
           escapeHTML(error.message) + '</p></div>';
@@ -737,15 +726,28 @@
           '</div>' +
         '</section>' +
         '<section class="de-section">' +
-          '<div class="de-section-title"><h3>Free coding sources</h3><span>Official resources</span></div>' +
+          '<div class="de-section-title"><h3>Connected free sources</h3><span>Material appears here — no source links</span></div>' +
           '<div class="de-list">' +
-            '<a class="de-list-item" href="https://developer.mozilla.org/en-US/docs/Learn_web_development" target="_blank" rel="noopener noreferrer"><strong>MDN Learn</strong><span>Structured web-development text, examples and challenges.</span></a>' +
-            '<a class="de-list-item" href="https://cs50.harvard.edu/x/" target="_blank" rel="noopener noreferrer"><strong>Harvard CS50x</strong><span>Free computer-science course with lectures, problem sets and a final project.</span></a>' +
-            '<a class="de-list-item" href="https://www.freecodecamp.org/learn/" target="_blank" rel="noopener noreferrer"><strong>freeCodeCamp</strong><span>Free interactive programming and web-development practice.</span></a>' +
+            '<button type="button" class="de-list-item" data-coding-source="mdn"><strong>MDN Learn</strong><span>Free structured web-development text, examples and challenges.</span></button>' +
+            '<button type="button" class="de-list-item" data-coding-source="cs50"><strong>Harvard CS50x</strong><span>Free computer-science learning with lectures, sections and practice.</span></button>' +
+            '<button type="button" class="de-list-item" data-coding-source="freecodecamp"><strong>freeCodeCamp</strong><span>Free programming courses and practical coding education.</span></button>' +
           '</div>' +
         '</section>' +
       '</div>'
     );
+
+    document.querySelectorAll("[data-coding-source]").forEach(function (button) {
+      button.addEventListener("click", function () {
+        const source = button.getAttribute("data-coding-source");
+        const topicInput = document.getElementById("de-coding-topic");
+        const formatInput = document.getElementById("de-coding-format");
+        if (source === "mdn") { topicInput.value = "HTML CSS JavaScript web development"; formatInput.value = "text"; }
+        if (source === "cs50") { topicInput.value = "computer science C Python SQL web development"; formatInput.value = "video"; }
+        if (source === "freecodecamp") { topicInput.value = "programming Python JavaScript"; formatInput.value = "video"; }
+        const form = document.getElementById("de-coding-resource-form");
+        if (form) form.dispatchEvent(new Event("submit", { cancelable: true }));
+      });
+    });
 
     const openStudio = document.getElementById("de-open-code-studio");
     if (openStudio) {
@@ -800,12 +802,10 @@
             '<div class="de-resource-search-row">' +
               '<input id="de-coding-topic" name="topic" type="search" maxlength="240" required placeholder="e.g. Python, JavaScript, React, SQL, web apps">' +
               '<select id="de-coding-format" name="format" aria-label="Resource format">' +
-                '<option value="any">All formats</option>' +
+                '<option value="any">All learning materials</option>' +
+                '<option value="text">Text</option>' +
                 '<option value="video">Videos</option>' +
-                '<option value="image">Images / diagrams</option>' +
-                '<option value="document">Text / documents</option>' +
-                '<option value="book">Books</option>' +
-                '<option value="interactive">Interactive practice</option>' +
+                '<option value="audio">Audio</option>' +
               '</select>' +
               '<button class="de-action primary" type="submit">Find free learning</button>' +
             '</div>' +
