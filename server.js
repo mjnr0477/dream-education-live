@@ -11,7 +11,7 @@ const { assessLearning } = require("./assessment_engine");
 const { recordAssessmentEvidence } = require("./product/gli/assessment_evidence_bridge");
 const { determineDifficulty } = require("./difficulty_engine");
 const queryEngine = require("./product/query_engine.js");
-const { registerDreamSearchRoutes } = require('./product/dream_search_engine');
+const { registerDreamSearchRoutes, publicSearch } = require('./product/dream_search_engine');
 
 const {
   createValidatedConnection,
@@ -126,6 +126,56 @@ const supabaseAuth = createClient(
 );
 
 const CACHE_FILE = path.join(__dirname, "data", "cache.json");
+
+function buildPublicSearchLearningEvidence(publicResult, question, queryInfo) {
+  const rows = Array.isArray(publicResult?.results) ? publicResult.results : [];
+  if (!rows.length) return null;
+
+  const trustedTypes = new Set([
+    "official",
+    "government",
+    "academic",
+    "academic_research",
+    "scientific_research",
+    "scientific_reference",
+    "biomedical_research",
+    "life_science_research",
+    "technical",
+    "educational",
+    "structured_knowledge"
+  ]);
+
+  const candidates = rows.filter(row => {
+    const excerpt = String(row?.excerpt || "").trim();
+    const provider = String(row?.provider || "").trim();
+    const sourceType = String(row?.source_type || "").trim();
+    return excerpt.length >= 80 &&
+      (trustedTypes.has(sourceType) || /^(wikipedia|wikidata|nasa|noaa|ncbi_pubmed|europe_pmc|pubchem|nist|world_bank|openalex|crossref|semantic_scholar)$/i.test(provider));
+  });
+
+  if (!candidates.length) return null;
+
+  const primary = candidates[0];
+  const evidence = candidates.slice(0, 5).map(row => ({
+    source: row.source || row.provider || "Public source",
+    provider: row.provider || null,
+    title: row.title || null,
+    excerpt: row.excerpt || "",
+    source_type: row.source_type || null,
+    url: row.url || null
+  }));
+
+  return {
+    success: true,
+    query: question,
+    topic: queryInfo?.topic || queryInfo?.subject || "this topic",
+    definition: primary.excerpt,
+    evidence,
+    trusted_sources: evidence,
+    public_search: true,
+    public_search_results: rows
+  };
+}
 
 function loadCache() {
   try {
@@ -1251,7 +1301,7 @@ app.post("/api/learn", async (req, res) => {
     } else {
       console.log("2.6 No local curriculum match; using external knowledge.");
 
-      const [knowledge, trusted] = await Promise.all([
+      const [knowledge, trusted, publicSearchResult] = await Promise.all([
         withTimeout(
           retrieveKnowledgeIntelligence(question, {
             limit: 8,
@@ -1294,22 +1344,59 @@ app.post("/api/learn", async (req, res) => {
             sources: [],
             error: trustedError.message
           };
+        }),
+
+        withTimeout(
+          publicSearch(question, 12),
+          5000,
+          "Public search"
+        ).catch((publicSearchError) => {
+          console.error(
+            "2.7 PUBLIC SEARCH ERROR:",
+            publicSearchError.message
+          );
+
+          return {
+            success: false,
+            results: [],
+            error: publicSearchError.message
+          };
         })
       ]);
+
+      const publicLearningEvidence =
+        buildPublicSearchLearningEvidence(
+          publicSearchResult,
+          question,
+          queryInfo
+        );
 
       knowledgeResult = {
         success:
           !!knowledge?.success ||
-          !!trusted?.success,
+          !!trusted?.success ||
+          !!publicLearningEvidence?.success,
 
         knowledge:
-          knowledge?.knowledge || null,
+          knowledge?.knowledge ||
+          publicLearningEvidence,
 
         trusted_sources:
-          trusted?.sources || [],
+          trusted?.sources?.length
+            ? trusted.sources
+            : (publicLearningEvidence?.trusted_sources || []),
 
         trusted_information:
-          trusted || null
+          trusted || null,
+
+        public_search:
+          publicSearchResult?.success
+            ? {
+                results: publicSearchResult.results || [],
+                providers: publicSearchResult.providers || {},
+                completed_providers: publicSearchResult.completed_providers || []
+              }
+            : null
       };
     }
 
