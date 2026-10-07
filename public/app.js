@@ -6009,7 +6009,7 @@ async function openMultimodalLearning() {
           <span id="de-lesson-verification">Waiting for a topic.</span>
         </div>
         <article id="de-lesson-card" class="de-lesson-card">
-          <p>Dream will deliver the explanation at the selected level, then give you media, demonstrations and sources for the same concept.</p>
+          <p>Dream will deliver the verified explanation at the selected level, then provide inline text, video or audio for the same concept.</p>
         </article>
       </section>
 
@@ -6024,7 +6024,7 @@ async function openMultimodalLearning() {
         <div id="de-resource-results" class="de-resource-grid">
           <div class="de-resource-empty">
             <strong>Choose a topic and a learning mode.</strong>
-            <p>Dream can return playable audio, watchable video, visible images, reading material and interactive resources.</p>
+            <p>Dream can return inline text, watchable video and playable audio.</p>
           </div>
         </div>
       </section>
