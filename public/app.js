@@ -275,6 +275,7 @@
   function clearAuth() {
     try {
       localStorage.removeItem(AUTH_KEY);
+      window.dispatchEvent(new CustomEvent("dream-education-auth-changed"));
     } catch (error) {
       console.error("Could not clear authentication state:", error);
     }
