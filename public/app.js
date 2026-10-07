@@ -122,7 +122,13 @@
         },
         {
           title: "Code creation",
-          text: "Create software and code projects from a natural-language request."
+          text: "Create software and code projects from a natural-language request.",
+          action: "coding-lab"
+        },
+        {
+          title: "Learn coding your way",
+          text: "Choose a coding-learning method, then get free text, video, image, course and practice resources.",
+          action: "coding-learning"
         }
       ],
       primary: "Explore AI Lab",
@@ -281,6 +287,8 @@
         const isParentSpace = card.action === "parent-space";
         const isChat = card.action === "chat";
         const isGeneralConnections = card.action === "general-connections";
+        const isCodingLab = card.action === "coding-lab";
+        const isCodingLearning = card.action === "coding-learning";
         const cardAction = isCodeCreation
           ? 'data-panel-action="code-generator" role="button" tabindex="0"'
           : isMeetings
@@ -291,6 +299,10 @@
                 ? 'data-panel-action="chat" role="button" tabindex="0"'
                 : isGeneralConnections
                   ? 'data-panel-action="general-connections" role="button" tabindex="0"'
+                  : isCodingLab
+                    ? 'data-panel-action="coding-lab" role="button" tabindex="0"'
+                    : isCodingLearning
+                      ? 'data-panel-action="coding-learning" role="button" tabindex="0"'
                 : "";
         const cardButton = isCodeCreation
           ? '<button class="panel-action" type="button" data-panel-action="code-generator">Open Code Generator</button>'
@@ -302,6 +314,10 @@
                 ? '<button class="panel-action" type="button" data-panel-action="chat">Open Chat</button>'
               : isGeneralConnections
                 ? '<button class="panel-action" type="button" data-panel-action="general-connections">Open General Connections</button>'
+                : isCodingLab
+                  ? '<button class="panel-action" type="button" data-panel-action="coding-lab">Open Coding Studio</button>'
+                  : isCodingLearning
+                    ? '<button class="panel-action" type="button" data-panel-action="coding-learning">Choose how to learn coding</button>'
                 : "";
 
         return `
@@ -1421,8 +1437,19 @@ document.addEventListener("click", function (event) {
       return;
     }
 
-    if (action === "code-generator") {
-      window.location.href = "/code-generator/index.html";
+    if (action === "code-generator" || action === "coding-lab") {
+      if (typeof openCodingLab === "function") {
+        openCodingLab();
+      } else {
+        window.location.href = "/code-generator/index.html";
+      }
+      return;
+    }
+
+    if (action === "coding-learning") {
+      if (typeof openCodingLearning === "function") {
+        openCodingLearning();
+      }
       return;
     }
 
