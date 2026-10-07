@@ -7498,7 +7498,11 @@ async function openAskDreamEducation() {
 // Supported learner-facing material modes: Watch video · Read text · Listen to audio.
 // Other provider capabilities are not rendered as learner materials.
 function renderDreamLearningResources(resources) {
-  const items = Array.isArray(resources) ? resources.slice(0, 8) : [];
+  const items = Array.isArray(resources)
+    ? resources.filter(function (resource) {
+        return resource && ["text", "video", "audio"].includes(resource.type);
+      }).slice(0, 8)
+    : [];
   if (!items.length) {
     return '<p class="panel-status">No external learning media was available for this question right now. You can still use the verified answer and ask for resources again.</p>';
   }
@@ -7541,6 +7545,8 @@ function renderDreamLearningResources(resources) {
           '<div class="dream-learning-resource-audio">' +
           '<strong>Listen now</strong><audio controls preload="metadata" src="' + mediaUrl + '"></audio>' +
           '</div>';
+      } else if (type === "text") {
+        media = '<div class="de-resource-text">' + description + '</div>';
       }
 
       const fallback =
@@ -7575,7 +7581,8 @@ function dreamResourceIntent(question) {
 }
 
 function renderAnswerResource(resource) {
-  const type = resource && resource.type ? resource.type : "web";
+  const rawType = resource && resource.type ? resource.type : "text";
+  const type = ["text", "video", "audio"].includes(rawType) ? rawType : "text";
   const title = escapeHtml(resource && resource.title || "Learning resource");
   const description = escapeHtml(String(resource && resource.description || "").slice(0, 300));
   const mediaUrl = escapeHtml(resource && resource.media_url || "");
@@ -7585,6 +7592,7 @@ function renderAnswerResource(resource) {
   if (type === "video" && embedUrl) media = '<div class="dream-answer-resource-video"><iframe src="' + embedUrl + '" title="' + title + '" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>';
   else if (type === "video" && mediaUrl) media = '<video class="dream-answer-resource-video-player" controls preload="metadata" poster="' + escapeHtml(resource.thumbnail || "") + '" src="' + mediaUrl + '"></video>';
   else if (type === "audio" && mediaUrl) media = '<div class="dream-answer-resource-audio"><strong>Listen</strong><audio controls preload="metadata" src="' + mediaUrl + '"></audio></div>';
+  else if (type === "text") media = '<div class="de-resource-text">' + description + '</div>';
 
   return '<article class="dream-answer-resource-card">' + media + '<div class="dream-answer-resource-body"><span class="panel-kicker">' + escapeHtml(String(type).toUpperCase()) + ' · ' + provider + '</span><h3>' + title + '</h3>' + (description ? '<p>' + description + '</p>' : "") + '<div class="dream-answer-resource-source">Source: ' + provider + '</div></div></article>';
 }
