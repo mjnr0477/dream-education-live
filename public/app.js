@@ -6082,8 +6082,40 @@ async function openMultimodalLearning() {
         '<div class="de-lesson-answer">' +
           '<div class="de-lesson-badge">VERIFIED</div>' +
           '<div class="de-lesson-text">' + escapeHtml(lesson.answer || "No explanation returned.").replace(/\n/g, "<br>") + '</div>' +
+          '<div class="de-lesson-actions">' +
+            '<button class="de-action primary" type="button" id="de-lesson-listen">🔊 Listen to this lesson</button>' +
+            '<button class="de-action" type="button" id="de-lesson-stop">Stop audio</button>' +
+          '</div>' +
           (sourceNames ? '<div class="de-lesson-sources"><strong>Knowledge sources:</strong> ' + sourceNames + '</div>' : '') +
         '</div>';
+
+      const listenButton = document.getElementById("de-lesson-listen");
+      const stopButton = document.getElementById("de-lesson-stop");
+      const lessonTextForAudio = String(lesson.answer || "").trim();
+
+      if (listenButton) {
+        listenButton.addEventListener("click", function () {
+          if (!lessonTextForAudio) return;
+          if (!("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) {
+            status.textContent = "Audio playback is not available in this browser.";
+            return;
+          }
+          window.speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance(lessonTextForAudio);
+          utterance.lang = "en-US";
+          utterance.rate = 0.95;
+          utterance.pitch = 1;
+          window.speechSynthesis.speak(utterance);
+          status.textContent = "Dream is reading the verified lesson aloud.";
+        });
+      }
+
+      if (stopButton) {
+        stopButton.addEventListener("click", function () {
+          if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+          status.textContent = "Audio stopped.";
+        });
+      }
 
       const params = new URLSearchParams({
         learner_id: learnerId,
@@ -6162,7 +6194,10 @@ async function openMultimodalLearning() {
     return '<article class="de-resource-card">' +
       visual +
       '<div class="de-resource-card-body">' +
-        '<div class="de-resource-meta"><span>' + escapeHtml(type) + '</span><span>' + provider + '</span>' + (resource.license ? '<span>' + escapeHtml(resource.license) + '</span>' : '') + '</div>' +
+        '<div class="de-resource-meta"><span>' + escapeHtml(type) + '</span><span>' + provider + '</span>' +
+          (resource.relevance_reason ? '<span>' + escapeHtml(resource.relevance_reason) + '</span>' : '') +
+          (resource.license ? '<span>' + escapeHtml(resource.license) + '</span>' : '') +
+        '</div>' +
         '<h4>' + title + '</h4>' +
         (description ? '<p>' + description + '</p>' : '') +
         '<div class="de-resource-actions">' +
