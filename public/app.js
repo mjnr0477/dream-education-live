@@ -7221,16 +7221,10 @@ function renderDreamAnswer(result, payload) {
 
 function formatDreamAnswer(answer) {
   return escapeHtml(String(answer))
-    .replace(/\r
-/g, "
-")
-    .replace(/
-
-+/g, "</p><p>")
-    .replace(/
-/g, "<br>");
+    .replace(/\r\n/g, "\n")
+    .replace(/\n\n+/g, "</p><p>")
+    .replace(/\n/g, "<br>");
 }
-
 window.DreamEducationLearner = {
   ...(window.DreamEducationLearner || {}),
   fetchDashboard: fetchLearnerDashboard,
