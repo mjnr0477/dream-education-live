@@ -7100,7 +7100,8 @@ async function loadAnswerResources(question, payload, typeOverride) {
     host.innerHTML = '<div class="dream-answer-resource-toolbar"><strong>' + resources.length + ' learning resources found</strong><span>' + escapeHtml(data.intent && data.intent.reason || "Matched to your learning request.") + '</span></div><div class="dream-answer-resource-grid">' + resources.map(renderAnswerResource).join("") + '</div>';
   } catch (error) { host.innerHTML = '<div class="dream-answer-resource-empty"><strong>Resource search could not complete.</strong><p>' + escapeHtml(error.message || "Please try again.") + '</p><div class="panel-actions"><button type="button" class="panel-action" data-answer-resource-type="' + escapeHtml(type) + '">Search again</button></div></div>'; }
 }
-\nfunction renderDreamAnswer(result, payload) {
+
+function renderDreamAnswer(result, payload) {
   const panelBody = document.getElementById("panel-body");
   if (!panelBody) return;
 
@@ -7161,7 +7162,14 @@ async function loadAnswerResources(question, payload, typeOverride) {
       </div>
     </div>
 
-        <div class="panel-card dream-answer-resources-panel">\n      <span class="panel-kicker">LEARN WITH MEDIA</span>\n      <h3>Learning resources for this request</h3>\n      <p>Dream Education searches connected sources and places available media directly here.</p>\n      <div id="dream-answer-resources" aria-live="polite"></div>\n    </div>\n\n<div class="panel-actions">
+        <div class="panel-card dream-answer-resources-panel">
+      <span class="panel-kicker">LEARN WITH MEDIA</span>
+      <h3>Learning resources for this request</h3>
+      <p>Dream Education searches connected sources and places available media directly here.</p>
+      <div id="dream-answer-resources" aria-live="polite"></div>
+    </div>
+
+<div class="panel-actions">
       <button
         id="ask-another-dream-question"
         class="panel-action"
@@ -7201,14 +7209,26 @@ async function loadAnswerResources(question, payload, typeOverride) {
         window.DreamEducationLearner.openDashboard();
       }
     });
-  }\n  loadAnswerResources(payload.question, payload);\n\n  panelBody.addEventListener("click", function (event) {\n    const button = event.target.closest("[data-answer-resource-type]");\n    if (!button) return;\n    loadAnswerResources(payload.question, payload, button.getAttribute("data-answer-resource-type") || "any");\n  });
+  }
+  loadAnswerResources(payload.question, payload);
+
+  panelBody.addEventListener("click", function (event) {
+    const button = event.target.closest("[data-answer-resource-type]");
+    if (!button) return;
+    loadAnswerResources(payload.question, payload, button.getAttribute("data-answer-resource-type") || "any");
+  });
 }
 
 function formatDreamAnswer(answer) {
   return escapeHtml(String(answer))
-    .replace(/\r\n/g, "\n")
-    .replace(/\n\n+/g, "</p><p>")
-    .replace(/\n/g, "<br>");
+    .replace(/\r
+/g, "
+")
+    .replace(/
+
++/g, "</p><p>")
+    .replace(/
+/g, "<br>");
 }
 
 window.DreamEducationLearner = {
