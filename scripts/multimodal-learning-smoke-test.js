@@ -15,10 +15,10 @@ const requiredAppSignals = [
   '/api/v1/learning/resources/progress',
   'de-resource-mode',
   'Watch video',
-  'See pictures & diagrams',
+  'Read text',
   'Listen to audio',
   'Read an explanation',
-  'Interactive / simulation',
+  'de-resource-text',
   'de-resource-audio-player',
   'de-resource-video-player'
 ];
@@ -37,7 +37,7 @@ for (const signal of [
   ".de-resource-video",
   ".de-resource-video-player",
   ".de-resource-audio",
-  ".de-resource-image"
+  ".de-resource-text"
 ]) {
   assert.ok(css.includes(signal), "frontend CSS missing media surface: " + signal);
 }
