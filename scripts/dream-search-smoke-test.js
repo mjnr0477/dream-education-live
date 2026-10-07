@@ -15,6 +15,9 @@ registerDreamSearchRoutes({
   },
   isOwnerAccount(account) {
     return account?.owner_account === true;
+  },
+  async searchPublic() {
+    return { success: true, results: [{ title: 'Test', source: 'Smoke Test', excerpt: 'Verified test result.' }] };
   }
 });
 
