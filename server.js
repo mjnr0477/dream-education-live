@@ -1871,7 +1871,35 @@ Return a learner-facing teaching response only.
       return res.status(503).json({ success: false, message: "No verified evidence is available for this learner question.", retryable: true, answer_contract: "verified-v1" });
     }
 
-    console.log("13. Sending successful response");
+    console.log("13. Preparing visible learning resources");
+
+    // Resource discovery is a teaching companion to the verified answer.
+    // It must never replace factual verification or prevent the learner
+    // from receiving the verified answer when a media provider fails.
+    let learningResources = [];
+    try {
+      const resourceResult = await Promise.race([
+        discoverLearningResources(question, {
+          type: "any",
+          subject: subject || "",
+          level: level || "",
+          limit: 8
+        }),
+        new Promise((resolve) =>
+          setTimeout(() => resolve({ success: false, resources: [] }), 5500)
+        )
+      ]);
+      if (resourceResult?.success && Array.isArray(resourceResult.resources)) {
+        learningResources = resourceResult.resources;
+      }
+    } catch (resourceError) {
+      console.warn(
+        "Learning resource discovery skipped:",
+        resourceError.message || resourceError
+      );
+    }
+
+    console.log("14. Sending successful response");
 
     const answerSources = [];
 
@@ -1941,6 +1969,8 @@ Return a learner-facing teaching response only.
       cached,
       ai_mode: AI_MODE,
       answer_sources: answerSources,
+      learning_resources: learningResources,
+      learning_resource_count: learningResources.length,
       saved_to_supabase: !!learner_id,
       learning_history_saved: !!learner_id,
       answer_verified: true,
