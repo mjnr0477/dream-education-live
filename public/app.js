@@ -6203,7 +6203,7 @@ async function openMultimodalLearning() {
         content.replace(/\n/g, "<br>") + '</div></div>';
     } else if (type === "audio" && safeMediaUrl) {
       visual = '<div class="de-media-stage de-media-audio-stage"><div><strong>' + title +
-        '</strong><p>Play the audio here.</p></div><audio class="de-resource-audio" controls preload="metadata" src="' +
+        '</strong><p>Play the audio here.</p></div><audio class="de-resource-audio de-resource-audio-player" controls preload="metadata" src="' +
         escapeHtml(safeMediaUrl) + '" data-resource-media="audio"></audio></div>';
     } else if (type === "video" && safeMediaUrl) {
       visual = '<div class="de-media-stage de-media-video-stage"><video class="de-resource-video" controls playsinline preload="metadata" src="' +
