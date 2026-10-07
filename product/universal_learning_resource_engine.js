@@ -606,6 +606,7 @@ async function discoverLearningResources(query, options = {}) {
       .filter(resource => resource.type === "text" ? Boolean(resource.content) : resource.playable_in_app === true)
       .map(resource => ({ ...resource, resource_topic: resource.resource_topic || conceptQuery,
         relevance_reason: resource.relevance_reason || (resource.relevance >= 1.05 ? "Strong concept match" : resource.relevance >= 0.65 ? "Good concept match" : "Possible related match") }));
+  ];
   const dedupe = new Map();
   for (const resource of resources) {
     const key = [
