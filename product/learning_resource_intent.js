@@ -47,7 +47,10 @@ function extractLearningTopic(query) {
     /^(please\s+)?could\s+you\s+/i,
     /^(please\s+)?let\s+me\s+/i,
     /^(please\s+)?help\s+me\s+/i,
-    /^(please\s+)?teach\s+me\s+/i
+    /^(please\s+)?teach\s+me\s+/i,
+    /^(please\s+)?listen\s+to\s+/i,
+    /^(please\s+)?watch\s+/i,
+    /^(please\s+)?see\s+/i
   ];
 
   removable.forEach(pattern => {
