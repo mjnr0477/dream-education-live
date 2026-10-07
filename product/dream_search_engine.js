@@ -110,19 +110,22 @@ function registerDreamSearchRoutes(app, options = {}) {
     if (typeof getAuthenticatedAccount !== 'function' || typeof isOwnerAccount !== 'function') {
       return { success: false, status: 503, error: 'Authorized Search owner protection is not configured.' };
     }
+
     if (!String(req.headers.authorization || '')) {
       return { success: false, status: 401, error: 'Owner sign-in is required for Authorized Search.' };
     }
+
     const auth = await getAuthenticatedAccount(req);
     if (!auth.success) return auth;
+
     if (!isOwnerAccount(auth.account)) {
       return { success: false, status: 403, error: 'Authorized Search is restricted to the Dream Education owner.' };
     }
+
     return auth;
   }
 
-
-  // Authorized Search is protected by the dedicated Render password/token.\n  app.post('/api/dream-search/public', async (req, res) => {
+  app.post('/api/dream-search/public', async (req, res) => {
     try {
       const result = await publicSearch(req.body?.query, req.body?.limit);
       return res.status(result.success ? 200 : 400).json(result);
@@ -132,24 +135,17 @@ function registerDreamSearchRoutes(app, options = {}) {
     }
   });
 
-
-
   app.post('/api/dream-search/authorized', async (req, res) => {
     const owner = await requireOwner(req);
-    if (!owner.success) return res.status(owner.status).json({ success: false, error: owner.error });
-
-    const authorization = String(req.headers.authorization || '');
-    const token = authorization.startsWith('Bearer ') ? authorization.slice(7).trim() : '';
-    if (!verifyAuthorizedToken(token)) {
-      return res.status(401).json({ success: false, error: 'Authorized Search is locked.' });
+    if (!owner.success) {
+      return res.status(owner.status || 401).json({ success: false, error: owner.error });
     }
-
-    const owner = await requireOwner(req);
-    if (!owner.success) return res.status(owner.status || 401).json({ success: false, error: owner.error });
 
     try {
       const query = normalizeQuery(req.body?.query);
-      if (!query) return res.status(400).json({ success: false, error: 'A search request is required.' });
+      if (!query) {
+        return res.status(400).json({ success: false, error: 'A search request is required.' });
+      }
 
       const [publicResult, privateResults] = await Promise.all([
         publicSearch(query, req.body?.limit),
@@ -178,7 +174,5 @@ module.exports = {
   registerDreamSearchRoutes,
   publicSearch,
   searchAuthorizedCorpus,
-  issueAuthorizedToken,
-  verifyAuthorizedToken,
   normalizeQuery
 };
