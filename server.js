@@ -11,6 +11,7 @@ const { assessLearning } = require("./assessment_engine");
 const { recordAssessmentEvidence } = require("./product/gli/assessment_evidence_bridge");
 const { determineDifficulty } = require("./difficulty_engine");
 const queryEngine = require("./product/query_engine.js");
+const { registerDreamSearchRoutes } = require('./product/dream_search_engine');
 
 const {
   createValidatedConnection,
@@ -1051,6 +1052,7 @@ app.use((req, res, next) => {
 
 app.use(express.json({ limit: "1mb" }));
 app.use(express.static(path.join(__dirname, "public")));
+registerDreamSearchRoutes(app);
 
 app.get("/api/health", (req, res) => {
   res.json({
