@@ -22,6 +22,51 @@ function normalize(value) {
   return String(value || "").toLowerCase().replace(/\s+/g, " ").trim();
 }
 
+/*
+ * Convert a natural-language resource request into the actual learning
+ * concept we should send to media providers.
+ *
+ * Examples:
+ *   "show me a photo of meiosis" -> "meiosis"
+ *   "I want a video explaining photosynthesis" -> "photosynthesis"
+ *   "listen to audio about mitosis" -> "mitosis"
+ *
+ * This keeps provider search focused on the concept instead of request
+ * filler, which materially improves relevance for images, audio and video.
+ */
+function extractLearningTopic(query) {
+  let text = normalize(query);
+  if (!text) return "";
+
+  const removable = [
+    /^(please\\s+)?show\\s+me\\s+(a\\s+)?/i,
+    /^(please\\s+)?give\\s+me\\s+(a\\s+)?/i,
+    /^(please\\s+)?find\\s+(me\\s+)?/i,
+    /^(please\\s+)?i\\s+want\\s+(to\\s+)?/i,
+    /^(please\\s+)?can\\s+you\\s+/i,
+    /^(please\\s+)?could\\s+you\\s+/i,
+    /^(please\\s+)?let\\s+me\\s+/i,
+    /^(please\\s+)?help\\s+me\\s+/i,
+    /^(please\\s+)?teach\\s+me\\s+/i
+  ];
+
+  removable.forEach(pattern => {
+    text = text.replace(pattern, "");
+  });
+
+  text = text
+    .replace(/\\b(explain|explaining|about|of|on|for|with|related to)\\b/gi, " ")
+    .replace(/\\b(a|an|the)\\b/gi, " ")
+    .replace(/\\b(photo|photos|picture|pictures|image|images|diagram|diagrams|illustration|illustrations)\\b/gi, " ")
+    .replace(/\\b(video|videos|movie|movies|documentary|lecture|lesson)\\b/gi, " ")
+    .replace(/\\b(audio|sound|sounds|podcast|recording)\\b/gi, " ")
+    .replace(/\\b(experiment|experiments|simulation|simulations|interactive|demonstration|demonstrations)\\b/gi, " ")
+    .replace(/\\s+/g, " ")
+    .trim();
+
+  return text || normalize(query);
+}
+
 function inferLearningResourceIntent(query, requestedType) {
   const text = normalize(query);
   const explicit = Array.isArray(requestedType)
@@ -59,4 +104,4 @@ function inferLearningResourceIntent(query, requestedType) {
   };
 }
 
-module.exports = { inferLearningResourceIntent };
+module.exports = { inferLearningResourceIntent, extractLearningTopic };
