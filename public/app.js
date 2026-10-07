@@ -261,8 +261,12 @@
   }
 
   function isOwnerAccount(auth) {
-    const value = auth?.account?.owner_account;
-    return value === true || String(value).toLowerCase() === "true";
+    const account = auth?.account || {};
+    const ownerFlag = account.owner_account === true || String(account.owner_account).toLowerCase() === "true";
+    const freeForever = account.free_forever === true || String(account.free_forever).toLowerCase() === "true";
+    const ownerPlan = String(account.plan_type || "").trim().toLowerCase() === "owner";
+    const ownerEmail = String(account.email || "").trim().toLowerCase() === "mathiassimiyu52@gmail.com";
+    return ownerFlag && freeForever && ownerPlan && ownerEmail;
   }
 
   function getAuth() {
