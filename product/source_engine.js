@@ -892,7 +892,7 @@ async function searchSources(query, limit = 5) {
       intent: queryInfo.intent
     })
   );
-  const FAST_RETRIEVAL_DEADLINE = 2800;
+  const FAST_RETRIEVAL_DEADLINE = 4500;
 
   const providers = [
     // EXISTING PROVIDERS — PRESERVED
@@ -1021,7 +1021,7 @@ async function searchSources(query, limit = 5) {
     .map(prepareSource)
     .filter(source =>
       source &&
-      String(source.extract || "").trim().length >= 80
+      String(source.extract || "").trim().length >= 30
     );
 
   const rankedSources = rankSources(
