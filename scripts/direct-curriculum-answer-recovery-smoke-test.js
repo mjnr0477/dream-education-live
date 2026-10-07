@@ -19,6 +19,16 @@ assert(
 );
 
 assert(
+  server.includes("function buildDirectVerifiedCurriculumAnswer"),
+  "Normal curriculum teaching must have a direct verified recovery path."
+);
+
+assert(
+  server.includes("answer = buildDirectVerifiedCurriculumAnswer"),
+  "A teaching-stage failure must recover using the verified curriculum definition."
+);
+
+assert(
   server.includes("emergencyDefinition.length >= 20"),
   "Emergency curriculum recovery must require a substantive definition."
 );
