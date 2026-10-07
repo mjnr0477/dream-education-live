@@ -105,6 +105,7 @@ async function publicSearch(query, limit = 8) {
 function registerDreamSearchRoutes(app, options = {}) {
   const getAuthenticatedAccount = options.getAuthenticatedAccount;
   const isOwnerAccount = options.isOwnerAccount;
+  const searchPublic = options.searchPublic || publicSearch;
 
   async function requireOwner(req) {
     if (typeof getAuthenticatedAccount !== 'function' || typeof isOwnerAccount !== 'function') {
@@ -127,7 +128,7 @@ function registerDreamSearchRoutes(app, options = {}) {
 
   app.post('/api/dream-search/public', async (req, res) => {
     try {
-      const result = await publicSearch(req.body?.query, req.body?.limit);
+      const result = await searchPublic(req.body?.query, req.body?.limit);
       return res.status(result.success ? 200 : 400).json(result);
     } catch (error) {
       console.error('Dream public search error:', error);
@@ -148,7 +149,7 @@ function registerDreamSearchRoutes(app, options = {}) {
       }
 
       const [publicResult, privateResults] = await Promise.all([
-        publicSearch(query, req.body?.limit),
+        searchPublic(query, req.body?.limit),
         Promise.resolve(searchAuthorizedCorpus(query, req.body?.limit))
       ]);
 
