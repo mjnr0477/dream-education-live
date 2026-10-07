@@ -21,16 +21,22 @@ function publicResult(item) {
   };
 }
 
-function loadAuthorizedCorpus() {
-  const inline = String(process.env.DREAM_AUTHORIZED_SEARCH_DATA || '').trim();
+function loadAuthorizedJson(name, fallback = []) {
+  const inline = String(process.env[name] || '').trim();
   if (inline) {
     try {
       const parsed = JSON.parse(inline);
-      return Array.isArray(parsed) ? parsed : [];
+      return Array.isArray(parsed) ? parsed : fallback;
     } catch (error) {
-      console.warn('Dream authorized search data is not valid JSON:', error.message);
+      console.warn(`Dream authorized ${name} data is not valid JSON:`, error.message);
     }
   }
+  return fallback;
+}
+
+function loadAuthorizedCorpus() {
+  const inlineCorpus = loadAuthorizedJson('DREAM_AUTHORIZED_SEARCH_DATA');
+  if (inlineCorpus.length) return inlineCorpus;
 
   const configuredPath = String(process.env.DREAM_AUTHORIZED_SEARCH_FILE || '').trim();
   if (!configuredPath) return [];
@@ -43,6 +49,22 @@ function loadAuthorizedCorpus() {
     console.warn('Dream authorized search corpus unavailable:', error.message);
     return [];
   }
+}
+
+function loadAuthorizedOverrides() {
+  const configuredPath = String(process.env.DREAM_AUTHORIZED_SEARCH_OVERRIDES_FILE || '').trim();
+  if (configuredPath) {
+    try {
+      const absolute = path.isAbsolute(configuredPath)
+        ? configuredPath
+        : path.join(process.cwd(), configuredPath);
+      const parsed = JSON.parse(fs.readFileSync(absolute, 'utf8'));
+      if (Array.isArray(parsed)) return parsed;
+    } catch (error) {
+      console.warn('Dream authorized search overrides unavailable:', error.message);
+    }
+  }
+  return loadAuthorizedJson('DREAM_AUTHORIZED_SEARCH_OVERRIDES');
 }
 
 function scorePrivateItem(item, query) {
@@ -68,8 +90,10 @@ function scorePrivateItem(item, query) {
 }
 
 function searchAuthorizedCorpus(query, limit = 8) {
-  return loadAuthorizedCorpus()
-    .map((item, index) => ({ item, index, score: scorePrivateItem(item, query) }))
+  const overrides = loadAuthorizedOverrides();
+  const corpus = [...overrides.map(item => ({ ...item, _authorized_override: true })), ...loadAuthorizedCorpus()];
+  return corpus
+    .map((item, index) => ({ item, index, score: scorePrivateItem(item, query) + (item?._authorized_override ? 1000 : 0) }))
     .filter(result => result.score > 0)
     .sort((a, b) => b.score - a.score)
     .slice(0, Math.min(Number(limit) || 8, 20))
@@ -80,7 +104,9 @@ function searchAuthorizedCorpus(query, limit = 8) {
       excerpt: String(item?.content || item?.text || item?.description || JSON.stringify(item)).trim().slice(0, 5000),
       match_score: score,
       private: true,
-      authorized: true
+      authorized: true,
+      authoritative: Boolean(item?._authorized_override),
+      precedence: item?._authorized_override ? 'owner-authoritative' : 'authorized-source'
     }));
 }
 
@@ -174,8 +200,12 @@ function registerDreamSearchRoutes(app, options = {}) {
         public_results: publicResult.results || [],
         private_results: privateResults,
         private_data_configured: loadAuthorizedCorpus().length > 0,
-        search_scope: 'owner-authorized-data-and-public-sources',
-        precedence: 'Authorized data is shown first when it matches; public evidence is retained for cross-checking.',
+        owner_overrides_configured: loadAuthorizedOverrides().length > 0,
+        search_scope: 'all-connected-public-sources-plus-owner-authorized-sources',
+        source_policy: 'Public Search may use only public sources. Authorized Search may use all connected public sources plus owner-authorized sources.',
+        precedence: 'Owner-authorized overrides are authoritative for this owner search; other authorized records come next; public evidence remains available for cross-checking.',
+        connected_source_count: Object.values(publicResult.providers || {}).filter(Boolean).length,
+        connected_providers: Object.entries(publicResult.providers || {}).filter(([, connected]) => connected).map(([provider]) => provider),
         message: privateResults.length
           ? 'Authorized information found. Public evidence is included for cross-checking.'
           : 'No matching authorized records were found. Public information is included.'
