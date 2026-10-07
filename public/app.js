@@ -7486,6 +7486,7 @@ async function openAskDreamEducation() {
   questionBox.focus();
 }
 
+// Supported source capability label: Experiment / demonstration (rendered as explanatory text, never as a raw link).
 function renderDreamLearningResources(resources) {
   const items = Array.isArray(resources) ? resources.slice(0, 8) : [];
   if (!items.length) {
