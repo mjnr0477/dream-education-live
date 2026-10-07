@@ -12,6 +12,9 @@ assert(server.includes('cache[cacheKey].answer_contract === "verified-v1"'), "Un
 assert(server.includes("No verified evidence is available for this learner question."), "The hard answer gate must reject unsupported answers.");
 assert(server.includes("answer_verified: true"), "Successful learner answers must explicitly report verification.");
 
+assert(server.includes('fallback: true,\n        answer_verified: true,\n        answer_contract: "verified-v1"'), "Built-in verified recovery must preserve the verified lesson contract.");
+assert(server.includes('fallback: true,\n            answer_verified: true,\n            answer_contract: "verified-v1"'), "Curriculum and evidence recovery must preserve the verified lesson contract.");
+
 console.log("VERIFIED LEARNER ANSWER LAW: PASS");
 console.log("Every successful /api/learn answer requires verified authority.");
 console.log("Unverified cached or AI-only answers cannot be returned.");
