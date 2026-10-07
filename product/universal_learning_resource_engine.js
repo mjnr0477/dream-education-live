@@ -1,6 +1,6 @@
 "use strict";
 
-const { inferLearningResourceIntent } = require("./learning_resource_intent");
+const { inferLearningResourceIntent, extractLearningTopic } = require("./learning_resource_intent");
 
 /*
  * Dream Education Universal Learning Resource Engine
@@ -54,18 +54,31 @@ function wants(types, type) {
 
 function scoreResource(resource, query, context = {}) {
   const q = normalize(query);
-  const text = normalize([
-    resource.title, resource.description, ...(resource.tags || [])
-  ].filter(Boolean).join(" "));
+  const title = normalize(resource.title);
+  const description = normalize(resource.description);
+  const tags = normalize((resource.tags || []).join(" "));
+  const text = [title, description, tags].filter(Boolean).join(" ");
   if (!q || !text) return 0;
+
   const tokens = q.split(" ").filter(token => token.length > 2);
   if (!tokens.length) return 0;
+
   const matched = tokens.filter(token => text.includes(token));
   let score = matched.length / tokens.length;
 
+  // Exact concept matches are much safer than generic request-word matches.
+  if (title === q) score += 0.55;
+  else if (title.includes(q)) score += 0.38;
+
+  // Prefer resources whose title contains the complete concept phrase.
+  const phraseTokens = q.split(" ").filter(Boolean);
+  if (phraseTokens.length > 1 && phraseTokens.every(token => title.includes(token))) {
+    score += 0.18;
+  }
+
   const quality = {
     openverse: 0.92,
-    wikimedia_commons: 0.9,
+    wikimedia_commons: 0.94,
     nasa: 0.98,
     nasa_osdr: 0.98,
     crossref: 0.97,
@@ -465,6 +478,10 @@ async function discoverLearningResources(query, options = {}) {
   if (wants(types, "audio")) {
     jobs.push(safeProvider("openverse_audio", () =>
       searchOpenverseAudio(searchQuery, limit)));
+    jobs.push(safeProvider("wikimedia_commons", () =>
+      searchWikimediaImages(searchQuery, Math.min(limit, 8))));
+    jobs.push(safeProvider("internet_archive", () =>
+      searchInternetArchive(searchQuery, Math.min(limit, 8))));
   }
 
   if (wants(types, "video")) {
@@ -472,6 +489,8 @@ async function discoverLearningResources(query, options = {}) {
       searchYouTube(searchQuery, limit)));
     jobs.push(safeProvider("internet_archive", () =>
       searchInternetArchive(searchQuery, Math.min(limit, 8))));
+    jobs.push(safeProvider("wikimedia_commons", () =>
+      searchWikimediaImages(searchQuery, Math.min(limit, 8))));
     jobs.push(safeProvider("nasa", () =>
       searchNASAImages(searchQuery, Math.min(limit, 8))));
   }
@@ -509,7 +528,16 @@ async function discoverLearningResources(query, options = {}) {
         preferredTypes: types.filter(type => type !== "any")
       }).toFixed(3))
     }))
-    .filter(resource => resource.url || resource.media_url || resource.embed_url);
+    .filter(resource => resource.url || resource.media_url || resource.embed_url)
+    .map(resource => ({
+      ...resource,
+      resource_topic: conceptQuery,
+      relevance_reason: resource.relevance >= 1.05
+        ? "Strong concept match"
+        : resource.relevance >= 0.65
+          ? "Good concept match"
+          : "Possible related match"
+    }));
 
   const dedupe = new Map();
   for (const resource of resources) {

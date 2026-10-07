@@ -2650,6 +2650,19 @@ body.panel-open .experience-panel{
 @media(max-width:720px){.dream-answer-resource-grid{grid-template-columns:1fr}.dream-answer-resource-video-player{max-height:none}}
 
 
+/* Universal lesson audio controls */
+.de-lesson-actions {
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:4px;
+}
+.de-lesson-actions .de-action { min-width:150px; }
+@media (max-width: 560px) {
+  .de-lesson-actions { flex-direction:column; }
+  .de-lesson-actions .de-action { width:100%; }
+}
+
 /* Multimodal lesson player */
 .de-lesson-section { overflow: hidden; }
 .de-lesson-card {
