@@ -508,6 +508,7 @@ function isCodingQuery(query) {
   return /(python|javascript|typescript|java|c\+\+|c#|html|css|react|node|sql|git|github|programming|coding|web development|computer science|algorithm|data structure|machine learning|ai development)/i.test(normalize(query));
 }
 
+// Never present a page-only result as playable; only direct media or a verified embeddable player belongs in the in-app media experience.
 function curatedCodingResources(query, types, limit) {
   if (!isCodingQuery(query)) return [];
   const resources = [...curatedResults];
