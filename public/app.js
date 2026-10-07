@@ -6423,7 +6423,24 @@ document.addEventListener("click", function (event) {
   const searchAction = event.target.closest('[data-panel-action="authorized-search"]');
   if (searchAction) {
     event.preventDefault();
-    if (window.DreamEducationSearch && typeof window.DreamEducationSearch.openAuthorizedSearch === "function") {
+
+    const auth =
+      typeof getAuth === "function"
+        ? getAuth()
+        : null;
+
+    const isOwner = auth?.success === true &&
+      auth?.account?.owner_account === true &&
+      Boolean(auth?.session?.access_token);
+
+    if (!isOwner) {
+      return;
+    }
+
+    if (
+      window.DreamEducationSearch &&
+      typeof window.DreamEducationSearch.openAuthorizedSearch === "function"
+    ) {
       window.DreamEducationSearch.openAuthorizedSearch();
     }
     return;
