@@ -15,7 +15,7 @@
       input: document.getElementById('dream-search-input'),
       status: document.getElementById('dream-search-status'),
       results: document.getElementById('dream-search-results'),
-      authorizedButton: document.querySelector('[data-dream-search-mode="authorized"]')
+      authorizedButton: null
     };
   }
 
@@ -29,17 +29,9 @@
   }
 
   function syncAuthorizedVisibility() {
-    const { authorizedButton } = elements();
-    if (!authorizedButton) return;
-    const owner = isOwnerSignedIn();
-    authorizedButton.hidden = !owner;
-    authorizedButton.setAttribute('aria-hidden', owner ? 'false' : 'true');
-
-    if (!owner && state.mode === 'authorized') {
-      state.mode = 'public';
-      const status = elements().status;
-      if (status) status.textContent = 'Public Search';
-    }
+    state.mode = 'public';
+    const status = elements().status;
+    if (status) status.textContent = 'Public Search';
   }
 
   function getOwnerToken() {
@@ -166,15 +158,9 @@
   }
 
   function setMode(mode) {
-    state.mode = mode;
+    state.mode = 'public';
     const { status } = elements();
-    if (mode === 'authorized') {
-      status.textContent = getOwnerToken()
-        ? 'Authorized Search — owner access'
-        : 'Sign in with the Dream Education owner account to use Authorized Search.';
-    } else {
-      status.textContent = 'Public Search';
-    }
+    if (status) status.textContent = 'Public Search';
   }
 
   window.DreamEducationSearch = { openAuthorizedSearch };
