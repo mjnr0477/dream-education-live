@@ -7530,7 +7530,7 @@ function renderDreamLearningResources(resources) {
           '</div>';
       } else if (type === "video" && mediaUrl) {
         media =
-          '<video class="dream-learning-resource-video-player" controls preload="metadata" poster="' +
+          '<video class="dream-learning-resource-video-player de-resource-video-player" controls preload="metadata" poster="' +
           escapeHtml(resource.thumbnail || "") + '" src="' + mediaUrl + '"></video>';
       } else if (type === "audio" && mediaUrl) {
         media =
