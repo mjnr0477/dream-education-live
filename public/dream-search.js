@@ -113,7 +113,7 @@
 
 
   function openAuthorizedSearch() {
-    if (!isOwnerSignedIn()) {
+    if (!getOwnerToken()) {
       return;
     }
 
