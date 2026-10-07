@@ -19,10 +19,14 @@
     };
   }
 
+  function ownerFlagIsTrue(value) {
+    return value === true || String(value).toLowerCase() === 'true';
+  }
+
   function isOwnerSignedIn() {
     try {
       const auth = JSON.parse(localStorage.getItem('dream_education_auth') || 'null');
-      return auth?.account?.owner_account === true;
+      return ownerFlagIsTrue(auth?.account?.owner_account) && Boolean(auth?.session?.access_token);
     } catch (_) {
       return false;
     }
