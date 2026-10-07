@@ -225,6 +225,7 @@ function createCacheKey(
     .digest("hex");
 }
 const { retrieveKnowledgeIntelligence } = require("./product/knowledge_intelligence_engine.js");
+const { discoverLearningResources } = require("./product/universal_learning_resource_engine.js");
 const { buildVerifiedEvidenceAnswer } = require("./product/verified_answer_recovery.js");
 
 // LEARNER ANSWER LAW: every successful learner answer must have verified
@@ -9702,6 +9703,52 @@ app.post("/api/v1/knowledge/ingest", async (req, res) => {
   } catch (error) {
     console.error("GLI knowledge ingest error:", error);
     return res.status(500).json({ success: false, error: "Knowledge ingestion failed." });
+  }
+});
+
+app.get("/api/v1/learning/resources", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+
+    const learnerId = String(req.query?.learner_id || "").trim();
+    if (
+      learnerId &&
+      auth.account.learner_id !== learnerId &&
+      auth.account.owner_account !== true
+    ) {
+      return res.status(403).json({
+        success: false,
+        error: "Learner resource access denied."
+      });
+    }
+
+    const query = String(req.query?.q || req.query?.topic || "").trim();
+    if (!query) {
+      return res.status(400).json({
+        success: false,
+        error: "A learning topic or request is required."
+      });
+    }
+
+    const result = await discoverLearningResources(query, {
+      type: req.query?.type || req.query?.types || "any",
+      subject: req.query?.subject || "",
+      level: req.query?.level || "",
+      limit: req.query?.limit || 8
+    });
+
+    return res.json({
+      ...result,
+      learner_id: learnerId || auth.account.learner_id || null,
+      mode: "universal_learning_resources"
+    });
+  } catch (error) {
+    console.error("Universal learning resource discovery error:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Learning resources could not be discovered."
+    });
   }
 });
 
