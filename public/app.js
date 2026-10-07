@@ -260,6 +260,11 @@
       .replace(/'/g, "&#039;");
   }
 
+  function isOwnerAccount(auth) {
+    const value = auth?.account?.owner_account;
+    return value === true || String(value).toLowerCase() === "true";
+  }
+
   function getAuth() {
     try {
       const raw = localStorage.getItem(AUTH_KEY);
@@ -290,7 +295,7 @@
   function renderCards(cards) {
     return (cards || [])
       .filter(function (card) {
-        return !card.ownerOnly || getAuth()?.account?.owner_account === true;
+        return !card.ownerOnly || isOwnerAccount(getAuth());
       })
       .map(function (card) {
         const isCodeCreation = card.title === "Code creation";
@@ -301,7 +306,7 @@
         const isCodingLab = card.action === "coding-lab";
         const isCodingLearning = card.action === "coding-learning";
         const isAuthorizedSearch = card.action === "authorized-search" &&
-          getAuth()?.account?.owner_account === true;
+          isOwnerAccount(getAuth());
         const cardAction = isCodeCreation
           ? 'data-panel-action="code-generator" role="button" tabindex="0"'
           : isMeetings
@@ -6430,7 +6435,7 @@ document.addEventListener("click", function (event) {
         : null;
 
     const isOwner =
-      auth?.account?.owner_account === true &&
+      isOwnerAccount(auth) &&
       Boolean(auth?.session?.access_token);
 
     if (!isOwner) {
