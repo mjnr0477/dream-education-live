@@ -5,7 +5,7 @@ const index = fs.readFileSync("public/index.html", "utf8");
 const workspace = fs.readFileSync("public/frontend-workspace.js", "utf8");
 const css = fs.readFileSync("public/style.css", "utf8");
 
-assert(index.includes("/frontend-workspace.js?v=20261001"));
+assert(/<script[^>]+src=["\']\/frontend-workspace\.js(?:\?[^"\']*)?["\']/i.test(index), "frontend workspace script must be loaded.");
 assert(workspace.includes('"/api/intelligence/"'));
 assert(workspace.includes('"/api/v1/role/"'));
 assert(workspace.includes('"/api/progress/"'));
