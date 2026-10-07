@@ -39,15 +39,15 @@ function extractLearningTopic(query) {
   if (!text) return "";
 
   const removable = [
-    /^(please\\s+)?show\\s+me\\s+(a\\s+)?/i,
-    /^(please\\s+)?give\\s+me\\s+(a\\s+)?/i,
-    /^(please\\s+)?find\\s+(me\\s+)?/i,
-    /^(please\\s+)?i\\s+want\\s+(to\\s+)?/i,
-    /^(please\\s+)?can\\s+you\\s+/i,
-    /^(please\\s+)?could\\s+you\\s+/i,
-    /^(please\\s+)?let\\s+me\\s+/i,
-    /^(please\\s+)?help\\s+me\\s+/i,
-    /^(please\\s+)?teach\\s+me\\s+/i
+    /^(please\s+)?show\s+me\s+(a\s+)?/i,
+    /^(please\s+)?give\s+me\s+(a\s+)?/i,
+    /^(please\s+)?find\s+(me\s+)?/i,
+    /^(please\s+)?i\s+want\s+(to\s+)?/i,
+    /^(please\s+)?can\s+you\s+/i,
+    /^(please\s+)?could\s+you\s+/i,
+    /^(please\s+)?let\s+me\s+/i,
+    /^(please\s+)?help\s+me\s+/i,
+    /^(please\s+)?teach\s+me\s+/i
   ];
 
   removable.forEach(pattern => {
@@ -55,13 +55,13 @@ function extractLearningTopic(query) {
   });
 
   text = text
-    .replace(/\\b(explain|explaining|about|of|on|for|with|related to)\\b/gi, " ")
-    .replace(/\\b(a|an|the)\\b/gi, " ")
-    .replace(/\\b(photo|photos|picture|pictures|image|images|diagram|diagrams|illustration|illustrations)\\b/gi, " ")
-    .replace(/\\b(video|videos|movie|movies|documentary|lecture|lesson)\\b/gi, " ")
-    .replace(/\\b(audio|sound|sounds|podcast|recording)\\b/gi, " ")
-    .replace(/\\b(experiment|experiments|simulation|simulations|interactive|demonstration|demonstrations)\\b/gi, " ")
-    .replace(/\\s+/g, " ")
+    .replace(/\b(explain|explaining|about|of|on|for|with|related to)\b/gi, " ")
+    .replace(/\b(a|an|the)\b/gi, " ")
+    .replace(/\b(photo|photos|picture|pictures|image|images|diagram|diagrams|illustration|illustrations)\b/gi, " ")
+    .replace(/\b(video|videos|movie|movies|documentary|lecture|lesson)\b/gi, " ")
+    .replace(/\b(audio|sound|sounds|podcast|recording)\b/gi, " ")
+    .replace(/\b(experiment|experiments|simulation|simulations|interactive|demonstration|demonstrations)\b/gi, " ")
+    .replace(/\s+/g, " ")
     .trim();
 
   return text || normalize(query);
