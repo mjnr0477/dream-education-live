@@ -110,6 +110,33 @@ function searchAuthorizedCorpus(query, limit = 8) {
     }));
 }
 
+function mergeAuthorizedWithPublic(publicResults, authorizedResults) {
+  const publicItems = Array.isArray(publicResults) ? publicResults : [];
+  const authorizedItems = Array.isArray(authorizedResults) ? authorizedResults : [];
+
+  // Owner-authorized records are the highest-precedence knowledge layer. When an
+  // override targets a public result by title/provider/source, it replaces that
+  // result's displayed answer while the original public evidence remains available
+  // in the returned public_results for cross-checking.
+  const remainingPublic = publicItems.filter(publicItem => {
+    return !authorizedItems.some(authItem => {
+      if (!authItem?.authoritative) return false;
+      const targetTitle = String(authItem?.target_title || '').trim().toLowerCase();
+      const targetProvider = String(authItem?.target_provider || '').trim().toLowerCase();
+      const targetSource = String(authItem?.target_source || '').trim().toLowerCase();
+      const title = String(publicItem?.title || '').trim().toLowerCase();
+      const provider = String(publicItem?.provider || '').trim().toLowerCase();
+      const source = String(publicItem?.source || '').trim().toLowerCase();
+
+      return (targetTitle && targetTitle === title) ||
+        (targetProvider && targetProvider === provider) ||
+        (targetSource && targetSource === source);
+    });
+  });
+
+  return [...authorizedItems, ...remainingPublic];
+}
+
 async function publicSearch(query, limit = 8) {
   const normalized = normalizeQuery(query);
   if (!normalized) return { success: false, error: 'A search request is required.' };
@@ -199,6 +226,7 @@ function registerDreamSearchRoutes(app, options = {}) {
         mode: 'authorized',
         query,
         authorized_results: privateResults,
+        results: mergeAuthorizedWithPublic(publicResult.results, privateResults),
         // Never create a separate public-source path for Authorized Search: reuse the exact
         // public result set so the owner sees everything Public Search can see, plus authorized data.
         public_results: Array.isArray(publicResult.results) ? publicResult.results : [],
@@ -206,6 +234,7 @@ function registerDreamSearchRoutes(app, options = {}) {
         private_data_configured: loadAuthorizedCorpus().length > 0,
         owner_overrides_configured: loadAuthorizedOverrides().length > 0,
         search_scope: 'all-connected-public-sources-plus-owner-authorized-sources',
+        answer_precedence: 'owner-authorized overrides > other authorized sources > connected public sources',
         source_policy: 'Public Search may use only public sources. Authorized Search may use all connected public sources plus owner-authorized sources.',
         precedence: 'Owner-authorized overrides are authoritative for the owner search; other authorized records come next; the complete connected public-source result set remains available for cross-checking.',
         connected_source_count: Object.values(publicResult.providers || {}).filter(Boolean).length,
