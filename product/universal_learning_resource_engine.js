@@ -38,7 +38,7 @@ function clampLimit(value) {
 function wantedTypes(value) {
   const allowed = new Set([
     "video", "image", "audio", "article", "book", "document",
-    "research", "interactive", "web", "any"
+    "research", "interactive", "experiment", "web", "any"
   ]);
   const values = Array.isArray(value) ? value : [value || "any"];
   const normalized = values.map(normalize).filter(Boolean);
@@ -204,6 +204,93 @@ async function searchInternetArchive(query, limit) {
   });
 }
 
+
+async function searchNASAImages(query, limit) {
+  const url =
+    "https://images-api.nasa.gov/search?q=" +
+    encodeURIComponent(query) +
+    "&media_type=image,video&page_size=" + encodeURIComponent(limit);
+
+  const data = await fetchJson(url);
+  const items = data.collection?.items || [];
+
+  return items.map(item => {
+    const dataItem = item.data?.[0] || {};
+    const links = item.links || [];
+    const preview = links.find(link => link.rel === "preview")?.href || null;
+    const nasaId = dataItem.nasa_id || null;
+    const type = String(dataItem.media_type || "image") === "video" ? "video" : "image";
+
+    return {
+      type,
+      provider: "nasa",
+      title: dataItem.title || "NASA learning media",
+      description: dataItem.description || "",
+      url: nasaId
+        ? "https://images.nasa.gov/details/" + encodeURIComponent(nasaId)
+        : null,
+      media_url: preview,
+      thumbnail: preview,
+      creator: "NASA",
+      published_at: dataItem.date_created || null,
+      tags: Array.isArray(dataItem.keywords) ? dataItem.keywords : []
+    };
+  });
+}
+
+async function searchNASAExperiments(query, limit) {
+  const url =
+    "https://osdr.nasa.gov/geode-py/ws/api/experiments";
+
+  const data = await fetchJson(url);
+  const experiments = Array.isArray(data) ? data : (data.experiments || data.data || []);
+
+  const tokens = normalize(query).split(" ").filter(token => token.length > 2);
+  return experiments
+    .filter(item => {
+      const text = normalize([
+        item.name,
+        item.title,
+        item.description,
+        item.identifier,
+        ...(item.keywords || [])
+      ].filter(Boolean).join(" "));
+      return !tokens.length || tokens.some(token => text.includes(token));
+    })
+    .slice(0, limit)
+    .map(item => {
+      const id = item.identifier || item.id || item.experiment_id || null;
+      return {
+        type: "experiment",
+        provider: "nasa_osdr",
+        title: item.name || item.title || "NASA experiment",
+        description: item.description || "",
+        url: id
+          ? "https://osdr.nasa.gov/geode-py/ws/api/experiment/" + encodeURIComponent(id)
+          : "https://osdr.nasa.gov/",
+        creator: "NASA Open Science Data Repository",
+        experiment_id: id
+      };
+    });
+}
+
+async function searchPhetExperiments(query, limit) {
+  const normalizedQuery = encodeURIComponent(String(query || "").trim());
+  if (!normalizedQuery) return [];
+
+  return [{
+    type: "experiment",
+    provider: "phet",
+    title: "PhET interactive simulation search: " + String(query).trim(),
+    description: "Find an interactive science or mathematics simulation related to this topic.",
+    url: "https://phet.colorado.edu/en/simulations/filter?search=" + normalizedQuery,
+    embed_url: null,
+    creator: "PhET Interactive Simulations, University of Colorado Boulder",
+    attribution_required: true,
+    license: "CC BY-NC 4.0 for regular HTML simulations; commercial use requires permission"
+  }].slice(0, limit);
+}
+
 async function searchYouTube(query, limit) {
   const key = String(process.env.YOUTUBE_API_KEY || "").trim();
   if (!key) return [];
@@ -289,6 +376,8 @@ async function discoverLearningResources(query, options = {}) {
       searchOpenverseImages(searchQuery, limit)));
     jobs.push(safeProvider("wikimedia_commons", () =>
       searchWikimediaImages(searchQuery, Math.min(limit, 8))));
+    jobs.push(safeProvider("nasa", () =>
+      searchNASAImages(searchQuery, Math.min(limit, 8))));
   }
 
   if (wants(types, "audio")) {
@@ -301,6 +390,15 @@ async function discoverLearningResources(query, options = {}) {
       searchYouTube(searchQuery, limit)));
     jobs.push(safeProvider("internet_archive", () =>
       searchInternetArchive(searchQuery, Math.min(limit, 8))));
+    jobs.push(safeProvider("nasa", () =>
+      searchNASAImages(searchQuery, Math.min(limit, 8))));
+  }
+
+  if (wants(types, "experiment") || wants(types, "interactive")) {
+    jobs.push(safeProvider("phet", () =>
+      searchPhetExperiments(searchQuery, Math.min(limit, 4))));
+    jobs.push(safeProvider("nasa_osdr", () =>
+      searchNASAExperiments(searchQuery, Math.min(limit, 8))));
   }
 
   if (
@@ -359,5 +457,8 @@ module.exports = {
   searchOpenverseAudio,
   searchWikimediaImages,
   searchInternetArchive,
-  searchYouTube
+  searchYouTube,
+  searchNASAImages,
+  searchNASAExperiments,
+  searchPhetExperiments
 };
