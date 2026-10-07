@@ -7513,7 +7513,6 @@ function renderDreamLearningResources(resources) {
       const description = escapeHtml(
         String(resource.description || "Open this resource to continue learning.").slice(0, 280)
       );
-      const url = escapeHtml(resource.url || resource.media_url || resource.embed_url || "");
       const mediaUrl = escapeHtml(resource.media_url || "");
       const embedUrl = escapeHtml(resource.embed_url || "");
       const provider = escapeHtml(resource.provider || "Learning source");
@@ -7522,13 +7521,7 @@ function renderDreamLearningResources(resources) {
         : "";
       let media = "";
 
-      if (type === "image" && mediaUrl) {
-        media =
-          '<a href="' + url + '" target="_blank" rel="noopener noreferrer">' +
-          '<img class="dream-learning-resource-image" src="' + mediaUrl +
-          '" alt="' + title + '" loading="lazy">' +
-          '</a>';
-      } else if (type === "video" && embedUrl) {
+      if (type === "video" && embedUrl) {
         media =
           '<div class="dream-learning-resource-video">' +
           '<iframe src="' + embedUrl + '" title="' + title +
@@ -7543,17 +7536,18 @@ function renderDreamLearningResources(resources) {
           '<div class="dream-learning-resource-audio">' +
           '<strong>Listen now</strong><audio controls preload="metadata" src="' + mediaUrl + '"></audio>' +
           '</div>';
-      } else if (resource.thumbnail) {
+      } else if (type === "experiment" || type === "interactive") {
         media =
-          '<a href="' + url + '" target="_blank" rel="noopener noreferrer">' +
-          '<img class="dream-learning-resource-image dream-learning-resource-thumb" src="' +
-          escapeHtml(resource.thumbnail) + '" alt="" loading="lazy"></a>';
+          '<div class="de-resource-experiment dream-learning-resource-no-media">' +
+          '<strong>Interactive learning</strong>' +
+          '<p>' + description + '</p>' +
+          '</div>';
       }
 
       const fallback =
         '<div class="dream-learning-resource-no-media">' +
         '<strong>' + resourceType(type) + '</strong>' +
-        '<p>This resource opens from its original provider.</p>' +
+        '<p>This learning material is presented in Dream Education when playable content is available.</p>' +
         '</div>';
 
       return '<article class="dream-learning-resource-card">' +
@@ -7563,7 +7557,7 @@ function renderDreamLearningResources(resources) {
         '<h3>' + title + '</h3>' +
         '<p>' + description + '</p>' +
         license +
-        (url ? '<a class="panel-action secondary" href="' + url + '" target="_blank" rel="noopener noreferrer">Open resource ↗</a>' : '') +
+        '<div class="dream-learning-resource-source">Source: ' + provider + '</div>' +
         '</div>' +
         '</article>';
     }).join("") +
@@ -7585,17 +7579,15 @@ function renderAnswerResource(resource) {
   const type = resource && resource.type ? resource.type : "web";
   const title = escapeHtml(resource && resource.title || "Learning resource");
   const description = escapeHtml(String(resource && resource.description || "").slice(0, 300));
-  const url = escapeHtml(resource && (resource.url || resource.media_url || resource.embed_url) || "");
   const mediaUrl = escapeHtml(resource && resource.media_url || "");
   const embedUrl = escapeHtml(resource && resource.embed_url || "");
   const provider = escapeHtml(resource && resource.provider || "Learning source");
   let media = "";
-  if (type === "image" && mediaUrl) media = '<a href="' + url + '" target="_blank" rel="noopener noreferrer"><img class="dream-answer-resource-image" src="' + mediaUrl + '" alt="' + title + '" loading="lazy"></a>';
-  else if (type === "video" && embedUrl) media = '<div class="dream-answer-resource-video"><iframe src="' + embedUrl + '" title="' + title + '" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>';
+  if (type === "video" && embedUrl) media = '<div class="dream-answer-resource-video"><iframe src="' + embedUrl + '" title="' + title + '" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>';
   else if (type === "video" && mediaUrl) media = '<video class="dream-answer-resource-video-player" controls preload="metadata" poster="' + escapeHtml(resource.thumbnail || "") + '" src="' + mediaUrl + '"></video>';
   else if (type === "audio" && mediaUrl) media = '<div class="dream-answer-resource-audio"><strong>Listen</strong><audio controls preload="metadata" src="' + mediaUrl + '"></audio></div>';
-  else if (resource && resource.thumbnail) media = '<img class="dream-answer-resource-image dream-answer-resource-thumb" src="' + escapeHtml(resource.thumbnail) + '" alt="" loading="lazy">';
-  return '<article class="dream-answer-resource-card">' + media + '<div class="dream-answer-resource-body"><span class="panel-kicker">' + escapeHtml(String(type).toUpperCase()) + ' · ' + provider + '</span><h3>' + title + '</h3>' + (description ? '<p>' + description + '</p>' : "") + (url ? '<a href="' + url + '" target="_blank" rel="noopener noreferrer">Open original resource ↗</a>' : "") + '</div></article>';
+  else if (type === "experiment" || type === "interactive") media = '<div class="de-resource-experiment"><strong>Interactive learning</strong><p>' + description + '</p></div>';
+  return '<article class="dream-answer-resource-card">' + media + '<div class="dream-answer-resource-body"><span class="panel-kicker">' + escapeHtml(String(type).toUpperCase()) + ' · ' + provider + '</span><h3>' + title + '</h3>' + (description ? '<p>' + description + '</p>' : "") + '<div class="dream-answer-resource-source">Source: ' + provider + '</div></div></article>';
 }
 
 async function loadAnswerResources(question, payload, typeOverride) {
@@ -7640,7 +7632,7 @@ function renderDreamAnswer(result, payload) {
           const url = source.url
             ? ' <a href="' + escapeHtml(source.url) + '" target="_blank" rel="noopener noreferrer">source</a>'
             : '';
-          return '<li><strong>' + name + '</strong>' + title + url + '</li>';
+          return '<li><strong>' + name + '</strong>' + title + '<span class="answer-source-label">Source: ' + name + '</span></li>';
         })
         .join('') +
       '</ul>'
