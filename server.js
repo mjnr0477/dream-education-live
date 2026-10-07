@@ -5342,7 +5342,9 @@ const {
   createTrialAccess,
   getAccessStatus,
   activatePlan
-} = require("./product/payment_engine");\n\nregisterDreamSearchRoutes(app, { getAuthenticatedAccount, isOwnerAccount });
+} = require("./product/payment_engine");
+
+registerDreamSearchRoutes(app, { getAuthenticatedAccount, isOwnerAccount });
 
 const {
   createCheckoutOrder,
