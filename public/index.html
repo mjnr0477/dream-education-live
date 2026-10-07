@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#07080d">
   <meta name="description" content="Dream Education — an intelligent learning platform.">
   <title>Dream Education</title>
-  <link rel="stylesheet" href="/style.css?v=20261007b">
+  <link rel="stylesheet" href="/style.css?v=20261007c">
 </head>
 
 <body>
@@ -198,3 +198,60 @@
         <div class="cta-glow"></div>
         <span>READY WHEN YOU ARE</span>
         <h2>Your next chapter<br>starts here.</h2>
+        <button data-action="open" data-panel="join">
+          <span>Enter Dream Education</span>
+          <b>↗</b>
+        </button>
+      </section>
+
+    </main>
+
+    <div class="landing-subscribe">
+      <button
+        class="panel-button primary"
+        type="button"
+        data-panel-action="subscription"
+      >
+        Subscribe
+      </button>
+    </div>
+
+    <footer class="footer">
+      <div class="footer-brand">
+        <span class="logo-mark"><i></i><i></i><i></i></span>
+        <span>DREAM EDUCATION</span>
+      </div>
+      <span class="footer-copy">Learning without limits.</span>
+      <span class="footer-year">© <span id="year"></span></span>
+    </footer>
+
+  </div>
+
+  <div class="panel-backdrop" data-action="close"></div>
+
+  <aside class="experience-panel" id="experience-panel" aria-hidden="true">
+    <button class="panel-close" data-action="close" aria-label="Close">
+      <span></span><span></span>
+    </button>
+
+    <div class="panel-scroll">
+      <div class="panel-kicker" id="panel-kicker"></div>
+      <h2 id="panel-title"></h2>
+      <p id="panel-description"></p>
+
+      <div id="panel-body"></div>
+    </div>
+  </aside>
+
+  <div class="mobile-drawer" id="mobile-drawer">
+    <button data-action="open" data-panel="explore">Explore</button>
+    <button data-action="open" data-panel="about">About</button>
+    <button data-action="open" data-panel="signin">Sign in</button>
+    <button class="drawer-start" data-action="open" data-panel="join">Get started →</button>
+  </div>
+
+  <script src="/app.js?v=20261007f"></script>
+  <script src="/frontend-workspace.js?v=20261001&build=20261007f"></script>
+  <script src="/nextgen-visual.js?v=20261001"></script>
+</body>
+</html>
