@@ -170,7 +170,22 @@ function registerDreamSearchRoutes(app, options = {}) {
   const getAuthenticatedAccount = options.getAuthenticatedAccount;
   const isOwnerAccount = options.isOwnerAccount;
 
-  // Authorized Search is protected by the dedicated Render password/token.\n  app.post('/api/dream-search/public', async (req, res) => {
+  async function requireOwner(req) {
+    if (typeof getAuthenticatedAccount !== 'function' || typeof isOwnerAccount !== 'function') {
+      return { success: false, status: 503, error: 'Authorized Search owner protection is not configured.' };
+    }
+    if (!String(req.headers.authorization || '')) {
+      return { success: false, status: 401, error: 'Owner sign-in is required for Authorized Search.' };
+    }
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return auth;
+    if (!isOwnerAccount(auth.account)) {
+      return { success: false, status: 403, error: 'Authorized Search is restricted to the Dream Education owner.' };
+    }
+    return auth;
+  }
+
+  app.post('/api/dream-search/public', async (req, res) => {
     try {
       const result = await publicSearch(req.body?.query, req.body?.limit);
       return res.status(result.success ? 200 : 400).json(result);
@@ -180,38 +195,9 @@ function registerDreamSearchRoutes(app, options = {}) {
     }
   });
 
-  app.post('/api/dream-search/authorized/unlock', async (req, res) => {
-    const owner = await requireOwner(req);
-    if (!owner.success) return res.status(owner.status).json({ success: false, error: owner.error });
-
-    const password = String(req.body?.password || '');
-    const configured = configuredPassword();
-    if (!configured) return res.status(503).json({ success: false, error: 'Authorized Search is not configured yet.' });
-
-    if (!allowUnlock(getClientKey(req))) {
-      return res.status(429).json({ success: false, error: 'Too many unlock attempts. Please try again later.' });
-    }
-
-    if (!safeEqual(password, configured)) {
-      return res.status(401).json({ success: false, error: 'Authorized Search password is incorrect.' });
-    }
-
-    return res.json({
-      success: true,
-      token: issueAuthorizedToken(),
-      expires_in_seconds: Math.floor(AUTH_TOKEN_TTL_MS / 1000)
-    });
-  });
-
   app.post('/api/dream-search/authorized', async (req, res) => {
     const owner = await requireOwner(req);
     if (!owner.success) return res.status(owner.status).json({ success: false, error: owner.error });
-
-    const authorization = String(req.headers.authorization || '');
-    const token = authorization.startsWith('Bearer ') ? authorization.slice(7).trim() : '';
-    if (!verifyAuthorizedToken(token)) {
-      return res.status(401).json({ success: false, error: 'Authorized Search is locked.' });
-    }
 
     try {
       const query = normalizeQuery(req.body?.query);
