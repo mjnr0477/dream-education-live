@@ -215,6 +215,10 @@ async function searchInternetArchive(query, limit) {
       url: item.identifier
         ? "https://archive.org/details/" + encodeURIComponent(item.identifier)
         : null,
+      embed_url: item.identifier && (type === "video" || type === "audio")
+        ? "https://archive.org/embed/" + encodeURIComponent(item.identifier)
+        : null,
+      identifier: item.identifier || null,
       creator: Array.isArray(item.creator) ? item.creator.join(", ") : (item.creator || null),
       year: item.year || null,
       collection: Array.isArray(item.collection) ? item.collection.slice(0, 3) : []
