@@ -144,7 +144,7 @@ function prepareSource(item) {
   return {
     ...item,
     extract,
-    has_usable_content: extract.length >= 80,
+    has_usable_content: extract.length >= 30,
     content_length: extract.length
   };
 }
