@@ -34,7 +34,7 @@ for (const signal of [
   "speechSynthesis",
   "SpeechSynthesisUtterance",
   "de-lesson-stop",
-  "de-resource-image",
+  "de-resource-text",
   "de-resource-audio-player",
   "de-resource-video",
   "de-resource-experiment"
@@ -44,7 +44,7 @@ for (const signal of [
 
 for (const signal of [
   ".de-lesson-actions",
-  ".de-resource-image",
+  ".de-resource-text",
   ".de-resource-video",
   ".de-resource-audio"
 ]) {
