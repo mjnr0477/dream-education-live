@@ -5961,12 +5961,34 @@ async function openMultimodalLearning() {
             <option value="article">Read an explanation</option>
             <option value="book">Read books & textbooks</option>
             <option value="interactive">Interactive / simulation</option>
+            <option value="experiment">Experiment / demonstration</option>
             <option value="research">Research / academic evidence</option>
           </select>
-          <button class="de-action primary" type="button" id="de-resource-search">Find learning content</button>
+          <select id="de-resource-level" aria-label="Learning level">
+            <option value="">Use my level automatically</option>
+            <option value="Early learner">Early learner</option>
+            <option value="Primary">Primary school</option>
+            <option value="Secondary">Secondary school</option>
+            <option value="Tertiary">Tertiary / university</option>
+            <option value="Professional">Professional</option>
+          </select>
+          <button class="de-action primary" type="button" id="de-resource-search">Teach me this</button>
           <button class="de-action" type="button" id="de-resource-clear">Clear</button>
         </div>
         <div id="de-resource-status" class="de-muted" aria-live="polite" style="margin-top:10px;"></div>
+      </section>
+
+      <section class="de-section de-lesson-section">
+        <div class="de-resource-summary">
+          <div>
+            <span class="de-eyebrow">VERIFIED LESSON</span>
+            <h3>Understand it first</h3>
+          </div>
+          <span id="de-lesson-verification">Waiting for a topic.</span>
+        </div>
+        <article id="de-lesson-card" class="de-lesson-card">
+          <p>Dream will deliver the explanation at the selected level, then give you media, demonstrations and sources for the same concept.</p>
+        </article>
       </section>
 
       <section class="de-section">
@@ -5999,6 +6021,9 @@ async function openMultimodalLearning() {
   const clearButton = document.getElementById("de-resource-clear");
   const topicInput = document.getElementById("de-resource-topic");
   const modeInput = document.getElementById("de-resource-mode");
+  const levelInput = document.getElementById("de-resource-level");
+  const lessonCard = document.getElementById("de-lesson-card");
+  const lessonVerification = document.getElementById("de-lesson-verification");
   const results = document.getElementById("de-resource-results");
   const status = document.getElementById("de-resource-status");
   const count = document.getElementById("de-resource-count");
@@ -6006,6 +6031,8 @@ async function openMultimodalLearning() {
   async function loadResources() {
     const topic = String(topicInput && topicInput.value || "").trim();
     const type = String(modeInput && modeInput.value || "any");
+    const selectedLevel = String(levelInput && levelInput.value || "").trim();
+    const effectiveLevel = selectedLevel || String(profile.level || account.level || "General");
     if (!topic) {
       status.textContent = "Enter a topic or question first.";
       if (topicInput) topicInput.focus();
@@ -6013,21 +6040,61 @@ async function openMultimodalLearning() {
     }
 
     searchButton.disabled = true;
-    status.textContent = "Finding matching learning content...";
-    results.innerHTML = '<div class="de-loading"><span></span><p>Searching trusted/open learning sources…</p></div>';
+    status.textContent = "Verifying the lesson and finding matching learning content...";
+    lessonVerification.textContent = "Verifying…";
+    lessonCard.innerHTML = '<div class="de-loading"><span></span><p>Building the right explanation for your level…</p></div>';
+    results.innerHTML = '<div class="de-loading"><span></span><p>Finding videos, pictures, audio, demonstrations and sources…</p></div>';
 
     try {
+      const token = auth.session && auth.session.access_token;
+      const learnHeaders = { "Content-Type": "application/json", Accept: "application/json" };
+      if (token) learnHeaders.Authorization = "Bearer " + token;
+
+      const learnResponse = await fetch("/api/learn", {
+        method: "POST",
+        headers: learnHeaders,
+        credentials: "same-origin",
+        body: JSON.stringify({
+          question: topic,
+          subject: profile.subject || account.subject || "",
+          topic: topic,
+          level: effectiveLevel,
+          learner_id: learnerId,
+          learner_name: account.name || profile.name || "Learner",
+          learning_method: type === "any" ? "adaptive multimodal" : type
+        })
+      });
+      const lesson = await learnResponse.json().catch(function () {
+        return { success: false, message: "Invalid learning response." };
+      });
+
+      if (!learnResponse.ok || !lesson.success || !lesson.answer_verified) {
+        throw new Error(lesson.message || lesson.error || "Dream could not verify the lesson.");
+      }
+
+      lessonVerification.textContent = lesson.answer_verified ? "Verified answer ✓ · " + effectiveLevel : "Verification unavailable";
+      const sources = Array.isArray(lesson.answer_sources) ? lesson.answer_sources : [];
+      const sourceNames = sources.slice(0, 4).map(function (source) {
+        return escapeHtml(source.name || source.title || source.provider || "source");
+      }).join(" · ");
+
+      lessonCard.innerHTML =
+        '<div class="de-lesson-answer">' +
+          '<div class="de-lesson-badge">VERIFIED</div>' +
+          '<div class="de-lesson-text">' + escapeHtml(lesson.answer || "No explanation returned.").replace(/\n/g, "<br>") + '</div>' +
+          (sourceNames ? '<div class="de-lesson-sources"><strong>Knowledge sources:</strong> ' + sourceNames + '</div>' : '') +
+        '</div>';
+
       const params = new URLSearchParams({
         learner_id: learnerId,
         q: topic,
         type: type,
         subject: profile.subject || account.subject || "",
-        level: profile.level || account.level || "",
+        level: effectiveLevel,
         limit: "8"
       });
 
       const headers = { Accept: "application/json" };
-      const token = auth.session && auth.session.access_token;
       if (token) headers.Authorization = "Bearer " + token;
 
       const response = await fetch("/api/v1/learning/resources?" + params.toString(), {
@@ -6159,7 +6226,7 @@ async function openMultimodalLearning() {
   });
   clearButton.addEventListener("click", function () {
     topicInput.value = "";
-    results.innerHTML = '<div class="de-resource-empty"><strong>Choose a topic and a learning mode.</strong><p>Dream can return playable audio, watchable video, visible images, reading material and interactive resources.</p></div>';
+    results.innerHTML = '<div class="de-resource-empty"><strong>Choose a topic and a learning mode.</strong><p>Dream can return playable audio, watchable video, visible images, demonstrations, reading material and interactive resources.</p></div>';
     count.textContent = "Choose a topic to begin.";
     status.textContent = "";
     topicInput.focus();
