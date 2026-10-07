@@ -459,7 +459,8 @@ async function discoverLearningResources(query, options = {}) {
   const limit = clampLimit(options.limit);
   const subject = String(options.subject || "").trim();
   const level = String(options.level || "").trim();
-  const searchQuery = [learnerQuery, subject, level]
+  const conceptQuery = extractLearningTopic(learnerQuery) || learnerQuery;
+  const searchQuery = [conceptQuery, subject]
     .filter(Boolean)
     .join(" ")
     .trim();
