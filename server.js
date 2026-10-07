@@ -234,6 +234,44 @@ const { normalizeResourceEvent, buildResourceEvidence } = require("./product/lea
 function hasVerifiedAnswerAuthority({ specialistVerified, curriculumContent, retrievedKnowledge, fallbackAnswer }) {
   return Boolean(specialistVerified || curriculumContent || retrievedKnowledge || fallbackAnswer);
 }
+
+function buildDirectVerifiedCurriculumAnswer(curriculumContent, question) {
+  const concept =
+    curriculumContent?.knowledge ||
+    curriculumContent?.concepts?.[
+      Object.keys(curriculumContent?.concepts || {})[0]
+    ] ||
+    null;
+
+  const definition = String(concept?.definition || "").trim();
+  if (definition.length < 20) return null;
+
+  const keyIdeas = Array.isArray(concept?.key_ideas)
+    ? concept.key_ideas
+        .map(item => String(item || "").trim())
+        .filter(Boolean)
+        .slice(0, 6)
+    : [];
+
+  const examples = Array.isArray(concept?.examples)
+    ? concept.examples
+        .map(item => String(item || "").trim())
+        .filter(Boolean)
+        .slice(0, 3)
+    : [];
+
+  let answer = "Answer:\n" + definition;
+
+  if (keyIdeas.length) {
+    answer += "\n\nKey ideas:\n- " + keyIdeas.join("\n- ");
+  }
+
+  if (examples.length) {
+    answer += "\n\nExamples:\n- " + examples.join("\n- ");
+  }
+
+  return answer;
+}
 const {
   getTrustedInformation
 } = require("./product/trusted_information_gateway.js");
@@ -1439,34 +1477,61 @@ app.post("/api/learn", async (req, res) => {
             : "6. DEVELOPMENT MODE"
         );
 
-        answer = developmentAnswer(
-          question,
-          subject,
-          level,
-          {
-            learning_method,
-            custom_learning_method,
-            teaching_move,
-            teaching_target,
-            teaching_explanation,
-            mastery_status,
-            average_score,
-            trajectory,
-            previous_score,
-            difficulty,
-            topic,
-            learning_state,
-            decision_action,
-            decision_topic,
-            difficulty_direction,
-            difficulty_reason,
-            curriculum_content: curriculumContent,
-            retrieved_knowledge: retrievedKnowledge,
-            specialist_result: specialistResult
-          }
-        );
+        try {
+          answer = developmentAnswer(
+            question,
+            subject,
+            level,
+            {
+              learning_method,
+              custom_learning_method,
+              teaching_move,
+              teaching_target,
+              teaching_explanation,
+              mastery_status,
+              average_score,
+              trajectory,
+              previous_score,
+              difficulty,
+              topic,
+              learning_state,
+              decision_action,
+              decision_topic,
+              difficulty_direction,
+              difficulty_reason,
+              curriculum_content: curriculumContent,
+              retrieved_knowledge: retrievedKnowledge,
+              specialist_result: specialistResult
+            }
+          );
+        } catch (teachingError) {
+          console.warn(
+            "Teaching formatter failed; using direct verified recovery:",
+            teachingError.message || teachingError
+          );
+          answer = null;
+        }
 
-        console.log("7. Development answer created");
+        /*
+         * The curriculum is already verified evidence. If a non-essential
+         * teaching formatter fails or returns an unusable response, return
+         * the curriculum definition directly instead of turning a valid
+         * learner request into "could not verify the lesson".
+         */
+        if (
+          curriculumContent &&
+          (!answer || String(answer).trim().length < 20)
+        ) {
+          answer = buildDirectVerifiedCurriculumAnswer(
+            curriculumContent,
+            question
+          );
+        }
+
+        console.log(
+          "7. Development answer created:",
+          answer ? "YES" : "NO"
+        );
       } else {
         console.log("6. LIVE MODE");
 
