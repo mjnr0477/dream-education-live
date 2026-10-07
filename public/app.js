@@ -7055,6 +7055,90 @@ async function openAskDreamEducation() {
   questionBox.focus();
 }
 
+function renderDreamLearningResources(resources) {
+  const items = Array.isArray(resources) ? resources.slice(0, 8) : [];
+  if (!items.length) {
+    return '<p class="panel-status">No external learning media was available for this question right now. You can still use the verified answer and ask for resources again.</p>';
+  }
+
+  function resourceType(type) {
+    return ({
+      video: "VIDEO",
+      image: "PICTURE",
+      audio: "AUDIO",
+      experiment: "EXPERIMENT",
+      interactive: "INTERACTIVE",
+      research: "RESEARCH",
+      book: "BOOK",
+      document: "DOCUMENT",
+      article: "ARTICLE"
+    })[type] || "LEARNING RESOURCE";
+  }
+
+  return '<div class="dream-learning-resource-grid">' +
+    items.map(function (resource) {
+      const type = resource.type || "web";
+      const title = escapeHtml(resource.title || "Learning resource");
+      const description = escapeHtml(
+        String(resource.description || "Open this resource to continue learning.").slice(0, 280)
+      );
+      const url = escapeHtml(resource.url || resource.media_url || resource.embed_url || "");
+      const mediaUrl = escapeHtml(resource.media_url || "");
+      const embedUrl = escapeHtml(resource.embed_url || "");
+      const provider = escapeHtml(resource.provider || "Learning source");
+      const license = resource.license
+        ? '<small>' + escapeHtml(resource.license) + '</small>'
+        : "";
+      let media = "";
+
+      if (type === "image" && mediaUrl) {
+        media =
+          '<a href="' + url + '" target="_blank" rel="noopener noreferrer">' +
+          '<img class="dream-learning-resource-image" src="' + mediaUrl +
+          '" alt="' + title + '" loading="lazy">' +
+          '</a>';
+      } else if (type === "video" && embedUrl) {
+        media =
+          '<div class="dream-learning-resource-video">' +
+          '<iframe src="' + embedUrl + '" title="' + title +
+          '" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>' +
+          '</div>';
+      } else if (type === "video" && mediaUrl) {
+        media =
+          '<video class="dream-learning-resource-video-player" controls preload="metadata" poster="' +
+          escapeHtml(resource.thumbnail || "") + '" src="' + mediaUrl + '"></video>';
+      } else if (type === "audio" && mediaUrl) {
+        media =
+          '<div class="dream-learning-resource-audio">' +
+          '<strong>Listen now</strong><audio controls preload="metadata" src="' + mediaUrl + '"></audio>' +
+          '</div>';
+      } else if (resource.thumbnail) {
+        media =
+          '<a href="' + url + '" target="_blank" rel="noopener noreferrer">' +
+          '<img class="dream-learning-resource-image dream-learning-resource-thumb" src="' +
+          escapeHtml(resource.thumbnail) + '" alt="" loading="lazy"></a>';
+      }
+
+      const fallback =
+        '<div class="dream-learning-resource-no-media">' +
+        '<strong>' + resourceType(type) + '</strong>' +
+        '<p>This resource opens from its original provider.</p>' +
+        '</div>';
+
+      return '<article class="dream-learning-resource-card">' +
+        (media || fallback) +
+        '<div class="dream-learning-resource-content">' +
+        '<span class="panel-kicker">' + resourceType(type) + ' · ' + provider + '</span>' +
+        '<h3>' + title + '</h3>' +
+        '<p>' + description + '</p>' +
+        license +
+        (url ? '<a class="panel-action secondary" href="' + url + '" target="_blank" rel="noopener noreferrer">Open resource ↗</a>' : '') +
+        '</div>' +
+        '</article>';
+    }).join("") +
+    '</div>';
+}
+
 function renderDreamAnswer(result, payload) {
   const panelBody = document.getElementById("panel-body");
   if (!panelBody) return;
@@ -7107,6 +7191,13 @@ function renderDreamAnswer(result, payload) {
         Source mode:
         <strong>${result.cached ? "Cached answer" : "Fresh answer"}</strong>
       </p>
+    </div>
+
+    <div class="panel-card dream-learning-resources">
+      <span class="panel-kicker">LEARN IT ANOTHER WAY</span>
+      <h2>Videos, pictures, audio and experiments</h2>
+      <p>Dream found these learning resources for the same topic. The verified answer above remains the factual foundation.</p>
+      ${renderDreamLearningResources(result.learning_resources)}
     </div>
 
     <div class="panel-card">
