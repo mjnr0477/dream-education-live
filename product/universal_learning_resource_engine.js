@@ -165,8 +165,14 @@ async function searchWikimediaImages(query, limit) {
   return pages.map(page => {
     const info = page.imageinfo?.[0] || {};
     const meta = info.extmetadata || {};
+    const mime = normalize(info.mime);
+    const mediaType = normalize(info.mediatype);
+    let type = "image";
+    if (mime.startsWith("video/") || mediaType === "video") type = "video";
+    else if (mime.startsWith("audio/") || mediaType === "audio") type = "audio";
+    else if (mime === "application/pdf" || mediaType === "document") type = "document";
     return {
-      type: "image",
+      type,
       provider: "wikimedia_commons",
       title: String(page.title || "").replace(/^File:/, ""),
       description: meta.ImageDescription?.value || "",
