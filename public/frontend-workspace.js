@@ -1007,4 +1007,12 @@
 
   document.addEventListener("DOMContentLoaded", addWorkspaceButton);
   addWorkspaceButton();
+  /*
+   * Public bridge for the landing-page AI Lab controls.
+   * app.js and this workspace intentionally use separate scopes, so the
+   * handlers must be exposed explicitly rather than referenced as locals.
+   */
+  window.openCodingLab = openCodingLab;
+  window.openCodingLearning = openCodingLearning;
+
 })();
