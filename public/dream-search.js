@@ -87,7 +87,7 @@
         method: 'POST',
         headers,
         body: JSON.stringify({ query, limit: 10 })
-      }, statusHost);
+      });
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok || !data.success) {
@@ -155,7 +155,7 @@
           </article>
         `).join('') : '<div class="dream-search-result"><p>No matching information was found.</p></div>';
         statusHost.textContent = 'Authorized Search — owner access';
-      });
+      }, statusHost);
     });
   }
 
