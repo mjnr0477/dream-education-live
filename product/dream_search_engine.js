@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const { searchSources, getWikipediaPage } = require('./source_engine');
+const { searchAuthorizedSources, loadConnectors } = require('./authorized_source_engine');
 
 function normalizeQuery(value) {
   return String(value || '').replace(/\s+/g, ' ').trim().slice(0, 1000);
@@ -17,7 +18,11 @@ function publicResult(item) {
     excerpt: String(item?.extract || item?.snippet || '').trim().slice(0, 3000),
     verification_score: Number.isFinite(Number(item?.verification_score)) ? Number(item.verification_score) : null,
     relevance_score: Number.isFinite(Number(item?.relevance_score)) ? Number(item.relevance_score) : null,
-    cross_source_status: String(item?.cross_source_status || '').trim() || null
+    cross_source_status: String(item?.cross_source_status || '').trim() || null,
+    source_type: String(item?.source_type || '').trim() || null,
+    has_usable_content: item?.has_usable_content !== false,
+    content_length: Number.isFinite(Number(item?.content_length)) ? Number(item.content_length) : null,
+    url: String(item?.url || '').trim() || null
   };
 }
 
