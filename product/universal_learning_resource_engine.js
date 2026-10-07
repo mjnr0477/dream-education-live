@@ -505,7 +505,7 @@ async function safeProvider(provider, operation) {
 }
 
 function isCodingQuery(query) {
-  return /(python|javascript|typescript|java|c\\+\\+|c#|html|css|react|node|sql|git|github|programming|coding|web development|computer science|algorithm|data structure|machine learning|ai development)/i.test(normalize(query));
+  return /(python|javascript|typescript|java|c\+\+|c#|html|css|react|node|sql|git|github|programming|coding|web development|computer science|algorithm|data structure|machine learning|ai development)/i.test(normalize(query));
 }
 
 function curatedCodingResources(query, types, limit) {
@@ -516,6 +516,7 @@ function curatedCodingResources(query, types, limit) {
     title: "MDN Learn Web Development",
     description: "Free structured web-development learning covering HTML, CSS, JavaScript, accessibility, responsive design and practical development.",
     content: "Start with environment setup and your first website, then progress through HTML, CSS and JavaScript. MDN also includes tests and challenges so you can practise and check your understanding.",
+    url: "https://developer.mozilla.org/en-US/docs/Learn_web_development",
     license: "Free to use"
   });
   if (types.includes("any") || types.includes("video")) {
@@ -524,6 +525,7 @@ function curatedCodingResources(query, types, limit) {
       title: "CS50x 2026 — learning sections",
       description: "Free Harvard computer-science learning covering C, algorithms, memory, data structures, Python, SQL, HTML, CSS, JavaScript and Flask.",
       embed_url: "https://www.youtube.com/embed/videoseries?list=PLhQjrBD2T3839iqxqUdw7NWOCboh00vsV",
+      url: "https://cs50.harvard.edu/x/",
       creator: "Harvard University"
     });
     resources.push({
@@ -531,6 +533,7 @@ function curatedCodingResources(query, types, limit) {
       title: "Introduction to Programming and Computer Science",
       description: "Free beginner programming course covering variables, conditions, arrays, loops, errors, debugging, functions, data structures and recursion.",
       embed_url: "https://www.youtube.com/embed/zOjov-2OZ0E",
+      url: "https://www.youtube.com/watch?v=zOjov-2OZ0E",
       creator: "freeCodeCamp.org"
     });
   }
