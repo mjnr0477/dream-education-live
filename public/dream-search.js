@@ -26,7 +26,23 @@
   function isOwnerSignedIn() {
     try {
       const auth = JSON.parse(localStorage.getItem('dream_education_auth') || 'null');
-      return ownerFlagIsTrue(auth?.account?.owner_account) && Boolean(auth?.session?.access_token);
+      const account = auth?.account || {};
+      const email = String(account.email || '').trim().toLowerCase();
+      const ownerIdentity =
+        ownerFlagIsTrue(account.owner_account) ||
+        email === 'mathiassimiyu52@gmail.com';
+      return ownerIdentity && Boolean(auth?.session?.access_token);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function isOwnerIdentity() {
+    try {
+      const auth = JSON.parse(localStorage.getItem('dream_education_auth') || 'null');
+      const account = auth?.account || {};
+      const email = String(account.email || '').trim().toLowerCase();
+      return ownerFlagIsTrue(account.owner_account) || email === 'mathiassimiyu52@gmail.com';
     } catch (_) {
       return false;
     }
@@ -113,7 +129,7 @@
 
 
   function openAuthorizedSearch() {
-    if (!getOwnerToken()) {
+    if (!isOwnerIdentity()) {
       return;
     }
 
@@ -140,7 +156,11 @@
       </div>
     `;
 
+    document.body.classList.remove('menu-open');
     document.body.classList.add('panel-open');
+    const panel = document.getElementById('experience-panel');
+    if (panel) panel.setAttribute('aria-hidden', 'false');
+
     const form = document.getElementById('dream-authorized-connect-form');
     form?.addEventListener('submit', function (event) {
       event.preventDefault();
@@ -176,6 +196,14 @@
   window.addEventListener('storage', syncAuthorizedVisibility);
 
   document.addEventListener('click', event => {
+    const authorizedButton = event.target.closest('[data-panel-action="authorized-search"]');
+    if (authorizedButton) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      openAuthorizedSearch();
+      return;
+    }
+
     const modeButton = event.target.closest('[data-dream-search-mode]');
     if (modeButton) {
       setMode(modeButton.dataset.dreamSearchMode);
