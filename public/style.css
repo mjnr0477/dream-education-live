@@ -2622,3 +2622,10 @@ body.panel-open .experience-panel{
   .de-resource-search-row { grid-template-columns:1fr; }
   .de-resource-search-row .de-action { width:100%; }
 }
+
+
+.de-resource-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:4px; }
+.de-resource-actions .de-action { flex:1 1 150px; }
+.de-resource-workspace textarea { width:100%; box-sizing:border-box; resize:vertical; border:1px solid rgba(127,127,127,.3); border-radius:14px; padding:12px; background:inherit; color:inherit; font:inherit; }
+.de-success { padding:14px; border-radius:14px; border:1px solid rgba(50,160,90,.35); background:rgba(50,160,90,.08); }
+.de-success p { margin:.5rem 0 0; }
