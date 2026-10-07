@@ -739,13 +739,13 @@
     document.querySelectorAll("[data-coding-source]").forEach(function (button) {
       button.addEventListener("click", function () {
         const source = button.getAttribute("data-coding-source");
-        const topicInput = document.getElementById("de-coding-topic");
-        const formatInput = document.getElementById("de-coding-format");
-        if (source === "mdn") { topicInput.value = "HTML CSS JavaScript web development"; formatInput.value = "text"; }
-        if (source === "cs50") { topicInput.value = "computer science C Python SQL web development"; formatInput.value = "video"; }
-        if (source === "freecodecamp") { topicInput.value = "programming Python JavaScript"; formatInput.value = "video"; }
-        const form = document.getElementById("de-coding-resource-form");
-        if (form) form.dispatchEvent(new Event("submit", { cancelable: true }));
+        const presets = {
+          mdn: { topic: "HTML CSS JavaScript web development", format: "text" },
+          cs50: { topic: "computer science C Python SQL web development", format: "video" },
+          freecodecamp: { topic: "programming Python JavaScript", format: "video" }
+        };
+        const preset = presets[source];
+        if (preset) openCodingLearning(preset.topic, preset.format);
       });
     });
 
@@ -762,7 +762,7 @@
     }
   }
 
-  async function openCodingLearning() {
+  async function openCodingLearning(initialTopic, initialFormat) {
     const auth = getAuth();
     const info = accountInfo(auth);
 
@@ -800,12 +800,12 @@
           '<form id="de-coding-resource-form" class="de-resource-form">' +
             '<label for="de-coding-topic">What do you want to code?</label>' +
             '<div class="de-resource-search-row">' +
-              '<input id="de-coding-topic" name="topic" type="search" maxlength="240" required placeholder="e.g. Python, JavaScript, React, SQL, web apps">' +
+              '<input id="de-coding-topic" name="topic" type="search" maxlength="240" required placeholder="e.g. Python, JavaScript, React, SQL, web apps" value="' + escapeHTML(initialTopic || "") + '">' +
               '<select id="de-coding-format" name="format" aria-label="Resource format">' +
-                '<option value="any">All learning materials</option>' +
-                '<option value="text">Text</option>' +
-                '<option value="video">Videos</option>' +
-                '<option value="audio">Audio</option>' +
+                '<option value="any"' + ((initialFormat || "any") === "any" ? " selected" : "") + '>All learning materials</option>' +
+                '<option value="text"' + (initialFormat === "text" ? " selected" : "") + '>Text</option>' +
+                '<option value="video"' + (initialFormat === "video" ? " selected" : "") + '>Videos</option>' +
+                '<option value="audio"' + (initialFormat === "audio" ? " selected" : "") + '>Audio</option>' +
               '</select>' +
               '<button class="de-action primary" type="submit">Find free learning</button>' +
             '</div>' +
