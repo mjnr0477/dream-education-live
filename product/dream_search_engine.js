@@ -133,7 +133,9 @@ async function publicSearch(query, limit = 8) {
     success: expanded.length > 0,
     mode: 'public',
     query: normalized,
-    results: expanded.slice(0, 12).map(publicResult),
+    // Public Search is the canonical public-source layer. Authorized Search calls this same layer,
+    // so every public result available to the connected source mesh is eligible in both modes.
+    results: expanded.map(publicResult),
     providers: result?.providers || {},
     completed_providers: result?.completed_providers || [],
     retrieval_time_ms: result?.retrieval_time_ms || null,
@@ -197,13 +199,15 @@ function registerDreamSearchRoutes(app, options = {}) {
         mode: 'authorized',
         query,
         authorized_results: privateResults,
-        public_results: publicResult.results || [],
+        // Never create a separate public-source path for Authorized Search: reuse the exact
+        // public result set so the owner sees everything Public Search can see, plus authorized data.
+        public_results: Array.isArray(publicResult.results) ? publicResult.results : [],
         private_results: privateResults,
         private_data_configured: loadAuthorizedCorpus().length > 0,
         owner_overrides_configured: loadAuthorizedOverrides().length > 0,
         search_scope: 'all-connected-public-sources-plus-owner-authorized-sources',
         source_policy: 'Public Search may use only public sources. Authorized Search may use all connected public sources plus owner-authorized sources.',
-        precedence: 'Owner-authorized overrides are authoritative for this owner search; other authorized records come next; public evidence remains available for cross-checking.',
+        precedence: 'Owner-authorized overrides are authoritative for the owner search; other authorized records come next; the complete connected public-source result set remains available for cross-checking.',
         connected_source_count: Object.values(publicResult.providers || {}).filter(Boolean).length,
         connected_providers: Object.entries(publicResult.providers || {}).filter(([, connected]) => connected).map(([provider]) => provider),
         message: privateResults.length
