@@ -7055,7 +7055,52 @@ async function openAskDreamEducation() {
   questionBox.focus();
 }
 
-function renderDreamAnswer(result, payload) {
+function dreamResourceIntent(question) {
+  const text = String(question || "").toLowerCase();
+  if (/\\b(video|watch|youtube|visual lesson|documentary|lecture)\\b/.test(text)) return "video";
+  if (/\\b(photo|picture|image|diagram|illustration|visual)\\b/.test(text)) return "image";
+  if (/\\b(audio|listen|podcast|spoken|sound)\\b/.test(text)) return "audio";
+  if (/\\b(experiment|lab|practical|simulation|simulate|interactive)\\b/.test(text)) return "experiment";
+  if (/\\b(research|paper|academic|journal|evidence|citation)\\b/.test(text)) return "research";
+  if (/\\b(book|textbook|chapter|reading)\\b/.test(text)) return "book";
+  return "any";
+}
+
+function renderAnswerResource(resource) {
+  const type = resource && resource.type ? resource.type : "web";
+  const title = escapeHtml(resource && resource.title || "Learning resource");
+  const description = escapeHtml(String(resource && resource.description || "").slice(0, 300));
+  const url = escapeHtml(resource && (resource.url || resource.media_url || resource.embed_url) || "");
+  const mediaUrl = escapeHtml(resource && resource.media_url || "");
+  const embedUrl = escapeHtml(resource && resource.embed_url || "");
+  const provider = escapeHtml(resource && resource.provider || "Learning source");
+  let media = "";
+  if (type === "image" && mediaUrl) media = '<a href="' + url + '" target="_blank" rel="noopener noreferrer"><img class="dream-answer-resource-image" src="' + mediaUrl + '" alt="' + title + '" loading="lazy"></a>';
+  else if (type === "video" && embedUrl) media = '<div class="dream-answer-resource-video"><iframe src="' + embedUrl + '" title="' + title + '" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>';
+  else if (type === "video" && mediaUrl) media = '<video class="dream-answer-resource-video-player" controls preload="metadata" poster="' + escapeHtml(resource.thumbnail || "") + '" src="' + mediaUrl + '"></video>';
+  else if (type === "audio" && mediaUrl) media = '<div class="dream-answer-resource-audio"><strong>Listen</strong><audio controls preload="metadata" src="' + mediaUrl + '"></audio></div>';
+  else if (resource && resource.thumbnail) media = '<img class="dream-answer-resource-image dream-answer-resource-thumb" src="' + escapeHtml(resource.thumbnail) + '" alt="" loading="lazy">';
+  return '<article class="dream-answer-resource-card">' + media + '<div class="dream-answer-resource-body"><span class="panel-kicker">' + escapeHtml(String(type).toUpperCase()) + ' · ' + provider + '</span><h3>' + title + '</h3>' + (description ? '<p>' + description + '</p>' : "") + (url ? '<a href="' + url + '" target="_blank" rel="noopener noreferrer">Open original resource ↗</a>' : "") + '</div></article>';
+}
+
+async function loadAnswerResources(question, payload, typeOverride) {
+  const host = document.getElementById("dream-answer-resources"); if (!host) return;
+  const auth = window.DreamEducationUI && window.DreamEducationUI.getAuth ? window.DreamEducationUI.getAuth() : null;
+  const token = auth && auth.session && auth.session.access_token ? auth.session.access_token : "";
+  if (!token || !payload.learner_id) { host.innerHTML = '<p class="panel-status">Sign in is required to load learning media.</p>'; return; }
+  const type = typeOverride || dreamResourceIntent(question);
+  const params = new URLSearchParams({q:question,type:type,learner_id:payload.learner_id,limit:"8"});
+  host.innerHTML = '<div class="dream-answer-resource-loading">Finding your learning resources...</div>';
+  try {
+    const response = await fetch("/api/v1/learning/resources?" + params.toString(), {headers:{Authorization:"Bearer " + token,Accept:"application/json"}});
+    const data = await response.json().catch(function(){return {};});
+    if (!response.ok || data.success === false) throw new Error(data.error || "Learning resources could not be loaded.");
+    const resources = Array.isArray(data.resources) ? data.resources : [];
+    if (!resources.length) { host.innerHTML = '<div class="dream-answer-resource-empty"><strong>No matching resource was available right now.</strong><p>Try another format and Dream Education will search again.</p><div class="panel-actions"><button type="button" class="panel-action" data-answer-resource-type="video">Video</button><button type="button" class="panel-action" data-answer-resource-type="image">Pictures</button><button type="button" class="panel-action" data-answer-resource-type="audio">Audio</button><button type="button" class="panel-action" data-answer-resource-type="experiment">Experiment</button></div></div>'; return; }
+    host.innerHTML = '<div class="dream-answer-resource-toolbar"><strong>' + resources.length + ' learning resources found</strong><span>' + escapeHtml(data.intent && data.intent.reason || "Matched to your learning request.") + '</span></div><div class="dream-answer-resource-grid">' + resources.map(renderAnswerResource).join("") + '</div>';
+  } catch (error) { host.innerHTML = '<div class="dream-answer-resource-empty"><strong>Resource search could not complete.</strong><p>' + escapeHtml(error.message || "Please try again.") + '</p><div class="panel-actions"><button type="button" class="panel-action" data-answer-resource-type="' + escapeHtml(type) + '">Search again</button></div></div>'; }
+}
+<style id="dream-answer-resource-inline">\n.dream-answer-resource-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:16px}.dream-answer-resource-card{overflow:hidden;border:1px solid rgba(127,127,127,.22);border-radius:18px;background:rgba(127,127,127,.06)}.dream-answer-resource-body{padding:14px}.dream-answer-resource-body h3{margin:6px 0}.dream-answer-resource-body p{opacity:.78;line-height:1.5}.dream-answer-resource-image{display:block;width:100%;max-height:320px;object-fit:cover}.dream-answer-resource-thumb{margin:0;width:100%}.dream-answer-resource-video{position:relative;padding-top:56.25%;background:#000}.dream-answer-resource-video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}.dream-answer-resource-video-player{display:block;width:100%;max-height:360px;background:#000}.dream-answer-resource-audio{padding:14px}.dream-answer-resource-audio audio{display:block;width:100%;margin-top:8px}.dream-answer-resource-toolbar{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:12px 0;flex-wrap:wrap}.dream-answer-resource-toolbar span{opacity:.7}.dream-answer-resource-loading,.dream-answer-resource-empty{padding:18px;border-radius:14px;background:rgba(127,127,127,.08);margin-top:14px}.dream-answer-resource-empty p{opacity:.75}@media(max-width:720px){.dream-answer-resource-grid{grid-template-columns:1fr}.dream-answer-resource-video-player{max-height:none}}\n</style>\nfunction renderDreamAnswer(result, payload) {
   const panelBody = document.getElementById("panel-body");
   if (!panelBody) return;
 
@@ -7116,7 +7161,7 @@ function renderDreamAnswer(result, payload) {
       </div>
     </div>
 
-    <div class="panel-actions">
+        <div class="panel-card dream-answer-resources-panel">\n      <span class="panel-kicker">LEARN WITH MEDIA</span>\n      <h3>Learning resources for this request</h3>\n      <p>Dream Education searches connected sources and places available media directly here.</p>\n      <div id="dream-answer-resources" aria-live="polite"></div>\n    </div>\n\n<div class="panel-actions">
       <button
         id="ask-another-dream-question"
         class="panel-action"
@@ -7156,7 +7201,7 @@ function renderDreamAnswer(result, payload) {
         window.DreamEducationLearner.openDashboard();
       }
     });
-  }
+  }\n  loadAnswerResources(payload.question, payload);\n\n  panelBody.addEventListener("click", function (event) {\n    const button = event.target.closest("[data-answer-resource-type]");\n    if (!button) return;\n    loadAnswerResources(payload.question, payload, button.getAttribute("data-answer-resource-type") || "any");\n  });
 }
 
 function formatDreamAnswer(answer) {
