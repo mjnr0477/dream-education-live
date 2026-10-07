@@ -93,7 +93,7 @@ if (/Test Learner View/.test(app)) {
 }
 
 for (const [name, source] of [["public/index.html", index], ["public/app.js", app], ["public/frontend-workspace.js", workspace]]) {
-  if (/<a\\b/i.test(source) || /target\\s*=\\s*["\']_blank/i.test(source)) {
+  if (/<a\b/i.test(source) || /target\s*=\s*["\']_blank/i.test(source)) {
     throw new Error("Learner-facing frontend must not render material links: " + name);
   }
 }
