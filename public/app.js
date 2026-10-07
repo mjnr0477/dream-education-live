@@ -7631,9 +7631,6 @@ function renderDreamAnswer(result, payload) {
         .map(function (source) {
           const name = escapeHtml(source.name);
           const title = source.title ? ' — ' + escapeHtml(source.title) : '';
-          const url = source.url
-            ? ' <a href="' + escapeHtml(source.url) + '" target="_blank" rel="noopener noreferrer">source</a>'
-            : '';
           return '<li><strong>' + name + '</strong>' + title + '<span class="answer-source-label">Source: ' + name + '</span></li>';
         })
         .join('') +
