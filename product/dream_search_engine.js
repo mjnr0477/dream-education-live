@@ -170,25 +170,7 @@ function registerDreamSearchRoutes(app, options = {}) {
   const getAuthenticatedAccount = options.getAuthenticatedAccount;
   const isOwnerAccount = options.isOwnerAccount;
 
-  async function requireOwner(req) {
-    if (typeof getAuthenticatedAccount !== 'function' || typeof isOwnerAccount !== 'function') {
-      return { success: false, status: 503, error: 'Authorized Search owner protection is not configured.' };
-    }
-
-    const ownerAuthorization = String(req.headers['x-dream-owner-token'] || req.headers.authorization || '');
-    const originalAuthorization = req.headers.authorization;
-    req.headers.authorization = ownerAuthorization;
-    const auth = await getAuthenticatedAccount(req);
-    req.headers.authorization = originalAuthorization;
-    if (!auth.success) return auth;
-
-    if (!isOwnerAccount(auth.account)) {
-      return { success: false, status: 403, error: 'Authorized Search is restricted to the Dream Education owner.' };
-    }
-
-    return auth;
-  }
-  app.post('/api/dream-search/public', async (req, res) => {
+  // Authorized Search is protected by the dedicated Render password/token.\n  app.post('/api/dream-search/public', async (req, res) => {
     try {
       const result = await publicSearch(req.body?.query, req.body?.limit);
       return res.status(result.success ? 200 : 400).json(result);
