@@ -70,12 +70,11 @@ function isOwnerAccount(account) {
 
   const email = String(account.email || "").trim().toLowerCase();
 
-  return (
-    account.owner_account === true &&
-    account.free_forever === true &&
-    account.plan_type === "owner" &&
-    email === OWNER_EMAIL
-  );
+  const ownerFlag = account.owner_account === true || String(account.owner_account).toLowerCase() === "true";
+  const freeForever = account.free_forever === true || String(account.free_forever).toLowerCase() === "true";
+  const ownerPlan = String(account.plan_type || "").trim().toLowerCase() === "owner";
+
+  return ownerFlag && freeForever && ownerPlan && email === OWNER_EMAIL;
 }
 
 function createTrialAccess(account) {
