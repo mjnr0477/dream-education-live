@@ -2629,3 +2629,23 @@ body.panel-open .experience-panel{
 .de-resource-workspace textarea { width:100%; box-sizing:border-box; resize:vertical; border:1px solid rgba(127,127,127,.3); border-radius:14px; padding:12px; background:inherit; color:inherit; font:inherit; }
 .de-success { padding:14px; border-radius:14px; border:1px solid rgba(50,160,90,.35); background:rgba(50,160,90,.08); }
 .de-success p { margin:.5rem 0 0; }
+
+
+/* Inline learning media shown directly after verified learner answers. */
+.dream-answer-resource-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:16px}
+.dream-answer-resource-card{overflow:hidden;border:1px solid rgba(127,127,127,.22);border-radius:18px;background:rgba(127,127,127,.06)}
+.dream-answer-resource-body{padding:14px}
+.dream-answer-resource-body h3{margin:6px 0}
+.dream-answer-resource-body p{opacity:.78;line-height:1.5}
+.dream-answer-resource-image{display:block;width:100%;max-height:320px;object-fit:cover}
+.dream-answer-resource-thumb{margin:0;width:100%}
+.dream-answer-resource-video{position:relative;padding-top:56.25%;background:#000}
+.dream-answer-resource-video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.dream-answer-resource-video-player{display:block;width:100%;max-height:360px;background:#000}
+.dream-answer-resource-audio{padding:14px}
+.dream-answer-resource-audio audio{display:block;width:100%;margin-top:8px}
+.dream-answer-resource-toolbar{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:12px 0;flex-wrap:wrap}
+.dream-answer-resource-toolbar span{opacity:.7}
+.dream-answer-resource-loading,.dream-answer-resource-empty{padding:18px;border-radius:14px;background:rgba(127,127,127,.08);margin-top:14px}
+.dream-answer-resource-empty p{opacity:.75}
+@media(max-width:720px){.dream-answer-resource-grid{grid-template-columns:1fr}.dream-answer-resource-video-player{max-height:none}}
