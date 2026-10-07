@@ -1512,13 +1512,6 @@ if (action === "chat") {
       return;
     }
 
-    if (action === "multimodal-learning") {
-      if (typeof openMultimodalLearning === "function") {
-        openMultimodalLearning();
-      }
-      return;
-    }
-
     if (action === "ask-dream") {
         if (
           window.DreamEducationLearner &&
@@ -5868,13 +5861,6 @@ function learnerDashboardMarkup(data) {
         </button>
 
         <button
-          class="panel-button primary"
-          type="button"
-          data-panel-action="multimodal-learning">
-          Choose how I learn
-        </button>
-
-        <button
         class="panel-button primary"
         type="button"
         data-panel-action="refresh-dashboard">
@@ -5898,285 +5884,6 @@ function escapeHtml(value) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
-}
-
-
-/* ============================================================
-   MULTIMODAL LEARNING — learner-controlled content delivery
-   Uses the existing universal learning resource API.
-   ============================================================ */
-async function openMultimodalLearning() {
-  const panel = document.getElementById("experience-panel");
-  const panelKicker = document.getElementById("panel-kicker");
-  const panelTitle = document.getElementById("panel-title");
-  const panelDescription = document.getElementById("panel-description");
-  const panelBody = document.getElementById("panel-body");
-  if (!panel || !panelBody) return;
-
-  const auth = getDreamEducationAuth();
-  if (!auth || !auth.success) {
-    if (typeof openPanel === "function") openPanel("signin");
-    return;
-  }
-
-  const account = auth.account || {};
-  const profile = auth.profile || auth.learner || {};
-  const learnerId = account.learner_id || profile.learner_id || "";
-  if (!learnerId) {
-    panelKicker.textContent = "LEARNING MODES";
-    panelTitle.textContent = "Learner account required.";
-    panelDescription.textContent = "Sign in with a learner account to use multimodal learning.";
-    panelBody.innerHTML = '<div class="de-error"><p>Learner identity was not found in the authenticated session.</p></div>';
-    document.body.classList.add("panel-open");
-    panel.setAttribute("aria-hidden", "false");
-    return;
-  }
-
-  const defaultTopic =
-    profile.active_topic || profile.topic || account.active_topic || account.topic || "";
-
-  panelKicker.textContent = "MULTIMODAL LEARNING";
-  panelTitle.textContent = "Choose how you learn.";
-  panelDescription.textContent =
-    "Ask for a topic, choose a learning mode, and Dream will retrieve matching educational content instead of forcing one format.";
-
-  panelBody.innerHTML = `
-    <div class="de-resource-workspace">
-      <section class="de-resource-form de-highlight">
-        <div class="de-section-title">
-          <div>
-            <span class="de-eyebrow">YOUR CHOICE</span>
-            <h3>What do you want to learn?</h3>
-          </div>
-          <span>Content is matched to your topic, subject and level.</span>
-        </div>
-        <label for="de-resource-topic">Topic or question</label>
-        <textarea id="de-resource-topic" rows="3" placeholder="e.g. photosynthesis, quadratic equations, the causes of World War I">${escapeHtml(defaultTopic)}</textarea>
-        <div class="de-resource-search-row" style="margin-top:12px;">
-          <select id="de-resource-mode" aria-label="Learning mode">
-            <option value="any">Let Dream choose the best mix</option>
-            <option value="video">Watch video</option>
-            <option value="image">See pictures & diagrams</option>
-            <option value="audio">Listen to audio</option>
-            <option value="article">Read an explanation</option>
-            <option value="book">Read books & textbooks</option>
-            <option value="interactive">Interactive / simulation</option>
-            <option value="research">Research / academic evidence</option>
-          </select>
-          <button class="de-action primary" type="button" id="de-resource-search">Find learning content</button>
-          <button class="de-action" type="button" id="de-resource-clear">Clear</button>
-        </div>
-        <div id="de-resource-status" class="de-muted" aria-live="polite" style="margin-top:10px;"></div>
-      </section>
-
-      <section class="de-section">
-        <div class="de-resource-summary">
-          <div>
-            <span class="de-eyebrow">LEARNING LIBRARY</span>
-            <h3>Resources for this lesson</h3>
-          </div>
-          <span id="de-resource-count">Choose a topic to begin.</span>
-        </div>
-        <div id="de-resource-results" class="de-resource-grid">
-          <div class="de-resource-empty">
-            <strong>Choose a topic and a learning mode.</strong>
-            <p>Dream can return playable audio, watchable video, visible images, reading material and interactive resources.</p>
-          </div>
-        </div>
-      </section>
-
-      <div class="de-actions de-bottom-actions">
-        <button class="de-action" type="button" data-action="close">Back to dashboard</button>
-        <button class="de-action primary" type="button" data-panel-action="adaptive-learning">Continue adaptive learning</button>
-      </div>
-    </div>
-  `;
-
-  document.body.classList.add("panel-open");
-  panel.setAttribute("aria-hidden", "false");
-
-  const searchButton = document.getElementById("de-resource-search");
-  const clearButton = document.getElementById("de-resource-clear");
-  const topicInput = document.getElementById("de-resource-topic");
-  const modeInput = document.getElementById("de-resource-mode");
-  const results = document.getElementById("de-resource-results");
-  const status = document.getElementById("de-resource-status");
-  const count = document.getElementById("de-resource-count");
-
-  async function loadResources() {
-    const topic = String(topicInput && topicInput.value || "").trim();
-    const type = String(modeInput && modeInput.value || "any");
-    if (!topic) {
-      status.textContent = "Enter a topic or question first.";
-      if (topicInput) topicInput.focus();
-      return;
-    }
-
-    searchButton.disabled = true;
-    status.textContent = "Finding matching learning content...";
-    results.innerHTML = '<div class="de-loading"><span></span><p>Searching trusted/open learning sources…</p></div>';
-
-    try {
-      const params = new URLSearchParams({
-        learner_id: learnerId,
-        q: topic,
-        type: type,
-        subject: profile.subject || account.subject || "",
-        level: profile.level || account.level || "",
-        limit: "8"
-      });
-
-      const headers = { Accept: "application/json" };
-      const token = auth.session && auth.session.access_token;
-      if (token) headers.Authorization = "Bearer " + token;
-
-      const response = await fetch("/api/v1/learning/resources?" + params.toString(), {
-        method: "GET",
-        headers: headers,
-        credentials: "same-origin"
-      });
-      const data = await response.json().catch(function () {
-        return { success: false, error: "Invalid server response." };
-      });
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || "Learning resources could not be found.");
-      }
-
-      const resources = Array.isArray(data.resources) ? data.resources : [];
-      const types = Array.isArray(data.requested_types) ? data.requested_types.join(", ") : type;
-      count.textContent = resources.length + " matched resource" + (resources.length === 1 ? "" : "s") + " · " + types;
-      status.textContent = resources.length
-        ? "Dream found content for your selected learning mode."
-        : "No strong matches were returned. Try a more specific topic or another mode.";
-
-      results.innerHTML = resources.length
-        ? resources.map(renderLearningResourceCard).join("")
-        : '<div class="de-resource-empty"><strong>No matching content yet.</strong><p>Try a clearer topic, subject or a different learning mode.</p></div>';
-
-      wireResourceActions(resources);
-    } catch (error) {
-      console.error("Multimodal learning resource error:", error);
-      status.textContent = error.message || "Learning resources could not be found.";
-      results.innerHTML = '<div class="de-error"><strong>Could not load learning content.</strong><p>' + escapeHtml(error.message || "Please try again.") + '</p></div>';
-      count.textContent = "Unavailable";
-    } finally {
-      searchButton.disabled = false;
-    }
-  }
-
-  function renderLearningResourceCard(resource) {
-    const type = String(resource.type || "web").toLowerCase();
-    const title = escapeHtml(resource.title || "Learning resource");
-    const description = escapeHtml(String(resource.description || "").replace(/<[^>]*>/g, "").slice(0, 420));
-    const provider = escapeHtml(resource.provider || "source");
-    const url = String(resource.url || resource.media_url || "").trim();
-    const mediaUrl = String(resource.media_url || "").trim();
-    const embedUrl = String(resource.embed_url || "").trim();
-    const safeHref = /^https?:\/\//i.test(url) ? url : "";
-    let visual = "";
-
-    if (type === "image" && mediaUrl && /^https?:\/\//i.test(mediaUrl)) {
-      visual = '<a class="de-resource-image-link" href="' + escapeHtml(safeHref || mediaUrl) + '" target="_blank" rel="noopener noreferrer"><img class="de-resource-image" src="' + escapeHtml(mediaUrl) + '" alt="' + title + '" loading="lazy"></a>';
-    } else if (type === "video" && embedUrl && /^https?:\/\//i.test(embedUrl)) {
-      visual = '<div class="de-resource-video"><iframe src="' + escapeHtml(embedUrl) + '" title="' + title + '" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>';
-    } else if (type === "audio" && mediaUrl && /^https?:\/\//i.test(mediaUrl)) {
-      visual = '<div class="de-resource-audio"><div class="de-resource-audio-title">Listen now</div><audio class="de-resource-audio-player" controls preload="none" src="' + escapeHtml(mediaUrl) + '"></audio></div>';
-    } else if (type === "audio" && embedUrl && /^https?:\/\//i.test(embedUrl)) {
-      visual = '<div class="de-resource-video"><iframe src="' + escapeHtml(embedUrl) + '" title="' + title + '" loading="lazy" allow="autoplay; fullscreen"></iframe></div>';
-    } else if (type === "video" && mediaUrl && /^https?:\/\//i.test(mediaUrl)) {
-      visual = '<video class="de-resource-video-player" controls preload="metadata" src="' + escapeHtml(mediaUrl) + '"></video>';
-    } else if (type === "video" && resource.thumbnail) {
-      visual = '<a class="de-resource-image-link" href="' + escapeHtml(safeHref) + '" target="_blank" rel="noopener noreferrer"><img class="de-resource-image" src="' + escapeHtml(resource.thumbnail) + '" alt="' + title + '" loading="lazy"></a>';
-    }
-
-    return '<article class="de-resource-card">' +
-      visual +
-      '<div class="de-resource-card-body">' +
-        '<div class="de-resource-meta"><span>' + escapeHtml(type) + '</span><span>' + provider + '</span>' + (resource.license ? '<span>' + escapeHtml(resource.license) + '</span>' : '') + '</div>' +
-        '<h4>' + title + '</h4>' +
-        (description ? '<p>' + description + '</p>' : '') +
-        '<div class="de-resource-actions">' +
-          (safeHref ? '<a class="de-action de-resource-open" href="' + escapeHtml(safeHref) + '" target="_blank" rel="noopener noreferrer" data-resource-open="1">Open source</a>' : '') +
-          '<button class="de-action primary" type="button" data-resource-complete="1">I learned this</button>' +
-        '</div>' +
-      '</div>' +
-    '</article>';
-  }
-
-  function wireResourceActions(resources) {
-    const cards = Array.from(results.querySelectorAll(".de-resource-card"));
-    cards.forEach(function (card, index) {
-      const resource = resources[index];
-      if (!resource) return;
-
-      const markOpened = function () {
-        recordResourceProgress(resource, false);
-      };
-
-      card.querySelectorAll("[data-resource-open]").forEach(function (link) {
-        link.addEventListener("click", markOpened, { once: true });
-      });
-
-      const complete = card.querySelector("[data-resource-complete]");
-      if (complete) {
-        complete.addEventListener("click", async function () {
-          complete.disabled = true;
-          await recordResourceProgress(resource, true);
-          complete.textContent = "Recorded ✓";
-        });
-      }
-    });
-  }
-
-  async function recordResourceProgress(resource, completed) {
-    try {
-      const token = auth.session && auth.session.access_token;
-      const headers = { "Content-Type": "application/json" };
-      if (token) headers.Authorization = "Bearer " + token;
-
-      await fetch("/api/v1/learning/resources/progress", {
-        method: "POST",
-        headers: headers,
-        credentials: "same-origin",
-        body: JSON.stringify({
-          learner_id: learnerId,
-          topic: String(topicInput && topicInput.value || "").trim(),
-          subject: profile.subject || account.subject || "General",
-          resource: resource,
-          completed: completed === true,
-          duration_seconds: 0
-        })
-      });
-    } catch (error) {
-      console.warn("Learning resource progress was not recorded:", error);
-    }
-  }
-
-  searchButton.addEventListener("click", loadResources);
-  topicInput.addEventListener("keydown", function (event) {
-    if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) loadResources();
-  });
-  clearButton.addEventListener("click", function () {
-    topicInput.value = "";
-    results.innerHTML = '<div class="de-resource-empty"><strong>Choose a topic and a learning mode.</strong><p>Dream can return playable audio, watchable video, visible images, reading material and interactive resources.</p></div>';
-    count.textContent = "Choose a topic to begin.";
-    status.textContent = "";
-    topicInput.focus();
-  });
-
-  if (defaultTopic) {
-    loadResources();
-  }
-}
-
-function getDreamEducationAuth() {
-  try {
-    const raw = localStorage.getItem("dream_education_auth");
-    return raw ? JSON.parse(raw) : null;
-  } catch (error) {
-    return null;
-  }
 }
 
 async function openLearnerDashboard() {
@@ -7348,88 +7055,50 @@ async function openAskDreamEducation() {
   questionBox.focus();
 }
 
-function renderDreamLearningResources(resources) {
-  const items = Array.isArray(resources) ? resources.slice(0, 8) : [];
-  if (!items.length) {
-    return '<p class="panel-status">No external learning media was available for this question right now. You can still use the verified answer and ask for resources again.</p>';
-  }
+function dreamResourceIntent(question) {
+  const text = String(question || "").toLowerCase();
+  if (/\\b(video|watch|youtube|visual lesson|documentary|lecture)\\b/.test(text)) return "video";
+  if (/\\b(photo|picture|image|diagram|illustration|visual)\\b/.test(text)) return "image";
+  if (/\\b(audio|listen|podcast|spoken|sound)\\b/.test(text)) return "audio";
+  if (/\\b(experiment|lab|practical|simulation|simulate|interactive)\\b/.test(text)) return "experiment";
+  if (/\\b(research|paper|academic|journal|evidence|citation)\\b/.test(text)) return "research";
+  if (/\\b(book|textbook|chapter|reading)\\b/.test(text)) return "book";
+  return "any";
+}
 
-  function resourceType(type) {
-    return ({
-      video: "VIDEO",
-      image: "PICTURE",
-      audio: "AUDIO",
-      experiment: "EXPERIMENT",
-      interactive: "INTERACTIVE",
-      research: "RESEARCH",
-      book: "BOOK",
-      document: "DOCUMENT",
-      article: "ARTICLE"
-    })[type] || "LEARNING RESOURCE";
-  }
+function renderAnswerResource(resource) {
+  const type = resource && resource.type ? resource.type : "web";
+  const title = escapeHtml(resource && resource.title || "Learning resource");
+  const description = escapeHtml(String(resource && resource.description || "").slice(0, 300));
+  const url = escapeHtml(resource && (resource.url || resource.media_url || resource.embed_url) || "");
+  const mediaUrl = escapeHtml(resource && resource.media_url || "");
+  const embedUrl = escapeHtml(resource && resource.embed_url || "");
+  const provider = escapeHtml(resource && resource.provider || "Learning source");
+  let media = "";
+  if (type === "image" && mediaUrl) media = '<a href="' + url + '" target="_blank" rel="noopener noreferrer"><img class="dream-answer-resource-image" src="' + mediaUrl + '" alt="' + title + '" loading="lazy"></a>';
+  else if (type === "video" && embedUrl) media = '<div class="dream-answer-resource-video"><iframe src="' + embedUrl + '" title="' + title + '" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>';
+  else if (type === "video" && mediaUrl) media = '<video class="dream-answer-resource-video-player" controls preload="metadata" poster="' + escapeHtml(resource.thumbnail || "") + '" src="' + mediaUrl + '"></video>';
+  else if (type === "audio" && mediaUrl) media = '<div class="dream-answer-resource-audio"><strong>Listen</strong><audio controls preload="metadata" src="' + mediaUrl + '"></audio></div>';
+  else if (resource && resource.thumbnail) media = '<img class="dream-answer-resource-image dream-answer-resource-thumb" src="' + escapeHtml(resource.thumbnail) + '" alt="" loading="lazy">';
+  return '<article class="dream-answer-resource-card">' + media + '<div class="dream-answer-resource-body"><span class="panel-kicker">' + escapeHtml(String(type).toUpperCase()) + ' · ' + provider + '</span><h3>' + title + '</h3>' + (description ? '<p>' + description + '</p>' : "") + (url ? '<a href="' + url + '" target="_blank" rel="noopener noreferrer">Open original resource ↗</a>' : "") + '</div></article>';
+}
 
-  return '<div class="dream-learning-resource-grid">' +
-    items.map(function (resource) {
-      const type = resource.type || "web";
-      const title = escapeHtml(resource.title || "Learning resource");
-      const description = escapeHtml(
-        String(resource.description || "Open this resource to continue learning.").slice(0, 280)
-      );
-      const url = escapeHtml(resource.url || resource.media_url || resource.embed_url || "");
-      const mediaUrl = escapeHtml(resource.media_url || "");
-      const embedUrl = escapeHtml(resource.embed_url || "");
-      const provider = escapeHtml(resource.provider || "Learning source");
-      const license = resource.license
-        ? '<small>' + escapeHtml(resource.license) + '</small>'
-        : "";
-      let media = "";
-
-      if (type === "image" && mediaUrl) {
-        media =
-          '<a href="' + url + '" target="_blank" rel="noopener noreferrer">' +
-          '<img class="dream-learning-resource-image" src="' + mediaUrl +
-          '" alt="' + title + '" loading="lazy">' +
-          '</a>';
-      } else if (type === "video" && embedUrl) {
-        media =
-          '<div class="dream-learning-resource-video">' +
-          '<iframe src="' + embedUrl + '" title="' + title +
-          '" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>' +
-          '</div>';
-      } else if (type === "video" && mediaUrl) {
-        media =
-          '<video class="dream-learning-resource-video-player" controls preload="metadata" poster="' +
-          escapeHtml(resource.thumbnail || "") + '" src="' + mediaUrl + '"></video>';
-      } else if (type === "audio" && mediaUrl) {
-        media =
-          '<div class="dream-learning-resource-audio">' +
-          '<strong>Listen now</strong><audio controls preload="metadata" src="' + mediaUrl + '"></audio>' +
-          '</div>';
-      } else if (resource.thumbnail) {
-        media =
-          '<a href="' + url + '" target="_blank" rel="noopener noreferrer">' +
-          '<img class="dream-learning-resource-image dream-learning-resource-thumb" src="' +
-          escapeHtml(resource.thumbnail) + '" alt="" loading="lazy"></a>';
-      }
-
-      const fallback =
-        '<div class="dream-learning-resource-no-media">' +
-        '<strong>' + resourceType(type) + '</strong>' +
-        '<p>This resource opens from its original provider.</p>' +
-        '</div>';
-
-      return '<article class="dream-learning-resource-card">' +
-        (media || fallback) +
-        '<div class="dream-learning-resource-content">' +
-        '<span class="panel-kicker">' + resourceType(type) + ' · ' + provider + '</span>' +
-        '<h3>' + title + '</h3>' +
-        '<p>' + description + '</p>' +
-        license +
-        (url ? '<a class="panel-action secondary" href="' + url + '" target="_blank" rel="noopener noreferrer">Open resource ↗</a>' : '') +
-        '</div>' +
-        '</article>';
-    }).join("") +
-    '</div>';
+async function loadAnswerResources(question, payload, typeOverride) {
+  const host = document.getElementById("dream-answer-resources"); if (!host) return;
+  const auth = window.DreamEducationUI && window.DreamEducationUI.getAuth ? window.DreamEducationUI.getAuth() : null;
+  const token = auth && auth.session && auth.session.access_token ? auth.session.access_token : "";
+  if (!token || !payload.learner_id) { host.innerHTML = '<p class="panel-status">Sign in is required to load learning media.</p>'; return; }
+  const type = typeOverride || dreamResourceIntent(question);
+  const params = new URLSearchParams({q:question,type:type,learner_id:payload.learner_id,limit:"8"});
+  host.innerHTML = '<div class="dream-answer-resource-loading">Finding your learning resources...</div>';
+  try {
+    const response = await fetch("/api/v1/learning/resources?" + params.toString(), {headers:{Authorization:"Bearer " + token,Accept:"application/json"}});
+    const data = await response.json().catch(function(){return {};});
+    if (!response.ok || data.success === false) throw new Error(data.error || "Learning resources could not be loaded.");
+    const resources = Array.isArray(data.resources) ? data.resources : [];
+    if (!resources.length) { host.innerHTML = '<div class="dream-answer-resource-empty"><strong>No matching resource was available right now.</strong><p>Try another format and Dream Education will search again.</p><div class="panel-actions"><button type="button" class="panel-action" data-answer-resource-type="video">Video</button><button type="button" class="panel-action" data-answer-resource-type="image">Pictures</button><button type="button" class="panel-action" data-answer-resource-type="audio">Audio</button><button type="button" class="panel-action" data-answer-resource-type="experiment">Experiment</button></div></div>'; return; }
+    host.innerHTML = '<div class="dream-answer-resource-toolbar"><strong>' + resources.length + ' learning resources found</strong><span>' + escapeHtml(data.intent && data.intent.reason || "Matched to your learning request.") + '</span></div><div class="dream-answer-resource-grid">' + resources.map(renderAnswerResource).join("") + '</div>';
+  } catch (error) { host.innerHTML = '<div class="dream-answer-resource-empty"><strong>Resource search could not complete.</strong><p>' + escapeHtml(error.message || "Please try again.") + '</p><div class="panel-actions"><button type="button" class="panel-action" data-answer-resource-type="' + escapeHtml(type) + '">Search again</button></div></div>'; }
 }
 
 function renderDreamAnswer(result, payload) {
@@ -7484,16 +7153,6 @@ function renderDreamAnswer(result, payload) {
         Source mode:
         <strong>${result.cached ? "Cached answer" : "Fresh answer"}</strong>
       </p>
-      <div class="panel-actions">
-        <button id="listen-dream-answer" class="panel-action secondary" type="button">🔊 Listen to explanation</button>
-      </div>
-    </div>
-
-    <div class="panel-card dream-learning-resources">
-      <span class="panel-kicker">LEARN IT ANOTHER WAY</span>
-      <h2>Videos, pictures, audio and experiments</h2>
-      <p>Dream found these learning resources for the same topic. The verified answer above remains the factual foundation.</p>
-      ${renderDreamLearningResources(result.learning_resources)}
     </div>
 
     <div class="panel-card">
@@ -7503,7 +7162,14 @@ function renderDreamAnswer(result, payload) {
       </div>
     </div>
 
-    <div class="panel-actions">
+        <div class="panel-card dream-answer-resources-panel">
+      <span class="panel-kicker">LEARN WITH MEDIA</span>
+      <h3>Learning resources for this request</h3>
+      <p>Dream Education searches connected sources and places available media directly here.</p>
+      <div id="dream-answer-resources" aria-live="polite"></div>
+    </div>
+
+<div class="panel-actions">
       <button
         id="ask-another-dream-question"
         class="panel-action"
@@ -7521,29 +7187,6 @@ function renderDreamAnswer(result, payload) {
       </button>
     </div>
   `;
-
-  const listenButton = document.getElementById("listen-dream-answer");
-  if (listenButton) {
-    listenButton.addEventListener("click", function () {
-      if (!("speechSynthesis" in window)) {
-        listenButton.textContent = "🔊 Audio unavailable on this device";
-        return;
-      }
-      if (window.speechSynthesis.speaking) {
-        window.speechSynthesis.cancel();
-        listenButton.textContent = "🔊 Listen to explanation";
-        return;
-      }
-      const utterance = new SpeechSynthesisUtterance(String(answer || ""));
-      utterance.rate = 0.95;
-      utterance.pitch = 1;
-      listenButton.textContent = "⏹ Stop listening";
-      utterance.addEventListener("end", function () {
-        listenButton.textContent = "🔊 Listen to explanation";
-      });
-      window.speechSynthesis.speak(utterance);
-    });
-  }
 
   const anotherButton =
     document.getElementById("ask-another-dream-question");
@@ -7567,6 +7210,13 @@ function renderDreamAnswer(result, payload) {
       }
     });
   }
+  loadAnswerResources(payload.question, payload);
+
+  panelBody.addEventListener("click", function (event) {
+    const button = event.target.closest("[data-answer-resource-type]");
+    if (!button) return;
+    loadAnswerResources(payload.question, payload, button.getAttribute("data-answer-resource-type") || "any");
+  });
 }
 
 function formatDreamAnswer(answer) {
@@ -7575,7 +7225,6 @@ function formatDreamAnswer(answer) {
     .replace(/\n\n+/g, "</p><p>")
     .replace(/\n/g, "<br>");
 }
-
 window.DreamEducationLearner = {
   ...(window.DreamEducationLearner || {}),
   fetchDashboard: fetchLearnerDashboard,
