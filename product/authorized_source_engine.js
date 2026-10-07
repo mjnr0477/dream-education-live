@@ -12,11 +12,37 @@ function loadConnectors() {
 
   try {
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed.filter(item => item && typeof item === 'object') : [];
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed
+      .filter(item => item && typeof item === 'object')
+      .map(item => ({
+        ...item,
+        enabled: item.enabled !== false,
+        private: item.private !== false,
+        authoritative: item.authoritative === true,
+        access_scope: String(item.access_scope || 'owner-authorized').trim()
+      }))
+      .filter(item => item.enabled && item.endpoint);
   } catch (error) {
     console.warn('Dream authorized source connectors are not valid JSON:', error.message);
     return [];
   }
+}
+
+function resolveHeaderValue(value) {
+  if (typeof value !== 'string') return value;
+  const match = value.match(/^env:([A-Za-z_][A-Za-z0-9_]*)$/);
+  return match ? String(process.env[match[1]] || '') : value;
+}
+
+function resolveHeaders(headers) {
+  if (!headers || typeof headers !== 'object' || Array.isArray(headers)) return {};
+  return Object.fromEntries(
+    Object.entries(headers)
+      .map(([key, value]) => [key, resolveHeaderValue(value)])
+      .filter(([key, value]) => key && String(value || '').length > 0)
+  );
 }
 
 function isBlockedHostname(hostname) {
@@ -135,9 +161,10 @@ function normalizeRow(row, connector, index) {
     excerpt: String(content).trim().slice(0, 5000),
     private: connector.private !== false,
     authorized: true,
-    authoritative: false,
-    precedence: 'authorized-source',
-    connector_id: String(connector.id || '').trim() || null
+    authoritative: Boolean(connector.authoritative),
+    precedence: connector.authoritative ? 'owner-authoritative' : 'authorized-source',
+    connector_id: String(connector.id || '').trim() || null,
+    access_scope: String(connector.access_scope || 'owner-authorized').trim()
   };
 }
 
@@ -145,10 +172,7 @@ async function searchConnector(connector, query, limit = 8) {
   const url = buildQueryUrl({ ...connector, limit }, query);
   if (!url) return [];
 
-  const headers = connector.headers && typeof connector.headers === 'object'
-    ? connector.headers
-    : {};
-
+  const headers = resolveHeaders(connector.headers);
   const data = await requestJson(url, {
     headers,
     timeout: connector.timeout || DEFAULT_TIMEOUT
@@ -184,10 +208,20 @@ async function searchAuthorizedSources(query, limit = 8) {
     }
   }));
 
+  const results = settled
+    .flatMap(item => item.results)
+    .sort((a, b) => {
+      const authority = Number(Boolean(b?.authoritative)) - Number(Boolean(a?.authoritative));
+      if (authority) return authority;
+      return String(a?.source || '').localeCompare(String(b?.source || ''));
+    });
+
   return {
-    results: settled.flatMap(item => item.results),
+    results,
     configured: true,
-    connectors: settled.map(item => item.id)
+    connectors: settled.map(item => item.id),
+    successful_connectors: settled.filter(item => item.results.length > 0).map(item => item.id),
+    failed_connectors: settled.filter(item => item.results.length === 0).map(item => item.id)
   };
 }
 
