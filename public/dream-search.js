@@ -64,10 +64,10 @@
     `).join('');
   }
 
-  async function search(query, onSuccess) {
-    const { status } = elements();
+  async function search(query, onSuccess, statusElement) {
+    const status = statusElement || elements().status;
     if (!query.trim()) return;
-    status.textContent = 'Searching…';
+    if (status) status.textContent = 'Searching…';
 
     try {
       const headers = { 'Content-Type': 'application/json' };
@@ -76,7 +76,7 @@
       if (state.mode === 'authorized') {
         const ownerToken = getOwnerToken();
         if (!ownerToken) {
-          status.textContent = 'Sign in with the Dream Education owner account to use Authorized Search.';
+          if (status) status.textContent = 'Sign in with the Dream Education owner account to use Authorized Search.';
           return;
         }
         url = '/api/dream-search/authorized';
@@ -87,7 +87,7 @@
         method: 'POST',
         headers,
         body: JSON.stringify({ query, limit: 10 })
-      });
+      }, statusHost);
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok || !data.success) {
@@ -96,11 +96,13 @@
 
       renderResults(data);
       if (typeof onSuccess === 'function') onSuccess(data);
-      status.textContent = state.mode === 'authorized'
-        ? 'Authorized Search — owner access'
-        : 'Public Search';
+      if (status) {
+        status.textContent = state.mode === 'authorized'
+          ? 'Authorized Search — owner access'
+          : 'Public Search';
+      }
     } catch (error) {
-      status.textContent = error.message || 'Search failed.';
+      if (status) status.textContent = error.message || 'Search failed.';
     }
   }
 
@@ -140,18 +142,18 @@
       event.preventDefault();
       const input = document.getElementById('dream-authorized-connect-input');
       const query = input?.value || '';
+      const statusHost = document.getElementById('dream-authorized-connect-status');
       search(query, function (data) {
         const resultsHost = document.getElementById('dream-authorized-connect-results');
-        const statusHost = document.getElementById('dream-authorized-connect-status');
         if (!resultsHost || !statusHost) return;
         const results = [...(data.authorized_results || data.private_results || []), ...(data.public_results || [])];
-        resultsHost.innerHTML = results.length ? results.map(item => \`
+        resultsHost.innerHTML = results.length ? results.map(item => `
           <article class="dream-search-result${item.private ? ' dream-search-private' : ''}">
             <h3>${escapeHtml(item.title || 'Information')}</h3>
             <p>${escapeHtml(item.excerpt || item.content || 'No excerpt available.')}</p>
             <div class="dream-search-source">${escapeHtml(item.source || 'Dream source')}${item.authoritative ? ' · Owner authoritative' : item.private ? ' · Authorized data' : ''}</div>
           </article>
-        \`).join('') : '<div class="dream-search-result"><p>No matching information was found.</p></div>';
+        `).join('') : '<div class="dream-search-result"><p>No matching information was found.</p></div>';
         statusHost.textContent = 'Authorized Search — owner access';
       });
     });
