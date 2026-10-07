@@ -1,5 +1,8 @@
 'use strict';
 
+process.env.DREAM_AUTHORIZED_SEARCH_DATA = JSON.stringify([{ title: 'Owner private fact', content: 'private owner information' }]);
+process.env.DREAM_AUTHORIZED_SEARCH_OVERRIDES = JSON.stringify([{ title: 'Owner override', content: 'owner authoritative information' }]);
+
 const assert = require('assert');
 const {
   registerDreamSearchRoutes,
@@ -38,6 +41,22 @@ assert.strictEqual(normalizeQuery('  hello   world  '), 'hello world');
   await routes['/api/dream-search/authorized'](ownerReq, ownerRes);
   assert.notStrictEqual(ownerRes.statusCode, 401);
   assert.notStrictEqual(ownerRes.statusCode, 403);
+  assert.ok(ownerRes.body.authorized_results.some(item => item.authoritative === true));
+  assert.ok(ownerRes.body.connected_providers.includes('smoke-test') === false);
+  assert.strictEqual(ownerRes.body.search_scope, 'all-connected-public-sources-plus-owner-authorized-sources');
+
+  const publicReq = {
+    body: { query: 'test' },
+    headers: {}
+  };
+  const publicRes = {
+    statusCode: 200,
+    status(code) { this.statusCode = code; return this; },
+    json(body) { this.body = body; return this; }
+  };
+  await routes['/api/dream-search/public'](publicReq, publicRes);
+  assert.ok(!JSON.stringify(publicRes.body).includes('Owner private fact'));
+  assert.ok(!JSON.stringify(publicRes.body).includes('Owner override'));
 
   console.log('DREAM SEARCH SMOKE TEST: PASS');
 })().catch(error => {
