@@ -66,9 +66,7 @@
   function renderResults(data) {
     const el = elements().results;
     if (!el) return;
-    const results = state.mode === 'authorized'
-      ? [...(data.authorized_results || data.private_results || []), ...(data.public_results || [])]
-      : (data.results || []);
+    const results = data.results || [];
 
     if (!results.length) {
       el.innerHTML = '<div class="dream-search-result"><p>No matching information was found in the connected sources.</p></div>';
@@ -142,7 +140,7 @@
     state.mode = 'authorized';
     kicker.textContent = 'OWNER SEARCH';
     title.textContent = 'Authorized Search';
-    description.textContent = 'Owner-only search. Connected public evidence and legitimately authorized information are combined here; owner-authorized overrides take precedence.';
+    description.textContent = 'Owner-only deep search. Connected public evidence and legitimately authorized sources are combined, ranked, deduplicated, and owner-authorized overrides take precedence.';
 
     host.innerHTML = `
       <form class="dream-search-box" id="dream-authorized-connect-form">
@@ -170,12 +168,12 @@
       search(query, function (data) {
         const resultsHost = document.getElementById('dream-authorized-connect-results');
         if (!resultsHost || !statusHost) return;
-        const results = [...(data.authorized_results || data.private_results || []), ...(data.public_results || [])];
+        const results = data.results || [];
         resultsHost.innerHTML = results.length ? results.map(item => `
           <article class="dream-search-result${item.private ? ' dream-search-private' : ''}">
             <h3>${escapeHtml(item.title || 'Information')}</h3>
             <p>${escapeHtml(item.excerpt || item.content || 'No excerpt available.')}</p>
-            <div class="dream-search-source">${escapeHtml(item.source || 'Dream source')}${item.authoritative ? ' · Owner authoritative' : item.private ? ' · Authorized data' : ''}</div>
+            <div class="dream-search-source">${escapeHtml(item.source || 'Dream source')}${item.authoritative ? ' · Owner authoritative' : item.private ? ' · Authorized data' : ' · Public evidence'}${item.provider ? ' · ' + escapeHtml(item.provider) : ''}</div>
           </article>
         `).join('') : '<div class="dream-search-result"><p>No matching information was found.</p></div>';
         statusHost.textContent = 'Authorized Search — owner access';
