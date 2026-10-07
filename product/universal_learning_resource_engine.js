@@ -1,5 +1,7 @@
 "use strict";
 
+const { inferLearningResourceIntent } = require("./learning_resource_intent");
+
 /*
  * Dream Education Universal Learning Resource Engine
  *
@@ -50,18 +52,34 @@ function wants(types, type) {
   return types.includes("any") || types.includes(type);
 }
 
-function scoreResource(resource, query) {
+function scoreResource(resource, query, context = {}) {
   const q = normalize(query);
   const text = normalize([
-    resource.title,
-    resource.description,
-    ...(resource.tags || [])
+    resource.title, resource.description, ...(resource.tags || [])
   ].filter(Boolean).join(" "));
   if (!q || !text) return 0;
   const tokens = q.split(" ").filter(token => token.length > 2);
   if (!tokens.length) return 0;
   const matched = tokens.filter(token => text.includes(token));
-  return matched.length / tokens.length;
+  let score = matched.length / tokens.length;
+
+  const quality = {
+    openverse: 0.92,
+    wikimedia_commons: 0.9,
+    nasa: 0.98,
+    nasa_osdr: 0.98,
+    crossref: 0.97,
+    internet_archive: 0.82,
+    youtube: 0.72,
+    phet: 0.95
+  }[resource.provider] || 0.65;
+
+  if (context.preferredTypes && context.preferredTypes.includes(resource.type)) {
+    score += 0.35;
+  }
+  if (resource.license || resource.attribution_required) score += 0.04;
+  score += quality * 0.18;
+  return score;
 }
 
 async function fetchJson(url, options = {}) {
@@ -390,7 +408,8 @@ async function discoverLearningResources(query, options = {}) {
     };
   }
 
-  const types = wantedTypes(options.type || options.types);
+  const intent = inferLearningResourceIntent(learnerQuery, options.type || options.types);
+  const types = wantedTypes(intent.types);
   const limit = clampLimit(options.limit);
   const subject = String(options.subject || "").trim();
   const level = String(options.level || "").trim();
@@ -453,7 +472,9 @@ async function discoverLearningResources(query, options = {}) {
     .flatMap(result => result.success ? result.resources : [])
     .map(resource => ({
       ...resource,
-      relevance: Number(scoreResource(resource, searchQuery).toFixed(3))
+      relevance: Number(scoreResource(resource, searchQuery, {
+        preferredTypes: types.filter(type => type !== "any")
+      }).toFixed(3))
     }))
     .filter(resource => resource.url || resource.media_url || resource.embed_url);
 
@@ -475,6 +496,11 @@ async function discoverLearningResources(query, options = {}) {
     query: learnerQuery,
     search_query: searchQuery,
     requested_types: types,
+    intent: {
+      mode: intent.mode,
+      confidence: intent.confidence,
+      reason: intent.reason
+    },
     resources: ranked,
     providers: results.map(result => ({
       provider: result.provider,
