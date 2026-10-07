@@ -1438,8 +1438,8 @@ document.addEventListener("click", function (event) {
     }
 
     if (action === "code-generator" || action === "coding-lab") {
-      if (typeof openCodingLab === "function") {
-        openCodingLab();
+      if (window.openCodingLab && typeof window.openCodingLab === "function") {
+        window.openCodingLab();
       } else {
         window.location.href = "/code-generator/index.html";
       }
@@ -1447,8 +1447,8 @@ document.addEventListener("click", function (event) {
     }
 
     if (action === "coding-learning") {
-      if (typeof openCodingLearning === "function") {
-        openCodingLearning();
+      if (window.openCodingLearning && typeof window.openCodingLearning === "function") {
+        window.openCodingLearning();
       }
       return;
     }
