@@ -2761,3 +2761,23 @@ body.panel-open .experience-panel{
   .de-media-embed-stage iframe { min-height:340px; }
   .de-media-image-stage img { max-height:380px; }
 }
+
+
+/* Coding AI Lab */
+.de-coding-method {
+  width: 100%;
+  text-align: left;
+  border: 1px solid rgba(255,255,255,.08);
+  background: rgba(255,255,255,.025);
+  color: inherit;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+.de-coding-method:hover,
+.de-coding-method.active {
+  border-color: rgba(255,255,255,.24);
+  transform: translateY(-1px);
+}
+.de-coding-method.active strong::before {
+  content: "✓ ";
+}
