@@ -1052,7 +1052,7 @@ app.use((req, res, next) => {
 
 app.use(express.json({ limit: "1mb" }));
 app.use(express.static(path.join(__dirname, "public")));
-registerDreamSearchRoutes(app, { getAuthenticatedAccount, isOwnerAccount });
+// Dream Search routes are registered after payment helpers are initialized.\n// This avoids accessing the later-declared owner helper during module startup.\n
 
 app.get("/api/health", (req, res) => {
   res.json({
@@ -5342,7 +5342,7 @@ const {
   createTrialAccess,
   getAccessStatus,
   activatePlan
-} = require("./product/payment_engine");
+} = require("./product/payment_engine");\n\nregisterDreamSearchRoutes(app, { getAuthenticatedAccount, isOwnerAccount });
 
 const {
   createCheckoutOrder,
