@@ -100,6 +100,12 @@
           title: "General Connections",
           text: "Find and connect with learners, teachers, parents and schools across Dream Education.",
           action: "general-connections"
+        },
+        {
+          title: "Authorized Search",
+          text: "Owner-only search across connected public sources and legitimately authorized information, with owner overrides taking precedence.",
+          action: "authorized-search",
+          ownerOnly: true
         }
       ],
       primary: "Explore connections",
@@ -283,6 +289,9 @@
 
   function renderCards(cards) {
     return (cards || [])
+      .filter(function (card) {
+        return !card.ownerOnly || getAuth()?.account?.owner_account === true;
+      })
       .map(function (card) {
         const isCodeCreation = card.title === "Code creation";
         const isMeetings = card.action === "meetings";
@@ -291,6 +300,8 @@
         const isGeneralConnections = card.action === "general-connections";
         const isCodingLab = card.action === "coding-lab";
         const isCodingLearning = card.action === "coding-learning";
+        const isAuthorizedSearch = card.action === "authorized-search" &&
+          getAuth()?.account?.owner_account === true;
         const cardAction = isCodeCreation
           ? 'data-panel-action="code-generator" role="button" tabindex="0"'
           : isMeetings
@@ -305,6 +316,8 @@
                     ? 'data-panel-action="coding-lab" role="button" tabindex="0"'
                     : isCodingLearning
                       ? 'data-panel-action="coding-learning" role="button" tabindex="0"'
+                      : isAuthorizedSearch
+                        ? 'data-panel-action="authorized-search" role="button" tabindex="0"'
                 : "";
         const cardButton = isCodeCreation
           ? '<button class="panel-action" type="button" data-panel-action="code-generator">Open Code Generator</button>'
@@ -320,6 +333,8 @@
                   ? '<button class="panel-action" type="button" data-panel-action="coding-lab">Open Coding Studio</button>'
                   : isCodingLearning
                     ? '<button class="panel-action" type="button" data-panel-action="coding-learning">Choose how to learn coding</button>'
+                    : isAuthorizedSearch
+                      ? '<button class="panel-action" type="button" data-panel-action="authorized-search">Open Authorized Search</button>'
                 : "";
 
         return `
@@ -1048,6 +1063,11 @@
 
   function openPanel(name) {
     const existingAuth = getAuth();
+
+    if (name === "connect" && window.DreamEducationSearch) {
+      // Connect remains the entry point; Authorized Search is rendered only
+      // when the authenticated owner account is present.
+    }
 
     if ((name === "signin" || name === "join") && existingAuth) {
       renderAuthenticatedPanel(existingAuth);
@@ -6400,6 +6420,15 @@ document.addEventListener("click", function (event) {
 });
 
 document.addEventListener("click", function (event) {
+  const searchAction = event.target.closest('[data-panel-action="authorized-search"]');
+  if (searchAction) {
+    event.preventDefault();
+    if (window.DreamEducationSearch && typeof window.DreamEducationSearch.openAuthorizedSearch === "function") {
+      window.DreamEducationSearch.openAuthorizedSearch();
+    }
+    return;
+  }
+
   const trigger = event.target.closest("[data-action]");
 
   if (!trigger) return;
