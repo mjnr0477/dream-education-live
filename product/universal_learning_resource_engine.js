@@ -509,45 +509,109 @@ function isCodingQuery(query) {
 }
 
 // Never present a page-only result as playable; only direct media or a verified embeddable player belongs in the in-app media experience.
-function curatedCodingResources(query, types, limit) {
-  if (!isCodingQuery(query)) return [];
-  const resources = [...curatedResults];
-  for (const result of results) {
-    if (!result.success || !Array.isArray(result.resources)) continue;
-    for (const original of result.resources) {
-      let type = original.type;
+function isPlayableResource(resource) {
+  if (!resource) return false;
+  if (resource.type === "text") return Boolean(resource.content || resource.description);
+  if (resource.type !== "video" && resource.type !== "audio") return false;
+  return Boolean(
+    isDirectMediaUrl(resource.media_url, resource.type) ||
+    /^https?:\/\//i.test(resource.embed_url || "")
+  );
+}
+
+async function discoverLearningResources(query, options = {}) {
+  const learnerQuery = String(query || "").trim();
+  if (!learnerQuery) {
+    return {
+      success: false,
+      error: "A learning topic or request is required.",
+      resources: []
+    };
+  }
+
+  const requestedType = options.type || options.types || "any";
+  const intent = inferLearningResourceIntent(learnerQuery, requestedType);
+  const conceptQuery = extractLearningTopic(learnerQuery);
+  const explicitTypes = wantedTypes(options.type || options.types);
+  const types = explicitTypes.includes("any") ? intent.types : explicitTypes;
+  const limit = clampLimit(options.limit);
+  const subject = String(options.subject || "").trim();
+  const level = String(options.level || "").trim();
+  const searchQuery = [conceptQuery, subject, level].filter(Boolean).join(" ").trim();
+
+  const jobs = [];
+
+  if (wants(types, "image") || wants(types, "any")) {
+    jobs.push(safeProvider("openverse", () => searchOpenverseImages(searchQuery, limit)));
+    jobs.push(safeProvider("wikimedia_commons", () => searchWikimediaImages(searchQuery, Math.min(limit, 8))));
+  }
+  if (wants(types, "audio") || wants(types, "any")) {
+    jobs.push(safeProvider("openverse_audio", () => searchOpenverseAudio(searchQuery, limit)));
+  }
+  if (wants(types, "video") || wants(types, "any")) {
+    jobs.push(safeProvider("youtube", () => searchYouTube(searchQuery, limit)));
+    jobs.push(safeProvider("internet_archive_video", () => searchInternetArchive(searchQuery, Math.min(limit, 8))));
+    jobs.push(safeProvider("nasa", () => searchNASAImages(searchQuery, Math.min(limit, 8))));
+  }
+  if (
+    wants(types, "text") ||
+    wants(types, "book") ||
+    wants(types, "document") ||
+    wants(types, "research") ||
+    wants(types, "article") ||
+    wants(types, "web") ||
+    wants(types, "interactive") ||
+    wants(types, "any")
+  ) {
+    jobs.push(safeProvider("internet_archive_text", () => searchInternetArchive(searchQuery, limit)));
+    jobs.push(safeProvider("crossref", () => searchCrossrefResearch(searchQuery, Math.min(limit, 8))));
+  }
+  if (wants(types, "experiment") || wants(types, "interactive") || wants(types, "any")) {
+    jobs.push(safeProvider("phet", () => searchPhetExperiments(conceptQuery, Math.min(limit, 4))));
+    jobs.push(safeProvider("nasa_osdr", () => searchNASAExperiments(conceptQuery, Math.min(limit, 4))));
+  }
+
+  const results = await Promise.all(jobs);
+  const resources = results
+    .flatMap(result => result.success ? result.resources : [])
+    .map(resource => {
+      let type = resource.type;
       if (["article", "book", "document", "research", "web"].includes(type)) type = "text";
-      const content = original.content || original.description || original.abstract || "";
       const normalized = {
-        ...original,
+        ...resource,
         type,
-        content,
-        source: original.source || original.provider || "Learning source"
+        content: resource.content || resource.description || "",
+        resource_topic: conceptQuery,
+        relevance: Number(scoreResource(resource, searchQuery).toFixed(3))
       };
-      const mediaUrl = normalized.media_url || "";
-      const directMedia = isDirectMediaUrl(mediaUrl, type);
-      const embeddableMedia =
-        (type === "video" || type === "audio") &&
-        /^https?:\/\//i.test(normalized.embed_url || "");
-      normalized.direct_media = directMedia;
-      normalized.media_playback = type === "text"
-        ? "inline"
-        : (directMedia || embeddableMedia ? "embedded" : "external");
-      normalized.playable_in_app = type === "text"
-        ? Boolean(content)
-        : (directMedia || embeddableMedia);
-      if (!["text", "video", "audio"].includes(normalized.type)) continue;
-      if (normalized.type === "text" && !normalized.content) continue;
-      if (normalized.type !== "text" && !normalized.playable_in_app) continue;
-      normalized.resource_topic = normalized.resource_topic || conceptQuery;
-      normalized.relevance_reason = normalized.relevance_reason ||
-        (normalized.relevance >= 1.05
-          ? "Strong concept match"
-          : normalized.relevance >= 0.65
-            ? "Good concept match"
-            : "Possible related match");
-      resources.push(normalized);
-    }
+
+      normalized.direct_media = isDirectMediaUrl(normalized.media_url || "", normalized.type);
+      normalized.media_playback =
+        normalized.type === "text" ? "inline" :
+        (isPlayableResource(normalized) ? "embedded" : "external");
+      normalized.playable_in_app = normalized.type === "text"
+        ? Boolean(normalized.content)
+        : isPlayableResource(normalized);
+
+      return normalized;
+    })
+    .filter(resource => {
+      if (resource.type === "text") return Boolean(resource.content);
+      if (resource.type === "video" || resource.type === "audio") return resource.playable_in_app;
+      return true;
+    })
+    .filter(resource => resource.url || resource.media_url || resource.embed_url);
+
+  if (isCodingQuery(learnerQuery)) {
+    // Coding resources use the same verified resource pipeline; no separate AI engine is introduced.
+    resources.forEach(resource => {
+      if (!resource.relevance_reason) {
+        resource.relevance_reason =
+          resource.relevance >= 1.05 ? "Strong coding concept match" :
+          resource.relevance >= 0.65 ? "Good coding concept match" :
+          "Related coding learning material";
+      }
+    });
   }
 
   const dedupe = new Map();
@@ -561,11 +625,12 @@ function curatedCodingResources(query, types, limit) {
 
   const ranked = [...dedupe.values()]
     .sort((a, b) => b.relevance - a.relevance)
-    .slice(0, limit * 3);
+    .slice(0, limit);
 
   return {
     success: true,
     query: learnerQuery,
+    resource_topic: conceptQuery,
     search_query: searchQuery,
     requested_types: types,
     intent: {
