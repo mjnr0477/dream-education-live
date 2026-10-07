@@ -689,6 +689,175 @@
     }
   }
 
+  function codingLearningPreference() {
+    try {
+      return localStorage.getItem("dream_coding_learning_method") || "project";
+    } catch (_) {
+      return "project";
+    }
+  }
+
+  function saveCodingLearningPreference(method) {
+    try {
+      localStorage.setItem("dream_coding_learning_method", method);
+    } catch (_) {}
+  }
+
+  function openCodingLab() {
+    const auth = getAuth();
+    const info = accountInfo(auth);
+
+    if (!auth || !auth.account) {
+      const signIn = document.querySelector('[data-action="open"][data-panel="signin"]');
+      if (signIn) signIn.click();
+      return;
+    }
+
+    openPanel(
+      "DREAM AI LAB · CODING",
+      "Coding Studio",
+      "Build code with Dream, then learn the concepts behind what you build.",
+      '<div class="de-workspace">' +
+        '<section class="de-section de-highlight">' +
+          '<span class="de-eyebrow">BUILD</span>' +
+          '<h3>Code creation stays connected to learning.</h3>' +
+          '<p>Use the existing Dream coding workspace for generation and projects, then return here to find free courses, documentation, videos, diagrams and practice material for the exact technology you are using.</p>' +
+          '<div class="de-actions">' +
+            '<button type="button" class="de-action primary" id="de-open-code-studio">Open Coding Studio</button>' +
+            '<button type="button" class="de-action" id="de-learn-coding-method">How do you want to learn coding?</button>' +
+          '</div>' +
+        '</section>' +
+        '<section class="de-section">' +
+          '<div class="de-section-title"><h3>Supported learning loop</h3><span>Build → understand → practise</span></div>' +
+          '<div class="de-list">' +
+            '<div class="de-list-item"><strong>1. Build</strong><span>Create or modify real code.</span></div>' +
+            '<div class="de-list-item"><strong>2. Understand</strong><span>Ask Dream to explain the code and concepts.</span></div>' +
+            '<div class="de-list-item"><strong>3. Learn</strong><span>Find free external courses and reference material.</span></div>' +
+            '<div class="de-list-item"><strong>4. Practise</strong><span>Return to Dream for challenges and understanding checks.</span></div>' +
+          '</div>' +
+        '</section>' +
+        '<section class="de-section">' +
+          '<div class="de-section-title"><h3>Free coding sources</h3><span>Official resources</span></div>' +
+          '<div class="de-list">' +
+            '<a class="de-list-item" href="https://developer.mozilla.org/en-US/docs/Learn_web_development" target="_blank" rel="noopener noreferrer"><strong>MDN Learn</strong><span>Structured web-development text, examples and challenges.</span></a>' +
+            '<a class="de-list-item" href="https://cs50.harvard.edu/x/" target="_blank" rel="noopener noreferrer"><strong>Harvard CS50x</strong><span>Free computer-science course with lectures, problem sets and a final project.</span></a>' +
+            '<a class="de-list-item" href="https://www.freecodecamp.org/learn/" target="_blank" rel="noopener noreferrer"><strong>freeCodeCamp</strong><span>Free interactive programming and web-development practice.</span></a>' +
+          '</div>' +
+        '</section>' +
+      '</div>'
+    );
+
+    const openStudio = document.getElementById("de-open-code-studio");
+    if (openStudio) {
+      openStudio.addEventListener("click", function () {
+        window.location.href = "/code-generator/index.html";
+      });
+    }
+
+    const chooseMethod = document.getElementById("de-learn-coding-method");
+    if (chooseMethod) {
+      chooseMethod.addEventListener("click", openCodingLearning);
+    }
+  }
+
+  async function openCodingLearning() {
+    const auth = getAuth();
+    const info = accountInfo(auth);
+
+    if (!auth || !auth.account || !info.id) {
+      const signIn = document.querySelector('[data-action="open"][data-panel="signin"]');
+      if (signIn) signIn.click();
+      return;
+    }
+
+    const methods = [
+      ["project", "Project-based", "Learn by building a real app, feature or tool."],
+      ["video", "Video-first", "Start with lectures and demonstrations, then practise."],
+      ["text", "Text-first", "Learn from structured documentation, explanations and examples."],
+      ["practice", "Practice-first", "Learn through exercises, debugging and repeated coding."],
+      ["challenge", "Challenge-first", "Start with problems and discover the concepts needed to solve them."],
+      ["ai", "AI tutor", "Learn with Dream explaining, questioning and adapting the path."]
+    ];
+    const selected = codingLearningPreference();
+
+    openPanel(
+      "DREAM AI LAB · CODING",
+      "How do you want to learn coding?",
+      "Choose a method. Dream will use it to guide the next coding resources you receive.",
+      '<div class="de-workspace">' +
+        '<section class="de-section de-highlight">' +
+          '<span class="de-eyebrow">YOUR METHOD</span>' +
+          '<div class="de-list" id="de-coding-methods">' +
+            methods.map(function (item) {
+              return '<button type="button" class="de-list-item de-coding-method' + (item[0] === selected ? ' active' : '') + '" data-coding-method="' + item[0] + '">' +
+                '<strong>' + escapeHTML(item[1]) + '</strong><span>' + escapeHTML(item[2]) + '</span></button>';
+            }).join("") +
+          '</div>' +
+        '</section>' +
+        '<section class="de-section">' +
+          '<form id="de-coding-resource-form" class="de-resource-form">' +
+            '<label for="de-coding-topic">What do you want to code?</label>' +
+            '<div class="de-resource-search-row">' +
+              '<input id="de-coding-topic" name="topic" type="search" maxlength="240" required placeholder="e.g. Python, JavaScript, React, SQL, web apps">' +
+              '<select id="de-coding-format" name="format" aria-label="Resource format">' +
+                '<option value="any">All formats</option>' +
+                '<option value="video">Videos</option>' +
+                '<option value="image">Images / diagrams</option>' +
+                '<option value="document">Text / documents</option>' +
+                '<option value="book">Books</option>' +
+                '<option value="interactive">Interactive practice</option>' +
+              '</select>' +
+              '<button class="de-action primary" type="submit">Find free learning</button>' +
+            '</div>' +
+          '</form>' +
+          '<div id="de-coding-results"><div class="de-resource-empty"><strong>Choose a method and enter a coding topic.</strong><p>Dream will search the connected learning-resource system for useful material.</p></div></div>' +
+        '</section>' +
+      '</div>'
+    );
+
+    document.querySelectorAll("[data-coding-method]").forEach(function (button) {
+      button.addEventListener("click", function () {
+        const method = button.getAttribute("data-coding-method");
+        saveCodingLearningPreference(method);
+        document.querySelectorAll("[data-coding-method]").forEach(function (item) {
+          item.classList.toggle("active", item === button);
+        });
+      });
+    });
+
+    const form = document.getElementById("de-coding-resource-form");
+    const results = document.getElementById("de-coding-results");
+    if (!form || !results) return;
+
+    form.addEventListener("submit", async function (event) {
+      event.preventDefault();
+      const topic = form.elements.topic.value.trim();
+      if (!topic) return;
+
+      const method = codingLearningPreference();
+      const format = form.elements.format.value;
+      results.innerHTML = '<div class="de-loading"><span></span><p>Finding coding learning resources...</p></div>';
+
+      try {
+        const params = new URLSearchParams({
+          q: topic + " programming coding " + method,
+          type: format,
+          learner_id: info.id,
+          limit: "12"
+        });
+        const data = await getJSON("/api/v1/learning/resources?" + params.toString(), auth);
+        results.innerHTML = renderResourceResults(data);
+      } catch (error) {
+        results.innerHTML = '<div class="de-error"><strong>Could not load coding resources.</strong><p>' +
+          escapeHTML(error.message) + '</p><div class="de-actions"><button type="button" class="de-action" id="de-retry-coding">Try again</button></div></div>';
+        const retry = document.getElementById("de-retry-coding");
+        if (retry) retry.addEventListener("click", function () {
+          form.dispatchEvent(new Event("submit", { cancelable: true }));
+        });
+      }
+    });
+  }
+
   function openConnections() {
     const button = document.querySelector('[data-action="open"][data-panel="connect"]');
     if (button) button.click();
