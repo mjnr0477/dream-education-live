@@ -47,10 +47,7 @@ function clampLimit(value) {
 }
 
 function wantedTypes(value) {
-  const allowed = new Set([
-    "video", "image", "audio", "article", "book", "document",
-    "research", "interactive", "experiment", "web", "any"
-  ]);
+  const allowed = new Set(["video", "audio", "text", "any"]);
   const values = Array.isArray(value) ? value : [value || "any"];
   const normalized = values.map(normalize).filter(Boolean);
   const selected = normalized.filter(type => allowed.has(type));
@@ -507,6 +504,39 @@ async function safeProvider(provider, operation) {
   }
 }
 
+function isCodingQuery(query) {
+  return /(python|javascript|typescript|java|c\\+\\+|c#|html|css|react|node|sql|git|github|programming|coding|web development|computer science|algorithm|data structure|machine learning|ai development)/i.test(normalize(query));
+}
+
+function curatedCodingResources(query, types, limit) {
+  if (!isCodingQuery(query)) return [];
+  const resources = [];
+  if (types.includes("any") || types.includes("text")) resources.push({
+    type: "text", provider: "mdn", source: "MDN Learn Web Development",
+    title: "MDN Learn Web Development",
+    description: "Free structured web-development learning covering HTML, CSS, JavaScript, accessibility, responsive design and practical development.",
+    content: "Start with environment setup and your first website, then progress through HTML, CSS and JavaScript. MDN also includes tests and challenges so you can practise and check your understanding.",
+    license: "Free to use"
+  });
+  if (types.includes("any") || types.includes("video")) {
+    resources.push({
+      type: "video", provider: "harvard_cs50", source: "Harvard CS50x",
+      title: "CS50x 2026 — learning sections",
+      description: "Free Harvard computer-science learning covering C, algorithms, memory, data structures, Python, SQL, HTML, CSS, JavaScript and Flask.",
+      embed_url: "https://www.youtube.com/embed/videoseries?list=PLhQjrBD2T3839iqxqUdw7NWOCboh00vsV",
+      creator: "Harvard University"
+    });
+    resources.push({
+      type: "video", provider: "freecodecamp", source: "freeCodeCamp.org",
+      title: "Introduction to Programming and Computer Science",
+      description: "Free beginner programming course covering variables, conditions, arrays, loops, errors, debugging, functions, data structures and recursion.",
+      embed_url: "https://www.youtube.com/embed/zOjov-2OZ0E",
+      creator: "freeCodeCamp.org"
+    });
+  }
+  return resources.slice(0, Math.min(Math.max(1, limit), 4));
+}
+
 async function discoverLearningResources(query, options = {}) {
   const learnerQuery = String(query || "").trim();
   if (!learnerQuery) {
@@ -528,102 +558,51 @@ async function discoverLearningResources(query, options = {}) {
     .join(" ")
     .trim();
 
+  const curated = curatedCodingResources(searchQuery, types, limit);
   const jobs = [];
 
-  if (wants(types, "image")) {
-    jobs.push(safeProvider("openverse", () =>
-      searchOpenverseImages(searchQuery, limit)));
-    jobs.push(safeProvider("wikimedia_commons", () =>
-      searchWikimediaImages(searchQuery, Math.min(limit, 8))));
-    jobs.push(safeProvider("nasa", () =>
-      searchNASAImages(searchQuery, Math.min(limit, 8))));
-  }
-
   if (wants(types, "audio")) {
-    jobs.push(safeProvider("openverse_audio", () =>
-      searchOpenverseAudio(searchQuery, limit)));
-    jobs.push(safeProvider("wikimedia_commons", () =>
-      searchWikimediaImages(searchQuery, Math.min(limit, 8))));
-    jobs.push(safeProvider("internet_archive", () =>
-      searchInternetArchive(searchQuery, Math.min(limit, 8))));
+    jobs.push(safeProvider("openverse_audio", () => searchOpenverseAudio(searchQuery, limit)));
+    jobs.push(safeProvider("internet_archive", () => searchInternetArchive(searchQuery, Math.min(limit, 8))));
   }
 
   if (wants(types, "video")) {
-    jobs.push(safeProvider("youtube", () =>
-      searchYouTube(searchQuery, limit)));
-    jobs.push(safeProvider("internet_archive", () =>
-      searchInternetArchive(searchQuery, Math.min(limit, 8))));
-    jobs.push(safeProvider("wikimedia_commons", () =>
-      searchWikimediaImages(searchQuery, Math.min(limit, 8))));
-    jobs.push(safeProvider("nasa", () =>
-      searchNASAImages(searchQuery, Math.min(limit, 8))));
+    jobs.push(safeProvider("youtube", () => searchYouTube(searchQuery, limit)));
+    jobs.push(safeProvider("internet_archive", () => searchInternetArchive(searchQuery, Math.min(limit, 8))));
+    jobs.push(safeProvider("wikimedia_commons", () => searchWikimediaImages(searchQuery, Math.min(limit, 8))));
+    jobs.push(safeProvider("nasa", () => searchNASAImages(searchQuery, Math.min(limit, 8))));
   }
 
-  if (wants(types, "experiment") || wants(types, "interactive")) {
-    jobs.push(safeProvider("phet", () =>
-      searchPhetExperiments(searchQuery, Math.min(limit, 4))));
-    jobs.push(safeProvider("nasa_osdr", () =>
-      searchNASAExperiments(searchQuery, Math.min(limit, 8))));
-  }
-
-  if (wants(types, "research")) {
-    jobs.push(safeProvider("crossref", () =>
-      searchCrossrefResearch(searchQuery, limit)));
-  }
-
-  if (
-    wants(types, "book") ||
-    wants(types, "document") ||
-    wants(types, "article") ||
-    wants(types, "web") ||
-    wants(types, "interactive") ||
-    wants(types, "any")
-  ) {
-    jobs.push(safeProvider("internet_archive", () =>
-      searchInternetArchive(searchQuery, limit)));
+  if (wants(types, "text")) {
+    jobs.push(safeProvider("internet_archive", () => searchInternetArchive(searchQuery, limit)));
+    jobs.push(safeProvider("crossref", () => searchCrossrefResearch(searchQuery, limit)));
   }
 
   const results = await Promise.all(jobs);
-  const resources = results
-    .flatMap(result => result.success ? result.resources : [])
-    .map(resource => ({
-      ...resource,
-      relevance: Number(scoreResource(resource, searchQuery, {
-        preferredTypes: types.filter(type => type !== "any")
-      }).toFixed(3))
-    }))
-    .filter(resource => resource.url || resource.media_url || resource.embed_url)
-    .map(resource => {
-      const mediaUrl = resource.media_url || "";
-      const directMedia = isDirectMediaUrl(mediaUrl, resource.type);
-      const embeddableMedia =
-        (resource.type === "video" || resource.type === "audio") &&
-        /^https?:\/\//i.test(resource.embed_url || "");
-      const visibleImage = resource.type === "image" && /^https?:\/\//i.test(mediaUrl);
-
-      return {
-        ...resource,
-        direct_media: directMedia,
-        media_playback: directMedia || embeddableMedia || visibleImage ? "embedded" : "external",
-        playable_in_app: directMedia || embeddableMedia || visibleImage
-      };
-    })
-    // Never present a page-only result as if it were the requested material.
-    // Books/research/web resources may remain page-based; media must be playable.
-    .filter(resource => {
-      const mediaTypes = new Set(["image", "audio", "video", "experiment", "interactive"]);
-      return !mediaTypes.has(resource.type) || resource.playable_in_app === true;
-    })
-    .map(resource => ({
-      ...resource,
-      resource_topic: conceptQuery,
-      relevance_reason: resource.relevance >= 1.05
-        ? "Strong concept match"
-        : resource.relevance >= 0.65
-          ? "Good concept match"
-          : "Possible related match"
-    }));
-
+  const curatedResults = curated.map(resource => ({
+    ...resource, relevance: 1.45, resource_topic: conceptQuery,
+    relevance_reason: "Curated official free coding source",
+    playable_in_app: resource.type === "video", media_playback: resource.type === "video" ? "embedded" : "inline"
+  }));
+  const resources = [
+    ...curatedResults,
+    ...results.flatMap(result => result.success ? result.resources : [])
+      .map(resource => {
+        let type = resource.type;
+        if (["article", "book", "document", "research", "web"].includes(type)) type = "text";
+        const content = resource.content || resource.description || resource.abstract || "";
+        const normalized = { ...resource, type, content, source: resource.source || resource.provider || "Learning source" };
+        const mediaUrl = normalized.media_url || "";
+        const directMedia = isDirectMediaUrl(mediaUrl, type);
+        const embeddableMedia = (type === "video" || type === "audio") && /^https?:\\/\\//i.test(normalized.embed_url || "");
+        return { ...normalized, direct_media: directMedia,
+          media_playback: type === "text" ? "inline" : (directMedia || embeddableMedia ? "embedded" : "external"),
+          playable_in_app: type === "text" ? Boolean(content) : (directMedia || embeddableMedia) };
+      })
+      .filter(resource => ["text", "video", "audio"].includes(resource.type))
+      .filter(resource => resource.type === "text" ? Boolean(resource.content) : resource.playable_in_app === true)
+      .map(resource => ({ ...resource, resource_topic: resource.resource_topic || conceptQuery,
+        relevance_reason: resource.relevance_reason || (resource.relevance >= 1.05 ? "Strong concept match" : resource.relevance >= 0.65 ? "Good concept match" : "Possible related match") }));
   const dedupe = new Map();
   for (const resource of resources) {
     const key = [
