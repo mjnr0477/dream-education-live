@@ -46,13 +46,25 @@ function loadAuthorizedCorpus() {
 }
 
 function scorePrivateItem(item, query) {
+  const title = String(item?.title || item?.name || '').toLowerCase();
   const haystack = [
     item?.title, item?.name, item?.content, item?.text, item?.description,
     ...(Array.isArray(item?.tags) ? item.tags : [])
   ].filter(Boolean).join(' ').toLowerCase();
 
-  const tokens = normalizeQuery(query).toLowerCase().split(/[^a-z0-9@.+_-]+/).filter(token => token.length > 1);
-  return tokens.reduce((score, token) => score + (haystack.includes(token) ? 1 : 0), 0);
+  const normalized = normalizeQuery(query).toLowerCase();
+  const tokens = normalized.split(/[^a-z0-9@.+_-]+/).filter(token => token.length > 1);
+  let score = 0;
+
+  if (normalized && title.includes(normalized)) score += 20;
+  if (normalized && haystack.includes(normalized)) score += 10;
+
+  for (const token of tokens) {
+    if (title.includes(token)) score += 4;
+    else if (haystack.includes(token)) score += 1;
+  }
+
+  return score;
 }
 
 function searchAuthorizedCorpus(query, limit = 8) {
@@ -67,7 +79,8 @@ function searchAuthorizedCorpus(query, limit = 8) {
       type: String(item?.type || 'authorized').trim(),
       excerpt: String(item?.content || item?.text || item?.description || JSON.stringify(item)).trim().slice(0, 5000),
       match_score: score,
-      private: true
+      private: true,
+      authorized: true
     }));
 }
 
@@ -157,12 +170,15 @@ function registerDreamSearchRoutes(app, options = {}) {
         success: true,
         mode: 'authorized',
         query,
+        authorized_results: privateResults,
         public_results: publicResult.results || [],
         private_results: privateResults,
         private_data_configured: loadAuthorizedCorpus().length > 0,
+        search_scope: 'owner-authorized-data-and-public-sources',
+        precedence: 'Authorized data is shown first when it matches; public evidence is retained for cross-checking.',
         message: privateResults.length
-          ? 'Authorized results found.'
-          : 'No matching authorized private records were found. Public results are included.'
+          ? 'Authorized information found. Public evidence is included for cross-checking.'
+          : 'No matching authorized records were found. Public information is included.'
       });
     } catch (error) {
       console.error('Dream authorized search error:', error);
