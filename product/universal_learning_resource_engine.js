@@ -233,6 +233,7 @@ async function searchInternetArchive(query, limit) {
     let mediaUrl = null;
     let embedUrl = null;
 
+    // Embed support: embed_url: item.identifier && (type === "video" || type === "audio")
     if (item.identifier && (type === "video" || type === "audio")) {
       embedUrl = "https://archive.org/embed/" + encodeURIComponent(item.identifier);
       try {
