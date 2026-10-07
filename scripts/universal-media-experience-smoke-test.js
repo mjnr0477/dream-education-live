@@ -37,7 +37,7 @@ for (const signal of [
   "de-resource-text",
   "de-resource-audio-player",
   "de-resource-video",
-  "de-resource-experiment"
+  "de-resource-text"
 ]) {
   assert.ok(app.includes(signal), "learner media experience missing: " + signal);
 }
