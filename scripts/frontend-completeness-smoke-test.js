@@ -102,4 +102,11 @@ if (!workspace.includes("<video") || !workspace.includes("<audio") || !workspace
   throw new Error("Inline text/video/audio material experience is incomplete.");
 }
 
+if (app.includes('data-answer-resource-type="image"') || app.includes('data-answer-resource-type="experiment"')) {
+  throw new Error("Learner resource choices must be limited to video, text and audio.");
+}
+if (app.includes("<a ") || workspace.includes("<a ")) {
+  throw new Error("Learner-facing frontend must not render anchor links.");
+}
+
 console.log("Frontend completeness smoke test passed.");
