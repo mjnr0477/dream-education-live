@@ -17,9 +17,9 @@ for (const signal of [
   'Professional',
   'Watch video',
   'Listen to audio',
-  'Experiment / demonstration',
   'de-resource-video-player',
-  'de-resource-audio-player'
+  'de-resource-audio-player',
+  'Video, text and audio learning'
 ]) {
   assert.ok(app.includes(signal), "lesson player missing: " + signal);
 }
