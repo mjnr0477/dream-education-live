@@ -6082,6 +6082,10 @@ async function openMultimodalLearning() {
       visual = '<div class="de-resource-video"><iframe src="' + escapeHtml(embedUrl) + '" title="' + title + '" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>';
     } else if (type === "audio" && mediaUrl && /^https?:\/\//i.test(mediaUrl)) {
       visual = '<div class="de-resource-audio"><div class="de-resource-audio-title">Listen now</div><audio class="de-resource-audio-player" controls preload="none" src="' + escapeHtml(mediaUrl) + '"></audio></div>';
+    } else if (type === "audio" && embedUrl && /^https?:\/\//i.test(embedUrl)) {
+      visual = '<div class="de-resource-video"><iframe src="' + escapeHtml(embedUrl) + '" title="' + title + '" loading="lazy" allow="autoplay; fullscreen"></iframe></div>';
+    } else if (type === "video" && mediaUrl && /^https?:\/\//i.test(mediaUrl)) {
+      visual = '<video class="de-resource-video-player" controls preload="metadata" src="' + escapeHtml(mediaUrl) + '"></video>';
     } else if (type === "video" && resource.thumbnail) {
       visual = '<a class="de-resource-image-link" href="' + escapeHtml(safeHref) + '" target="_blank" rel="noopener noreferrer"><img class="de-resource-image" src="' + escapeHtml(resource.thumbnail) + '" alt="' + title + '" loading="lazy"></a>';
     }
