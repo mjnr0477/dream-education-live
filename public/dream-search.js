@@ -72,7 +72,7 @@
     `).join('');
   }
 
-  async function search(query) {
+  async function search(query, onSuccess) {
     const { status } = elements();
     if (!query.trim()) return;
     status.textContent = 'Searching…';
@@ -103,12 +103,66 @@
       }
 
       renderResults(data);
+      if (typeof onSuccess === 'function') onSuccess(data);
       status.textContent = state.mode === 'authorized'
         ? 'Authorized Search — owner access'
         : 'Public Search';
     } catch (error) {
       status.textContent = error.message || 'Search failed.';
     }
+  }
+
+
+
+  function openAuthorizedSearch() {
+    if (!isOwnerSignedIn()) {
+      return;
+    }
+
+    const host = document.getElementById('panel-body');
+    const title = document.getElementById('panel-title');
+    const kicker = document.getElementById('panel-kicker');
+    const description = document.getElementById('panel-description');
+    if (!host || !title || !kicker || !description) return;
+
+    state.mode = 'authorized';
+    kicker.textContent = 'OWNER SEARCH';
+    title.textContent = 'Authorized Search';
+    description.textContent = 'Owner-only search. Connected public evidence and legitimately authorized information are combined here; owner-authorized overrides take precedence.';
+
+    host.innerHTML = `
+      <form class="dream-search-box" id="dream-authorized-connect-form">
+        <input id="dream-authorized-connect-input" type="search" placeholder="Search authorized and public information…" aria-label="Authorized Search">
+        <button class="dream-search-button" type="submit">Search</button>
+      </form>
+      <div class="dream-search-status" id="dream-authorized-connect-status" aria-live="polite">Owner access confirmed</div>
+      <div class="dream-search-results" id="dream-authorized-connect-results" aria-live="polite"></div>
+      <div class="panel-actions">
+        <button class="panel-action secondary" type="button" data-action="open" data-panel="connect">Back to Connect</button>
+      </div>
+    `;
+
+    document.body.classList.add('panel-open');
+    const form = document.getElementById('dream-authorized-connect-form');
+    form?.addEventListener('submit', function (event) {
+      event.preventDefault();
+      const input = document.getElementById('dream-authorized-connect-input');
+      const query = input?.value || '';
+      search(query, function (data) {
+        const resultsHost = document.getElementById('dream-authorized-connect-results');
+        const statusHost = document.getElementById('dream-authorized-connect-status');
+        if (!resultsHost || !statusHost) return;
+        const results = [...(data.authorized_results || data.private_results || []), ...(data.public_results || [])];
+        resultsHost.innerHTML = results.length ? results.map(item => \`
+          <article class="dream-search-result${item.private ? ' dream-search-private' : ''}">
+            <h3>${escapeHtml(item.title || 'Information')}</h3>
+            <p>${escapeHtml(item.excerpt || item.content || 'No excerpt available.')}</p>
+            <div class="dream-search-source">${escapeHtml(item.source || 'Dream source')}${item.authoritative ? ' · Owner authoritative' : item.private ? ' · Authorized data' : ''}</div>
+          </article>
+        \`).join('') : '<div class="dream-search-result"><p>No matching information was found.</p></div>';
+        statusHost.textContent = 'Authorized Search — owner access';
+      });
+    });
   }
 
   function setMode(mode) {
@@ -122,6 +176,8 @@
       status.textContent = 'Public Search';
     }
   }
+
+  window.DreamEducationSearch = { openAuthorizedSearch };
 
   syncAuthorizedVisibility();
   window.addEventListener('dream-education-auth-changed', syncAuthorizedVisibility);
