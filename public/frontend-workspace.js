@@ -201,12 +201,17 @@
         '<p>' + escapeHTML(description.slice(0, 420)) + '</p>' +
         (attribution ? '<small class="de-muted">' + escapeHTML(attribution) + '</small>' : '') +
         (safeUrl ? '<a class="de-resource-open" href="' + escapeHTML(safeUrl) + '" target="_blank" rel="noopener noreferrer">Open original resource ↗</a>' : '') +
+        '<div class="de-resource-actions">' +
+          '<button type="button" class="de-action" data-resource-complete="' + index + '">I finished this</button>' +
+          '<button type="button" class="de-action" data-resource-check="' + index + '">Check my understanding</button>' +
+        '</div>' +
       '</div>' +
     '</article>';
   }
 
   function renderResourceResults(data) {
     const resources = Array.isArray(data.resources) ? data.resources : [];
+    window.__dreamResourceResults = resources;
     const intent = data.intent || {};
     if (!resources.length) {
       return '<div class="de-resource-empty"><strong>No resource was found yet.</strong><p>Try a broader topic or another learning format.</p></div>';
@@ -217,6 +222,86 @@
       '<div class="de-resource-grid">' +
       resources.map(renderResource).join("") +
       '</div>';
+  }
+
+  async function recordResourceProgress(resource, completed) {
+    const auth = getAuth();
+    const info = accountInfo(auth);
+    if (!auth || !info.id || !resource) return;
+    try {
+      const response = await fetch("/api/v1/learning/resources/progress", {
+        method: "POST",
+        headers: Object.assign({ "Content-Type": "application/json" }, headers(auth)),
+        credentials: "same-origin",
+        body: JSON.stringify({
+          learner_id: info.id,
+          completed: completed === true,
+          resource: resource
+        })
+      });
+      const data = await response.json().catch(function () { return {}; });
+      if (!response.ok || data.success === false) throw new Error(data.error || "Could not record learning progress.");
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  function openUnderstandingCheck(resource) {
+    const auth = getAuth();
+    const info = accountInfo(auth);
+    const topic = resource && (resource.title || resource.description) || "this learning resource";
+    openPanel(
+      "UNDERSTANDING CHECK",
+      "Show what you learned",
+      "Explain the idea in your own words. Dream will use your response as new learning evidence.",
+      '<div class="de-workspace">' +
+        '<section class="de-section de-highlight">' +
+          '<h3>' + escapeHTML(topic) + '</h3>' +
+          '<textarea id="de-resource-answer" rows="7" maxlength="4000" placeholder="What did you learn? Explain it in your own words."></textarea>' +
+          '<div class="de-actions">' +
+            '<button type="button" class="de-action primary" id="de-submit-resource-check">Submit understanding</button>' +
+            '<button type="button" class="de-action" data-de-action="resources">Back to resources</button>' +
+          '</div>' +
+          '<div id="de-resource-check-result" aria-live="polite"></div>' +
+        '</section>' +
+      '</div>'
+    );
+    const submit = document.getElementById("de-submit-resource-check");
+    if (!submit) return;
+    submit.addEventListener("click", async function () {
+      const answer = document.getElementById("de-resource-answer").value.trim();
+      const result = document.getElementById("de-resource-check-result");
+      if (!answer) {
+        result.innerHTML = '<p class="de-error">Please explain what you learned first.</p>';
+        return;
+      }
+      submit.disabled = true;
+      result.innerHTML = '<div class="de-loading"><span></span><p>Checking your understanding...</p></div>';
+      try {
+        await recordResourceProgress(resource, true);
+        const response = await fetch("/api/learn", {
+          method: "POST",
+          headers: Object.assign({ "Content-Type": "application/json" }, headers(auth)),
+          credentials: "same-origin",
+          body: JSON.stringify({
+            learner_id: info.id,
+            question: "Check my understanding of " + (resource.title || "this learning resource"),
+            subject: resource.subject || "General",
+            topic: resource.topic || resource.title || "Learning resource",
+            learner_answer: answer
+          })
+        });
+        const data = await response.json().catch(function () { return {}; });
+        if (!response.ok || data.success === false) throw new Error(data.message || data.error || "Understanding check failed.");
+        result.innerHTML = '<div class="de-success"><strong>Understanding recorded.</strong><p>' +
+          escapeHTML(data.message || data.feedback || "Dream has recorded your learning evidence.") + '</p></div>';
+      } catch (error) {
+        result.innerHTML = '<div class="de-error"><strong>Could not complete the check.</strong><p>' + escapeHTML(error.message) + '</p></div>';
+      } finally {
+        submit.disabled = false;
+      }
+    });
   }
 
   function openLearningResources(initialQuery) {
@@ -678,7 +763,32 @@
   }
 
   document.addEventListener("click", function (event) {
+    const completeButton = event.target.closest("[data-resource-complete]");
+    if (completeButton) {
+      const resource = (window.__dreamResourceResults || [])[Number(completeButton.getAttribute("data-resource-complete"))];
+      if (!resource) return;
+      completeButton.disabled = true;
+      recordResourceProgress(resource, true)
+        .then(function () {
+          completeButton.textContent = "Completed ✓";
+        })
+        .catch(function (error) {
+          completeButton.disabled = false;
+          completeButton.textContent = "Try again";
+          window.alert(error.message);
+        });
+      return;
+    }
+    const checkButton = event.target.closest("[data-resource-check]");
+    if (checkButton) {
+      const resource = (window.__dreamResourceResults || [])[Number(checkButton.getAttribute("data-resource-check"))];
+      if (resource) openUnderstandingCheck(resource);
+      return;
+    }
+
+
     const target = event.target.closest("[data-de-action]");
+    if (!target) return;
     if (!target) return;
 
     const name = target.getAttribute("data-de-action");
