@@ -1052,7 +1052,7 @@ app.use((req, res, next) => {
 
 app.use(express.json({ limit: "1mb" }));
 app.use(express.static(path.join(__dirname, "public")));
-registerDreamSearchRoutes(app);
+registerDreamSearchRoutes(app, { getAuthenticatedAccount, isOwnerAccount });
 
 app.get("/api/health", (req, res) => {
   res.json({
