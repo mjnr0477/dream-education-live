@@ -137,6 +137,16 @@ function buildQueryUrl(connector, query) {
     url.searchParams.set(String(connector.limit_param), String(connector.limit || 8));
   }
 
+  if (connector.page_param) {
+    url.searchParams.set(String(connector.page_param), String(connector.page || 1));
+  }
+
+  if (connector.offset_param) {
+    const pageSize = Number(connector.page_size || connector.limit || 8);
+    const page = Math.max(1, Number(connector.page || 1));
+    url.searchParams.set(String(connector.offset_param), String((page - 1) * pageSize));
+  }
+
   return url.toString();
 }
 
@@ -169,19 +179,34 @@ function normalizeRow(row, connector, index) {
 }
 
 async function searchConnector(connector, query, limit = 8) {
-  const url = buildQueryUrl({ ...connector, limit }, query);
-  if (!url) return [];
-
+  const pageSize = Math.min(Math.max(Number(connector.page_size || limit) || 8, 1), 20);
+  const maxPages = Math.min(Math.max(Number(connector.max_pages || 1) || 1, 1), 5);
   const headers = resolveHeaders(connector.headers);
-  const data = await requestJson(url, {
-    headers,
-    timeout: connector.timeout || DEFAULT_TIMEOUT
-  });
+  const results = [];
 
-  return normalizeRows(data, connector)
-    .map((row, index) => normalizeRow(row, connector, index))
-    .filter(row => row.excerpt.length >= 1)
-    .slice(0, Math.min(Number(limit) || 8, 20));
+  for (let page = 1; page <= maxPages; page += 1) {
+    const url = buildQueryUrl({ ...connector, limit: pageSize, page, page_size: pageSize }, query);
+    if (!url) break;
+
+    try {
+      const data = await requestJson(url, {
+        headers,
+        timeout: connector.timeout || DEFAULT_TIMEOUT
+      });
+
+      const rows = normalizeRows(data, connector)
+        .map((row, index) => normalizeRow(row, connector, results.length + index))
+        .filter(row => row.excerpt.length >= 1);
+
+      results.push(...rows);
+      if (rows.length < pageSize) break;
+    } catch (error) {
+      if (!results.length) throw error;
+      break;
+    }
+  }
+
+  return results.slice(0, Math.min(Number(limit) || 8, 100));
 }
 
 async function searchAuthorizedSources(query, limit = 8) {
