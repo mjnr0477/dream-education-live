@@ -175,7 +175,11 @@ function registerDreamSearchRoutes(app, options = {}) {
       return { success: false, status: 503, error: 'Authorized Search owner protection is not configured.' };
     }
 
+    const ownerAuthorization = String(req.headers['x-dream-owner-token'] || req.headers.authorization || '');
+    const originalAuthorization = req.headers.authorization;
+    req.headers.authorization = ownerAuthorization;
     const auth = await getAuthenticatedAccount(req);
+    req.headers.authorization = originalAuthorization;
     if (!auth.success) return auth;
 
     if (!isOwnerAccount(auth.account)) {
