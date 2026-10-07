@@ -7486,6 +7486,7 @@ async function openAskDreamEducation() {
   questionBox.focus();
 }
 
+// Supported multimodal UI labels: Watch video · Read text · Listen to audio · Read an explanation.
 // Supported source capability label: Experiment / demonstration (rendered as explanatory text, never as a raw link).
 function renderDreamLearningResources(resources) {
   const items = Array.isArray(resources) ? resources.slice(0, 8) : [];
