@@ -157,7 +157,7 @@ async function searchWikimediaImages(query, limit) {
     "https://commons.wikimedia.org/w/api.php?action=query&generator=search" +
     "&gsrsearch=" + encodeURIComponent(query) +
     "&gsrnamespace=6&gsrlimit=" + encodeURIComponent(limit) +
-    "&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=800&format=json&origin=*";
+    "&prop=imageinfo&iiprop=url|mime|mediatype|extmetadata&iiurlwidth=800&format=json&origin=*";
 
   const data = await fetchJson(url);
   const pages = Object.values(data.query?.pages || {});
