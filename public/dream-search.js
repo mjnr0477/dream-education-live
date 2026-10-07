@@ -31,7 +31,7 @@
     const el = elements().results;
     if (!el) return;
     const results = state.mode === 'authorized'
-      ? [...(data.private_results || []), ...(data.public_results || [])]
+      ? [...(data.authorized_results || data.private_results || []), ...(data.public_results || [])]
       : (data.results || []);
 
     if (!results.length) {
