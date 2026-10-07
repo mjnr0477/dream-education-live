@@ -291,6 +291,36 @@ async function searchPhetExperiments(query, limit) {
   }].slice(0, limit);
 }
 
+
+async function searchCrossrefResearch(query, limit) {
+  const url =
+    "https://api.crossref.org/works?query.bibliographic=" +
+    encodeURIComponent(query) +
+    "&rows=" + encodeURIComponent(limit) +
+    "&select=DOI,title,author,published,URL,type,abstract,license";
+
+  const data = await fetchJson(url, {
+    headers: {
+      "User-Agent": "Dream-Education/1.0 (educational-resource-discovery)"
+    }
+  });
+
+  const items = data.message?.items || [];
+  return items.map(item => ({
+    type: "research",
+    provider: "crossref",
+    title: Array.isArray(item.title) ? item.title[0] : (item.title || "Research work"),
+    description: item.abstract || "",
+    url: item.URL || (item.DOI ? "https://doi.org/" + item.DOI : null),
+    doi: item.DOI || null,
+    creator: Array.isArray(item.author)
+      ? item.author.slice(0, 4).map(author => [author.given, author.family].filter(Boolean).join(" ")).join(", ")
+      : null,
+    published_at: item.published?.["date-parts"]?.[0]?.join("-") || null,
+    license: Array.isArray(item.license) ? item.license[0]?.URL || null : null
+  }));
+}
+
 async function searchYouTube(query, limit) {
   const key = String(process.env.YOUTUBE_API_KEY || "").trim();
   if (!key) return [];
@@ -401,10 +431,14 @@ async function discoverLearningResources(query, options = {}) {
       searchNASAExperiments(searchQuery, Math.min(limit, 8))));
   }
 
+  if (wants(types, "research")) {
+    jobs.push(safeProvider("crossref", () =>
+      searchCrossrefResearch(searchQuery, limit)));
+  }
+
   if (
     wants(types, "book") ||
     wants(types, "document") ||
-    wants(types, "research") ||
     wants(types, "article") ||
     wants(types, "web") ||
     wants(types, "interactive") ||
@@ -460,5 +494,6 @@ module.exports = {
   searchYouTube,
   searchNASAImages,
   searchNASAExperiments,
-  searchPhetExperiments
+  searchPhetExperiments,
+  searchCrossrefResearch
 };
