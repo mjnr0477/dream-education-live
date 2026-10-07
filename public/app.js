@@ -266,6 +266,7 @@
   function saveAuth(data) {
     try {
       localStorage.setItem(AUTH_KEY, JSON.stringify(data));
+      window.dispatchEvent(new CustomEvent("dream-education-auth-changed"));
     } catch (error) {
       console.error("Could not save authentication state:", error);
     }
