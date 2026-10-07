@@ -310,7 +310,7 @@
     openPanel(
       "LEARNING RESOURCES",
       "Learn your way",
-      "Find videos, pictures, audio, books, research and interactive experiences for any topic.",
+      "Find text, video and audio learning material for any topic.",
       '<div class="de-resource-workspace">' +
         '<form class="de-resource-form" id="de-resource-form">' +
           '<label for="de-resource-query">What do you want to learn?</label>' +
@@ -849,6 +849,7 @@
         });
         const data = await getJSON("/api/v1/learning/resources?" + params.toString(), auth);
         results.innerHTML = renderResourceResults(data);
+        wireResourceMediaCompletion(results);
       } catch (error) {
         results.innerHTML = '<div class="de-error"><strong>Could not load coding resources.</strong><p>' +
           escapeHTML(error.message) + '</p><div class="de-actions"><button type="button" class="de-action" id="de-retry-coding">Try again</button></div></div>';
