@@ -280,13 +280,14 @@
       result.innerHTML = '<div class="de-loading"><span></span><p>Checking your understanding...</p></div>';
       try {
         await recordResourceProgress(resource, true);
-        const response = await fetch("/api/learn", {
+        const response = await fetch("/api/session", {
           method: "POST",
           headers: Object.assign({ "Content-Type": "application/json" }, headers(auth)),
           credentials: "same-origin",
           body: JSON.stringify({
             learner_id: info.id,
-            question: "Check my understanding of " + (resource.title || "this learning resource"),
+            name: info.name,
+            question: "Explain what you learned from " + (resource.title || "this learning resource"),
             subject: resource.subject || "General",
             topic: resource.topic || resource.title || "Learning resource",
             learner_answer: answer
