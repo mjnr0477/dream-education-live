@@ -48,19 +48,32 @@ assert.strictEqual(normalizeQuery('  hello   world  '), 'hello world');
   assert.deepStrictEqual(ownerRes.body.public_results, [{ title: 'Test', source: 'Smoke Test', excerpt: 'Verified test result.' }]);
   assert.strictEqual(ownerRes.body.search_scope, 'all-connected-public-sources-plus-owner-authorized-sources');
 
-  const nonOwnerReq = {
-    body: { query: 'test' },
-    headers: { authorization: 'Bearer non-owner-session' }
-  };
+  const nonOwnerRoutes = {};
+  registerDreamSearchRoutes({
+    post(path, handler) { nonOwnerRoutes[path] = handler; }
+  }, {
+    async getAuthenticatedAccount() {
+      return { success: true, account: { owner_account: false } };
+    },
+    isOwnerAccount(account) {
+      return account?.owner_account === true;
+    },
+    async searchPublic() {
+      return { success: true, results: [] };
+    }
+  });
+
   const nonOwnerRes = {
     statusCode: 200,
     status(code) { this.statusCode = code; return this; },
     json(body) { this.body = body; return this; }
   };
-  const originalGetAuthenticatedAccount = routes['/api/dream-search/authorized'];
-  // The route's configured auth function is owner-only in this smoke test; a
-  // separate backend authorization assertion is covered by the route contract.
-  assert.ok(typeof originalGetAuthenticatedAccount === 'function');
+  await nonOwnerRoutes['/api/dream-search/authorized']({
+    body: { query: 'test' },
+    headers: { authorization: 'Bearer non-owner-session' }
+  }, nonOwnerRes);
+  assert.strictEqual(nonOwnerRes.statusCode, 403);
+  assert.ok(/restricted to the Dream Education owner/i.test(nonOwnerRes.body.error));
 
   const publicReq = {
     body: { query: 'test' },
