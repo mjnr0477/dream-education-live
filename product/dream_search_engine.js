@@ -78,23 +78,38 @@ function loadAuthorizedOverrides() {
 }
 
 function scorePrivateItem(item, query) {
+  const normalized = normalizeQuery(query).toLowerCase();
   const title = String(item?.title || item?.name || '').toLowerCase();
+  const aliases = [
+    ...(Array.isArray(item?.aliases) ? item.aliases : []),
+    ...(Array.isArray(item?.keywords) ? item.keywords : []),
+    ...(Array.isArray(item?.tags) ? item.tags : [])
+  ].map(value => String(value || '').toLowerCase());
+
   const haystack = [
     item?.title, item?.name, item?.content, item?.text, item?.description,
-    ...(Array.isArray(item?.tags) ? item.tags : [])
+    item?.answer, item?.summary, ...aliases
   ].filter(Boolean).join(' ').toLowerCase();
 
-  const normalized = normalizeQuery(query).toLowerCase();
   const tokens = normalized.split(/[^a-z0-9@.+_-]+/).filter(token => token.length > 1);
   let score = 0;
 
-  if (normalized && title.includes(normalized)) score += 20;
-  if (normalized && haystack.includes(normalized)) score += 10;
+  if (normalized && title.includes(normalized)) score += 40;
+  if (normalized && haystack.includes(normalized)) score += 20;
 
   for (const token of tokens) {
-    if (title.includes(token)) score += 4;
-    else if (haystack.includes(token)) score += 1;
+    if (title.includes(token)) score += 6;
+    else if (haystack.includes(token)) score += 2;
+    if (aliases.some(alias => alias === token || alias.includes(token))) score += 3;
   }
+
+  const configuredQueries = [
+    item?.query,
+    ...(Array.isArray(item?.queries) ? item.queries : [])
+  ].map(value => normalizeQuery(value).toLowerCase()).filter(Boolean);
+
+  if (configuredQueries.some(value => value === normalized)) score += 100;
+  if (configuredQueries.some(value => normalized.includes(value) || value.includes(normalized))) score += 50;
 
   return score;
 }
@@ -111,12 +126,26 @@ function searchAuthorizedCorpus(query, limit = 8) {
       title: String(item?.title || item?.name || 'Authorized record ' + (index + 1)).trim(),
       source: String(item?.source || 'Authorized data').trim(),
       type: String(item?.type || 'authorized').trim(),
-      excerpt: String(item?.content || item?.text || item?.description || JSON.stringify(item)).trim().slice(0, 5000),
+      excerpt: String(
+        item?.answer ||
+        item?.content ||
+        item?.text ||
+        item?.description ||
+        item?.summary ||
+        JSON.stringify(item)
+      ).trim().slice(0, 5000),
       match_score: score,
       private: true,
       authorized: true,
-      authoritative: Boolean(item?._authorized_override),
-      precedence: item?._authorized_override ? 'owner-authoritative' : 'authorized-source'
+      authoritative: Boolean(item?._authorized_override || item?.authoritative),
+      precedence: item?._authorized_override || item?.authoritative
+        ? 'owner-authoritative'
+        : 'authorized-source',
+      target_title: String(item?.target_title || '').trim() || null,
+      target_provider: String(item?.target_provider || '').trim() || null,
+      target_source: String(item?.target_source || '').trim() || null,
+      connector_id: String(item?.connector_id || '').trim() || null,
+      access_scope: String(item?.access_scope || 'owner-authorized').trim()
     }));
 }
 
@@ -255,14 +284,35 @@ function registerDreamSearchRoutes(app, options = {}) {
       const authorizedResults = [
         ...(privateResults || []),
         ...((connectorResult && connectorResult.results) || [])
-      ];
+      ]
+        .filter(item => String(item?.excerpt || item?.content || '').trim().length > 0)
+        .sort((a, b) => {
+          const authority = Number(Boolean(b?.authoritative)) - Number(Boolean(a?.authoritative));
+          if (authority) return authority;
+          return Number(b?.match_score || 0) - Number(a?.match_score || 0);
+        });
+
+      const mergedResults = mergeAuthorizedWithPublic(publicResult.results, authorizedResults)
+        .filter((item, index, all) => {
+          const key = [
+            String(item?.title || '').trim().toLowerCase(),
+            String(item?.provider || item?.source || '').trim().toLowerCase(),
+            String(item?.excerpt || '').trim().slice(0, 160).toLowerCase()
+          ].join('|');
+          return all.findIndex(candidate => [
+            String(candidate?.title || '').trim().toLowerCase(),
+            String(candidate?.provider || candidate?.source || '').trim().toLowerCase(),
+            String(candidate?.excerpt || '').trim().slice(0, 160).toLowerCase()
+          ].join('|') === key) === index;
+        })
+        .slice(0, 30);
 
       return res.json({
         success: true,
         mode: 'authorized',
         query,
         authorized_results: authorizedResults,
-        results: mergeAuthorizedWithPublic(publicResult.results, authorizedResults),
+        results: mergedResults,
         // Never create a separate public-source path for Authorized Search: reuse the exact
         // public result set so the owner sees everything Public Search can see, plus authorized data.
         public_results: Array.isArray(publicResult.results) ? publicResult.results : [],
@@ -275,6 +325,10 @@ function registerDreamSearchRoutes(app, options = {}) {
         source_policy: 'Public Search may use only public sources. Authorized Search may use all connected public sources plus owner-authorized sources.',
         precedence: 'Owner-authorized overrides are authoritative for the owner search; other authorized records come next; the complete connected public-source result set remains available for cross-checking.',
         connected_source_count: Object.values(publicResult.providers || {}).filter(Boolean).length,
+        result_count: mergedResults.length,
+        authorized_result_count: authorizedResults.length,
+        retrieval_cap: 30,
+        owner_authority: 'highest application-level knowledge precedence within explicitly authorized sources',
         connected_providers: Object.entries(publicResult.providers || {}).filter(([, connected]) => connected).map(([provider]) => provider),
         message: authorizedResults.length
           ? 'Authorized information found. Public evidence is included for cross-checking.'
