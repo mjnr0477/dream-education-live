@@ -170,6 +170,8 @@
       media = '<video class="de-resource-video-player" controls preload="metadata" src="' + escapeHTML(mediaUrl) + '" data-resource-media="video"></video>';
     } else if (type === "audio" && mediaUrl) {
       media = '<div class="de-resource-audio"><div class="de-resource-audio-title">Listen here</div><audio controls preload="metadata" src="' + escapeHTML(mediaUrl) + '" data-resource-media="audio"></audio></div>';
+    } else if (type === "audio" && embedUrl) {
+      media = '<div class="de-resource-video de-resource-audio-embed"><iframe src="' + escapeHTML(embedUrl) + '" title="' + escapeHTML(title) + '" loading="lazy" allow="autoplay" allowfullscreen></iframe></div>';
     } else if (type === "text") {
       media = '<div class="de-resource-text">' + escapeHTML(content).replace(/\n/g, "<br>") + '</div>';
     }
