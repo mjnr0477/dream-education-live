@@ -6434,11 +6434,9 @@ document.addEventListener("click", function (event) {
         ? getAuth()
         : null;
 
-    const isOwner =
-      isOwnerAccount(auth) &&
-      Boolean(auth?.session?.access_token);
-
-    if (!isOwner) {
+    const token = auth?.session?.access_token || "";
+    if (!token) {
+      console.warn("Authorized Search: no authenticated session token.");
       return;
     }
 
@@ -6447,6 +6445,8 @@ document.addEventListener("click", function (event) {
       typeof window.DreamEducationSearch.openAuthorizedSearch === "function"
     ) {
       window.DreamEducationSearch.openAuthorizedSearch();
+    } else {
+      console.error("Authorized Search module is not loaded.");
     }
     return;
   }
