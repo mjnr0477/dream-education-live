@@ -92,4 +92,14 @@ if (/Test Learner View/.test(app)) {
   throw new Error("Non-functional teacher test control remains.");
 }
 
+for (const [name, source] of [["public/index.html", index], ["public/app.js", app], ["public/frontend-workspace.js", workspace]]) {
+  if (/<a\\b/i.test(source) || /target\\s*=\\s*["\']_blank/i.test(source)) {
+    throw new Error("Learner-facing frontend must not render material links: " + name);
+  }
+}
+
+if (!workspace.includes("<video") || !workspace.includes("<audio") || !workspace.includes("Source:")) {
+  throw new Error("Inline text/video/audio material experience is incomplete.");
+}
+
 console.log("Frontend completeness smoke test passed.");
