@@ -1392,61 +1392,6 @@ document.addEventListener("click", function (event) {
       toggleMenu();
     }
   });
-    if (!trigger) return;
-
-    const action = trigger.dataset.action;
-
-    if (action === "open") {
-      const targetPanel = trigger.dataset.panel || "learn";
-      const auth = window.DreamEducationUI && window.DreamEducationUI.getAuth ? window.DreamEducationUI.getAuth() : null;
-
-      /*
-       * Learner dashboard opening is handled by the dedicated learner
-       * listener above. Do not open it again here: both document listeners
-       * receive the same click event, and the previous implementation
-       * launched two dashboard requests at once.
-       */
-      if (targetPanel === "learn" && auth && auth.success) {
-        return;
-      }
-
-      if (
-        targetPanel === "teach" &&
-        auth &&
-        auth.success &&
-        String(auth.role || (auth.account && auth.account.role) || "").toLowerCase() === "teacher"
-      ) {
-        openTeacherDashboard();
-        return;
-      }
-
-      openPanel(targetPanel);
-      return;
-    }
-
-    if (action === "parent-child") {
-      const learnerId = trigger.dataset.learnerId;
-      if (typeof openParentChildOverview === "function") {
-        openParentChildOverview(learnerId);
-      }
-      return;
-    }
-
-    if (action === "close") {
-      closePanel();
-      return;
-    }
-
-    if (action === "home") {
-      closePanel();
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      return;
-    }
-
-    if (action === "menu") {
-      toggleMenu();
-    }
-  });
 
   document.addEventListener("change", function (event) {
     if (event.target && event.target.id === "auth-role") {
