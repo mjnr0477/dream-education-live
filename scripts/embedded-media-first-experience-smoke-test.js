@@ -14,6 +14,10 @@ assert.ok(!app.includes("Open source</a>"), "media cards must not be link-first"
 assert.ok(css.includes(".de-media-stage"), "embedded media styling missing");
 assert.ok(engine.includes("direct_media"), "engine must expose direct media capability");
 assert.ok(engine.includes("media_playback"), "engine must expose playback mode");
+assert.ok(engine.includes("playable_in_app"), "engine must mark media that can actually play in-app");
+assert.ok(engine.includes("images-api.nasa.gov/asset/"), "NASA video assets must resolve to playable media");
+assert.ok(engine.includes("archive.org/metadata/"), "Internet Archive media must resolve playable files when available");
+assert.ok(engine.includes("Never present a page-only result"), "page-only media must not be presented as playable");
 
 new Function(app);
 new Function(engine);
