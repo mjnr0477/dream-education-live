@@ -303,22 +303,45 @@ async function searchNASAExperiments(query, limit) {
 }
 
 async function searchPhetExperiments(query, limit) {
-  const normalizedQuery = encodeURIComponent(String(query || "").trim());
-  if (!normalizedQuery) return [];
+  const raw = String(query || "").trim();
+  const normalized = normalize(raw);
+  if (!normalized) return [];
+
+  const simulations = [
+    { terms:["circuit","electricity","current","voltage","ohm","resistor","resistance"], title:"Circuit Construction Kit: DC", description:"Build circuits, connect batteries, bulbs, switches and resistors, and measure voltage and current.", slug:"circuit-construction-kit-dc" },
+    { terms:["greenhouse","climate","carbon dioxide","co2","atmosphere"], title:"The Greenhouse Effect", description:"Explore how atmospheric gases affect radiation and temperature in a visual interactive model.", slug:"greenhouse-effect" },
+    { terms:["gas","pressure","temperature","volume","particle"], title:"Gas Properties", description:"Change pressure, volume and temperature and observe particle behavior in an interactive model.", slug:"gas-properties" },
+    { terms:["motion","velocity","acceleration","position","speed"], title:"Moving Man", description:"Explore position, velocity and acceleration by controlling motion and observing the graphs.", slug:"moving-man" },
+    { terms:["projectile","trajectory","launch","parabola"], title:"Projectile Motion", description:"Launch objects and investigate how angle, speed and gravity affect their trajectories.", slug:"projectile-motion" },
+    { terms:["force","friction","net force","newton"], title:"Forces and Motion: Basics", description:"Experiment with forces, friction, mass and motion and observe the resulting changes.", slug:"forces-and-motion-basics" },
+    { terms:["density","buoyancy","float","sink"], title:"Density", description:"Compare mass, volume and density and investigate why objects float or sink.", slug:"density" }
+  ];
+
+  const match = simulations.find(sim =>
+    sim.terms.some(term => normalized.includes(normalize(term)))
+  );
+
+  if (!match) {
+    return [{
+      type:"experiment", provider:"phet",
+      title:"PhET interactive simulation search: " + raw,
+      description:"Find an interactive science or mathematics simulation related to this topic.",
+      url:"https://phet.colorado.edu/en/simulations/filter?search=" + encodeURIComponent(raw),
+      embed_url:null, creator:"PhET Interactive Simulations, University of Colorado Boulder",
+      attribution_required:true,
+      license:"CC BY-NC 4.0 for regular HTML simulations; commercial use requires permission"
+    }].slice(0, limit);
+  }
 
   return [{
-    type: "experiment",
-    provider: "phet",
-    title: "PhET interactive simulation search: " + String(query).trim(),
-    description: "Find an interactive science or mathematics simulation related to this topic.",
-    url: "https://phet.colorado.edu/en/simulations/filter?search=" + normalizedQuery,
-    embed_url: null,
-    creator: "PhET Interactive Simulations, University of Colorado Boulder",
-    attribution_required: true,
-    license: "CC BY-NC 4.0 for regular HTML simulations; commercial use requires permission"
+    type:"experiment", provider:"phet", title:match.title, description:match.description,
+    url:"https://phet.colorado.edu/en/simulations/" + match.slug + "?locale=en",
+    embed_url:"https://phet.colorado.edu/sims/html/" + match.slug + "/latest/" + match.slug + "_en.html",
+    creator:"PhET Interactive Simulations, University of Colorado Boulder",
+    attribution_required:true,
+    license:"CC BY-NC 4.0 for regular HTML simulations; commercial use requires permission"
   }].slice(0, limit);
 }
-
 
 async function searchCrossrefResearch(query, limit) {
   const url =
