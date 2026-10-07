@@ -789,7 +789,6 @@
 
     const target = event.target.closest("[data-de-action]");
     if (!target) return;
-    if (!target) return;
 
     const name = target.getAttribute("data-de-action");
     if (name === "workspace") return openWorkspace();
