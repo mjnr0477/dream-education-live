@@ -1326,8 +1326,72 @@ document.addEventListener("click", function (event) {
     }
   });
 
+  // Primary landing navigation: direct delegation from document keeps dynamically injected
+  // next-generation role cards and the original landing buttons on the same navigation path.
   document.addEventListener("click", function (event) {
-    const trigger = event.target.closest("[data-action]");
+    const trigger = event.target && event.target.closest
+      ? event.target.closest("[data-action]")
+      : null;
+    if (!trigger) return;
+
+    const action = trigger.dataset.action;
+
+    if (action === "open") {
+      const targetPanel = trigger.dataset.panel || "learn";
+      const auth = window.DreamEducationUI && window.DreamEducationUI.getAuth
+        ? window.DreamEducationUI.getAuth()
+        : null;
+
+      if (targetPanel === "learn" && auth && auth.success) {
+        if (typeof openLearnerDashboard === "function") {
+          openLearnerDashboard();
+        } else {
+          openPanel(targetPanel);
+        }
+        return;
+      }
+
+      if (
+        targetPanel === "teach" &&
+        auth &&
+        auth.success &&
+        String(auth.role || (auth.account && auth.account.role) || "").toLowerCase() === "teacher"
+      ) {
+        if (typeof openTeacherDashboard === "function") {
+          openTeacherDashboard();
+        } else {
+          openPanel(targetPanel);
+        }
+        return;
+      }
+
+      openPanel(targetPanel);
+      return;
+    }
+
+    if (action === "parent-child") {
+      const learnerId = trigger.dataset.learnerId;
+      if (typeof openParentChildOverview === "function") {
+        openParentChildOverview(learnerId);
+      }
+      return;
+    }
+
+    if (action === "close") {
+      closePanel();
+      return;
+    }
+
+    if (action === "home") {
+      closePanel();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    if (action === "menu") {
+      toggleMenu();
+    }
+  });
     if (!trigger) return;
 
     const action = trigger.dataset.action;
