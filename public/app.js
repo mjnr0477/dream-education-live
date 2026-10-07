@@ -6429,7 +6429,7 @@ document.addEventListener("click", function (event) {
         ? getAuth()
         : null;
 
-    const isOwner = auth?.success === true &&
+    const isOwner =
       auth?.account?.owner_account === true &&
       Boolean(auth?.session?.access_token);
 
