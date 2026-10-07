@@ -1,7 +1,7 @@
 'use strict';
 
 process.env.DREAM_AUTHORIZED_SEARCH_DATA = JSON.stringify([{ title: 'Owner private fact', content: 'private owner information' }]);
-process.env.DREAM_AUTHORIZED_SEARCH_OVERRIDES = JSON.stringify([{ title: 'Owner override', content: 'test owner authoritative information' }]);
+process.env.DREAM_AUTHORIZED_SEARCH_OVERRIDES = JSON.stringify([{ title: 'Owner override', content: 'test owner authoritative information', target_title: 'Test' }]);
 
 const assert = require('assert');
 const {
@@ -42,6 +42,8 @@ assert.strictEqual(normalizeQuery('  hello   world  '), 'hello world');
   assert.notStrictEqual(ownerRes.statusCode, 401);
   assert.notStrictEqual(ownerRes.statusCode, 403);
   assert.ok(ownerRes.body.authorized_results.some(item => item.authoritative === true));
+  assert.strictEqual(ownerRes.body.results[0].authoritative, true);
+  assert.strictEqual(ownerRes.body.results[0].target_title, undefined);
   assert.ok(ownerRes.body.connected_providers.includes('smoke-test') === false);
   assert.deepStrictEqual(ownerRes.body.public_results, [{ title: 'Test', source: 'Smoke Test', excerpt: 'Verified test result.' }]);
   assert.strictEqual(ownerRes.body.search_scope, 'all-connected-public-sources-plus-owner-authorized-sources');
