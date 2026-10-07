@@ -597,7 +597,7 @@ async function discoverLearningResources(query, options = {}) {
         const normalized = { ...resource, type, content, source: resource.source || resource.provider || "Learning source" };
         const mediaUrl = normalized.media_url || "";
         const directMedia = isDirectMediaUrl(mediaUrl, type);
-        const embeddableMedia = (type === "video" || type === "audio") && /^https?:\\/\\//i.test(normalized.embed_url || "");
+        const embeddableMedia = (type === "video" || type === "audio") && /^https?:\/\//i.test(normalized.embed_url || "");
         return { ...normalized, direct_media: directMedia,
           media_playback: type === "text" ? "inline" : (directMedia || embeddableMedia ? "embedded" : "external"),
           playable_in_app: type === "text" ? Boolean(content) : (directMedia || embeddableMedia) };
