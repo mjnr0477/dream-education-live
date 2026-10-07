@@ -227,6 +227,7 @@ function createCacheKey(
 const { retrieveKnowledgeIntelligence } = require("./product/knowledge_intelligence_engine.js");
 const { discoverLearningResources } = require("./product/universal_learning_resource_engine.js");
 const { buildVerifiedEvidenceAnswer } = require("./product/verified_answer_recovery.js");
+const { normalizeResourceEvent, buildResourceEvidence } = require("./product/learning_resource_progress.js");
 
 // LEARNER ANSWER LAW: every successful learner answer must have verified
 // factual authority behind it. AI text alone is never sufficient.
@@ -1873,8 +1874,8 @@ Return a learner-facing teaching response only.
     console.log("13. Preparing visible learning resources");
 
     // Resource discovery is a teaching companion to the verified answer.
-    // It never replaces factual verification and must never prevent the
-    // learner from receiving the answer if external media providers fail.
+    // It must never replace factual verification or prevent the learner
+    // from receiving the verified answer when a media provider fails.
     let learningResources = [];
     try {
       const resourceResult = await Promise.race([
@@ -1897,6 +1898,8 @@ Return a learner-facing teaching response only.
         resourceError.message || resourceError
       );
     }
+
+    console.log("14. Sending successful response");
 
     const answerSources = [];
 
@@ -9777,6 +9780,55 @@ app.get("/api/v1/learning/resources", async (req, res) => {
       success: false,
       error: "Learning resources could not be discovered."
     });
+  }
+});
+
+app.post("/api/v1/learning/resources/progress", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+
+    const event = normalizeResourceEvent(req.body || {});
+    const isOwner = auth.account.owner_account === true;
+    const isSelf = auth.account.learner_id === event.learner_id;
+    if (!isOwner && !isSelf) {
+      return res.status(403).json({ success: false, error: "Learner resource progress access denied." });
+    }
+
+    const evidence = buildResourceEvidence(event);
+    const learner = {
+      ...auth.account,
+      learner_id: event.learner_id
+    };
+
+    const observed = await safelyObserveLearningEvent({
+      learner,
+      question: evidence.question,
+      learner_answer: evidence.learner_answer,
+      subject: evidence.subject,
+      topic: evidence.topic,
+      score: evidence.score,
+      understanding: evidence.understanding,
+      feedback: evidence.feedback,
+      evidence_type: event.completed ? "resource_completion" : "resource_opened",
+      record_capability: true
+    });
+
+    return res.status(201).json({
+      success: true,
+      event: {
+        ...event,
+        evidence_id: observed?.evidence_id || null,
+        capability_id: observed?.capability_id || null
+      },
+      next_action: observed?.next_action || "Check your understanding with Dream."
+    });
+  } catch (error) {
+    if (error?.message === "learner_id_required" || error?.message === "resource_url_required") {
+      return res.status(400).json({ success: false, error: "A learner and resource URL are required." });
+    }
+    console.error("Learning resource progress error:", error);
+    return res.status(500).json({ success: false, error: "Learning resource progress could not be recorded." });
   }
 });
 
