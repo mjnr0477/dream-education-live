@@ -221,30 +221,37 @@ function registerDreamSearchRoutes(app, options = {}) {
         return res.status(400).json({ success: false, error: 'A search request is required.' });
       }
 
-      const [publicResult, privateResults] = await Promise.all([
+      const [publicResult, privateResults, connectorResult] = await Promise.all([
         searchPublic(query, req.body?.limit),
-        Promise.resolve(searchAuthorizedCorpus(query, req.body?.limit))
+        Promise.resolve(searchAuthorizedCorpus(query, req.body?.limit)),
+        searchAuthorizedSources(query, req.body?.limit)
       ]);
+
+      const authorizedResults = [
+        ...(privateResults || []),
+        ...((connectorResult && connectorResult.results) || [])
+      ];
 
       return res.json({
         success: true,
         mode: 'authorized',
         query,
-        authorized_results: privateResults,
-        results: mergeAuthorizedWithPublic(publicResult.results, privateResults),
+        authorized_results: authorizedResults,
+        results: mergeAuthorizedWithPublic(publicResult.results, authorizedResults),
         // Never create a separate public-source path for Authorized Search: reuse the exact
         // public result set so the owner sees everything Public Search can see, plus authorized data.
         public_results: Array.isArray(publicResult.results) ? publicResult.results : [],
-        private_results: privateResults,
-        private_data_configured: loadAuthorizedCorpus().length > 0,
+        private_results: authorizedResults,
+        private_data_configured: loadAuthorizedCorpus().length > 0 || Boolean(connectorResult?.configured),
         owner_overrides_configured: loadAuthorizedOverrides().length > 0,
+        authorized_connectors: connectorResult?.connectors || [],
         search_scope: 'all-connected-public-sources-plus-owner-authorized-sources',
         answer_precedence: 'owner-authorized overrides > other authorized sources > connected public sources',
         source_policy: 'Public Search may use only public sources. Authorized Search may use all connected public sources plus owner-authorized sources.',
         precedence: 'Owner-authorized overrides are authoritative for the owner search; other authorized records come next; the complete connected public-source result set remains available for cross-checking.',
         connected_source_count: Object.values(publicResult.providers || {}).filter(Boolean).length,
         connected_providers: Object.entries(publicResult.providers || {}).filter(([, connected]) => connected).map(([provider]) => provider),
-        message: privateResults.length
+        message: authorizedResults.length
           ? 'Authorized information found. Public evidence is included for cross-checking.'
           : 'No matching authorized records were found. Public information is included.'
       });
