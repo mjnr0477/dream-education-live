@@ -70,11 +70,10 @@ function isOwnerAccount(account) {
 
   const email = String(account.email || "").trim().toLowerCase();
 
-  const ownerFlag = account.owner_account === true || String(account.owner_account).toLowerCase() === "true";
-  const freeForever = account.free_forever === true || String(account.free_forever).toLowerCase() === "true";
-  const ownerPlan = String(account.plan_type || "").trim().toLowerCase() === "owner";
-
-  return ownerFlag && freeForever && ownerPlan && email === OWNER_EMAIL;
+  // The owner identity is anchored to the authenticated owner email.
+  // The account flags remain metadata, but stale/missing flags must not lock
+  // the real owner out of owner-only functionality.
+  return email === OWNER_EMAIL;
 }
 
 function createTrialAccess(account) {
