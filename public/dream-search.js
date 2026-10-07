@@ -14,8 +14,32 @@
       form: document.getElementById('dream-search-form'),
       input: document.getElementById('dream-search-input'),
       status: document.getElementById('dream-search-status'),
-      results: document.getElementById('dream-search-results')
+      results: document.getElementById('dream-search-results'),
+      authorizedButton: document.querySelector('[data-dream-search-mode="authorized"]')
     };
+  }
+
+  function isOwnerSignedIn() {
+    try {
+      const auth = JSON.parse(localStorage.getItem('dream_education_auth') || 'null');
+      return auth?.account?.owner_account === true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function syncAuthorizedVisibility() {
+    const { authorizedButton } = elements();
+    if (!authorizedButton) return;
+    const owner = isOwnerSignedIn();
+    authorizedButton.hidden = !owner;
+    authorizedButton.setAttribute('aria-hidden', owner ? 'false' : 'true');
+
+    if (!owner && state.mode === 'authorized') {
+      state.mode = 'public';
+      const status = elements().status;
+      if (status) status.textContent = 'Public Search';
+    }
   }
 
   function getOwnerToken() {
@@ -98,6 +122,10 @@
       status.textContent = 'Public Search';
     }
   }
+
+  syncAuthorizedVisibility();
+  window.addEventListener('dream-education-auth-changed', syncAuthorizedVisibility);
+  window.addEventListener('storage', syncAuthorizedVisibility);
 
   document.addEventListener('click', event => {
     const modeButton = event.target.closest('[data-dream-search-mode]');
