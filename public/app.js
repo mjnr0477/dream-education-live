@@ -6973,7 +6973,7 @@ function renderAssessmentResult(result, learnerId, token) {
               ${support ? "Corroborated by " + support + " source(s)." : "Independently verified evidence."}
               ${conflict ? " " + conflict + " conflicting source(s) detected." : ""}
             </p>
-            ${source.url ? '<a href="' + escapeHtml(source.url) + '" target="_blank" rel="noopener noreferrer">Open source</a>' : ""}
+            ${source.url ? '<div class="learning-evidence-source">Source: ' + escapeHtml(source.provider || "Verified source") + '</div>' : ""}
           </article>`;
       }).join("")
     : '<div class="panel-card"><span class="panel-kicker">EVIDENCE</span><p>No verified external evidence was available for this attempt. The protected learning engines remain authoritative.</p></div>';
