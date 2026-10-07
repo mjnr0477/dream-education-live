@@ -1213,8 +1213,13 @@ app.post("/api/learn", async (req, res) => {
 
       const [knowledge, trusted] = await Promise.all([
         withTimeout(
-          retrieveKnowledge(question, {
-            limit: 5
+          retrieveKnowledgeIntelligence(question, {
+            limit: 8,
+            context: {
+              subject,
+              topic: topic || decision_topic,
+              level
+            }
           }),
           5000,
           "Knowledge retrieval"
