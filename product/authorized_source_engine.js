@@ -1,0 +1,197 @@
+'use strict';
+
+const https = require('https');
+const http = require('http');
+const net = require('net');
+
+const DEFAULT_TIMEOUT = 4500;
+
+function loadConnectors() {
+  const raw = String(process.env.DREAM_AUTHORIZED_SOURCE_CONNECTORS || '').trim();
+  if (!raw) return [];
+
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter(item => item && typeof item === 'object') : [];
+  } catch (error) {
+    console.warn('Dream authorized source connectors are not valid JSON:', error.message);
+    return [];
+  }
+}
+
+function isBlockedHostname(hostname) {
+  const host = String(hostname || '').toLowerCase();
+  if (!host || host === 'localhost' || host.endsWith('.localhost') || host.endsWith('.local')) {
+    return true;
+  }
+
+  if (net.isIP(host)) {
+    if (host === '127.0.0.1' || host === '::1' || host.startsWith('10.') ||
+        host.startsWith('192.168.') || /^172\.(1[6-9]|2\d|3[0-1])\./.test(host) ||
+        host.startsWith('169.254.')) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function readPath(value, pathExpression) {
+  if (!pathExpression) return value;
+  return String(pathExpression)
+    .split('.')
+    .filter(Boolean)
+    .reduce((current, key) => current == null ? undefined : current[key], value);
+}
+
+function requestJson(urlString, options = {}) {
+  return new Promise((resolve, reject) => {
+    let parsed;
+    try {
+      parsed = new URL(urlString);
+    } catch (_) {
+      reject(new Error('Invalid authorized source URL.'));
+      return;
+    }
+
+    if (!['https:', 'http:'].includes(parsed.protocol) || isBlockedHostname(parsed.hostname)) {
+      reject(new Error('Authorized source URL is not allowed.'));
+      return;
+    }
+
+    const transport = parsed.protocol === 'https:' ? https : http;
+    const request = transport.get(parsed, {
+      headers: Object.assign({
+        'User-Agent': 'DreamEducation/1.0 authorized-search',
+        'Accept': 'application/json,text/plain;q=0.9,*/*;q=0.8'
+      }, options.headers || {})
+    }, response => {
+      let body = '';
+      response.setEncoding('utf8');
+      response.on('data', chunk => { body += chunk; });
+      response.on('end', () => {
+        if (response.statusCode < 200 || response.statusCode >= 300) {
+          reject(new Error(`HTTP ${response.statusCode || 'unknown'}`));
+          return;
+        }
+        try {
+          resolve(JSON.parse(body));
+        } catch (_) {
+          resolve({ text: body });
+        }
+      });
+    });
+
+    request.on('error', reject);
+    request.setTimeout(Number(options.timeout) || DEFAULT_TIMEOUT, () => {
+      request.destroy(new Error('Authorized source request timed out.'));
+    });
+  });
+}
+
+function normalizeRows(data, connector) {
+  const rows = readPath(data, connector.response_path || 'results');
+  if (Array.isArray(rows)) return rows;
+  if (rows && typeof rows === 'object') return Object.values(rows);
+  return [];
+}
+
+function buildQueryUrl(connector, query) {
+  const endpoint = String(connector.endpoint || '').trim();
+  if (!endpoint) return null;
+
+  const url = new URL(endpoint);
+  const queryParam = String(connector.query_param || 'q').trim();
+
+  if (queryParam) {
+    url.searchParams.set(queryParam, query);
+  }
+
+  if (connector.limit_param) {
+    url.searchParams.set(String(connector.limit_param), String(connector.limit || 8));
+  }
+
+  return url.toString();
+}
+
+function normalizeRow(row, connector, index) {
+  const title = readPath(row, connector.title_path || 'title') ||
+    readPath(row, 'name') ||
+    `Authorized result ${index + 1}`;
+
+  const content = readPath(row, connector.content_path || 'content') ||
+    readPath(row, 'text') ||
+    readPath(row, 'description') ||
+    readPath(row, 'snippet') ||
+    '';
+
+  const source = String(connector.name || connector.id || 'Authorized source').trim();
+
+  return {
+    title: String(title).trim(),
+    source,
+    provider: String(connector.id || source).trim(),
+    type: String(connector.type || 'authorized'),
+    excerpt: String(content).trim().slice(0, 5000),
+    private: connector.private !== false,
+    authorized: true,
+    authoritative: false,
+    precedence: 'authorized-source',
+    connector_id: String(connector.id || '').trim() || null
+  };
+}
+
+async function searchConnector(connector, query, limit = 8) {
+  const url = buildQueryUrl({ ...connector, limit }, query);
+  if (!url) return [];
+
+  const headers = connector.headers && typeof connector.headers === 'object'
+    ? connector.headers
+    : {};
+
+  const data = await requestJson(url, {
+    headers,
+    timeout: connector.timeout || DEFAULT_TIMEOUT
+  });
+
+  return normalizeRows(data, connector)
+    .map((row, index) => normalizeRow(row, connector, index))
+    .filter(row => row.excerpt.length >= 1)
+    .slice(0, Math.min(Number(limit) || 8, 20));
+}
+
+async function searchAuthorizedSources(query, limit = 8) {
+  const connectors = loadConnectors();
+  if (!connectors.length) {
+    return { results: [], configured: false, connectors: [] };
+  }
+
+  const settled = await Promise.all(connectors.map(async connector => {
+    try {
+      return {
+        id: String(connector.id || connector.name || 'authorized-source'),
+        results: await searchConnector(connector, query, limit)
+      };
+    } catch (error) {
+      console.warn(
+        `Authorized source "${connector.id || connector.name || 'unknown'}" failed:`,
+        error.message
+      );
+      return {
+        id: String(connector.id || connector.name || 'authorized-source'),
+        results: []
+      };
+    }
+  }));
+
+  return {
+    results: settled.flatMap(item => item.results),
+    configured: true,
+    connectors: settled.map(item => item.id)
+  };
+}
+
+module.exports = {
+  loadConnectors,
+  searchAuthorizedSources
+};
