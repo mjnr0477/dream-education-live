@@ -1995,7 +1995,9 @@ Return a learner-facing teaching response only.
         cached: false,
         ai_mode: AI_MODE,
         answer_sources: [{ type: "built_in_verified", name: "Dream Education core definition" }],
-        fallback: true
+        fallback: true,
+        answer_verified: true,
+        answer_contract: "verified-v1"
       });
     }
 
@@ -2082,7 +2084,9 @@ Return a learner-facing teaching response only.
                 name: "Dream Education curriculum"
               }
             ],
-            fallback: true
+            fallback: true,
+            answer_verified: true,
+            answer_contract: "verified-v1"
           });
         }
       }
@@ -2154,7 +2158,9 @@ Return a learner-facing teaching response only.
                   null
               }
             ],
-            fallback: true
+            fallback: true,
+            answer_verified: true,
+            answer_contract: "verified-v1"
           });
         }
       }
