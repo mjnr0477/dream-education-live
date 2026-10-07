@@ -7,6 +7,7 @@
   <meta name="description" content="Dream Education — an intelligent learning platform.">
   <title>Dream Education</title>
   <link rel="stylesheet" href="/style.css?v=20261007c">
+  <link rel="stylesheet" href="/dream-search.css?v=20261007a">
 </head>
 
 <body>
@@ -103,6 +104,56 @@
         <div class="scroll-hint">
           <span>DISCOVER</span>
           <i></i>
+        </div>
+      </section>
+
+      <section class="dream-search-section" id="dream-search">
+        <div class="dream-search-shell">
+          <span class="dream-search-kicker">DREAM SEARCH</span>
+          <h2 class="dream-search-title">Search anything.<br><em>Understand more.</em></h2>
+          <p class="dream-search-copy">
+            Search publicly available knowledge across Dream Education's connected sources,
+            or unlock the developer-only search for information you have legitimately authorized.
+          </p>
+
+          <form class="dream-search-box" id="dream-search-form">
+            <input
+              id="dream-search-input"
+              type="search"
+              name="query"
+              autocomplete="off"
+              placeholder="Ask or describe anything…"
+              aria-label="Search Dream Education"
+            >
+            <button class="dream-search-button" type="submit">Search</button>
+          </form>
+
+          <div class="dream-search-modes" role="group" aria-label="Dream Search modes">
+            <button class="dream-search-button" type="button" data-dream-search-mode="public">
+              Public Search
+            </button>
+            <button class="dream-search-authorized-button" type="button" data-dream-search-mode="authorized">
+              🔐 Authorized Search
+            </button>
+          </div>
+
+          <div class="dream-search-lock" id="dream-search-lock">
+            <input
+              id="dream-search-password"
+              type="password"
+              autocomplete="current-password"
+              placeholder="Developer password"
+              aria-label="Developer password"
+            >
+            <button class="dream-search-authorized-button" id="dream-search-unlock" type="button">
+              Unlock
+            </button>
+          </div>
+
+          <div class="dream-search-status" id="dream-search-status" aria-live="polite">
+            Public Search
+          </div>
+          <div class="dream-search-results" id="dream-search-results" aria-live="polite"></div>
         </div>
       </section>
 
@@ -251,6 +302,7 @@
   </div>
 
   <script src="/app.js?v=20261007f"></script>
+  <script src="/dream-search.js?v=20261007a"></script>
   <script src="/frontend-workspace.js?v=20261001&build=20261007f"></script>
   <script src="/nextgen-visual.js?v=20261001"></script>
 </body>
