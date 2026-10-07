@@ -326,13 +326,22 @@ async function searchPhetExperiments(query, limit) {
     { terms:["gas","pressure","temperature","volume","particle"], title:"Gas Properties", description:"Change pressure, volume and temperature and observe particle behavior in an interactive model.", slug:"gas-properties" },
     { terms:["motion","velocity","acceleration","position","speed"], title:"Moving Man", description:"Explore position, velocity and acceleration by controlling motion and observing the graphs.", slug:"moving-man" },
     { terms:["projectile","trajectory","launch","parabola"], title:"Projectile Motion", description:"Launch objects and investigate how angle, speed and gravity affect their trajectories.", slug:"projectile-motion" },
-    { terms:["force","friction","net force","newton"], title:"Forces and Motion: Basics", description:"Experiment with forces, friction, mass and motion and observe the resulting changes.", slug:"forces-and-motion-basics" },
+    { terms:["force","friction","net force","newton","forces and motion"], title:"Forces and Motion: Basics", description:"Experiment with forces, friction, mass and motion and observe the resulting changes.", slug:"forces-and-motion-basics" },
     { terms:["density","buoyancy","float","sink"], title:"Density", description:"Compare mass, volume and density and investigate why objects float or sink.", slug:"density" }
   ];
 
-  const match = simulations.find(sim =>
-    sim.terms.some(term => normalized.includes(normalize(term)))
-  );
+  const matches = simulations
+    .map(sim => ({
+      sim,
+      matchedTerm: sim.terms
+        .map(normalize)
+        .filter(term => normalized.includes(term))
+        .sort((a, b) => b.length - a.length)[0] || ""
+    }))
+    .filter(item => item.matchedTerm)
+    .sort((a, b) => b.matchedTerm.length - a.matchedTerm.length);
+
+  const match = matches[0]?.sim || null;
 
   if (!match) {
     return [{
