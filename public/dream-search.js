@@ -63,6 +63,16 @@
         }
         url = '/api/dream-search/authorized';
         headers.Authorization = 'Bearer ' + state.token;
+        const auth = JSON.parse(localStorage.getItem('dream_education_auth') || 'null');
+        const ownerToken = auth?.session?.access_token || '';
+        if (!ownerToken) {
+          state.token = '';
+          sessionStorage.removeItem('dream_authorized_search_token');
+          status.textContent = 'Owner sign-in is required for Authorized Search.';
+          elements().lock?.classList.add('visible');
+          return;
+        }
+        headers['X-Dream-Owner-Token'] = ownerToken;
       }
 
       const response = await fetch(url, {
@@ -115,9 +125,19 @@
     status.textContent = 'Unlocking…';
 
     try {
+      const auth = JSON.parse(localStorage.getItem('dream_education_auth') || 'null');
+      const accessToken = auth?.session?.access_token || '';
+      if (!accessToken) {
+        status.textContent = 'Sign in with the owner account before unlocking Authorized Search.';
+        return;
+      }
+
       const response = await fetch('/api/dream-search/authorized/unlock', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + accessToken
+        },
         body: JSON.stringify({ password: value })
       });
       const data = await response.json();
