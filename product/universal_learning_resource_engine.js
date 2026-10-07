@@ -31,6 +31,15 @@ function normalize(value) {
     .trim();
 }
 
+function isDirectMediaUrl(url, type) {
+  if (!url || !/^https?:\/\//i.test(url)) return false;
+  const value = String(url).toLowerCase();
+  if (type === "image") return /\.(jpg|jpeg|png|gif|webp|svg)(\?|#|$)/i.test(value);
+  if (type === "audio") return /\.(mp3|wav|ogg|m4a|aac|flac)(\?|#|$)/i.test(value);
+  if (type === "video") return /\.(mp4|webm|ogv|mov|m4v)(\?|#|$)/i.test(value);
+  return false;
+}
+
 function clampLimit(value) {
   const n = Number.parseInt(value, 10);
   if (!Number.isFinite(n)) return DEFAULT_LIMIT;
@@ -539,6 +548,15 @@ async function discoverLearningResources(query, options = {}) {
       }).toFixed(3))
     }))
     .filter(resource => resource.url || resource.media_url || resource.embed_url)
+    .map(resource => {
+      const mediaUrl = resource.media_url || resource.url || "";
+      const directMedia = isDirectMediaUrl(mediaUrl, resource.type);
+      return {
+        ...resource,
+        direct_media: directMedia,
+        media_playback: directMedia ? "embedded" : (resource.embed_url ? "embedded" : "external")
+      };
+    })
     .map(resource => ({
       ...resource,
       resource_topic: conceptQuery,
