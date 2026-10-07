@@ -166,7 +166,24 @@ async function publicSearch(query, limit = 8) {
   };
 }
 
-function registerDreamSearchRoutes(app) {
+function registerDreamSearchRoutes(app, options = {}) {
+  const getAuthenticatedAccount = options.getAuthenticatedAccount;
+  const isOwnerAccount = options.isOwnerAccount;
+
+  async function requireOwner(req) {
+    if (typeof getAuthenticatedAccount !== 'function' || typeof isOwnerAccount !== 'function') {
+      return { success: false, status: 503, error: 'Authorized Search owner protection is not configured.' };
+    }
+
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return auth;
+
+    if (!isOwnerAccount(auth.account)) {
+      return { success: false, status: 403, error: 'Authorized Search is restricted to the Dream Education owner.' };
+    }
+
+    return auth;
+  }
   app.post('/api/dream-search/public', async (req, res) => {
     try {
       const result = await publicSearch(req.body?.query, req.body?.limit);
@@ -177,7 +194,10 @@ function registerDreamSearchRoutes(app) {
     }
   });
 
-  app.post('/api/dream-search/authorized/unlock', (req, res) => {
+  app.post('/api/dream-search/authorized/unlock', async (req, res) => {
+    const owner = await requireOwner(req);
+    if (!owner.success) return res.status(owner.status).json({ success: false, error: owner.error });
+
     const password = String(req.body?.password || '');
     const configured = configuredPassword();
     if (!configured) return res.status(503).json({ success: false, error: 'Authorized Search is not configured yet.' });
@@ -198,6 +218,9 @@ function registerDreamSearchRoutes(app) {
   });
 
   app.post('/api/dream-search/authorized', async (req, res) => {
+    const owner = await requireOwner(req);
+    if (!owner.success) return res.status(owner.status).json({ success: false, error: owner.error });
+
     const authorization = String(req.headers.authorization || '');
     const token = authorization.startsWith('Bearer ') ? authorization.slice(7).trim() : '';
     if (!verifyAuthorizedToken(token)) {
