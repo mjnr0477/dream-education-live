@@ -224,7 +224,7 @@ async function searchInternetArchive(query, limit) {
   const data = await fetchJson(url);
   const docs = data.response?.docs || [];
 
-  return docs.map(item => {
+  return Promise.all(docs.map(async item => {
     const mediaType = normalize(item.mediatype);
     let type = "document";
 
@@ -232,6 +232,33 @@ async function searchInternetArchive(query, limit) {
     else if (mediaType === "audio") type = "audio";
     else if (mediaType === "texts") type = "book";
     else if (mediaType === "image") type = "image";
+
+    let mediaUrl = null;
+    let embedUrl = null;
+
+    if (item.identifier && (type === "video" || type === "audio")) {
+      embedUrl = "https://archive.org/embed/" + encodeURIComponent(item.identifier);
+      try {
+        const metadata = await fetchJson(
+          "https://archive.org/metadata/" + encodeURIComponent(item.identifier)
+        );
+        const files = Array.isArray(metadata.files) ? metadata.files : [];
+        const extensions = type === "video"
+          ? /\.(mp4|webm|ogv|m4v)$/i
+          : /\.(mp3|wav|ogg|m4a|aac|flac)$/i;
+        const playable = files
+          .map(file => String(file.name || ""))
+          .find(name => extensions.test(name));
+        if (playable) {
+          mediaUrl =
+            "https://archive.org/download/" +
+            encodeURIComponent(item.identifier) + "/" +
+            playable.split("/").map(encodeURIComponent).join("/");
+        }
+      } catch (_error) {
+        // The archive item can still be embedded when its hosted player works.
+      }
+    }
 
     return {
       type,
@@ -243,15 +270,14 @@ async function searchInternetArchive(query, limit) {
       url: item.identifier
         ? "https://archive.org/details/" + encodeURIComponent(item.identifier)
         : null,
-      embed_url: item.identifier && (type === "video" || type === "audio")
-        ? "https://archive.org/embed/" + encodeURIComponent(item.identifier)
-        : null,
+      media_url: mediaUrl,
+      embed_url: embedUrl,
       identifier: item.identifier || null,
       creator: Array.isArray(item.creator) ? item.creator.join(", ") : (item.creator || null),
       year: item.year || null,
       collection: Array.isArray(item.collection) ? item.collection.slice(0, 3) : []
     };
-  });
+  }));
 }
 
 
@@ -264,12 +290,31 @@ async function searchNASAImages(query, limit) {
   const data = await fetchJson(url);
   const items = data.collection?.items || [];
 
-  return items.map(item => {
+  return Promise.all(items.map(async item => {
     const dataItem = item.data?.[0] || {};
     const links = item.links || [];
     const preview = links.find(link => link.rel === "preview")?.href || null;
     const nasaId = dataItem.nasa_id || null;
     const type = String(dataItem.media_type || "image") === "video" ? "video" : "image";
+
+    let mediaUrl = preview;
+    if (type === "video" && nasaId) {
+      try {
+        const asset = await fetchJson(
+          "https://images-api.nasa.gov/asset/" + encodeURIComponent(nasaId)
+        );
+        const assets = Array.isArray(asset.collection?.items)
+          ? asset.collection.items
+          : [];
+        const playable = assets
+          .map(entry => entry.href || "")
+          .find(href => /\.(mp4|webm|ogv|m4v)(\?|#|$)/i.test(href));
+        if (playable) mediaUrl = playable;
+      } catch (_error) {
+        // A NASA video without a playable asset is filtered later rather than
+        // presented as a misleading image/page link.
+      }
+    }
 
     return {
       type,
@@ -279,13 +324,13 @@ async function searchNASAImages(query, limit) {
       url: nasaId
         ? "https://images.nasa.gov/details/" + encodeURIComponent(nasaId)
         : null,
-      media_url: preview,
+      media_url: mediaUrl,
       thumbnail: preview,
       creator: "NASA",
       published_at: dataItem.date_created || null,
       tags: Array.isArray(dataItem.keywords) ? dataItem.keywords : []
     };
-  });
+  }));
 }
 
 async function searchNASAExperiments(query, limit) {
@@ -549,13 +594,25 @@ async function discoverLearningResources(query, options = {}) {
     }))
     .filter(resource => resource.url || resource.media_url || resource.embed_url)
     .map(resource => {
-      const mediaUrl = resource.media_url || resource.url || "";
+      const mediaUrl = resource.media_url || "";
       const directMedia = isDirectMediaUrl(mediaUrl, resource.type);
+      const embeddableMedia =
+        (resource.type === "video" || resource.type === "audio") &&
+        /^https?:\/\//i.test(resource.embed_url || "");
+      const visibleImage = resource.type === "image" && /^https?:\/\//i.test(mediaUrl);
+
       return {
         ...resource,
         direct_media: directMedia,
-        media_playback: directMedia ? "embedded" : (resource.embed_url ? "embedded" : "external")
+        media_playback: directMedia || embeddableMedia || visibleImage ? "embedded" : "external",
+        playable_in_app: directMedia || embeddableMedia || visibleImage
       };
+    })
+    // Never present a page-only result as if it were the requested material.
+    // Books/research/web resources may remain page-based; media must be playable.
+    .filter(resource => {
+      const mediaTypes = new Set(["image", "audio", "video", "experiment", "interactive"]);
+      return !mediaTypes.has(resource.type) || resource.playable_in_app === true;
     })
     .map(resource => ({
       ...resource,
