@@ -6153,6 +6153,8 @@ async function openMultimodalLearning() {
       visual = '<div class="de-resource-video"><iframe src="' + escapeHtml(embedUrl) + '" title="' + title + '" loading="lazy" allow="autoplay; fullscreen"></iframe></div>';
     } else if (type === "video" && mediaUrl && /^https?:\/\//i.test(mediaUrl)) {
       visual = '<video class="de-resource-video-player" controls preload="metadata" src="' + escapeHtml(mediaUrl) + '"></video>';
+    } else if ((type === "experiment" || type === "interactive") && embedUrl && /^https?:\/\//i.test(embedUrl)) {
+      visual = '<div class="de-resource-video de-resource-experiment"><iframe src="' + escapeHtml(embedUrl) + '" title="' + title + '" loading="lazy" allow="fullscreen; autoplay"></iframe></div>';
     } else if (type === "video" && resource.thumbnail) {
       visual = '<a class="de-resource-image-link" href="' + escapeHtml(safeHref) + '" target="_blank" rel="noopener noreferrer"><img class="de-resource-image" src="' + escapeHtml(resource.thumbnail) + '" alt="' + title + '" loading="lazy"></a>';
     }
