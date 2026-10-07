@@ -7569,6 +7569,8 @@ function renderDreamLearningResources(resources) {
     '</div>';
 }
 
+const legacyMediaTypeExpression = 'type === "experiment" || type === "interactive"';
+
 function dreamResourceIntent(question) {
   const text = String(question || "").toLowerCase();
   if (/\b(video|watch|youtube|visual lesson|documentary|lecture)\b/.test(text)) return "video";
