@@ -5981,15 +5981,10 @@ async function openMultimodalLearning() {
         <textarea id="de-resource-topic" rows="3" placeholder="e.g. photosynthesis, quadratic equations, the causes of World War I">${escapeHtml(defaultTopic)}</textarea>
         <div class="de-resource-search-row" style="margin-top:12px;">
           <select id="de-resource-mode" aria-label="Learning mode">
-            <option value="any">Let Dream choose the best mix</option>
+            <option value="any">Let Dream choose the best learning material</option>
+            <option value="text">Read text</option>
             <option value="video">Watch video</option>
-            <option value="image">See pictures & diagrams</option>
             <option value="audio">Listen to audio</option>
-            <option value="article">Read an explanation</option>
-            <option value="book">Read books & textbooks</option>
-            <option value="interactive">Interactive / simulation</option>
-            <option value="experiment">Experiment / demonstration</option>
-            <option value="research">Research / academic evidence</option>
           </select>
           <select id="de-resource-level" aria-label="Learning level">
             <option value="">Use my level automatically</option>
@@ -6070,7 +6065,7 @@ async function openMultimodalLearning() {
     status.textContent = "Verifying the lesson and finding matching learning content...";
     lessonVerification.textContent = "Verifying…";
     lessonCard.innerHTML = '<div class="de-loading"><span></span><p>Building the right explanation for your level…</p></div>';
-    results.innerHTML = '<div class="de-loading"><span></span><p>Finding videos, pictures, audio, demonstrations and sources…</p></div>';
+    results.innerHTML = '<div class="de-loading"><span></span><p></p></div>';
 
     try {
       const token = auth.session && auth.session.access_token;
@@ -6192,78 +6187,45 @@ async function openMultimodalLearning() {
   }
 
   function renderLearningResourceCard(resource) {
-    const type = String(resource.type || "resource").toLowerCase();
-    const provider = escapeHtml(resource.provider || "learning source");
+    const type = String(resource.type || "text").toLowerCase();
+    const provider = escapeHtml(resource.source || resource.provider || "learning source");
     const title = escapeHtml(resource.title || resource.name || "Learning material");
     const description = escapeHtml(resource.description || "");
-    const mediaUrl = resource.media_url || resource.url || "";
+    const content = escapeHtml(resource.content || resource.description || "This material is ready to study.");
+    const mediaUrl = resource.media_url || "";
     const embedUrl = resource.embed_url || "";
     const safeMediaUrl = /^https?:\/\//i.test(mediaUrl) ? mediaUrl : "";
     const safeEmbedUrl = /^https?:\/\//i.test(embedUrl) ? embedUrl : "";
-    const resourceId = escapeHtml(String(resource.id || resource.url || resource.title || Math.random()));
     let visual = "";
 
-    if (type === "image" && safeMediaUrl) {
-      visual =
-        '<figure class="de-media-stage de-media-image-stage">' +
-          '<img class="de-resource-image" src="' + escapeHtml(safeMediaUrl) + '" alt="' + title + '" loading="lazy">' +
-          '<figcaption>' + title + '</figcaption>' +
-        '</figure>';
+    if (type === "text") {
+      visual = '<div class="de-media-stage de-media-text-stage"><div class="de-resource-text">' +
+        content.replace(/\n/g, "<br>") + '</div></div>';
     } else if (type === "audio" && safeMediaUrl) {
-      visual =
-        '<div class="de-media-stage de-media-audio-stage">' +
-          '<div class="de-media-icon" aria-hidden="true">🎧</div>' +
-          '<div><strong>' + title + '</strong><p>Play the audio here.</p></div>' +
-          '<audio class="de-resource-audio" controls preload="metadata" src="' + escapeHtml(safeMediaUrl) + '"></audio>' +
-        '</div>';
+      visual = '<div class="de-media-stage de-media-audio-stage"><div><strong>' + title +
+        '</strong><p>Play the audio here.</p></div><audio class="de-resource-audio" controls preload="metadata" src="' +
+        escapeHtml(safeMediaUrl) + '" data-resource-media="audio"></audio></div>';
     } else if (type === "video" && safeMediaUrl) {
-      visual =
-        '<div class="de-media-stage de-media-video-stage">' +
-          '<video class="de-resource-video" controls playsinline preload="metadata" ' +
-            (resource.thumbnail ? 'poster="' + escapeHtml(resource.thumbnail) + '" ' : '') +
-            'src="' + escapeHtml(safeMediaUrl) + '">' +
-          '</video>' +
-          '<div class="de-media-caption">' + title + '</div>' +
-        '</div>';
+      visual = '<div class="de-media-stage de-media-video-stage"><video class="de-resource-video" controls playsinline preload="metadata" src="' +
+        escapeHtml(safeMediaUrl) + '" data-resource-media="video"></video><div class="de-media-caption">' + title + '</div></div>';
     } else if ((type === "video" || type === "audio") && safeEmbedUrl) {
-      visual =
-        '<div class="de-media-stage de-media-embed-stage">' +
-          '<iframe src="' + escapeHtml(safeEmbedUrl) + '" title="' + title + '" loading="lazy" allow="fullscreen; autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>' +
-        '</div>';
-    } else if ((type === "experiment" || type === "interactive") && safeEmbedUrl) {
-      visual =
-        '<div class="de-media-stage de-media-embed-stage de-resource-experiment">' +
-          '<iframe src="' + escapeHtml(safeEmbedUrl) + '" title="' + title + '" loading="lazy" allow="fullscreen; autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>' +
-        '</div>';
-    } else if (safeEmbedUrl) {
-      visual =
-        '<div class="de-media-stage de-media-embed-stage">' +
-          '<iframe src="' + escapeHtml(safeEmbedUrl) + '" title="' + title + '" loading="lazy" allow="fullscreen; autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>' +
-        '</div>';
+      visual = '<div class="de-media-stage de-media-embed-stage"><iframe src="' + escapeHtml(safeEmbedUrl) +
+        '" title="' + title + '" loading="lazy" allow="fullscreen; autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>';
     }
 
-    const directMedia = Boolean(visual);
-    const reason = resource.relevance_reason || "Selected for this learning request";
-
-    return '<article class="de-resource-card" data-resource-id="' + resourceId + '">' +
+    const playable = Boolean(visual);
+    return '<article class="de-resource-card" data-resource-id="' +
+      escapeHtml(String(resource.id || resource.url || resource.title || Math.random())) + '">' +
       visual +
       '<div class="de-resource-card-body">' +
-        '<div class="de-resource-meta">' +
-          '<span>' + escapeHtml(type) + '</span>' +
-          '<span>' + provider + '</span>' +
-          '<span>' + escapeHtml(reason) + '</span>' +
-        '</div>' +
+        '<div class="de-resource-meta"><span>' + escapeHtml(type) + '</span><span>' + provider + '</span></div>' +
         '<h4>' + title + '</h4>' +
-        (description ? '<p>' + description + '</p>' : '') +
-        (directMedia
-          ? '<div class="de-media-status">✓ Material is displayed here — no link required to use it.</div>'
-          : '<div class="de-media-status de-media-warning">This source could not be embedded directly.</div>') +
-        '<div class="de-resource-actions">' +
-          (safeMediaUrl && !directMedia ? '<a class="de-action" href="' + escapeHtml(safeMediaUrl) + '" target="_blank" rel="noopener noreferrer">Open source</a>' : '') +
-          '<button class="de-action primary" type="button" data-resource-complete="1">I learned this</button>' +
-        '</div>' +
-      '</div>' +
-    '</article>';
+        (description && type !== "text" ? '<p>' + description + '</p>' : '') +
+        '<div class="de-resource-source">Source: ' + provider + '</div>' +
+        (playable ? '<div class="de-media-status">✓ Material is displayed here.</div>' :
+          '<div class="de-media-status de-media-warning">This material is not playable in the current app view.</div>') +
+        '<div class="de-resource-actions"><button class="de-action primary" type="button" data-resource-complete="1">I learned this</button></div>' +
+      '</div></article>';
   }
 
   function wireResourceActions(resources) {
@@ -6272,20 +6234,34 @@ async function openMultimodalLearning() {
       const resource = resources[index];
       if (!resource) return;
 
-      const markOpened = function () {
-        recordResourceProgress(resource, false);
-      };
-
-      card.querySelectorAll("[data-resource-open]").forEach(function (link) {
-        link.addEventListener("click", markOpened, { once: true });
+      card.querySelectorAll("[data-resource-media]").forEach(function (media) {
+        media.addEventListener("play", function () {
+          recordResourceProgress(resource, false);
+        }, { once: true });
+        media.addEventListener("ended", async function () {
+          try {
+            await recordResourceProgress(resource, true);
+            const complete = card.querySelector("[data-resource-complete]");
+            if (complete) {
+              complete.disabled = true;
+              complete.textContent = "Recorded ✓";
+            }
+          } catch (_) {}
+        }, { once: true });
       });
 
       const complete = card.querySelector("[data-resource-complete]");
       if (complete) {
         complete.addEventListener("click", async function () {
           complete.disabled = true;
-          await recordResourceProgress(resource, true);
-          complete.textContent = "Recorded ✓";
+          try {
+            await recordResourceProgress(resource, true);
+            complete.textContent = "Recorded ✓";
+          } catch (error) {
+            complete.disabled = false;
+            complete.textContent = "Try again";
+            console.warn("Learning resource completion was not recorded:", error);
+          }
         });
       }
     });
