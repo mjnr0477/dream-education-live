@@ -150,6 +150,142 @@
       '</div>';
   }
 
+  function resourceTypeLabel(type) {
+    return ({
+      video: "Video",
+      image: "Picture",
+      audio: "Audio",
+      book: "Book",
+      document: "Document",
+      article: "Article",
+      research: "Research",
+      experiment: "Experiment",
+      interactive: "Interactive",
+      web: "Web"
+    })[type] || "Resource";
+  }
+
+  function renderResource(resource, index) {
+    const type = resource.type || "web";
+    const title = resource.title || "Learning resource";
+    const description = resource.description || "Open this resource to continue learning.";
+    const safeUrl = resource.url || resource.media_url || resource.embed_url || "";
+    const mediaUrl = resource.media_url || "";
+    const embedUrl = resource.embed_url || "";
+    const provider = resource.provider || "Learning source";
+    let media = "";
+
+    if (type === "image" && mediaUrl) {
+      media = '<a class="de-resource-image-link" href="' + escapeHTML(safeUrl) + '" target="_blank" rel="noopener noreferrer">' +
+        '<img class="de-resource-image" src="' + escapeHTML(mediaUrl) + '" alt="' + escapeHTML(title) + '" loading="lazy">' +
+      '</a>';
+    } else if (type === "video" && embedUrl) {
+      media = '<div class="de-resource-video"><iframe src="' + escapeHTML(embedUrl) +
+        '" title="' + escapeHTML(title) + '" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>';
+    } else if (type === "video" && mediaUrl) {
+      media = '<video class="de-resource-video-player" controls preload="metadata" poster="' + escapeHTML(resource.thumbnail || "") + '" src="' + escapeHTML(mediaUrl) + '"></video>';
+    } else if (type === "audio" && mediaUrl) {
+      media = '<div class="de-resource-audio"><div class="de-resource-audio-title">Listen here</div><audio controls preload="metadata" src="' + escapeHTML(mediaUrl) + '"></audio></div>';
+    } else if (resource.thumbnail) {
+      media = '<a class="de-resource-image-link" href="' + escapeHTML(safeUrl) + '" target="_blank" rel="noopener noreferrer">' +
+        '<img class="de-resource-image de-resource-thumb" src="' + escapeHTML(resource.thumbnail) + '" alt="" loading="lazy">' +
+      '</a>';
+    }
+
+    const attribution = [resource.creator, resource.license].filter(Boolean).join(" · ");
+    return '<article class="de-resource-card" data-resource-index="' + index + '">' +
+      media +
+      '<div class="de-resource-card-body">' +
+        '<div class="de-resource-meta"><span>' + escapeHTML(resourceTypeLabel(type)) + '</span><span>' + escapeHTML(provider) + '</span></div>' +
+        '<h4>' + escapeHTML(title) + '</h4>' +
+        '<p>' + escapeHTML(description.slice(0, 420)) + '</p>' +
+        (attribution ? '<small class="de-muted">' + escapeHTML(attribution) + '</small>' : '') +
+        (safeUrl ? '<a class="de-resource-open" href="' + escapeHTML(safeUrl) + '" target="_blank" rel="noopener noreferrer">Open original resource ↗</a>' : '') +
+      '</div>' +
+    '</article>';
+  }
+
+  function renderResourceResults(data) {
+    const resources = Array.isArray(data.resources) ? data.resources : [];
+    const intent = data.intent || {};
+    if (!resources.length) {
+      return '<div class="de-resource-empty"><strong>No resource was found yet.</strong><p>Try a broader topic or another learning format.</p></div>';
+    }
+
+    return '<div class="de-resource-summary"><strong>' + escapeHTML(resources.length) +
+      ' learning options found</strong><span>' + escapeHTML(intent.reason || "Dream searched available learning sources.") + '</span></div>' +
+      '<div class="de-resource-grid">' +
+      resources.map(renderResource).join("") +
+      '</div>';
+  }
+
+  function openLearningResources(initialQuery) {
+    const auth = getAuth();
+    const info = accountInfo(auth);
+    if (!auth || !auth.account || !info.id) {
+      const signIn = document.querySelector('[data-action="open"][data-panel="signin"]');
+      if (signIn) signIn.click();
+      return;
+    }
+
+    openPanel(
+      "LEARNING RESOURCES",
+      "Learn your way",
+      "Find videos, pictures, audio, books, research and interactive experiences for any topic.",
+      '<div class="de-resource-workspace">' +
+        '<form class="de-resource-form" id="de-resource-form">' +
+          '<label for="de-resource-query">What do you want to learn?</label>' +
+          '<div class="de-resource-search-row">' +
+            '<input id="de-resource-query" name="q" type="search" required maxlength="300" placeholder="e.g. photosynthesis, electricity, Python loops" value="' + escapeHTML(initialQuery || "") + '">' +
+            '<select id="de-resource-type" name="type" aria-label="Learning format">' +
+              '<option value="any">Anything that helps</option>' +
+              '<option value="video">Video</option>' +
+              '<option value="image">Pictures / diagrams</option>' +
+              '<option value="audio">Audio</option>' +
+              '<option value="experiment">Experiment / simulation</option>' +
+              '<option value="research">Research / evidence</option>' +
+              '<option value="book">Books / documents</option>' +
+            '</select>' +
+            '<button class="de-action primary" type="submit">Find resources</button>' +
+          '</div>' +
+        '</form>' +
+        '<div id="de-resource-results" aria-live="polite">' +
+          (initialQuery ? '<div class="de-loading"><span></span><p>Finding the best learning resources...</p></div>' : '<div class="de-resource-empty"><strong>Start with a topic.</strong><p>Dream will choose useful formats when you do not specify one.</p></div>') +
+        '</div>' +
+      '</div>'
+    );
+
+    const form = document.getElementById("de-resource-form");
+    const results = document.getElementById("de-resource-results");
+    if (!form || !results) return;
+
+    async function search() {
+      const query = form.elements.q.value.trim();
+      if (!query) return;
+      results.innerHTML = '<div class="de-loading"><span></span><p>Finding learning resources...</p></div>';
+      try {
+        const type = form.elements.type.value;
+        const params = new URLSearchParams({
+          q: query,
+          type: type,
+          learner_id: info.id,
+          limit: "12"
+        });
+        const data = await getJSON("/api/v1/learning/resources?" + params.toString(), auth);
+        results.innerHTML = renderResourceResults(data);
+      } catch (error) {
+        results.innerHTML = '<div class="de-error"><strong>Resource search failed.</strong><p>' +
+          escapeHTML(error.message) + '</p></div>';
+      }
+    }
+
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+      search();
+    });
+    if (initialQuery) search();
+  }
+
   async function loadLearnerWorkspace(info) {
     renderShell(info,
       '<div class="de-loading"><span></span><p>Building your learning picture...</p></div>'
@@ -211,6 +347,7 @@
             '<p>' + escapeHTML(recommendation.message || "Continue building understanding.") + '</p>' +
             '<div class="de-actions">' +
               action("Start adaptive learning", "adaptive", true) +
+              action("Learn with video, pictures or audio", "resources") +
               action("Ask Dream AI", "ask") +
               action("Refresh intelligence", "workspace") +
             '</div>' +
@@ -229,6 +366,7 @@
             '</section>' +
           '</div>' +
           '<div class="de-actions de-bottom-actions">' +
+            action("Find learning resources", "resources") +
             action("Learning progress", "progress") +
             action("Learning sessions", "sessions") +
             action("Connections", "connections") +
@@ -545,6 +683,7 @@
 
     const name = target.getAttribute("data-de-action");
     if (name === "workspace") return openWorkspace();
+    if (name === "resources") return openLearningResources();
     if (name === "progress") return loadProgress();
     if (name === "sessions") return loadSessions();
     if (name === "connections") return openConnections();
