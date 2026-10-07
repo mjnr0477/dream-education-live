@@ -6,7 +6,7 @@ const { findUniversalRelevantContent } = require("../content/content_engine");
 const result = findUniversalRelevantContent({
   subject: "General",
   level: "General",
-  question: "What is photosynthesis?"
+  question: "I want a video explaining photosynthesis"
 });
 
 assert(result, "Universal curriculum recovery should find an existing curriculum match.");
