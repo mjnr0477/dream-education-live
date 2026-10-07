@@ -5991,7 +5991,7 @@ async function openMultimodalLearning() {
         <div class="de-resource-search-row" style="margin-top:12px;">
           <select id="de-resource-mode" aria-label="Learning mode">
             <option value="any">Let Dream choose the best learning material</option>
-            <option value="text">Read text</option>
+            <option value="text">Read text / Read an explanation</option>
             <option value="video">Watch video</option>
             <option value="audio">Listen to audio</option>
           </select>
