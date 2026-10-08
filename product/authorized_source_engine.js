@@ -155,7 +155,17 @@ function normalizeMedia(row, connector) {
     readPath(row, connector.media_path || ''),
     readPath(row, 'media'),
     readPath(row, 'evidence'),
-    readPath(row, 'attachments')
+    readPath(row, 'attachments'),
+    readPath(row, 'image'),
+    readPath(row, 'images'),
+    readPath(row, 'photo'),
+    readPath(row, 'photos'),
+    readPath(row, 'video'),
+    readPath(row, 'videos'),
+    readPath(row, 'audio'),
+    readPath(row, 'audio_url'),
+    readPath(row, 'document'),
+    readPath(row, 'documents')
   ].filter(Boolean);
 
   const values = candidates.flatMap(value => Array.isArray(value) ? value : [value]);
