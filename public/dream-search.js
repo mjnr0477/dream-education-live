@@ -76,17 +76,39 @@
   function renderEvidence(item) {
     const evidence = Array.isArray(item?.evidence) ? item.evidence : [];
     const media = Array.isArray(item?.media) ? item.media : [];
-    const assets = [...evidence.filter(x => x && x.type !== 'text'), ...media].filter(x => x && x.url).slice(0, 6);
-    if (!assets.length) return '';
+    const assets = [...media, ...evidence.filter(x => x && x.url)]
+      .filter(x => x && x.url)
+      .filter((asset, index, all) => {
+        const url = String(asset.url || '');
+        return all.findIndex(candidate => String(candidate?.url || '') === url) === index;
+      })
+      .slice(0, 4);
+
+    if (!assets.length) {
+      return '<div class="dream-search-evidence dream-search-evidence-empty"><div class="dream-search-evidence-placeholder">Text evidence from the connected source</div></div>';
+    }
+
     return '<div class="dream-search-evidence">' + assets.map(asset => {
       const type = String(asset.type || '').toLowerCase();
       const url = String(asset.url || '').trim();
       const title = escapeHtml(asset.title || 'Evidence');
-      if (type === 'video') return '<video controls preload="metadata" src="' + escapeHtml(url) + '" aria-label="' + title + '"></video>';
-      if (type === 'audio') return '<audio controls preload="metadata" src="' + escapeHtml(url) + '" aria-label="' + title + '"></audio>';
-      if (type === 'image' || type === 'photo') return '<img loading="lazy" src="' + escapeHtml(url) + '" alt="' + title + '">';
-      return '<div class="dream-search-evidence-note">' + title + '</div>';
+      if (type === 'video') {
+        return '<div class="dream-search-media"><video controls preload="metadata" src="' + escapeHtml(url) + '" aria-label="' + title + '"></video></div>';
+      }
+      if (type === 'audio') {
+        return '<div class="dream-search-media"><audio controls preload="metadata" src="' + escapeHtml(url) + '" aria-label="' + title + '"></audio></div>';
+      }
+      if (type === 'image' || type === 'photo') {
+        return '<div class="dream-search-media"><img loading="lazy" src="' + escapeHtml(url) + '" alt="' + title + '"></div>';
+      }
+      return '<div class="dream-search-media dream-search-evidence-note">' + title + '</div>';
     }).join('') + '</div>';
+  }
+
+  function renderEvidenceText(item) {
+    const text = String(item?.excerpt || item?.content || '').trim();
+    if (!text) return '';
+    return '<div class="dream-search-evidence-text">' + escapeHtml(text.slice(0, 500)) + '</div>';
   }
 
   function renderResults(data) {
@@ -102,9 +124,9 @@
     el.innerHTML = results.map(item => `
       <article class="dream-search-result${item.private ? ' dream-search-private' : ''}">
         <h3>${escapeHtml(item.title || 'Information')}</h3>
-        <p>${escapeHtml(item.excerpt || item.content || 'No excerpt available.')}</p>
         ${renderEvidence(item)}
-        ${renderReadMore(item, false)}
+        ${renderEvidenceText(item)}
+        ${renderReadMore(item, Boolean(item.private))}
         <div class="dream-search-source">${escapeHtml(item.source || 'Dream source')}${item.private ? ' · Authorized data' : ''}</div>
       </article>
     `).join('');
@@ -200,9 +222,9 @@
         resultsHost.innerHTML = results.length ? results.map(item => `
           <article class="dream-search-result${item.private ? ' dream-search-private' : ''}">
             <h3>${escapeHtml(item.title || 'Information')}</h3>
-            <p>${escapeHtml(item.excerpt || item.content || 'No excerpt available.')}</p>
-          ${renderEvidence(item)}
-          ${renderReadMore(item, Boolean(item.private))}
+            ${renderEvidence(item)}
+            ${renderEvidenceText(item)}
+            ${renderReadMore(item, Boolean(item.private))}
             <div class="dream-search-source">${escapeHtml(item.source || 'Dream source')}${item.authoritative ? ' · Owner authoritative' : item.private ? ' · Authorized data' : ' · Public evidence'}${item.provider ? ' · ' + escapeHtml(item.provider) : ''}</div>
           </article>
         `).join('') : '<div class="dream-search-result"><p>No matching information was found.</p></div>';

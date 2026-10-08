@@ -32,3 +32,28 @@
 .dream-search-full-evidence { padding:12px 0 2px; }
 .dream-search-full-evidence p { white-space:pre-wrap; line-height:1.65; }
 .dream-search-full-evidence small { opacity:.7; }
+
+/* Evidence-first search experience */
+.dream-search-results{grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));align-items:start}
+.dream-search-result{overflow:hidden;min-width:0;padding:0}
+.dream-search-result h3{padding:18px 18px 10px;margin:0;font-size:20px}
+.dream-search-evidence{margin:0;gap:0;background:rgba(0,0,0,.12)}
+.dream-search-media{width:100%;min-height:180px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:rgba(0,0,0,.16)}
+.dream-search-evidence img,.dream-search-evidence video{width:100%;height:min(52vw,430px);max-height:430px;min-height:220px;object-fit:cover;border-radius:0;background:#000}
+.dream-search-evidence audio{width:calc(100% - 28px);margin:14px}
+.dream-search-evidence-text{padding:16px 18px 8px;line-height:1.65;font-size:15px}
+.dream-search-read-more{margin:0;padding:10px 18px 14px;border-top:0}
+.dream-search-read-more summary{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 15px;border:1px solid rgba(127,127,127,.28);border-radius:11px;cursor:pointer;font-weight:700;list-style:none}
+.dream-search-read-more summary::-webkit-details-marker{display:none}
+.dream-search-read-more summary:after{content:' +';margin-left:6px;opacity:.65}
+.dream-search-read-more[open] summary:after{content:' −'}
+.dream-search-full-evidence{padding:12px 0 2px}
+.dream-search-full-evidence p{white-space:pre-wrap;line-height:1.7;margin:8px 0}
+.dream-search-source{padding:0 18px 16px}
+.dream-search-evidence-empty{background:rgba(255,255,255,.03)}
+.dream-search-evidence-placeholder{padding:34px 18px;opacity:.7;text-align:center}
+@media(max-width:640px){
+  .dream-search-section{padding-left:14px;padding-right:14px}
+  .dream-search-results{grid-template-columns:1fr}
+  .dream-search-evidence img,.dream-search-evidence video{height:58vw;min-height:190px}
+}
