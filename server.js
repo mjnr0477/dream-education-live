@@ -12,6 +12,7 @@ const { recordAssessmentEvidence } = require("./product/gli/assessment_evidence_
 const { determineDifficulty } = require("./difficulty_engine");
 const queryEngine = require("./product/query_engine.js");
 const { registerDreamSearchRoutes, publicSearch } = require('./product/dream_search_engine');
+const { createUniversalMessage, deliverMessage, resolveDelivery } = require("./product/connect_messenger_engine");
 
 const {
   createValidatedConnection,
@@ -6077,6 +6078,102 @@ app.post("/api/product/teacher", (req, res) => {
       success: false,
       error: "Teacher creation failed"
     });
+  }
+});
+
+/*
+   DREAM EDUCATION UNIVERSAL MESSENGER API
+   Sends only through explicitly configured and authorized connectors.
+*/
+function getConfiguredMessengerConnectors() {
+  let raw = String(process.env.CONNECT_MESSENGER_CONNECTORS || "").trim();
+  if (!raw) return [];
+  try {
+    const definitions = JSON.parse(raw);
+    if (!Array.isArray(definitions)) return [];
+    return definitions.map((definition) => {
+      const connector = { ...definition };
+      const endpoint = String(connector.endpoint || "").trim();
+      const tokenEnv = String(connector.token_env || "").trim();
+      const token = tokenEnv ? String(process.env[tokenEnv] || "") : "";
+      if (endpoint && token) {
+        connector.channels = Array.isArray(connector.channels) ? connector.channels.map(channel => ({
+          ...channel,
+          authorized: channel.authorized !== false,
+          send: async ({ body, recipient, message_id, channel: selected }) => {
+            const headers = { "Content-Type": "application/json", "Authorization": `Bearer ${token}` };
+            const response = await fetch(endpoint, {
+              method: String(connector.method || "POST").toUpperCase(),
+              headers,
+              body: JSON.stringify({
+                message_id,
+                body,
+                recipient,
+                channel: selected.type,
+                platform: selected.platform || recipient.platform || null
+              })
+            });
+            const data = await response.json().catch(() => ({}));
+            return { success: response.ok && data.success !== false, status: response.status, data };
+          }
+        })) : [];
+      }
+      return connector;
+    });
+  } catch {
+    return [];
+  }
+}
+
+app.get("/api/product/connect/messenger/channels", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    const connectors = getConfiguredMessengerConnectors();
+    return res.json({
+      success: true,
+      channels: connectors.flatMap(connector => (Array.isArray(connector.channels) ? connector.channels : [])
+        .filter(channel => channel.enabled !== false && channel.authorized !== false)
+        .map(channel => ({
+          connector_id: connector.id || connector.name || "configured",
+          connector_name: connector.name || "Configured connector",
+          type: channel.type,
+          platform: channel.platform || null
+        })))
+    });
+  } catch (error) {
+    console.error("Universal messenger channels error:", error);
+    return res.status(500).json({ success: false, error: "Messenger channels unavailable." });
+  }
+});
+
+app.post("/api/product/connect/messenger/send", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+
+    const message = createUniversalMessage({
+      body: req.body?.body,
+      recipient: req.body?.recipient || {}
+    });
+    const connectors = getConfiguredMessengerConnectors();
+    const result = await deliverMessage(message, connectors);
+    return res.status(result.success ? 200 : result.status === "recipient_confirmation_required" ? 409 : 503).json(result);
+  } catch (error) {
+    console.error("Universal messenger send error:", error);
+    return res.status(400).json({ success: false, error: error.message || "Message could not be sent." });
+  }
+});
+
+app.post("/api/product/connect/messenger/resolve", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    const connectors = getConfiguredMessengerConnectors();
+    return res.json({ success: true, delivery: await resolveDelivery(req.body?.recipient || {}, connectors) });
+  } catch (error) {
+    console.error("Universal messenger resolve error:", error);
+    return res.status(400).json({ success: false, error: error.message || "Recipient could not be resolved." });
   }
 });
 
