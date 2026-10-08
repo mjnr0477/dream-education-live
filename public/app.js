@@ -8944,6 +8944,14 @@ function openUniversalConnector() {
         <div id="universal-connector-platform-list"><p>Loading platform status...</p></div>
       </div>
       <div class="panel-card">
+        <h3>Connect any website / API</h3>
+        <p>Enter a public site. Dream will look for its declared API catalog or OpenAPI description. Sending is enabled only after the site exposes a legitimate messaging endpoint and you authorize it.</p>
+        <label class="panel-label" for="universal-site-url">Website</label>
+        <input class="panel-input" id="universal-site-url" type="url" placeholder="https://example.com">
+        <button class="panel-button secondary" id="universal-site-discover" type="button">Discover capabilities</button>
+        <div id="universal-site-discovery" class="subscription-message" aria-live="polite"></div>
+      </div>
+      <div class="panel-card">
         <label class="panel-label" for="messenger-platform">Platform</label>
         <select class="panel-input" id="messenger-platform"><option value="">Select a platform</option></select>
         <label class="panel-label" for="messenger-channel">Channel / action</label>
@@ -8962,6 +8970,47 @@ function openUniversalConnector() {
 
   panel.classList.remove("hidden");
   document.body.classList.add("panel-open");
+
+  const siteDiscover = panelBody.querySelector("#universal-site-discover");
+  const siteUrl = panelBody.querySelector("#universal-site-url");
+  const siteDiscovery = panelBody.querySelector("#universal-site-discovery");
+  siteDiscover?.addEventListener("click", async () => {
+    const site = siteUrl?.value.trim() || "";
+    if (!site) {
+      siteDiscovery.textContent = "Enter a website URL first.";
+      siteDiscovery.className = "subscription-message error";
+      return;
+    }
+    siteDiscover.disabled = true;
+    siteDiscover.textContent = "Discovering...";
+    siteDiscovery.textContent = "Checking the site's public API declarations and OpenAPI documents...";
+    siteDiscovery.className = "subscription-message";
+    try {
+      const response = await fetch("/api/product/connect/messenger/site-discover", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+        body: JSON.stringify({ site })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.success) throw new Error(data.error || "Site discovery failed.");
+      const items = data.discovery?.discovered || [];
+      if (!items.length) {
+        siteDiscovery.textContent = "No declared API catalog or OpenAPI description was found. This site cannot be marked as a send-capable connector yet.";
+        siteDiscovery.className = "subscription-message error";
+      } else {
+        siteDiscovery.textContent = "Discovered " + items.length + " API description(s): " +
+          items.map(item => item.title || item.url).join(" · ") +
+          ". Configure an authorized endpoint connector before sending.";
+        siteDiscovery.className = "subscription-message success";
+      }
+    } catch (error) {
+      siteDiscovery.textContent = error.message || "Site discovery failed.";
+      siteDiscovery.className = "subscription-message error";
+    } finally {
+      siteDiscover.disabled = false;
+      siteDiscover.textContent = "Discover capabilities";
+    }
+  });
 
   const platformSelect = panelBody.querySelector("#messenger-platform");
   const channelSelect = panelBody.querySelector("#messenger-channel");
