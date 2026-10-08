@@ -53,7 +53,7 @@ function scoreCandidate(recipient, candidate = {}) {
   for (const value of [r.name, r.organization, r.email, r.handle, r.group]) {
     const token = String(value || '').toLowerCase();
     if (!token) continue;
-    if (candidateText === token) score += 100;
+    if (candidateText.includes(token) && String(candidate.name || candidate.display_name || '').toLowerCase() === token) score += 100;
     else if (candidateText.includes(token)) score += 30;
   }
   if (r.platform && normalizeChannel(candidate.platform) === r.platform) score += 20;
