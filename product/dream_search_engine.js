@@ -422,7 +422,12 @@ async function publicSearch(query, limit = 8) {
   const result = await deepPublicSearch(normalized, Math.min(Number(limit) || 8, 12));
   let sources = Array.isArray(result?.sources) ? result.sources : [];
 
-  if (!sources.length) {
+  const needsFallback = !sources.length || !sources.some(item =>
+    String(item?.provider || '').toLowerCase() === 'wikipedia' ||
+    String(item?.extract || item?.snippet || '').trim().length >= 80
+  );
+
+  if (needsFallback) {
     const fallbackResults = await Promise.all([
       Promise.race([
         searchWikipedia(normalized, Math.min(Number(limit) || 8, 6)),
@@ -434,12 +439,10 @@ async function publicSearch(query, limit = 8) {
       ])
     ]);
 
-    sources = mergeDeepResults(
-      fallbackResults.flat().filter(item =>
-        String(item?.extract || item?.snippet || '').trim().length >= 30
-      ),
-      20
+    const fallbackSources = fallbackResults.flat().filter(item =>
+      String(item?.extract || item?.snippet || '').trim().length >= 30
     );
+    sources = mergeDeepResults([...sources, ...fallbackSources], 20);
   }
 
   const wikipedia = sources.find(item => String(item?.provider || '').toLowerCase() === 'wikipedia');
