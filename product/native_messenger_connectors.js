@@ -17,7 +17,7 @@ function buildNativeMessengerConnectors(env = process.env) {
 
   const matrixToken = String(env.MATRIX_ACCESS_TOKEN || '').trim();
   const matrixRooms = splitList(env.MATRIX_BROADCAST_ROOM_IDS);
-  const matrixHomeserver = normalizeBaseUrl(env.MATRIX_HOMESERVER_URL, 'https://matrix-client.matrix.org');
+  const matrixHomeserver = normalizeBaseUrl(env.MATRIX_HOMESERVER_URL, 'https://matrix.org');
 
   if (matrixToken && matrixRooms.length) {
     connectors.push({
