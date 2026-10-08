@@ -15,6 +15,7 @@ const { registerDreamSearchRoutes, publicSearch } = require('./product/dream_sea
 const { createUniversalMessage, deliverMessage, resolveDelivery, broadcastMessage } = require("./product/connect_messenger_engine");
 const { getPlatformCatalog, getPlatform, supportsAction, normalizePlatform } = require("./product/connect_platform_registry");
 const { discoverSiteApis } = require("./product/universal_site_connector");
+const { buildNativeMessengerConnectors } = require("./product/native_messenger_connectors");
 
 const {
   createValidatedConnection,
@@ -6088,7 +6089,7 @@ app.post("/api/product/teacher", (req, res) => {
    Sends only through explicitly configured and authorized connectors.
 */
 function getConfiguredMessengerConnectors() {
-  const connectors = [];
+  const connectors = buildNativeMessengerConnectors();
   const telegramToken = String(process.env.TELEGRAM_BOT_TOKEN || "").trim();
   if (telegramToken) {
     const rawChatIds = String(process.env.TELEGRAM_BROADCAST_CHAT_IDS || "").trim();
