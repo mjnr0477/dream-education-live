@@ -5,6 +5,8 @@ const http = require('http');
 const net = require('net');
 
 const DEFAULT_TIMEOUT = 4500;
+const MAX_TIMEOUT = 15000;
+const MAX_PAGES = 10;
 
 function loadConnectors() {
   const raw = String(process.env.DREAM_AUTHORIZED_SOURCE_CONNECTORS || '').trim();
@@ -71,6 +73,10 @@ function readPath(value, pathExpression) {
 }
 
 function requestJson(urlString, options = {}) {
+  const method = String(options.method || 'GET').toUpperCase();
+  const requestBody = options.body == null ? null : (
+    typeof options.body === 'string' ? options.body : JSON.stringify(options.body)
+  );
   return new Promise((resolve, reject) => {
     let parsed;
     try {
@@ -86,14 +92,21 @@ function requestJson(urlString, options = {}) {
     }
 
     const transport = parsed.protocol === 'https:' ? https : http;
-    const request = transport.get(parsed, {
+    const requestOptions = {
+      method,
       headers: Object.assign({
         'User-Agent': 'DreamEducation/1.0 authorized-search',
         'Accept': 'application/json,text/plain;q=0.9,*/*;q=0.8'
       }, options.headers || {})
-    }, response => {
+    };
+    if (requestBody != null) {
+      requestOptions.headers['Content-Type'] = requestOptions.headers['Content-Type'] || 'application/json';
+      requestOptions.headers['Content-Length'] = Buffer.byteLength(requestBody);
+    }
+
+    const request = transport.request(parsed, requestOptions, response => {
       let body = '';
-      response.setEncoding('utf8');
+      if (typeof response.setEncoding === 'function') response.setEncoding('utf8');
       response.on('data', chunk => { body += chunk; });
       response.on('end', () => {
         if (response.statusCode < 200 || response.statusCode >= 300) {
@@ -109,10 +122,40 @@ function requestJson(urlString, options = {}) {
     });
 
     request.on('error', reject);
-    request.setTimeout(Number(options.timeout) || DEFAULT_TIMEOUT, () => {
+    request.setTimeout(Math.min(Math.max(Number(options.timeout) || DEFAULT_TIMEOUT, 250), MAX_TIMEOUT), () => {
       request.destroy(new Error('Authorized source request timed out.'));
     });
+    if (requestBody != null) request.write(requestBody);
+    request.end();
   });
+}
+
+function resolveTemplate(value, query, page, limit) {
+  if (typeof value === 'string') return value.replace(/\\{\\{query\\}\\}/g, query).replace(/\\{\\{page\\}\\}/g, String(page)).replace(/\\{\\{limit\\}\\}/g, String(limit));
+  if (Array.isArray(value)) return value.map(item => resolveTemplate(item, query, page, limit));
+  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, resolveTemplate(item, query, page, limit)]));
+  return value;
+}
+
+function buildRequest(connector, query, page, pageSize) {
+  const method = String(connector.method || 'GET').toUpperCase();
+  const url = new URL(String(connector.endpoint || '').trim());
+  const queryParam = String(connector.query_param || 'q').trim();
+  if (method === 'GET' || method === 'HEAD') {
+    if (queryParam) url.searchParams.set(queryParam, query);
+    if (connector.limit_param) url.searchParams.set(String(connector.limit_param), String(pageSize));
+    if (connector.page_param) url.searchParams.set(String(connector.page_param), String(page));
+    if (connector.offset_param) url.searchParams.set(String(connector.offset_param), String((page - 1) * pageSize));
+    if (connector.extra_query && typeof connector.extra_query === 'object') {
+      for (const [key, value] of Object.entries(resolveTemplate(connector.extra_query, query, page, pageSize))) url.searchParams.set(key, String(value));
+    }
+    return { url: url.toString(), method, body: null };
+  }
+  if (connector.query_param) {
+    // POST/PUT/PATCH connectors may place the query in a JSON body via body_template.
+    return { url: url.toString(), method, body: resolveTemplate(connector.body_template || { [queryParam]: query }, query, page, pageSize) };
+  }
+  return { url: url.toString(), method, body: resolveTemplate(connector.body_template || { query }, query, page, pageSize) };
 }
 
 function normalizeRows(data, connector) {
@@ -220,6 +263,8 @@ function normalizeRow(row, connector, index) {
     readPath(row, 'text') ||
     readPath(row, 'description') ||
     readPath(row, 'snippet') ||
+    readPath(row, 'answer') ||
+    readPath(row, 'summary') ||
     '';
 
   const source = String(connector.name || connector.id || 'Authorized source').trim();
@@ -245,16 +290,18 @@ function normalizeRow(row, connector, index) {
 
 async function searchConnector(connector, query, limit = 8) {
   const pageSize = Math.min(Math.max(Number(connector.page_size || limit) || 8, 1), 20);
-  const maxPages = Math.min(Math.max(Number(connector.max_pages || 1) || 1, 1), 5);
+  const maxPages = Math.min(Math.max(Number(connector.max_pages || 1) || 1, 1), MAX_PAGES);
   const headers = resolveHeaders(connector.headers);
   const results = [];
 
   for (let page = 1; page <= maxPages; page += 1) {
-    const url = buildQueryUrl({ ...connector, limit: pageSize, page, page_size: pageSize }, query);
-    if (!url) break;
+    const request = buildRequest({ ...connector, limit: pageSize, page, page_size: pageSize }, query, page, pageSize);
+    if (!request?.url) break;
 
     try {
-      const data = await requestJson(url, {
+      const data = await requestJson(request.url, {
+        method: request.method,
+        body: request.body,
         headers,
         timeout: connector.timeout || DEFAULT_TIMEOUT
       });
@@ -263,7 +310,7 @@ async function searchConnector(connector, query, limit = 8) {
         .map((row, index) => normalizeRow(row, connector, results.length + index))
         .filter(row => row.excerpt.length >= 1);
 
-      results.push(...rows);
+        results.push(...rows);
       if (rows.length < pageSize) break;
     } catch (error) {
       if (!results.length) throw error;
@@ -271,7 +318,7 @@ async function searchConnector(connector, query, limit = 8) {
     }
   }
 
-  return results.slice(0, Math.min(Number(limit) || 8, 100));
+  return results.slice(0, Math.min(Number(limit) || 8, 200));
 }
 
 async function searchAuthorizedSources(query, limit = 8) {
