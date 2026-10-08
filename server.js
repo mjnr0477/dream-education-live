@@ -6087,8 +6087,35 @@ app.post("/api/product/teacher", (req, res) => {
    Sends only through explicitly configured and authorized connectors.
 */
 function getConfiguredMessengerConnectors() {
+  const connectors = [];
+  const telegramToken = String(process.env.TELEGRAM_BOT_TOKEN || "").trim();
+  if (telegramToken) {
+    connectors.push({
+      id: "telegram-bot",
+      name: "Telegram",
+      platform: "telegram",
+      channels: [{
+        type: "direct_message",
+        platform: "telegram",
+        enabled: true,
+        authorized: true,
+        send: async ({ body, recipient }) => {
+          const chatId = String(recipient?.address || recipient?.chat_id || "").trim();
+          if (!chatId) return { success: false, status: 400, data: { error: "Telegram chat ID is required." } };
+          const response = await fetch("https://api.telegram.org/bot" + encodeURIComponent(telegramToken) + "/sendMessage", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ chat_id: chatId, text: String(body || "") })
+          });
+          const data = await response.json().catch(() => ({}));
+          return { success: response.ok && data.ok === true, status: response.status, data };
+        }
+      }]
+    });
+  }
+
   let raw = String(process.env.CONNECT_MESSENGER_CONNECTORS || "").trim();
-  if (!raw) return [];
+  if (!raw) return connectors;
   try {
     const definitions = JSON.parse(raw);
     if (!Array.isArray(definitions)) return [];
@@ -6122,7 +6149,7 @@ function getConfiguredMessengerConnectors() {
       return connector;
     });
   } catch {
-    return [];
+    return connectors;
   }
 }
 
