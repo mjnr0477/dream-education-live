@@ -28,7 +28,7 @@ async function main() {
       id: "telegram",
       name: "Telegram",
       platform: "telegram",
-      recipients: [{ type: "group", address: "-100123", platform: "telegram" }],
+      recipients: [\n        { type: "group", address: "-100123", platform: "telegram" },\n        { type: "group", chat_id: "-100456", platform: "telegram" },\n        { type: "group", address: "-100123", platform: "telegram" }\n      ],
       channels: [{
         type: "direct_message",
         platform: "telegram",
@@ -77,7 +77,7 @@ async function main() {
   assert.strictEqual(result.delivered, 2);
   assert.strictEqual(result.failed, 1);
   assert.strictEqual(calls.length, 2);
-  assert.ok(calls.every((call) => call.body === "Dream Education"));
+  assert.ok(calls.every((call) => call.body === "Dream Education"));\n\n  const empty = await broadcastMessage({ message_id: "msg_empty", body: "   " }, connectors);\n  assert.strictEqual(empty.status, "message_required");\n  assert.strictEqual(empty.attempted, 0);\n\n  const noTargets = await broadcastMessage(\n    { message_id: "msg_none", body: "Dream Education" },\n    [{ id: "none", channels: [{ type: "message", authorized: false, send: async () => { throw new Error("must not send"); } }] }]\n  );\n  assert.strictEqual(noTargets.status, "no_authorized_broadcast_target");\n  assert.strictEqual(noTargets.attempted, 0);
 
   const app = fs.readFileSync(path.join(__dirname, "..", "public", "app.js"), "utf8");
   const connectorStart = app.indexOf("function openUniversalConnector()");
