@@ -12,7 +12,7 @@ const { recordAssessmentEvidence } = require("./product/gli/assessment_evidence_
 const { determineDifficulty } = require("./difficulty_engine");
 const queryEngine = require("./product/query_engine.js");
 const { registerDreamSearchRoutes, publicSearch } = require('./product/dream_search_engine');
-const { createUniversalMessage, deliverMessage, resolveDelivery } = require("./product/connect_messenger_engine");
+const { createUniversalMessage, deliverMessage, resolveDelivery, broadcastMessage } = require("./product/connect_messenger_engine");
 const { getPlatformCatalog, getPlatform, supportsAction, normalizePlatform } = require("./product/connect_platform_registry");
 const { discoverSiteApis } = require("./product/universal_site_connector");
 
@@ -6091,10 +6091,22 @@ function getConfiguredMessengerConnectors() {
   const connectors = [];
   const telegramToken = String(process.env.TELEGRAM_BOT_TOKEN || "").trim();
   if (telegramToken) {
+    const rawChatIds = String(process.env.TELEGRAM_BROADCAST_CHAT_IDS || "").trim();
+    const chatIds = rawChatIds
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean);
+
     connectors.push({
       id: "telegram-bot",
       name: "Telegram",
       platform: "telegram",
+      recipients: chatIds.map((chatId) => ({
+        type: "group",
+        address: chatId,
+        platform: "telegram",
+        channel: "direct_message"
+      })),
       channels: [{
         type: "direct_message",
         platform: "telegram",
@@ -6102,14 +6114,33 @@ function getConfiguredMessengerConnectors() {
         authorized: true,
         send: async ({ body, recipient }) => {
           const chatId = String(recipient?.address || recipient?.chat_id || "").trim();
-          if (!chatId) return { success: false, status: 400, data: { error: "Telegram chat ID is required." } };
-          const response = await fetch("https://api.telegram.org/bot" + encodeURIComponent(telegramToken) + "/sendMessage", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ chat_id: chatId, text: String(body || "") })
-          });
+          if (!chatId) {
+            return {
+              success: false,
+              status: 400,
+              data: { error: "Telegram broadcast chat ID is not configured." }
+            };
+          }
+
+          const response = await fetch(
+            "https://api.telegram.org/bot" +
+              encodeURIComponent(telegramToken) +
+              "/sendMessage",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                chat_id: chatId,
+                text: String(body || "")
+              })
+            }
+          );
           const data = await response.json().catch(() => ({}));
-          return { success: response.ok && data.ok === true, status: response.status, data };
+          return {
+            success: response.ok && data.ok === true,
+            status: response.status,
+            data
+          };
         }
       }]
     });
@@ -6117,36 +6148,62 @@ function getConfiguredMessengerConnectors() {
 
   let raw = String(process.env.CONNECT_MESSENGER_CONNECTORS || "").trim();
   if (!raw) return connectors;
+
   try {
     const definitions = JSON.parse(raw);
-    if (!Array.isArray(definitions)) return [];
+    if (!Array.isArray(definitions)) return connectors;
+
     return definitions.map((definition) => {
       const connector = { ...definition };
       const endpoint = String(connector.endpoint || "").trim();
       const tokenEnv = String(connector.token_env || "").trim();
       const token = tokenEnv ? String(process.env[tokenEnv] || "") : "";
+
       if (endpoint && token) {
-        connector.channels = Array.isArray(connector.channels) ? connector.channels.map(channel => ({
-          ...channel,
-          authorized: channel.authorized !== false,
-          send: async ({ body, recipient, message_id, channel: selected }) => {
-            const headers = { "Content-Type": "application/json", "Authorization": `Bearer ${token}` };
-            const response = await fetch(endpoint, {
-              method: String(connector.method || "POST").toUpperCase(),
-              headers,
-              body: JSON.stringify({
-                message_id,
+        connector.channels = Array.isArray(connector.channels)
+          ? connector.channels.map((channel) => ({
+              ...channel,
+              authorized: channel.authorized !== false,
+              send: async ({
                 body,
                 recipient,
-                channel: selected.type,
-                platform: selected.platform || recipient.platform || null
-              })
-            });
-            const data = await response.json().catch(() => ({}));
-            return { success: response.ok && data.success !== false, status: response.status, data };
-          }
-        })) : [];
+                message_id,
+                channel: selected
+              }) => {
+                const headers = {
+                  "Content-Type": "application/json",
+                  "Authorization": `Bearer ${token}`
+                };
+
+                const response = await fetch(endpoint, {
+                  method: String(connector.method || "POST").toUpperCase(),
+                  headers,
+                  body: JSON.stringify({
+                    message_id,
+                    body,
+                    recipient,
+                    channel: selected.type,
+                    platform:
+                      selected.platform ||
+                      recipient?.platform ||
+                      connector.platform ||
+                      null,
+                    broadcast: true
+                  })
+                });
+
+                const data = await response.json().catch(() => ({}));
+
+                return {
+                  success: response.ok && data.success !== false,
+                  status: response.status,
+                  data
+                };
+              }
+            }))
+          : [];
       }
+
       return connector;
     });
   } catch {
@@ -6238,6 +6295,37 @@ app.post("/api/product/connect/messenger/send", async (req, res) => {
   } catch (error) {
     console.error("Universal messenger send error:", error);
     return res.status(400).json({ success: false, error: error.message || "Message could not be sent." });
+  }
+});
+
+app.post("/api/product/connect/messenger/broadcast", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) {
+      return res.status(auth.status).json({ success: false, error: auth.error });
+    }
+
+    const message = createUniversalMessage({
+      body: req.body?.body,
+      recipient: {}
+    });
+
+    const connectors = getConfiguredMessengerConnectors();
+    const result = await broadcastMessage(message, connectors);
+
+    const statusCode =
+      result.success ? 200 :
+      result.status === "message_required" ? 400 :
+      result.status === "no_authorized_broadcast_target" ? 503 :
+      502;
+
+    return res.status(statusCode).json(result);
+  } catch (error) {
+    console.error("Universal messenger broadcast error:", error);
+    return res.status(400).json({
+      success: false,
+      error: error.message || "Message could not be broadcast."
+    });
   }
 });
 
