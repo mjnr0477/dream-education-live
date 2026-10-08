@@ -159,4 +159,4 @@ function buildSiteConnector({ endpoint, token, platform = 'website', channel = '
   };
 }
 
-module.exports = { normalizeSiteUrl, assertPublicSite, discoverSiteApis, buildSiteConnector };
+module.exports = { normalizeSiteUrl, isPrivateHostname, assertPublicSite, discoverSiteApis, buildSiteConnector };
