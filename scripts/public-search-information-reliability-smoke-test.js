@@ -9,10 +9,6 @@ const originalGet = https.get;
 function fakeResponse(payload, statusCode = 200) {
   const response = new EventEmitter();
   response.statusCode = statusCode;
-  process.nextTick(() => {
-    response.emit('data', JSON.stringify(payload));
-    response.emit('end');
-  });
   return response;
 }
 
@@ -43,7 +39,13 @@ https.get = (url, options, callback) => {
   }
 
   const response = fakeResponse(payload);
-  process.nextTick(() => callback(response));
+  process.nextTick(() => {
+    callback(response);
+    process.nextTick(() => {
+      response.emit('data', JSON.stringify(payload));
+      response.emit('end');
+    });
+  });
   return {
     on() { return this; },
     setTimeout() { return this; },

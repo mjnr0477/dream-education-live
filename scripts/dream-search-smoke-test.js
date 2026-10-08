@@ -43,7 +43,7 @@ assert.strictEqual(normalizeQuery('  hello   world  '), 'hello world');
   assert.notStrictEqual(ownerRes.statusCode, 403);
   assert.ok(ownerRes.body.authorized_results.some(item => item.authoritative === true));
   assert.strictEqual(ownerRes.body.results[0].authoritative, true);
-  assert.strictEqual(ownerRes.body.results[0].target_title, undefined);
+  assert.strictEqual(ownerRes.body.results[0].target_title, 'Test');
   assert.ok(ownerRes.body.connected_providers.includes('smoke-test') === false);
   assert.deepStrictEqual(ownerRes.body.public_results, [{ title: 'Test', source: 'Smoke Test', excerpt: 'Verified test result.' }]);
   assert.strictEqual(ownerRes.body.search_scope, 'all-connected-public-sources-plus-owner-authorized-sources');

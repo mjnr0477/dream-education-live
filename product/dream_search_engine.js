@@ -16,6 +16,29 @@ function normalizeQuery(value) {
   return String(value || '').replace(/\s+/g, ' ').trim().slice(0, 1000);
 }
 
+function normalizeSearchMedia(item) {
+  const candidates = [
+    ['image', item?.image], ['image', item?.images], ['image', item?.photo], ['image', item?.photos],
+    ['video', item?.video], ['video', item?.videos],
+    ['audio', item?.audio], ['audio', item?.audio_url],
+    ['document', item?.document], ['document', item?.documents],
+    ['media', item?.media]
+  ].filter(([, value]) => Boolean(value));
+  return candidates.flatMap(([hint, value]) => {
+    const values = Array.isArray(value) ? value : [value];
+    return values.map(raw => {
+      if (typeof raw === 'string') return { type: hint, url: raw };
+      if (!raw || typeof raw !== 'object') return null;
+      const url = raw.url || raw.uri || raw.src || raw.content_url || raw.embed_url;
+      if (!url || !/^https?:\/\//i.test(String(url))) return null;
+      const kind = String(raw.type || raw.mime_type || hint).toLowerCase();
+      const type = kind.includes('image') ? 'image' : kind.includes('video') ? 'video'
+        : kind.includes('audio') ? 'audio' : kind.includes('pdf') || kind.includes('document') ? 'document' : hint;
+      return { type, url: String(url), title: String(raw.title || raw.name || '').trim() || null };
+    });
+  }).filter(Boolean).slice(0, 8);
+}
+
 function publicResult(item) {
   return {
     title: String(item?.title || '').trim(),
@@ -36,9 +59,7 @@ function publicResult(item) {
           content: String(item?.extract || item?.snippet || '').trim().slice(0, 3000),
           source: String(item?.source || item?.provider || 'Public source').trim()
         }],
-    media: Array.isArray(item?.media)
-      ? item.media.slice(0, 8)
-      : []
+    media: normalizeSearchMedia(item)
   };
 }
 
@@ -401,7 +422,12 @@ async function publicSearch(query, limit = 8) {
   const result = await deepPublicSearch(normalized, Math.min(Number(limit) || 8, 12));
   let sources = Array.isArray(result?.sources) ? result.sources : [];
 
-  if (!sources.length) {
+  const needsFallback = !sources.length || !sources.some(item =>
+    String(item?.provider || '').toLowerCase() === 'wikipedia' ||
+    String(item?.extract || item?.snippet || '').trim().length >= 80
+  );
+
+  if (needsFallback) {
     const fallbackResults = await Promise.all([
       Promise.race([
         searchWikipedia(normalized, Math.min(Number(limit) || 8, 6)),
@@ -413,12 +439,10 @@ async function publicSearch(query, limit = 8) {
       ])
     ]);
 
-    sources = mergeDeepResults(
-      fallbackResults.flat().filter(item =>
-        String(item?.extract || item?.snippet || '').trim().length >= 30
-      ),
-      20
+    const fallbackSources = fallbackResults.flat().filter(item =>
+      String(item?.extract || item?.snippet || '').trim().length >= 30
     );
+    sources = mergeDeepResults([...sources, ...fallbackSources], 20);
   }
 
   const wikipedia = sources.find(item => String(item?.provider || '').toLowerCase() === 'wikipedia');
