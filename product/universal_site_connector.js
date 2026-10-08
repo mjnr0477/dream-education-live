@@ -1,6 +1,7 @@
 'use strict';
 
 const { URL } = require('url');
+const dns = require('dns').promises;
 
 const MAX_RESPONSE_BYTES = 1024 * 1024;
 const ALLOWED_PROTOCOLS = new Set(['http:', 'https:']);
@@ -24,13 +25,17 @@ function isPrivateHostname(hostname) {
   return false;
 }
 
-function assertPublicSite(url) {
+async function assertPublicSite(url) {
   if (isPrivateHostname(url.hostname)) throw new Error('Private or local network targets are not allowed.');
+  const records = await dns.lookup(url.hostname, { all: true, verbatim: true });
+  if (!records.length || records.some(record => isPrivateHostname(record.address))) {
+    throw new Error('Site resolves to a private or local network address.');
+  }
   return url;
 }
 
 async function fetchBounded(url, options = {}) {
-  const target = assertPublicSite(normalizeSiteUrl(url));
+  const target = await assertPublicSite(normalizeSiteUrl(url));
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), Math.min(Number(options.timeout_ms) || 8000, 10000));
   try {
@@ -42,7 +47,7 @@ async function fetchBounded(url, options = {}) {
     });
     const location = response.headers.get('location');
     if (location) {
-      const redirected = assertPublicSite(new URL(location, target));
+      const redirected = await assertPublicSite(new URL(location, target));
       if (redirected.hostname !== target.hostname) throw new Error('Cross-site redirects are not followed.');
     }
     const reader = response.body?.getReader();
@@ -88,7 +93,7 @@ function extractApiLinks(html, baseUrl) {
 }
 
 async function discoverSiteApis(site) {
-  const base = assertPublicSite(normalizeSiteUrl(site));
+  const base = await assertPublicSite(normalizeSiteUrl(site));
   const candidates = [
     new URL('/.well-known/api-catalog', base).toString(),
     new URL('/openapi.json', base).toString(),
@@ -130,7 +135,7 @@ async function discoverSiteApis(site) {
 }
 
 function buildSiteConnector({ endpoint, token, platform = 'website', channel = 'website_contact' }) {
-  const target = assertPublicSite(normalizeSiteUrl(endpoint));
+  const target = await assertPublicSite(normalizeSiteUrl(endpoint));
   return {
     id: 'site_' + target.hostname.replace(/[^a-z0-9]+/gi, '_').toLowerCase(),
     name: target.hostname,
