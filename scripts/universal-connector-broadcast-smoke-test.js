@@ -28,7 +28,11 @@ async function main() {
       id: "telegram",
       name: "Telegram",
       platform: "telegram",
-      recipients: [\n        { type: "group", address: "-100123", platform: "telegram" },\n        { type: "group", chat_id: "-100456", platform: "telegram" },\n        { type: "group", address: "-100123", platform: "telegram" }\n      ],
+      recipients: [
+        { type: "group", address: "-100123", platform: "telegram" },
+        { type: "group", chat_id: "-100456", platform: "telegram" },
+        { type: "group", address: "-100123", platform: "telegram" }
+      ],
       channels: [{
         type: "direct_message",
         platform: "telegram",
@@ -89,7 +93,8 @@ async function main() {
   assert.strictEqual(empty.attempted, 0);
 
   const noTargets = await broadcastMessage(
-    { message_id: "msg_none", body: "Dream Education" },\n    [{ id: "none", channels: [{ type: "message", authorized: false, send: async () => { throw new Error("must not send"); } }] }]
+    { message_id: "msg_none", body: "Dream Education" },
+    [{ id: "none", channels: [{ type: "message", authorized: false, send: async () => { throw new Error("must not send"); } }] }]
   );
   assert.strictEqual(noTargets.status, "no_authorized_broadcast_target");
   assert.strictEqual(noTargets.attempted, 0);
