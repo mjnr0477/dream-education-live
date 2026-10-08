@@ -8914,15 +8914,17 @@ function openUniversalConnector() {
   const panelTitle = document.getElementById("panel-title");
   const panelKicker = document.getElementById("panel-kicker");
   const panelDescription = document.getElementById("panel-description");
+
   if (!panel || !panelBody || !panelTitle) return;
 
   const auth = window.DreamEducationUI?.getAuth?.() || getAuth();
   const token = auth?.session?.access_token;
+
   if (!token) {
     if (panelKicker) panelKicker.textContent = "DREAM EDUCATION CONNECT";
     panelTitle.textContent = "Universal Connector";
-    if (panelDescription) panelDescription.textContent = "Sign in to use authorized communication channels.";
-    panelBody.innerHTML = '<div class="panel-card"><h3>Sign in required</h3><p>Your account must be authenticated before Dream can inspect connected platforms or send a message.</p></div><div class="panel-actions"><button class="panel-action" type="button" data-panel-action="signin">Sign in</button><button class="panel-action secondary" type="button" data-action="close">Close</button></div>';
+    if (panelDescription) panelDescription.textContent = "Sign in to use connected communication channels.";
+    panelBody.innerHTML = '<div class="panel-card"><h3>Sign in required</h3><p>Your account must be authenticated before Dream can send through connected destinations.</p></div><div class="panel-actions"><button class="panel-action" type="button" data-panel-action="signin">Sign in</button><button class="panel-action secondary" type="button" data-action="close">Close</button></div>';
     panel.classList.remove("hidden");
     document.body.classList.add("panel-open");
     return;
@@ -8930,201 +8932,120 @@ function openUniversalConnector() {
 
   if (panelKicker) panelKicker.textContent = "DREAM EDUCATION CONNECT";
   panelTitle.textContent = "Universal Connector";
-  if (panelDescription) panelDescription.textContent = "One place for authorized platforms. Dream only sends through a channel that is actually connected and permitted.";
+  if (panelDescription) panelDescription.textContent = "Write one message. Dream automatically sends it through every connected and authorized destination.";
 
   panelBody.innerHTML = `
-    <div class="subscription-page">
+    <div class="subscription-page universal-connector-simple">
       <div class="subscription-header">
-        <span class="subscription-kicker">GLOBAL COMMUNICATION HUB</span>
-        <h2>Connect once. Send correctly.</h2>
-        <p>Choose a connected platform, identify the exact recipient, write the message, then send. A platform is never shown as connected unless the server has a valid authorized connector.</p>
+        <span class="subscription-kicker">ONE MESSAGE. AUTOMATIC DELIVERY.</span>
+        <h2>Send everywhere connected.</h2>
+        <p>There is nothing to choose. Dream handles the connected platforms, channels and configured destinations automatically.</p>
       </div>
-      <div id="universal-connector-platforms" class="panel-card">
-        <h3>Platforms</h3>
-        <div id="universal-connector-platform-list"><p>Loading platform status...</p></div>
-      </div>
+
       <div class="panel-card">
-        <h3>Connect any website / API</h3>
-        <p>Enter a public site. Dream will look for its declared API catalog or OpenAPI description. Sending is enabled only after the site exposes a legitimate messaging endpoint and you authorize it.</p>
-        <label class="panel-label" for="universal-site-url">Website</label>
-        <input class="panel-input" id="universal-site-url" type="url" placeholder="https://example.com">
-        <button class="panel-button secondary" id="universal-site-discover" type="button">Discover capabilities</button>
-        <div id="universal-site-discovery" class="subscription-message" aria-live="polite"></div>
-      </div>
-      <div class="panel-card">
-        <label class="panel-label" for="messenger-platform">Platform</label>
-        <select class="panel-input" id="messenger-platform"><option value="">Select a platform</option></select>
-        <label class="panel-label" for="messenger-channel">Channel / action</label>
-        <select class="panel-input" id="messenger-channel" disabled><option value="">Select a channel</option></select>
-        <label class="panel-label" for="messenger-name">Exact recipient</label>
-        <input class="panel-input" id="messenger-name" placeholder="Person, organization, group or account">
-        <label class="panel-label" for="messenger-address">Recipient address / handle / email</label>
-        <input class="panel-input" id="messenger-address" placeholder="@handle, email, chat ID, address or authorized recipient ID">
         <label class="panel-label" for="messenger-body">Message</label>
-        <textarea class="panel-input" id="messenger-body" rows="6" placeholder="Write your message..." maxlength="10000"></textarea>
+        <textarea class="panel-input" id="messenger-body" rows="10" maxlength="10000" placeholder="Write your message..." aria-label="Universal message"></textarea>
         <div id="messenger-status" class="subscription-message" aria-live="polite"></div>
-        <button class="panel-button primary" id="messenger-send" type="button" disabled>Send message</button>
+        <button class="panel-button primary" id="messenger-send" type="button">Send</button>
       </div>
-      <div class="panel-actions"><button class="panel-action secondary" type="button" data-action="close">Close</button></div>
+
+      <div id="messenger-receipts" class="panel-card" hidden>
+        <h3>Delivery report</h3>
+        <p id="messenger-summary"></p>
+        <div id="messenger-receipt-list"></div>
+      </div>
+
+      <div class="panel-actions">
+        <button class="panel-action secondary" type="button" data-action="close">Close</button>
+      </div>
     </div>`;
 
   panel.classList.remove("hidden");
   document.body.classList.add("panel-open");
 
-  const siteDiscover = panelBody.querySelector("#universal-site-discover");
-  const siteUrl = panelBody.querySelector("#universal-site-url");
-  const siteDiscovery = panelBody.querySelector("#universal-site-discovery");
-  siteDiscover?.addEventListener("click", async () => {
-    const site = siteUrl?.value.trim() || "";
-    if (!site) {
-      siteDiscovery.textContent = "Enter a website URL first.";
-      siteDiscovery.className = "subscription-message error";
-      return;
-    }
-    siteDiscover.disabled = true;
-    siteDiscover.textContent = "Discovering...";
-    siteDiscovery.textContent = "Checking the site's public API declarations and OpenAPI documents...";
-    siteDiscovery.className = "subscription-message";
-    try {
-      const response = await fetch("/api/product/connect/messenger/site-discover", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
-        body: JSON.stringify({ site })
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok || !data.success) throw new Error(data.error || "Site discovery failed.");
-      const items = data.discovery?.discovered || [];
-      if (!items.length) {
-        siteDiscovery.textContent = "No declared API catalog or OpenAPI description was found. This site cannot be marked as a send-capable connector yet.";
-        siteDiscovery.className = "subscription-message error";
-      } else {
-        siteDiscovery.textContent = "Discovered " + items.length + " API description(s): " +
-          items.map(item => item.title || item.url).join(" · ") +
-          ". Configure an authorized endpoint connector before sending.";
-        siteDiscovery.className = "subscription-message success";
-      }
-    } catch (error) {
-      siteDiscovery.textContent = error.message || "Site discovery failed.";
-      siteDiscovery.className = "subscription-message error";
-    } finally {
-      siteDiscover.disabled = false;
-      siteDiscover.textContent = "Discover capabilities";
-    }
-  });
-
-  const platformSelect = panelBody.querySelector("#messenger-platform");
-  const channelSelect = panelBody.querySelector("#messenger-channel");
-  const list = panelBody.querySelector("#universal-connector-platform-list");
+  const bodyInput = panelBody.querySelector("#messenger-body");
   const send = panelBody.querySelector("#messenger-send");
   const status = panelBody.querySelector("#messenger-status");
-  let platforms = [];
+  const receiptsBox = panelBody.querySelector("#messenger-receipts");
+  const summary = panelBody.querySelector("#messenger-summary");
+  const receiptList = panelBody.querySelector("#messenger-receipt-list");
 
   const setStatus = (message, kind) => {
     status.textContent = message || "";
     status.className = "subscription-message" + (kind ? " " + kind : "");
   };
 
-  const renderPlatformList = () => {
-    list.innerHTML = platforms.map(platform => {
-      const connected = platform.connected === true;
-      const channels = Array.isArray(platform.channels) ? platform.channels : [];
-      return '<div class="panel-card" style="margin-top:12px"><h3>' +
-        escapeHTML(platform.name) + '</h3><p>' +
-        (connected ? "Connected and authorized" : "Not connected") +
-        ' · ' + escapeHTML(channels.join(", ") || "No direct channel registered") +
-        '</p></div>';
-    }).join("") || "<p>No platforms are registered.</p>";
-  };
-
-  const populateChannels = (platformId) => {
-    const platform = platforms.find(item => item.id === platformId);
-    const connected = Boolean(platform?.connected);
-    const channels = Array.isArray(platform?.channels) ? platform.channels : [];
-    channelSelect.innerHTML = '<option value="">Select a channel</option>' +
-      channels.map(channel => '<option value="' + escapeHTML(channel) + '">' + escapeHTML(channel) + "</option>").join("");
-    channelSelect.disabled = !connected || channels.length === 0;
-    if (channels.length === 1) channelSelect.value = channels[0];
-    send.disabled = !connected || !channelSelect.value;
-  };
-
-  const refresh = async () => {
-    try {
-      const response = await fetchWithTimeout("/api/product/connect/messenger/platforms", {
-        headers: { "Authorization": "Bearer " + token }
-      }, 8000);
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok || !data.success) throw new Error(data.error || "Platform status unavailable.");
-      platforms = Array.isArray(data.platforms) ? data.platforms : [];
-      renderPlatformList();
-      platformSelect.innerHTML = '<option value="">Select a platform</option>' +
-        platforms.map(platform =>
-          '<option value="' + escapeHTML(platform.id) + '"' +
-          (platform.connected ? "" : " disabled") + ">" +
-          escapeHTML(platform.name) +
-          (platform.connected ? " — connected" : " — not connected") +
-          "</option>"
-        ).join("");
-      const firstConnected = platforms.find(platform => platform.connected);
-      if (firstConnected) {
-        platformSelect.value = firstConnected.id;
-        populateChannels(firstConnected.id);
-      } else {
-        setStatus("No external platform is currently connected. Configure an authorized connector on the server before sending.", "error");
-      }
-    } catch (error) {
-      list.innerHTML = "<p>Could not load platform status.</p>";
-      setStatus(error.message || "Could not load platform status.", "error");
-    }
-  };
-
-  platformSelect.addEventListener("change", () => {
-    setStatus("", "");
-    populateChannels(platformSelect.value);
-  });
-  channelSelect.addEventListener("change", () => {
-    const platform = platforms.find(item => item.id === platformSelect.value);
-    send.disabled = !(platform?.connected && channelSelect.value);
-  });
-
   send.addEventListener("click", async () => {
-    const platform = platforms.find(item => item.id === platformSelect.value);
-    const name = panelBody.querySelector("#messenger-name")?.value.trim() || "";
-    const address = panelBody.querySelector("#messenger-address")?.value.trim() || "";
-    const body = panelBody.querySelector("#messenger-body")?.value.trim() || "";
-    const channel = channelSelect.value;
-    if (!platform?.connected) return setStatus("This platform is not connected and authorized.", "error");
-    if (!channel || !name || !address || !body) return setStatus("Choose a connected channel and provide the exact recipient and message.", "error");
+    const body = bodyInput?.value.trim() || "";
+    if (!body) {
+      setStatus("Write a message first.", "error");
+      bodyInput?.focus();
+      return;
+    }
 
     send.disabled = true;
     send.textContent = "Sending...";
-    setStatus("Resolving the recipient and delivering through the authorized connector...", "");
+    setStatus("Sending through every connected and authorized destination...", "");
+    receiptsBox.hidden = true;
+    summary.textContent = "";
+    receiptList.innerHTML = "";
+
     try {
-      const response = await fetch("/api/product/connect/messenger/send", {
+      const response = await fetch("/api/product/connect/messenger/broadcast", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
-        body: JSON.stringify({
-          body,
-          recipient: { type: "person", name, platform: platform.id, channel, address, action: channel }
-        })
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + token
+        },
+        body: JSON.stringify({ body })
       });
+
       const data = await response.json().catch(() => ({}));
-      if (response.status === 409 && data.status === "recipient_confirmation_required") {
-        throw new Error("The recipient is ambiguous. Provide the exact account, handle, email, chat ID or authorized recipient address.");
-      }
+
       if (!response.ok || !data.success) {
-        throw new Error(data.error || data.status || "The authorized connector could not deliver the message.");
+        throw new Error(
+          data.error ||
+          (data.status === "no_authorized_broadcast_target"
+            ? "No connected and authorized delivery destination is configured."
+            : "The message could not be delivered.")
+        );
       }
-      const receipt = data.receipt || data.delivery || {};
-      const destination = receipt.destination || receipt.channel || platform.name;
-      setStatus("Delivered through " + destination + ". Message ID: " + (data.message?.id || receipt.message_id || "confirmed"), "success");
-      send.textContent = "Delivered";
+
+      const attempted = Number(data.attempted || 0);
+      const delivered = Number(data.delivered || 0);
+      const failed = Number(data.failed || 0);
+
+      setStatus(
+        "Delivery confirmed: " + delivered + " of " + attempted + " destinations.",
+        failed ? "" : "success"
+      );
+
+      summary.textContent =
+        "Message " + (data.message_id || "") +
+        " · " + delivered + " delivered · " + failed + " failed";
+
+      const receipts = Array.isArray(data.receipts) ? data.receipts : [];
+      receiptList.innerHTML = receipts.map((receipt) => {
+        const name = receipt.connector_name || receipt.platform || "Destination";
+        const state = receipt.success ? "Delivered" : "Not delivered";
+        const target =
+          receipt.recipient?.address ||
+          receipt.recipient?.email ||
+          receipt.recipient?.handle ||
+          receipt.recipient?.name ||
+          "";
+        return '<div class="panel-card" style="margin-top:10px"><strong>' +
+          escapeHTML(name) + '</strong><p>' +
+          escapeHTML(state + (target ? " · " + target : "")) +
+          '</p></div>';
+      }).join("");
+
+      receiptsBox.hidden = false;
+      send.textContent = "Sent";
     } catch (error) {
-      setStatus(error.message || "Message could not be delivered.", "error");
+      setStatus(error.message || "The message could not be delivered.", "error");
       send.disabled = false;
-      send.textContent = "Send message";
+      send.textContent = "Send";
     }
   });
-
-  refresh();
 }
-
