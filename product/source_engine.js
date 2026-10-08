@@ -141,9 +141,16 @@ function prepareSource(item) {
     .replace(/\s+/g, " ")
     .trim();
 
+  const media = Array.isArray(item.media) ? item.media.filter(asset => asset && asset.url).slice(0, 8) : [];
+  const evidence = Array.isArray(item.evidence) && item.evidence.length
+    ? item.evidence.slice(0, 8)
+    : [{ type: "text", content: extract, source: item.source || item.provider || "Source" }];
+
   return {
     ...item,
     extract,
+    evidence,
+    media,
     has_usable_content: extract.length >= 30,
     content_length: extract.length
   };
