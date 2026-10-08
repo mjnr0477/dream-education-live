@@ -134,7 +134,7 @@ async function discoverSiteApis(site) {
   };
 }
 
-function buildSiteConnector({ endpoint, token, platform = 'website', channel = 'website_contact' }) {
+async function buildSiteConnector({ endpoint, token, platform = 'website', channel = 'website_contact' }) {
   const target = await assertPublicSite(normalizeSiteUrl(endpoint));
   return {
     id: 'site_' + target.hostname.replace(/[^a-z0-9]+/gi, '_').toLowerCase(),
