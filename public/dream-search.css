@@ -21,3 +21,5 @@
 .dream-search-lock.visible{display:flex;gap:10px;flex-wrap:wrap}
 .dream-search-lock input{flex:1;min-width:200px;padding:13px;border-radius:10px;border:1px solid rgba(255,255,255,.16);background:transparent;color:inherit}
 @media(max-width:640px){.dream-search-box{flex-direction:column}.dream-search-button{width:100%}}
+
+.dream-search-evidence{display:grid;gap:10px;margin:12px 0}.dream-search-evidence img,.dream-search-evidence video{display:block;width:100%;max-height:420px;object-fit:contain;border-radius:12px;background:#000}.dream-search-evidence audio{width:100%}.dream-search-evidence-note{padding:10px;border-radius:10px;background:rgba(255,255,255,.05);font-size:13px}
