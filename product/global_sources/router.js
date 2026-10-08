@@ -12,16 +12,18 @@ const repositories = require("./providers/repositories");
 
 const FAMILY_MAP = {
   mathematics:["openalex","doaj"],
-  mathematics_education:["openalex","doaj","mit_ocw","openstax"],
-  biology:["openalex","doaj","pubmed","europe_pmc","gbif","uniprot","rcsb_pdb"],
-  chemistry:["openalex","doaj","pubchem","nist"],
-  physics:["openalex","doaj","arxiv","nist"],
-  medicine:["pubmed","pubmed_central","europe_pmc","ncbi_bookshelf","openalex"],
-  computer_science:["openalex","arxiv","github","stack_exchange"],
-  environment:["gbif","noaa","usgs","openalex","doaj"],
-  space:["nasa","openalex","arxiv"],
+  mathematics_education:["openalex","doaj"],
+  biology:["openalex","doaj","pubmed_central","ncbi_bookshelf","gbif","uniprot","rcsb_pdb"],
+  chemistry:["openalex","doaj","pubchem"],
+  physics:["openalex","doaj","arxiv"],
+  medicine:["pubmed_central","ncbi_bookshelf","openalex","doaj"],
+  computer_science:["openalex","arxiv","doaj"],
+  environment:["gbif","openalex","doaj","world_bank"],
+  space:["openalex","arxiv"],
   economics:["world_bank","openalex","doaj"],
-  general:["wikipedia","wikidata","openalex","crossref","datacite","doaj","zenodo","figshare"]
+  research:["openalex","doaj","unpaywall","zenodo","figshare"],
+  education:["openalex","doaj"],
+  general:["openalex","doaj","unpaywall","zenodo","figshare","world_bank","pubmed_central","ncbi_bookshelf","pubchem","gbif","uniprot","rcsb_pdb"]
 };
 
 const PROVIDERS = {
