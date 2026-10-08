@@ -103,8 +103,8 @@
       <article class="dream-search-result${item.private ? ' dream-search-private' : ''}">
         <h3>${escapeHtml(item.title || 'Information')}</h3>
         <p>${escapeHtml(item.excerpt || item.content || 'No excerpt available.')}</p>
-        \${renderEvidence(item)}
-        \${renderReadMore(item, false)}
+        ${renderEvidence(item)}
+        ${renderReadMore(item, false)}
         <div class="dream-search-source">${escapeHtml(item.source || 'Dream source')}${item.private ? ' · Authorized data' : ''}</div>
       </article>
     `).join('');
@@ -201,8 +201,8 @@
           <article class="dream-search-result${item.private ? ' dream-search-private' : ''}">
             <h3>${escapeHtml(item.title || 'Information')}</h3>
             <p>${escapeHtml(item.excerpt || item.content || 'No excerpt available.')}</p>
-          \${renderEvidence(item)}
-          \${renderReadMore(item, Boolean(item.private))}
+          ${renderEvidence(item)}
+          ${renderReadMore(item, Boolean(item.private))}
             <div class="dream-search-source">${escapeHtml(item.source || 'Dream source')}${item.authoritative ? ' · Owner authoritative' : item.private ? ' · Authorized data' : ' · Public evidence'}${item.provider ? ' · ' + escapeHtml(item.provider) : ''}</div>
           </article>
         `).join('') : '<div class="dream-search-result"><p>No matching information was found.</p></div>';
