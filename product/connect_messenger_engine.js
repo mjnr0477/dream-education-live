@@ -39,7 +39,7 @@ function normalizeRecipient(recipient = {}) {
     group: normalizeText(recipient.group, 300),
     platform: normalizeChannel(recipient.platform),
     channel: normalizeChannel(recipient.channel),
-    address: normalizeText(recipient.address, 1000)
+    address: normalizeText(recipient.address || recipient.chat_id || recipient.recipient_id, 1000)
   };
 }
 
