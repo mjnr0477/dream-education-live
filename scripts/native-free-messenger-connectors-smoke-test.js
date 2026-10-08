@@ -42,7 +42,12 @@ async function main() {
   const discord = find(connectors, "discord");
   assert.strictEqual(discord.recipients.length, 2);
 
-  assert.deepStrictEqual(buildNativeMessengerConnectors({}), []);
+  const emptyEnvConnectors = buildNativeMessengerConnectors({});
+  const dreamInbox = find(emptyEnvConnectors, "dream_inbox");
+  assert.ok(dreamInbox);
+  assert.strictEqual(dreamInbox.channels[0].authorized, true);
+  assert.strictEqual(dreamInbox.channels[0].default_delivery, true);
+  assert.strictEqual(dreamInbox.channels[0].broadcast, true);
 
   console.log("Native free/open messenger connectors smoke test: PASS");
 }

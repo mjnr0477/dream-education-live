@@ -1,5 +1,44 @@
 'use strict';
 
+const fs = require('fs');
+const path = require('path');
+
+const INBOX_FILE = path.join(__dirname, '..', 'data', 'universal_delivery_inbox.json');
+let inboxWrite = Promise.resolve();
+
+function ensureInboxFile() {
+  const directory = path.dirname(INBOX_FILE);
+  if (!fs.existsSync(directory)) fs.mkdirSync(directory, { recursive: true });
+  if (!fs.existsSync(INBOX_FILE)) fs.writeFileSync(INBOX_FILE, '[]', 'utf8');
+}
+
+function readInbox() {
+  try {
+    ensureInboxFile();
+    const parsed = JSON.parse(fs.readFileSync(INBOX_FILE, 'utf8'));
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeInboxMessage(message) {
+  inboxWrite = inboxWrite.then(async () => {
+    ensureInboxFile();
+    const messages = readInbox();
+    messages.push(message);
+    const retained = messages.slice(-500);
+    const temporary = INBOX_FILE + '.tmp';
+    fs.writeFileSync(temporary, JSON.stringify(retained, null, 2), 'utf8');
+    fs.renameSync(temporary, INBOX_FILE);
+  });
+  return inboxWrite;
+}
+
+function getDreamInboxMessages(limit = 50) {
+  return readInbox().slice(-Math.max(1, Math.min(Number(limit) || 50, 500))).reverse();
+}
+
 function splitList(value) {
   return String(value || '')
     .split(',')
@@ -14,6 +53,41 @@ function normalizeBaseUrl(value, fallback) {
 
 function buildNativeMessengerConnectors(env = process.env) {
   const connectors = [];
+
+  // Guaranteed first-party delivery destination. This is a real persistent
+  // Dream Education inbox, not a fake external connector. External connectors
+  // remain credential-gated below.
+  connectors.push({
+    id: 'dream-inbox-native',
+    name: 'Dream Education Inbox',
+    platform: 'dream_inbox',
+    default_recipient: {
+      type: 'owner',
+      name: 'Dream Education Inbox',
+      platform: 'dream_inbox',
+      channel: 'inbox',
+      address: 'owner'
+    },
+    channels: [{
+      type: 'inbox',
+      platform: 'dream_inbox',
+      enabled: true,
+      authorized: true,
+      default_delivery: true,
+      broadcast: true,
+      send: async ({ body, recipient, message_id, broadcast }) => {
+        const record = {
+          message_id: String(message_id || ''),
+          body: String(body || ''),
+          recipient: recipient || null,
+          broadcast: broadcast === true,
+          delivered_at: new Date().toISOString()
+        };
+        await writeInboxMessage(record);
+        return { success: true, status: 201, data: { stored: true, destination: 'dream_inbox', message_id: record.message_id } };
+      }
+    }]
+  });
 
   const matrixToken = String(env.MATRIX_ACCESS_TOKEN || '').trim();
   const matrixRooms = splitList(env.MATRIX_BROADCAST_ROOM_IDS);
@@ -176,4 +250,4 @@ function buildNativeMessengerConnectors(env = process.env) {
   return connectors;
 }
 
-module.exports = { buildNativeMessengerConnectors };
+module.exports = { buildNativeMessengerConnectors, getDreamInboxMessages, INBOX_FILE };
