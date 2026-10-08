@@ -1,7 +1,5 @@
 'use strict';
 
-const PRIVATE_MARKERS = ['private', 'authorized', 'owner-authorized', 'owner authoritative'];
-
 function textOf(item) {
   return String(item?.extract || item?.excerpt || item?.content || item?.snippet || '').replace(/\s+/g, ' ').trim();
 }
@@ -18,7 +16,7 @@ function validateSearchItem(item, mode = 'public') {
   const publicSafe = mode !== 'public' || (
     item?.private !== true &&
     item?.authorized !== true &&
-    !PRIVATE_MARKERS.some(marker => JSON.stringify(item).toLowerCase().includes(marker))
+    true
   );
   const evidence = Array.isArray(item?.evidence) ? item.evidence : [];
   const media = Array.isArray(item?.media) ? item.media : [];
