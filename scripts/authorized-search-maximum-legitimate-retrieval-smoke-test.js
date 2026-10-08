@@ -1,36 +1,39 @@
 'use strict';
 
 const assert = require('assert');
-const http = require('http');
+const https = require('https');
+const { EventEmitter } = require('events');
 
 let requests = 0;
-const server = http.createServer((req, res) => {
+const originalRequest = https.request;
+https.request = (url, options, callback) => {
   requests += 1;
-  let body = '';
-  req.on('data', chunk => { body += chunk; });
-  req.on('end', () => {
-    const payload = req.method === 'POST' ? JSON.parse(body || '{}') : null;
-    const page = Number(new URL(req.url, 'http://127.0.0.1').searchParams.get('page') || 1);
-    const rows = page <= 2 ? [{ title: `Authorized deep result ${page}`, answer: `Deep authorized evidence page ${page}`, image: { url: 'https://example.com/evidence.jpg' } }] : [];
-    if (req.method === 'POST' && payload.query !== 'deep owner query') {
-      res.statusCode = 400;
-      res.end(JSON.stringify({ error: 'query mismatch' }));
-      return;
-    }
-    res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ results: rows }));
+  const response = new EventEmitter();
+  response.statusCode = 200;
+  process.nextTick(() => {
+    callback(response);
+    const page = requests <= 2 ? requests : 3;
+    const payload = { results: page <= 2 ? [{ title: `Authorized deep result ${page}`, answer: `Deep authorized evidence page ${page}`, image: { url: 'https://example.com/evidence.jpg' } }] : [] };
+    process.nextTick(() => {
+      response.emit('data', JSON.stringify(payload));
+      response.emit('end');
+    });
   });
-});
+  const req = new EventEmitter();
+  req.setTimeout = () => {};
+  req.write = value => { req.body = String(value); };
+  req.end = () => {};
+  req.destroy = () => {};
+  return req;
+};
 
 (async () => {
   try {
-    await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-    const port = server.address().port;
     process.env.DREAM_AUTHORIZED_SOURCE_CONNECTORS = JSON.stringify([
       {
         id: 'post-owner-index',
         name: 'Owner Authorized Index',
-        endpoint: `http://127.0.0.1:${port}/search`,
+        endpoint: 'https://authorized.test/search',
         method: 'POST',
         query_param: 'query',
         body_template: { query: '{{query}}', page: '{{page}}', limit: '{{limit}}' },
@@ -60,7 +63,7 @@ const server = http.createServer((req, res) => {
     console.log('AUTHORIZED MAXIMUM LEGITIMATE RETRIEVAL SMOKE TEST: PASS');
   } finally {
     delete process.env.DREAM_AUTHORIZED_SOURCE_CONNECTORS;
-    await new Promise(resolve => server.close(resolve));
+    https.request = originalRequest;
   }
 })().catch(error => {
   console.error(error);
