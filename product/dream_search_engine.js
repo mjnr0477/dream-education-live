@@ -27,7 +27,17 @@ function publicResult(item) {
     source_type: String(item?.source_type || '').trim() || null,
     has_usable_content: item?.has_usable_content !== false,
     content_length: Number.isFinite(Number(item?.content_length)) ? Number(item.content_length) : null,
-    url: String(item?.url || '').trim() || null
+    url: String(item?.url || '').trim() || null,
+    evidence: Array.isArray(item?.evidence)
+      ? item.evidence.slice(0, 8)
+      : [{
+          type: 'text',
+          content: String(item?.extract || item?.snippet || '').trim().slice(0, 3000),
+          source: String(item?.source || item?.provider || 'Public source').trim()
+        }],
+    media: Array.isArray(item?.media)
+      ? item.media.slice(0, 8)
+      : []
   };
 }
 
