@@ -5978,6 +5978,11 @@ function escapeHtml(value) {
     .replace(/'/g, "&#039;");
 }
 
+// Backward-compatible global alias used by older dashboard/connector markup.
+function escapeHTML(value) {
+  return escapeHtml(value);
+}
+
 
 /* ============================================================
    MULTIMODAL LEARNING — learner-controlled content delivery
