@@ -73,11 +73,26 @@ async function main() {
   );
 
   assert.strictEqual(result.success, true);
-  assert.strictEqual(result.attempted, 3);
-  assert.strictEqual(result.delivered, 2);
+  assert.strictEqual(result.attempted, 4);
+  assert.strictEqual(result.delivered, 3);
   assert.strictEqual(result.failed, 1);
-  assert.strictEqual(calls.length, 2);
-  assert.ok(calls.every((call) => call.body === "Dream Education"));\n\n  const empty = await broadcastMessage({ message_id: "msg_empty", body: "   " }, connectors);\n  assert.strictEqual(empty.status, "message_required");\n  assert.strictEqual(empty.attempted, 0);\n\n  const noTargets = await broadcastMessage(\n    { message_id: "msg_none", body: "Dream Education" },\n    [{ id: "none", channels: [{ type: "message", authorized: false, send: async () => { throw new Error("must not send"); } }] }]\n  );\n  assert.strictEqual(noTargets.status, "no_authorized_broadcast_target");\n  assert.strictEqual(noTargets.attempted, 0);
+  assert.strictEqual(calls.length, 3);
+  assert.ok(calls.every((call) => call.body === "Dream Education"));
+  assert.ok(calls.some((call) => call.recipient.address === "-100456"));
+  assert.strictEqual(
+    calls.filter((call) => call.platform === "telegram" && call.recipient.address === "-100123").length,
+    1
+  );
+
+  const empty = await broadcastMessage({ message_id: "msg_empty", body: "   " }, connectors);
+  assert.strictEqual(empty.status, "message_required");
+  assert.strictEqual(empty.attempted, 0);
+
+  const noTargets = await broadcastMessage(
+    { message_id: "msg_none", body: "Dream Education" },\n    [{ id: "none", channels: [{ type: "message", authorized: false, send: async () => { throw new Error("must not send"); } }] }]
+  );
+  assert.strictEqual(noTargets.status, "no_authorized_broadcast_target");
+  assert.strictEqual(noTargets.attempted, 0);
 
   const app = fs.readFileSync(path.join(__dirname, "..", "public", "app.js"), "utf8");
   const connectorStart = app.indexOf("function openUniversalConnector()");
