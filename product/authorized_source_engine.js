@@ -190,7 +190,7 @@ function normalizeMedia(row, connector) {
       title: String(item.title || item.name || '').trim() || null,
       description: String(item.description || item.caption || '').trim() || null
     };
-  }).filter(item => item && /^https?:\\/\\//i.test(item.url)).slice(0, 8);
+  }).filter(item => item && /^https?:\/\//i.test(item.url)).slice(0, 8);
 }
 function normalizeEvidence(row, connector, title, content, source) {
   const raw = [
