@@ -12,7 +12,7 @@ function request(url, options = {}) {
   return new Promise((resolve, reject) => {
     const req = https.get(url, {headers}, res => {
       let body = "";
-      res.setEncoding("utf8");
+      if (typeof res.setEncoding === "function") res.setEncoding("utf8");
       res.on("data", c => body += c);
       res.on("end", () => {
         if (res.statusCode < 200 || res.statusCode >= 300) {
