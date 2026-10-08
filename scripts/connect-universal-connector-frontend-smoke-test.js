@@ -10,10 +10,11 @@ const required = [
   'title: "Universal Connector"',
   'action: "universal-connector"',
   "function openUniversalConnector()",
-  "/api/product/connect/messenger/platforms",
-  "/api/product/connect/messenger/send",
-  "Connected and authorized",
-  "Delivered through ",
+  "/api/product/connect/messenger/broadcast",
+  "connected and authorized destination",
+  "Delivery confirmed:",
+  'id="messenger-body"',
+  'id="messenger-send"',
   'if (action === "universal-connector")'
 ];
 
