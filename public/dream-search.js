@@ -66,7 +66,7 @@
   function renderReadMore(item, privateResult) {
     const raw = item?.content || item?.extract || item?.excerpt || '';
     const title = item?.title || 'More information';
-    if (!raw || raw.length < 180) return '';
+    if (!raw) return '';
     return '<details class="dream-search-read-more"><summary>Read more</summary><div class="dream-search-full-evidence"><h4>' +
       escapeHtml(title) + '</h4><p>' + escapeHtml(raw) + '</p>' +
       (item?.source ? '<small>' + escapeHtml(item.source) + (privateResult ? ' · Authorized source' : '') + '</small>' : '') +
