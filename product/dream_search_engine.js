@@ -268,7 +268,24 @@ function searchAuthorizedCorpus(query, limit = 8) {
       target_provider: String(item?.target_provider || '').trim() || null,
       target_source: String(item?.target_source || '').trim() || null,
       connector_id: String(item?.connector_id || '').trim() || null,
-      access_scope: String(item?.access_scope || 'owner-authorized').trim()
+      access_scope: String(item?.access_scope || 'owner-authorized').trim(),
+      evidence: Array.isArray(item?.evidence)
+        ? item.evidence.slice(0, 8)
+        : [{
+            type: 'text',
+            content: String(
+              item?.answer ||
+              item?.content ||
+              item?.text ||
+              item?.description ||
+              item?.summary ||
+              ''
+            ).trim().slice(0, 3000),
+            source: String(item?.source || 'Authorized data').trim()
+          }],
+      media: Array.isArray(item?.media)
+        ? item.media.slice(0, 8)
+        : []
     }));
 }
 
