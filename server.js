@@ -13,6 +13,7 @@ const { determineDifficulty } = require("./difficulty_engine");
 const queryEngine = require("./product/query_engine.js");
 const { registerDreamSearchRoutes, publicSearch } = require('./product/dream_search_engine');
 const { createUniversalMessage, deliverMessage, resolveDelivery } = require("./product/connect_messenger_engine");
+const { getPlatformCatalog, getPlatform, supportsAction, normalizePlatform } = require("./product/connect_platform_registry");
 
 const {
   createValidatedConnection,
@@ -6125,6 +6126,27 @@ function getConfiguredMessengerConnectors() {
   }
 }
 
+app.get("/api/product/connect/messenger/platforms", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    return res.json({
+      success: true,
+      platforms: getPlatformCatalog().map(platform => ({
+        ...platform,
+        connected: getConfiguredMessengerConnectors().some(connector =>
+          normalizePlatform(connector.platform || connector.provider) === platform.id &&
+          Array.isArray(connector.channels) &&
+          connector.channels.some(channel => channel.enabled !== false && channel.authorized !== false)
+        )
+      }))
+    });
+  } catch (error) {
+    console.error("Universal messenger platform catalog error:", error);
+    return res.status(500).json({ success: false, error: "Messenger platform catalog unavailable." });
+  }
+});
+
 app.get("/api/product/connect/messenger/channels", async (req, res) => {
   try {
     const auth = await getAuthenticatedAccount(req);
@@ -6151,6 +6173,18 @@ app.post("/api/product/connect/messenger/send", async (req, res) => {
   try {
     const auth = await getAuthenticatedAccount(req);
     if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+
+    const requestedPlatform = normalizePlatform(req.body?.recipient?.platform);
+    const requestedAction = normalizePlatform(req.body?.recipient?.action || "send");
+    if (requestedPlatform) {
+      const platform = getPlatform(requestedPlatform);
+      if (!platform) {
+        return res.status(400).json({ success: false, error: "Unsupported platform." });
+      }
+      if (requestedAction !== "send" && !supportsAction(requestedPlatform, requestedAction)) {
+        return res.status(400).json({ success: false, error: "Requested action is not supported by this platform." });
+      }
+    }
 
     const message = createUniversalMessage({
       body: req.body?.body,
