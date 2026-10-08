@@ -15,7 +15,7 @@ const { registerDreamSearchRoutes, publicSearch } = require('./product/dream_sea
 const { createUniversalMessage, deliverMessage, resolveDelivery, broadcastMessage } = require("./product/connect_messenger_engine");
 const { getPlatformCatalog, getPlatform, supportsAction, normalizePlatform } = require("./product/connect_platform_registry");
 const { discoverSiteApis } = require("./product/universal_site_connector");
-const { buildNativeMessengerConnectors } = require("./product/native_messenger_connectors");
+const { buildNativeMessengerConnectors, getDreamInboxMessages } = require("./product/native_messenger_connectors");
 
 const {
   createValidatedConnection,
@@ -6327,6 +6327,32 @@ app.post("/api/product/connect/messenger/broadcast", async (req, res) => {
       success: false,
       error: error.message || "Message could not be broadcast."
     });
+  }
+});
+
+app.get("/api/product/connect/messenger/inbox", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    if (auth.account.owner_account !== true) {
+      return res.status(403).json({ success: false, error: "Owner access required." });
+    }
+
+    const limit = Math.max(1, Math.min(Number(req.query?.limit) || 50, 500));
+    return res.json({
+      success: true,
+      destination: {
+        id: "dream-inbox-native",
+        name: "Dream Education Inbox",
+        platform: "dream_inbox",
+        channel: "inbox",
+        persistent: true
+      },
+      messages: getDreamInboxMessages(limit)
+    });
+  } catch (error) {
+    console.error("Dream messenger inbox error:", error);
+    return res.status(500).json({ success: false, error: "Dream Education inbox unavailable." });
   }
 });
 
