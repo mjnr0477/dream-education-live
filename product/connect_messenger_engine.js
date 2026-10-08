@@ -87,7 +87,31 @@ function channelOrder(channels = []) {
 }
 
 async function resolveDelivery(recipient, connectors = []) {
-  const resolved = resolveRecipient(recipient, connectors.flatMap(c => Array.isArray(c.recipients) ? c.recipients : []));
+  const normalizedInput = normalizeRecipient(recipient || {});
+  let resolved = resolveRecipient(normalizedInput, connectors.flatMap(c => Array.isArray(c.recipients) ? c.recipients : []));
+
+  // A connector may explicitly declare one safe default destination. This allows
+  // Dream Education's own inbox to receive a message when no external recipient
+  // was supplied, without bypassing authentication on external services.
+  if (!resolved.selected) {
+    for (const connector of Array.isArray(connectors) ? connectors : []) {
+      const defaultRecipient = connector?.default_recipient;
+      const defaultChannel = (Array.isArray(connector?.channels) ? connector.channels : [])
+        .find(channel => channel && channel.default_delivery === true && channel.enabled !== false && channel.authorized !== false);
+      if (defaultRecipient && defaultChannel) {
+        resolved = {
+          recipient: normalizedInput,
+          candidates: [normalizeRecipient(defaultRecipient)],
+          selected: normalizeRecipient(defaultRecipient),
+          confidence: 1,
+          requires_confirmation: false,
+          resolved: true,
+          default_destination: true
+        };
+        break;
+      }
+    }
+  }
   const channels = [];
   for (const connector of Array.isArray(connectors) ? connectors : []) {
     for (const channel of Array.isArray(connector.channels) ? connector.channels : []) {
