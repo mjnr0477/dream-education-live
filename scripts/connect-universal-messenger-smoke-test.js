@@ -1,0 +1,20 @@
+'use strict';
+const assert=require('assert');
+const {createUniversalMessage,resolveRecipient,resolveDelivery,deliverMessage}=require('../product/connect_messenger_engine');
+const message=createUniversalMessage({body:'Hello exact recipient',recipient:{type:'person',name:'Amina Otieno',platform:'email'}});
+assert.ok(message.message_id.startsWith('msg_'));
+const resolved=resolveRecipient(message.recipient,[{name:'Wrong Person',platform:'email'},{name:'Amina Otieno',platform:'email',email:'amina@example.com'}]);
+assert.strictEqual(resolved.resolved,true);
+assert.strictEqual(resolved.selected.email,'amina@example.com');
+(async()=>{
+ const connectors=[{id:'email-1',name:'Email',recipients:[{name:'Amina Otieno',platform:'email',email:'amina@example.com'}],channels:[{type:'email',platform:'email',authorized:true,enabled:true,send:async()=>({success:true,message_id:'provider-1'})}]}];
+ const plan=await resolveDelivery(message.recipient,connectors);
+ assert.strictEqual(plan.delivery_ready,true);
+ const sent=await deliverMessage(message,connectors);
+ assert.strictEqual(sent.success,true);
+ assert.strictEqual(sent.status,'delivered');
+ const blocked=await deliverMessage(message,[{id:'x',recipients:[{name:'Amina Otieno',platform:'email'}],channels:[{type:'email',platform:'email',authorized:false,enabled:true,send:async()=>({success:true})}]}]);
+ assert.strictEqual(blocked.success,false);
+ assert.strictEqual(blocked.status,'no_authorized_channel');
+ console.log('CONNECT UNIVERSAL MESSENGER SMOKE TEST: PASS');
+})().catch(e=>{console.error(e);process.exit(1)});
