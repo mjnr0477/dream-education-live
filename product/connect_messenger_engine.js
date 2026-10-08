@@ -88,16 +88,37 @@ function channelOrder(channels = []) {
 
 async function resolveDelivery(recipient, connectors = []) {
   const normalizedInput = normalizeRecipient(recipient || {});
-  let resolved = resolveRecipient(normalizedInput, connectors.flatMap(c => Array.isArray(c.recipients) ? c.recipients : []));
+  const hasExplicitDestination = Boolean(
+    normalizedInput.name ||
+    normalizedInput.organization ||
+    normalizedInput.email ||
+    normalizedInput.handle ||
+    normalizedInput.group ||
+    normalizedInput.platform ||
+    normalizedInput.channel ||
+    normalizedInput.address ||
+    String(recipient?.description || '').trim()
+  );
 
-  // A connector may explicitly declare one safe default destination. This allows
-  // Dream Education's own inbox to receive a message when no external recipient
-  // was supplied, without bypassing authentication on external services.
-  if (!resolved.selected) {
+  let resolved = resolveRecipient(
+    normalizedInput,
+    connectors.flatMap(c => Array.isArray(c.recipients) ? c.recipients : [])
+  );
+
+  // Only use Dream Education's own inbox as the automatic fallback when the
+  // caller did not specify any destination. Never silently redirect an
+  // explicitly requested external recipient to the inbox.
+  if (!resolved.selected && !hasExplicitDestination) {
     for (const connector of Array.isArray(connectors) ? connectors : []) {
       const defaultRecipient = connector?.default_recipient;
       const defaultChannel = (Array.isArray(connector?.channels) ? connector.channels : [])
-        .find(channel => channel && channel.default_delivery === true && channel.enabled !== false && channel.authorized !== false);
+        .find(channel =>
+          channel &&
+          channel.default_delivery === true &&
+          channel.enabled !== false &&
+          channel.authorized !== false
+        );
+
       if (defaultRecipient && defaultChannel) {
         resolved = {
           recipient: normalizedInput,
@@ -112,35 +133,57 @@ async function resolveDelivery(recipient, connectors = []) {
       }
     }
   }
+
   const channels = [];
   for (const connector of Array.isArray(connectors) ? connectors : []) {
     for (const channel of Array.isArray(connector.channels) ? connector.channels : []) {
       if (channel.enabled !== false && channel.authorized !== false) {
-        channels.push({ ...channel, connector_id: connector.id, connector_name: connector.name });
+        channels.push({
+          ...channel,
+          connector_id: connector.id,
+          connector_name: connector.name,
+          connector
+        });
       }
     }
   }
+
+  const automaticFanout = !hasExplicitDestination && Boolean(resolved.default_destination);
+
   const eligible = channelOrder(channels).filter(channel => {
-    if (!resolved.selected) return false;
+    if (!resolved.selected || automaticFanout) return false;
     const platform = normalizeChannel(channel.platform);
-    return !platform || !resolved.selected.platform || platform === normalizeChannel(resolved.selected.platform);
+    return !platform ||
+      !resolved.selected.platform ||
+      platform === normalizeChannel(resolved.selected.platform);
   });
+
   return {
     ...resolved,
     channels: eligible,
-    delivery_ready: Boolean(resolved.selected && eligible.length)
+    delivery_ready: Boolean(resolved.selected && eligible.length),
+    automatic_fanout: automaticFanout
   };
 }
 
 async function deliverMessage(message, connectors = []) {
   const body = normalizeText(message?.body);
-  if (!body) return { success: false, error: 'Message body is required.' };
+  const messageId = message?.message_id || makeMessageId();
+  if (!body) return { success: false, error: 'Message body is required.', message_id: messageId };
+
   const delivery = await resolveDelivery(message.recipient, connectors);
+
+  // A blank destination means "send everywhere that is actually configured
+  // and authorized". This is the one-box/one-send fan-out path.
+  if (delivery.automatic_fanout) {
+    return broadcastMessage({ ...message, message_id: messageId, body }, connectors);
+  }
+
   if (!delivery.delivery_ready) {
     return {
       success: false,
       status: delivery.requires_confirmation ? 'recipient_confirmation_required' : 'no_authorized_channel',
-      message_id: message.message_id || makeMessageId(),
+      message_id: messageId,
       delivery
     };
   }
@@ -150,32 +193,29 @@ async function deliverMessage(message, connectors = []) {
     if (typeof channel.send !== 'function') continue;
     try {
       const result = await channel.send({
-        message_id: message.message_id || makeMessageId(),
+        message_id: messageId,
         body,
         recipient: delivery.selected,
         channel
       });
-      attempts.push({ channel: channel.type, connector_id: channel.connector_id, success: result?.success !== false, result });
-      if (result?.success !== false) {
-        return {
-          success: true,
-          status: 'delivered',
-          message_id: message.message_id || makeMessageId(),
-          recipient: delivery.selected,
-          channel,
-          attempts
-        };
-      }
+      const success = result?.success === true;
+      attempts.push({ channel: channel.type, connector_id: channel.connector_id, success, result });
     } catch (error) {
       attempts.push({ channel: channel.type, connector_id: channel.connector_id, success: false, error: error.message });
     }
   }
 
+  const delivered = attempts.filter(attempt => attempt.success).length;
   return {
-    success: false,
-    status: 'delivery_failed',
-    message_id: message.message_id || makeMessageId(),
+    success: delivered > 0,
+    status: delivered > 0
+      ? delivered === attempts.length ? 'delivered' : 'partially_delivered'
+      : 'delivery_failed',
+    message_id: messageId,
     recipient: delivery.selected,
+    channel: attempts.length === 1
+      ? delivery.channels.find(channel => channel.connector_id === attempts[0].connector_id) || null
+      : null,
     attempts
   };
 }
