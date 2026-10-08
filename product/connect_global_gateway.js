@@ -1,0 +1,7 @@
+'use strict';
+const {createUniversalMessage,deliverMessage,resolveDelivery}=require('./connect_messenger_engine');
+const {getPlatformCatalog,getPlatform,supportsAction,normalizePlatform}=require('./connect_platform_registry');
+function describeTarget(target={}){const platform=normalizePlatform(target.platform);const p=getPlatform(platform);return {platform,known:Boolean(p),platform_info:p||null,action:target.action||target.channel||'send',supported:Boolean(p&&supportsAction(platform,target.action||target.channel||'send'))};}
+async function sendToTargets({body,targets=[],connectors=[]}){const list=Array.isArray(targets)?targets:[];const results=[];for(const target of list){const capability=describeTarget(target);if(!capability.supported){results.push({success:false,status:'unsupported_or_unconfigured_capability',target,capability});continue;}const message=createUniversalMessage({body,recipient:target});results.push(await deliverMessage(message,connectors));}return {success:results.some(r=>r.success),total:results.length,delivered:results.filter(r=>r.success).length,failed:results.filter(r=>!r.success).length,results};}
+function globalMessengerManifest(){return {name:'Dream Education Global Messenger',version:1,model:'authorized-multi-channel-gateway',platforms:getPlatformCatalog(),principles:['one message to multiple authorized destinations','exact recipient resolution','delivery receipts','platform-specific authorization','no access-control bypass','rate-limit aware delivery']};}
+module.exports={describeTarget,sendToTargets,globalMessengerManifest};
