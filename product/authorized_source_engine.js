@@ -150,6 +150,67 @@ function buildQueryUrl(connector, query) {
   return url.toString();
 }
 
+function normalizeMedia(row, connector) {
+  const candidates = [
+    ['media', readPath(row, connector.media_path || '')],
+    ['media', readPath(row, 'media')],
+    ['evidence', readPath(row, 'evidence')],
+    ['attachment', readPath(row, 'attachments')],
+    ['image', readPath(row, 'image')],
+    ['image', readPath(row, 'images')],
+    ['image', readPath(row, 'photo')],
+    ['image', readPath(row, 'photos')],
+    ['video', readPath(row, 'video')],
+    ['video', readPath(row, 'videos')],
+    ['audio', readPath(row, 'audio')],
+    ['audio', readPath(row, 'audio_url')],
+    ['document', readPath(row, 'document')],
+    ['document', readPath(row, 'documents')]
+  ].filter(([, value]) => Boolean(value));
+
+  const values = candidates.flatMap(([hint, value]) => {
+    const items = Array.isArray(value) ? value : [value];
+    return items.map(item => ({ hint, item }));
+  });
+
+  return values.map(({ hint, item }) => {
+    if (typeof item === 'string') return { type: hint, url: item };
+    if (!item || typeof item !== 'object') return null;
+    const url = item.url || item.uri || item.src || item.content_url || item.embed_url;
+    if (!url) return null;
+    const rawType = String(item.type || item.mime_type || hint || 'media').toLowerCase();
+    const type = rawType.includes('image') ? 'image'
+      : rawType.includes('video') ? 'video'
+      : rawType.includes('audio') ? 'audio'
+      : rawType.includes('pdf') || rawType.includes('document') ? 'document'
+      : hint;
+    return {
+      type,
+      url: String(url),
+      title: String(item.title || item.name || '').trim() || null,
+      description: String(item.description || item.caption || '').trim() || null
+    };
+  }).filter(item => item && /^https?:\/\//i.test(item.url)).slice(0, 8);
+}
+function normalizeEvidence(row, connector, title, content, source) {
+  const raw = [
+    readPath(row, connector.evidence_path || ''),
+    readPath(row, 'evidence')
+  ].filter(Boolean).flatMap(value => Array.isArray(value) ? value : [value]);
+  const evidence = raw.map(item => {
+    if (typeof item === 'string') return { type: 'text', content: item, source };
+    if (!item || typeof item !== 'object') return null;
+    const text = item.content || item.text || item.description || item.snippet;
+    if (text) return { type: 'text', content: String(text).slice(0, 4000), source: String(item.source || source) };
+    return null;
+  }).filter(Boolean).slice(0, 8);
+
+  if (!evidence.length && content) {
+    evidence.push({ type: 'text', content: String(content).slice(0, 3000), source });
+  }
+  return evidence;
+}
+
 function normalizeRow(row, connector, index) {
   const title = readPath(row, connector.title_path || 'title') ||
     readPath(row, 'name') ||
@@ -162,6 +223,8 @@ function normalizeRow(row, connector, index) {
     '';
 
   const source = String(connector.name || connector.id || 'Authorized source').trim();
+  const evidence = normalizeEvidence(row, connector, String(title).trim(), content, source);
+  const media = normalizeMedia(row, connector);
 
   return {
     title: String(title).trim(),
@@ -169,6 +232,8 @@ function normalizeRow(row, connector, index) {
     provider: String(connector.id || source).trim(),
     type: String(connector.type || 'authorized'),
     excerpt: String(content).trim().slice(0, 5000),
+    evidence,
+    media,
     private: connector.private !== false,
     authorized: true,
     authoritative: Boolean(connector.authoritative),

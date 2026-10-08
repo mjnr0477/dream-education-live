@@ -10,6 +10,7 @@ const {
   searchDuckDuckGo
 } = require('./source_engine');
 const { searchAuthorizedSources, loadConnectors } = require('./authorized_source_engine');
+const { verifyCrossSourceEvidence, buildEvidenceSummary } = require('./cross_source_verifier');
 
 function normalizeQuery(value) {
   return String(value || '').replace(/\s+/g, ' ').trim().slice(0, 1000);
@@ -38,6 +39,118 @@ function publicResult(item) {
     media: Array.isArray(item?.media)
       ? item.media.slice(0, 8)
       : []
+  };
+}
+
+function buildDeepQueryVariants(query) {
+  const normalized = normalizeQuery(query);
+  const variants = new Set([normalized]);
+  const compact = normalized.replace(/[?!.]+$/g, '').trim();
+
+  if (compact.length >= 3 && compact.includes(' ')) {
+    variants.add('"' + compact + '"');
+  }
+
+  const tokens = compact
+    .replace(/["']/g, '')
+    .split(/[^a-zA-Z0-9@.+_-]+/)
+    .filter(token => token.length >= 3);
+
+  if (tokens.length > 2) {
+    variants.add(tokens.slice(0, 8).join(' '));
+    variants.add(tokens.slice(0, 5).join(' ') + ' exact');
+  }
+
+  return [...variants].slice(0, 4);
+}
+
+function sourceIdentity(item) {
+  return [
+    String(item?.provider || item?.source || '').trim().toLowerCase(),
+    String(item?.title || '').trim().toLowerCase(),
+    String(item?.url || '').trim().toLowerCase()
+  ].join('|');
+}
+
+function mergeDeepResults(results, limit = 30) {
+  const map = new Map();
+
+  for (const item of (Array.isArray(results) ? results : [])) {
+    const key = sourceIdentity(item);
+    if (!key || key === '||') continue;
+
+    const previous = map.get(key);
+    if (!previous) {
+      map.set(key, item);
+      continue;
+    }
+
+    const previousText = String(previous.extract || previous.excerpt || '').length;
+    const currentText = String(item.extract || item.excerpt || '').length;
+    if (currentText > previousText) map.set(key, { ...previous, ...item });
+  }
+
+  return [...map.values()].slice(0, Math.min(Number(limit) || 30, 50));
+}
+
+async function deepPublicSearch(query, limit = 8) {
+  const variants = buildDeepQueryVariants(query);
+  const perQueryLimit = Math.min(Math.max(Number(limit) || 8, 5), 12);
+
+  const settled = await Promise.all(
+    variants.map(async variant => {
+      try {
+        return await searchSources(variant, perQueryLimit);
+      } catch (error) {
+        return { success: false, sources: [], providers: {}, completed_providers: [], error: error.message };
+      }
+    })
+  );
+
+  const sources = mergeDeepResults(
+    settled.flatMap(result => Array.isArray(result?.sources) ? result.sources : []),
+    Math.max(30, perQueryLimit * 3)
+  );
+
+  const evidence = verifyCrossSourceEvidence(sources, { minChars: 50 });
+  const evidenceRank = new Map(
+    (evidence.ranked_sources || []).map(item => [
+      sourceIdentity(item),
+      item
+    ])
+  );
+
+  const ranked = sources
+    .map(item => {
+      const verification = evidenceRank.get(sourceIdentity(item));
+      return {
+        ...item,
+        verification_score: verification?.cross_source_score ?? null,
+        cross_source_status: verification?.verification_status || 'single_source',
+        supporting_sources: verification?.supporting_sources || 0,
+        conflicting_sources: verification?.conflicting_sources || 0
+      };
+    })
+    .sort((a, b) => {
+      const score = Number(b.verification_score || 0) - Number(a.verification_score || 0);
+      if (score) return score;
+      return Number(b.relevance_score || 0) - Number(a.relevance_score || 0);
+    });
+
+  const providerFlags = {};
+  for (const result of settled) {
+    for (const [provider, connected] of Object.entries(result?.providers || {})) {
+      providerFlags[provider] = providerFlags[provider] || Boolean(connected);
+    }
+  }
+
+  return {
+    success: ranked.length > 0,
+    variants,
+    sources: ranked,
+    providers: providerFlags,
+    completed_providers: [...new Set(settled.flatMap(result => result?.completed_providers || []))],
+    evidence_summary: buildEvidenceSummary(evidence)
   };
 }
 
@@ -155,8 +268,103 @@ function searchAuthorizedCorpus(query, limit = 8) {
       target_provider: String(item?.target_provider || '').trim() || null,
       target_source: String(item?.target_source || '').trim() || null,
       connector_id: String(item?.connector_id || '').trim() || null,
-      access_scope: String(item?.access_scope || 'owner-authorized').trim()
+      access_scope: String(item?.access_scope || 'owner-authorized').trim(),
+      evidence: Array.isArray(item?.evidence)
+        ? item.evidence.slice(0, 8)
+        : [{
+            type: 'text',
+            content: String(
+              item?.answer ||
+              item?.content ||
+              item?.text ||
+              item?.description ||
+              item?.summary ||
+              ''
+            ).trim().slice(0, 3000),
+            source: String(item?.source || 'Authorized data').trim()
+          }],
+      media: Array.isArray(item?.media)
+        ? item.media.slice(0, 8)
+        : []
     }));
+}
+
+async function deepAuthorizedRetrieval(query, limit = 8) {
+  const variants = buildDeepQueryVariants(query);
+  const perQueryLimit = Math.min(Math.max(Number(limit) || 8, 5), 12);
+
+  const settled = await Promise.all(
+    variants.map(async variant => {
+      const [corpus, connectors] = await Promise.all([
+        Promise.resolve(searchAuthorizedCorpus(variant, perQueryLimit)),
+        searchAuthorizedSources(variant, perQueryLimit)
+      ]);
+
+      return {
+        variant,
+        corpus: Array.isArray(corpus) ? corpus : [],
+        connectors: connectors || { results: [], configured: false, connectors: [] }
+      };
+    })
+  );
+
+  const authorized = mergeDeepResults(
+    settled.flatMap(item => [
+      ...item.corpus,
+      ...(item.connectors.results || [])
+    ]),
+    50
+  );
+
+  const evidence = verifyCrossSourceEvidence(
+    authorized.map(item => ({
+      ...item,
+      extract: item.extract || item.excerpt || item.content || '',
+      source_type: item.source_type || (item.authoritative ? 'official' : 'reference')
+    })),
+    { minChars: 30 }
+  );
+
+  const evidenceMap = new Map(
+    (evidence.ranked_sources || []).map(item => [
+      sourceIdentity(item),
+      item
+    ])
+  );
+
+  const ranked = authorized
+    .map(item => {
+      const verification = evidenceMap.get(sourceIdentity(item));
+      return {
+        ...item,
+        verification_score: verification?.cross_source_score ?? null,
+        cross_source_status: verification?.verification_status || 'single_source',
+        supporting_sources: verification?.supporting_sources || 0,
+        conflicting_sources: verification?.conflicting_sources || 0,
+        evidence: Array.isArray(item.evidence) && item.evidence.length
+          ? item.evidence.slice(0, 8)
+          : [{
+              type: 'text',
+              content: String(item.excerpt || item.extract || item.content || '').slice(0, 3000),
+              source: String(item.source || item.provider || 'Authorized source')
+            }]
+      };
+    })
+    .sort((a, b) => {
+      const authority = Number(Boolean(b.authoritative)) - Number(Boolean(a.authoritative));
+      if (authority) return authority;
+      return Number(b.verification_score || 0) - Number(a.verification_score || 0);
+    });
+
+  return {
+    variants,
+    results: ranked,
+    evidence_summary: buildEvidenceSummary(evidence),
+    connectors: [...new Set(settled.flatMap(item => item.connectors.connectors || []))],
+    successful_connectors: [...new Set(settled.flatMap(item => item.connectors.successful_connectors || []))],
+    failed_connectors: [...new Set(settled.flatMap(item => item.connectors.failed_connectors || []))],
+    configured: settled.some(item => Boolean(item.connectors.configured))
+  };
 }
 
 function mergeAuthorizedWithPublic(publicResults, authorizedResults) {
@@ -190,11 +398,9 @@ async function publicSearch(query, limit = 8) {
   const normalized = normalizeQuery(query);
   if (!normalized) return { success: false, error: 'A search request is required.' };
 
-  const result = await searchSources(normalized, Math.min(Number(limit) || 8, 12));
+  const result = await deepPublicSearch(normalized, Math.min(Number(limit) || 8, 12));
   let sources = Array.isArray(result?.sources) ? result.sources : [];
 
-  // Reliability fallback: if the full source mesh returns nothing usable,
-  // query two stable public providers directly instead of returning an empty search.
   if (!sources.length) {
     const fallbackResults = await Promise.all([
       Promise.race([
@@ -207,12 +413,13 @@ async function publicSearch(query, limit = 8) {
       ])
     ]);
 
-    sources = fallbackResults
-      .flat()
-      .filter(item => String(item?.extract || item?.snippet || '').trim().length >= 30);
+    sources = mergeDeepResults(
+      fallbackResults.flat().filter(item =>
+        String(item?.extract || item?.snippet || '').trim().length >= 30
+      ),
+      20
+    );
   }
-
-  let expanded = sources;
 
   const wikipedia = sources.find(item => String(item?.provider || '').toLowerCase() === 'wikipedia');
   if (wikipedia?.title) {
@@ -221,23 +428,31 @@ async function publicSearch(query, limit = 8) {
         getWikipediaPage(wikipedia.title),
         new Promise(resolve => setTimeout(() => resolve(null), 1800))
       ]);
-      if (page?.extract) expanded = [{ ...wikipedia, extract: page.extract }, ...sources.filter(item => item !== wikipedia)];
+      if (page?.extract) {
+        sources = [
+          { ...wikipedia, extract: page.extract, content_length: page.extract.length },
+          ...sources.filter(item => item !== wikipedia)
+        ];
+      }
     } catch (_) {}
   }
 
   return {
-    success: expanded.length > 0,
+    success: sources.length > 0,
     mode: 'public',
     query: normalized,
-    // Public Search is the canonical public-source layer. Authorized Search calls this same layer,
-    // so every public result available to the connected source mesh is eligible in both modes.
-    results: expanded.map(publicResult),
+    query_variants: result?.variants || [normalized],
+    results: sources.map(publicResult),
     providers: result?.providers || {},
     completed_providers: result?.completed_providers || [],
-    retrieval_time_ms: result?.retrieval_time_ms || null,
-    message: expanded.length ? 'Public information found.' : 'No public information was found in the connected sources.'
+    evidence_summary: result?.evidence_summary || null,
+    retrieval_time_ms: null,
+    message: sources.length
+      ? 'Public information found and cross-source evidence was evaluated.'
+      : 'No public information was found in the connected sources.'
   };
 }
+
 
 function registerDreamSearchRoutes(app, options = {}) {
   const getAuthenticatedAccount = options.getAuthenticatedAccount;
@@ -285,22 +500,20 @@ function registerDreamSearchRoutes(app, options = {}) {
         return res.status(400).json({ success: false, error: 'A search request is required.' });
       }
 
-      const [publicResult, privateResults, connectorResult] = await Promise.all([
+      const [publicResult, authorizedDeep] = await Promise.all([
         searchPublic(query, req.body?.limit),
-        Promise.resolve(searchAuthorizedCorpus(query, req.body?.limit)),
-        searchAuthorizedSources(query, req.body?.limit)
+        deepAuthorizedRetrieval(query, req.body?.limit)
       ]);
 
-      const authorizedResults = [
-        ...(privateResults || []),
-        ...((connectorResult && connectorResult.results) || [])
-      ]
-        .filter(item => String(item?.excerpt || item?.content || '').trim().length > 0)
-        .sort((a, b) => {
-          const authority = Number(Boolean(b?.authoritative)) - Number(Boolean(a?.authoritative));
-          if (authority) return authority;
-          return Number(b?.match_score || 0) - Number(a?.match_score || 0);
-        });
+      const connectorResult = {
+        configured: authorizedDeep.configured,
+        connectors: authorizedDeep.connectors,
+        successful_connectors: authorizedDeep.successful_connectors,
+        failed_connectors: authorizedDeep.failed_connectors
+      };
+
+      const authorizedResults = (authorizedDeep.results || [])
+        .filter(item => String(item?.excerpt || item?.content || item?.extract || '').trim().length > 0);
 
       const mergedResults = mergeAuthorizedWithPublic(publicResult.results, authorizedResults)
         .filter((item, index, all) => {
@@ -330,6 +543,10 @@ function registerDreamSearchRoutes(app, options = {}) {
         private_data_configured: loadAuthorizedCorpus().length > 0 || Boolean(connectorResult?.configured),
         owner_overrides_configured: loadAuthorizedOverrides().length > 0,
         authorized_connectors: connectorResult?.connectors || [],
+        authorized_query_variants: authorizedDeep.variants || [query],
+        authorized_evidence_summary: authorizedDeep.evidence_summary || null,
+        successful_authorized_connectors: connectorResult?.successful_connectors || [],
+        failed_authorized_connectors: connectorResult?.failed_connectors || [],
         search_scope: 'all-connected-public-sources-plus-owner-authorized-sources',
         answer_precedence: 'owner-authorized overrides > other authorized sources > connected public sources',
         source_policy: 'Public Search may use only public sources. Authorized Search may use all connected public sources plus owner-authorized sources.',

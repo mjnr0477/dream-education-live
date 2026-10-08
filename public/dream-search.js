@@ -63,6 +63,16 @@
     }
   }
 
+  function renderReadMore(item, privateResult) {
+    const raw = item?.content || item?.extract || item?.excerpt || '';
+    const title = item?.title || 'More information';
+    if (!raw) return '';
+    return '<details class="dream-search-read-more"><summary>Read more</summary><div class="dream-search-full-evidence"><h4>' +
+      escapeHtml(title) + '</h4><p>' + escapeHtml(raw) + '</p>' +
+      (item?.source ? '<small>' + escapeHtml(item.source) + (privateResult ? ' · Authorized source' : '') + '</small>' : '') +
+      '</div></details>';
+  }
+
   function renderEvidence(item) {
     const evidence = Array.isArray(item?.evidence) ? item.evidence : [];
     const media = Array.isArray(item?.media) ? item.media : [];
@@ -94,6 +104,7 @@
         <h3>${escapeHtml(item.title || 'Information')}</h3>
         <p>${escapeHtml(item.excerpt || item.content || 'No excerpt available.')}</p>
         ${renderEvidence(item)}
+        ${renderReadMore(item, false)}
         <div class="dream-search-source">${escapeHtml(item.source || 'Dream source')}${item.private ? ' · Authorized data' : ''}</div>
       </article>
     `).join('');
@@ -191,6 +202,7 @@
             <h3>${escapeHtml(item.title || 'Information')}</h3>
             <p>${escapeHtml(item.excerpt || item.content || 'No excerpt available.')}</p>
           ${renderEvidence(item)}
+          ${renderReadMore(item, Boolean(item.private))}
             <div class="dream-search-source">${escapeHtml(item.source || 'Dream source')}${item.authoritative ? ' · Owner authoritative' : item.private ? ' · Authorized data' : ' · Public evidence'}${item.provider ? ' · ' + escapeHtml(item.provider) : ''}</div>
           </article>
         `).join('') : '<div class="dream-search-result"><p>No matching information was found.</p></div>';

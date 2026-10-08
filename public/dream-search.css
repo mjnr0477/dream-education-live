@@ -23,3 +23,12 @@
 @media(max-width:640px){.dream-search-box{flex-direction:column}.dream-search-button{width:100%}}
 
 .dream-search-evidence{display:grid;gap:10px;margin:12px 0}.dream-search-evidence img,.dream-search-evidence video{display:block;width:100%;max-height:420px;object-fit:contain;border-radius:12px;background:#000}.dream-search-evidence audio{width:100%}.dream-search-evidence-note{padding:10px;border-radius:10px;background:rgba(255,255,255,.05);font-size:13px}
+
+.dream-search-evidence { display:grid; gap:12px; margin-top:12px; }
+.dream-search-evidence img, .dream-search-evidence video { width:100%; max-height:360px; object-fit:contain; border-radius:14px; background:#000; }
+.dream-search-evidence audio { width:100%; }
+.dream-search-read-more { margin-top:12px; border-top:1px solid rgba(127,127,127,.2); padding-top:10px; }
+.dream-search-read-more summary { cursor:pointer; font-weight:700; }
+.dream-search-full-evidence { padding:12px 0 2px; }
+.dream-search-full-evidence p { white-space:pre-wrap; line-height:1.65; }
+.dream-search-full-evidence small { opacity:.7; }
