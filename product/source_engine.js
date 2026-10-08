@@ -611,6 +611,22 @@ async function searchNASA(query, limit = 5) {
     const title = String(meta.title || query).trim();
     const description = String(meta.description || "").trim();
 
+    const links = Array.isArray(item.links) ? item.links : [];
+    const media = links
+      .map(link => ({
+        type: String(link.rel || "").toLowerCase().includes("video") ? "video" : "image",
+        url: String(link.href || "").trim(),
+        title: String(link.href || "").trim()
+      }))
+      .filter(asset => asset.url);
+    const dataMedia = Array.isArray(item.data) ? item.data.flatMap(entry =>
+      [entry.image, entry.video, entry.thumbnail].filter(Boolean).map((url, index) => ({
+        type: index === 1 ? "video" : "image",
+        url: String(url).trim(),
+        title: title
+      }))
+    ) : [];
+
     return {
       title,
       snippet: description || title,
@@ -619,6 +635,15 @@ async function searchNASA(query, limit = 5) {
       provider: "nasa",
       source_type: "scientific_reference",
       url: item.href || "https://images.nasa.gov/",
+      media: [...media, ...dataMedia].slice(0, 6),
+      evidence: [
+        { type: "text", content: description || title, source: "NASA" },
+        ...[...media, ...dataMedia].slice(0, 6).map(asset => ({
+          type: asset.type,
+          url: asset.url,
+          source: "NASA"
+        }))
+      ],
       has_usable_content: (description || title).length >= 40
     };
   });
