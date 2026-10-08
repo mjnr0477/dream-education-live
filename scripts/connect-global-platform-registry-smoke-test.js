@@ -18,8 +18,16 @@ for (const platform of catalog) {
 }
 
 assert.strictEqual(normalizePlatform(' YouTube '), 'youtube');
-assert.ok(getPlatform('reddit'));\nassert.ok(getPlatform('matrix'));\nassert.ok(getPlatform('mastodon'));\nassert.ok(getPlatform('bluesky'));\nassert.ok(getPlatform('discord'));
-assert.strictEqual(supportsAction('reddit', 'post'), true);\nassert.strictEqual(supportsAction('matrix', 'direct_message'), true);\nassert.strictEqual(supportsAction('mastodon', 'post'), true);\nassert.strictEqual(supportsAction('bluesky', 'post'), true);\nassert.strictEqual(supportsAction('discord', 'webhook'), true);
+assert.ok(getPlatform('reddit'));
+assert.ok(getPlatform('matrix'));
+assert.ok(getPlatform('mastodon'));
+assert.ok(getPlatform('bluesky'));
+assert.ok(getPlatform('discord'));
+assert.strictEqual(supportsAction('reddit', 'post'), true);
+assert.strictEqual(supportsAction('matrix', 'direct_message'), true);
+assert.strictEqual(supportsAction('mastodon', 'post'), true);
+assert.strictEqual(supportsAction('bluesky', 'post'), true);
+assert.strictEqual(supportsAction('discord', 'webhook'), true);
 assert.strictEqual(supportsAction('quora', 'post'), false);
 assert.strictEqual(supportsAction('unknown-platform', 'send'), false);
 
