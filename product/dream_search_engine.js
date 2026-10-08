@@ -11,6 +11,7 @@ const {
 } = require('./source_engine');
 const { searchAuthorizedSources, loadConnectors } = require('./authorized_source_engine');
 const { verifyCrossSourceEvidence, buildEvidenceSummary } = require('./cross_source_verifier');
+const { filterSearchResults, buildSearchQuality } = require('./dream_search_quality');
 
 function normalizeQuery(value) {
   return String(value || '').replace(/\s+/g, ' ').trim().slice(0, 1000);
@@ -141,7 +142,8 @@ async function deepPublicSearch(query, limit = 8) {
     ])
   );
 
-  const ranked = sources
+  const safeSources = filterSearchResults(sources, 'public').accepted;
+  const ranked = safeSources
     .map(item => {
       const verification = evidenceRank.get(sourceIdentity(item));
       return {
@@ -171,7 +173,8 @@ async function deepPublicSearch(query, limit = 8) {
     sources: ranked,
     providers: providerFlags,
     completed_providers: [...new Set(settled.flatMap(result => result?.completed_providers || []))],
-    evidence_summary: buildEvidenceSummary(evidence)
+    evidence_summary: buildEvidenceSummary(evidence),
+    quality: buildSearchQuality(ranked, 'public')
   };
 }
 
@@ -536,7 +539,7 @@ function registerDreamSearchRoutes(app, options = {}) {
         failed_connectors: authorizedDeep.failed_connectors
       };
 
-      const authorizedResults = (authorizedDeep.results || [])
+      const authorizedResults = filterSearchResults(authorizedDeep.results || [], 'authorized').accepted
         .filter(item => String(item?.excerpt || item?.content || item?.extract || '').trim().length > 0);
 
       const mergedResults = mergeAuthorizedWithPublic(publicResult.results, authorizedResults)
@@ -569,6 +572,7 @@ function registerDreamSearchRoutes(app, options = {}) {
         authorized_connectors: connectorResult?.connectors || [],
         authorized_query_variants: authorizedDeep.variants || [query],
         authorized_evidence_summary: authorizedDeep.evidence_summary || null,
+        search_quality: buildSearchQuality(mergedResults, 'authorized'),
         successful_authorized_connectors: connectorResult?.successful_connectors || [],
         failed_authorized_connectors: connectorResult?.failed_connectors || [],
         search_scope: 'all-connected-public-sources-plus-owner-authorized-sources',
