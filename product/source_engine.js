@@ -905,6 +905,136 @@ async function searchSearXNG(query, limit = 5) {
   });
 }
 
+async function searchWikimediaCommons(query, limit = 5) {
+  const params = new URLSearchParams({
+    action: "query",
+    generator: "search",
+    gsrsearch: query,
+    gsrnamespace: "6",
+    gsrlimit: String(limit),
+    prop: "imageinfo",
+    iiprop: "url|extmetadata",
+    iiurlwidth: "900",
+    format: "json",
+    origin: "*"
+  });
+  const data = await httpsGetJson("https://commons.wikimedia.org/w/api.php?" + params.toString());
+  return Object.values(data.query?.pages || {}).map(item => {
+    const info = item.imageinfo?.[0] || {};
+    const meta = info.extmetadata || {};
+    return {
+      title: item.title || query,
+      snippet: String(meta.ImageDescription?.value || item.title || "").replace(/<[^>]+>/g, "").trim(),
+      extract: String(meta.ImageDescription?.value || item.title || "").replace(/<[^>]+>/g, "").trim(),
+      source: "Wikimedia Commons",
+      provider: "wikimedia_commons",
+      source_type: "digital_library",
+      url: info.descriptionurl || info.url || "",
+      media: info.thumburl || info.url ? [{ type: "image", url: info.thumburl || info.url, title: item.title || query }] : []
+    };
+  });
+}
+
+async function searchOpenAIRE(query, limit = 5) {
+  const params = new URLSearchParams({ keywords: query, size: String(limit), format: "json" });
+  const data = await httpsGetJson("https://api.openaire.eu/search/publications?" + params.toString());
+  const rows = data.results?.result || data.result || [];
+  return (Array.isArray(rows) ? rows : []).map(row => {
+    const entity = row.metadata?.oaf_entity || row;
+    const title = entity.metadata?.title?.$ || entity.metadata?.title || entity.title || query;
+    const description = entity.metadata?.description?.$ || entity.metadata?.description || entity.description || "";
+    const doi = entity.metadata?.pid?.[0]?.value || "";
+    return {
+      title: String(title).trim(),
+      snippet: String(description).trim(),
+      extract: String(description).trim(),
+      source: "OpenAIRE",
+      provider: "openaire",
+      source_type: "academic_research",
+      url: doi ? (String(doi).startsWith("http") ? String(doi) : "https://doi.org/" + String(doi)) : ""
+    };
+  }).filter(item => item.extract.length >= 30);
+}
+
+async function searchDOAJ(query, limit = 5) {
+  const url = "https://doaj.org/api/search/articles/" + encodeURIComponent(query) + "?pageSize=" + String(limit);
+  const data = await httpsGetJson(url);
+  return (data.results || []).map(row => {
+    const bib = row.bibjson || {};
+    const title = String(bib.title || query).trim();
+    const abstract = String(bib.abstract || "").trim();
+    const link = Array.isArray(bib.link) ? bib.link.find(item => item?.url)?.url : "";
+    return {
+      title,
+      snippet: abstract,
+      extract: abstract || title,
+      source: "DOAJ",
+      provider: "doaj",
+      source_type: "academic_research",
+      url: link || ""
+    };
+  });
+}
+
+async function searchStackExchange(query, limit = 5) {
+  const params = new URLSearchParams({
+    q: query,
+    site: "stackoverflow",
+    pagesize: String(limit),
+    order: "desc",
+    sort: "relevance"
+  });
+  const data = await httpsGetJson("https://api.stackexchange.com/2.3/search/advanced?" + params.toString());
+  return (data.items || []).map(item => ({
+    title: String(item.title || query).replace(/<[^>]+>/g, ""),
+    snippet: String(item.title || "").replace(/<[^>]+>/g, ""),
+    extract: String(item.title || "").replace(/<[^>]+>/g, ""),
+    source: "Stack Exchange",
+    provider: "stack_exchange",
+    source_type: "technical",
+    url: item.link || ""
+  }));
+}
+
+async function searchZenodo(query, limit = 5) {
+  const params = new URLSearchParams({ q: query, size: String(limit) });
+  const data = await httpsGetJson("https://zenodo.org/api/records?" + params.toString());
+  return (data.hits?.hits || []).map(item => {
+    const title = String(item.metadata?.title || query).trim();
+    const description = String(item.metadata?.description || "").replace(/<[^>]+>/g, "").trim();
+    return {
+      title,
+      snippet: description,
+      extract: description || title,
+      source: "Zenodo",
+      provider: "zenodo",
+      source_type: "academic_research",
+      url: item.links?.html || ""
+    };
+  });
+}
+
+async function searchWikibooks(query, limit = 5) {
+  const params = new URLSearchParams({
+    action: "query",
+    list: "search",
+    srsearch: query,
+    srlimit: String(limit),
+    format: "json",
+    origin: "*"
+  });
+  const data = await httpsGetJson("https://en.wikibooks.org/w/api.php?" + params.toString());
+  return (data.query?.search || []).map(item => ({
+    title: item.title,
+    snippet: String(item.snippet || "").replace(/<[^>]+>/g, "").trim(),
+    extract: String(item.snippet || "").replace(/<[^>]+>/g, "").trim(),
+    source: "Wikibooks",
+    provider: "wikibooks",
+    source_type: "educational",
+    url: "https://en.wikibooks.org/wiki/" + encodeURIComponent(String(item.title).replace(/ /g, "_"))
+  }));
+}
+
 async function searchSources(query, limit = 5) {
   const started = Date.now();
 
@@ -946,6 +1076,12 @@ async function searchSources(query, limit = 5) {
     { name: "datacite", run: () => searchDataCite(searchQuery, limit) },
     { name: "open_library", run: () => searchOpenLibrary(searchQuery, limit) },
     { name: "searxng", run: () => searchSearXNG(searchQuery, limit) },
+    { name: "wikimedia_commons", run: () => searchWikimediaCommons(searchQuery, limit) },
+    { name: "openaire", run: () => searchOpenAIRE(searchQuery, limit) },
+    { name: "doaj", run: () => searchDOAJ(searchQuery, limit) },
+    { name: "stack_exchange", run: () => searchStackExchange(searchQuery, limit) },
+    { name: "zenodo", run: () => searchZenodo(searchQuery, limit) },
+    { name: "wikibooks", run: () => searchWikibooks(searchQuery, limit) },
 
     // TRUSTED GLOBAL SOURCE MESH — subject-aware, network-backed providers.
     // This is blocking so connected specialist sources can contribute to the
