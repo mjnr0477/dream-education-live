@@ -152,37 +152,46 @@ function buildQueryUrl(connector, query) {
 
 function normalizeMedia(row, connector) {
   const candidates = [
-    readPath(row, connector.media_path || ''),
-    readPath(row, 'media'),
-    readPath(row, 'evidence'),
-    readPath(row, 'attachments'),
-    readPath(row, 'image'),
-    readPath(row, 'images'),
-    readPath(row, 'photo'),
-    readPath(row, 'photos'),
-    readPath(row, 'video'),
-    readPath(row, 'videos'),
-    readPath(row, 'audio'),
-    readPath(row, 'audio_url'),
-    readPath(row, 'document'),
-    readPath(row, 'documents')
-  ].filter(Boolean);
+    ['media', readPath(row, connector.media_path || '')],
+    ['media', readPath(row, 'media')],
+    ['evidence', readPath(row, 'evidence')],
+    ['attachment', readPath(row, 'attachments')],
+    ['image', readPath(row, 'image')],
+    ['image', readPath(row, 'images')],
+    ['image', readPath(row, 'photo')],
+    ['image', readPath(row, 'photos')],
+    ['video', readPath(row, 'video')],
+    ['video', readPath(row, 'videos')],
+    ['audio', readPath(row, 'audio')],
+    ['audio', readPath(row, 'audio_url')],
+    ['document', readPath(row, 'document')],
+    ['document', readPath(row, 'documents')]
+  ].filter(([, value]) => Boolean(value));
 
-  const values = candidates.flatMap(value => Array.isArray(value) ? value : [value]);
-  return values.map(item => {
-    if (typeof item === 'string') return { type: 'media', url: item };
+  const values = candidates.flatMap(([hint, value]) => {
+    const items = Array.isArray(value) ? value : [value];
+    return items.map(item => ({ hint, item }));
+  });
+
+  return values.map(({ hint, item }) => {
+    if (typeof item === 'string') return { type: hint, url: item };
     if (!item || typeof item !== 'object') return null;
     const url = item.url || item.uri || item.src || item.content_url || item.embed_url;
     if (!url) return null;
+    const rawType = String(item.type || item.mime_type || hint || 'media').toLowerCase();
+    const type = rawType.includes('image') ? 'image'
+      : rawType.includes('video') ? 'video'
+      : rawType.includes('audio') ? 'audio'
+      : rawType.includes('pdf') || rawType.includes('document') ? 'document'
+      : hint;
     return {
-      type: String(item.type || item.mime_type || 'media'),
+      type,
       url: String(url),
       title: String(item.title || item.name || '').trim() || null,
       description: String(item.description || item.caption || '').trim() || null
     };
   }).filter(item => item && /^https?:\\/\\//i.test(item.url)).slice(0, 8);
 }
-
 function normalizeEvidence(row, connector, title, content, source) {
   const raw = [
     readPath(row, connector.evidence_path || ''),
