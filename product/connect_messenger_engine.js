@@ -156,6 +156,148 @@ async function deliverMessage(message, connectors = []) {
   };
 }
 
+
+function normalizeBroadcastTargets(connector, channel) {
+  const candidates = [
+    ...(Array.isArray(channel?.recipients) ? channel.recipients : []),
+    ...(Array.isArray(connector?.recipients) ? connector.recipients : [])
+  ];
+
+  const seen = new Set();
+  return candidates.filter((recipient) => {
+    if (!recipient || typeof recipient !== "object") return false;
+    const key = JSON.stringify({
+      id: recipient.id || recipient.recipient_id || "",
+      address: recipient.address || recipient.email || recipient.handle || recipient.chat_id || "",
+      platform: recipient.platform || channel?.platform || connector?.platform || ""
+    });
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+async function broadcastMessage(message, connectors = []) {
+  const body = normalizeText(message?.body, 10000);
+  const messageId = message?.message_id || makeMessageId();
+
+  if (!body) {
+    return {
+      success: false,
+      status: 'message_required',
+      message_id: messageId,
+      attempted: 0,
+      delivered: 0,
+      failed: 0,
+      receipts: []
+    };
+  }
+
+  const targets = [];
+  for (const connector of Array.isArray(connectors) ? connectors : []) {
+    for (const channel of Array.isArray(connector?.channels) ? connector.channels : []) {
+      if (!channel || channel.enabled === false || channel.authorized === false) continue;
+      if (typeof channel.send !== 'function') continue;
+
+      const configuredRecipients = normalizeBroadcastTargets(connector, channel);
+      if (configuredRecipients.length) {
+        for (const recipient of configuredRecipients) {
+          targets.push({
+            connector,
+            channel,
+            recipient: normalizeRecipient({
+              ...recipient,
+              platform: recipient.platform || channel.platform || connector.platform,
+              channel: recipient.channel || channel.type
+            })
+          });
+        }
+      } else if (channel.broadcast === true) {
+        targets.push({
+          connector,
+          channel,
+          recipient: null
+        });
+      }
+    }
+  }
+
+  const dedupedTargets = [];
+  const seen = new Set();
+  for (const target of targets) {
+    const key = [
+      target.connector.id || target.connector.name || 'connector',
+      target.channel.type || 'channel',
+      target.recipient
+        ? JSON.stringify(target.recipient)
+        : 'connector-broadcast'
+    ].join('|');
+    if (seen.has(key)) continue;
+    seen.add(key);
+    dedupedTargets.push(target);
+  }
+
+  if (!dedupedTargets.length) {
+    return {
+      success: false,
+      status: 'no_authorized_broadcast_target',
+      message_id: messageId,
+      attempted: 0,
+      delivered: 0,
+      failed: 0,
+      receipts: []
+    };
+  }
+
+  const receipts = await Promise.all(dedupedTargets.map(async (target) => {
+    try {
+      const result = await target.channel.send({
+        message_id: messageId,
+        body,
+        recipient: target.recipient,
+        channel: target.channel,
+        broadcast: true
+      });
+
+      const delivered = result?.success === true;
+      return {
+        connector_id: target.connector.id || null,
+        connector_name: target.connector.name || target.connector.id || 'Connector',
+        platform: target.channel.platform || target.connector.platform || null,
+        channel: target.channel.type || null,
+        recipient: target.recipient,
+        success: delivered,
+        status: delivered ? 'delivered' : 'failed',
+        result: result || null
+      };
+    } catch (error) {
+      return {
+        connector_id: target.connector.id || null,
+        connector_name: target.connector.name || target.connector.id || 'Connector',
+        platform: target.channel.platform || target.connector.platform || null,
+        channel: target.channel.type || null,
+        recipient: target.recipient,
+        success: false,
+        status: 'failed',
+        error: error.message || 'Connector delivery failed.'
+      };
+    }
+  }));
+
+  const delivered = receipts.filter((receipt) => receipt.success).length;
+  const failed = receipts.length - delivered;
+
+  return {
+    success: delivered > 0,
+    status: delivered > 0 && failed === 0 ? 'delivered_everywhere_configured' : delivered > 0 ? 'partially_delivered' : 'delivery_failed',
+    message_id: messageId,
+    attempted: receipts.length,
+    delivered,
+    failed,
+    receipts
+  };
+}
+
 function createUniversalMessage(input = {}) {
   const body = normalizeText(input.body);
   if (!body) throw new Error('Message body is required.');
@@ -175,5 +317,6 @@ module.exports = {
   resolveRecipient,
   resolveDelivery,
   deliverMessage,
+  broadcastMessage,
   createUniversalMessage
 };
