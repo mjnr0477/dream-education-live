@@ -63,6 +63,22 @@
     }
   }
 
+  function renderEvidence(item) {
+    const evidence = Array.isArray(item?.evidence) ? item.evidence : [];
+    const media = Array.isArray(item?.media) ? item.media : [];
+    const assets = [...evidence.filter(x => x && x.type !== 'text'), ...media].filter(x => x && x.url).slice(0, 6);
+    if (!assets.length) return '';
+    return '<div class="dream-search-evidence">' + assets.map(asset => {
+      const type = String(asset.type || '').toLowerCase();
+      const url = String(asset.url || '').trim();
+      const title = escapeHtml(asset.title || 'Evidence');
+      if (type === 'video') return '<video controls preload="metadata" src="' + escapeHtml(url) + '" aria-label="' + title + '"></video>';
+      if (type === 'audio') return '<audio controls preload="metadata" src="' + escapeHtml(url) + '" aria-label="' + title + '"></audio>';
+      if (type === 'image' || type === 'photo') return '<img loading="lazy" src="' + escapeHtml(url) + '" alt="' + title + '">';
+      return '<div class="dream-search-evidence-note">' + title + '</div>';
+    }).join('') + '</div>';
+  }
+
   function renderResults(data) {
     const el = elements().results;
     if (!el) return;
@@ -77,6 +93,7 @@
       <article class="dream-search-result${item.private ? ' dream-search-private' : ''}">
         <h3>${escapeHtml(item.title || 'Information')}</h3>
         <p>${escapeHtml(item.excerpt || item.content || 'No excerpt available.')}</p>
+        ${renderEvidence(item)}
         <div class="dream-search-source">${escapeHtml(item.source || 'Dream source')}${item.private ? ' · Authorized data' : ''}</div>
       </article>
     `).join('');
@@ -173,6 +190,7 @@
           <article class="dream-search-result${item.private ? ' dream-search-private' : ''}">
             <h3>${escapeHtml(item.title || 'Information')}</h3>
             <p>${escapeHtml(item.excerpt || item.content || 'No excerpt available.')}</p>
+          ${renderEvidence(item)}
             <div class="dream-search-source">${escapeHtml(item.source || 'Dream source')}${item.authoritative ? ' · Owner authoritative' : item.private ? ' · Authorized data' : ' · Public evidence'}${item.provider ? ' · ' + escapeHtml(item.provider) : ''}</div>
           </article>
         `).join('') : '<div class="dream-search-result"><p>No matching information was found.</p></div>';
