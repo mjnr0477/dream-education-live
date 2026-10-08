@@ -14,6 +14,7 @@ const queryEngine = require("./product/query_engine.js");
 const { registerDreamSearchRoutes, publicSearch } = require('./product/dream_search_engine');
 const { createUniversalMessage, deliverMessage, resolveDelivery } = require("./product/connect_messenger_engine");
 const { getPlatformCatalog, getPlatform, supportsAction, normalizePlatform } = require("./product/connect_platform_registry");
+const { discoverSiteApis } = require("./product/universal_site_connector");
 
 const {
   createValidatedConnection,
@@ -6152,6 +6153,20 @@ function getConfiguredMessengerConnectors() {
     return connectors;
   }
 }
+
+app.post("/api/product/connect/messenger/site-discover", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    const site = String(req.body?.site || "").trim();
+    if (!site) return res.status(400).json({ success: false, error: "Site URL is required." });
+    const discovery = await discoverSiteApis(site);
+    return res.json({ success: true, discovery });
+  } catch (error) {
+    console.error("Universal site discovery error:", error);
+    return res.status(400).json({ success: false, error: error.message || "Site discovery failed." });
+  }
+});
 
 app.get("/api/product/connect/messenger/platforms", async (req, res) => {
   try {
