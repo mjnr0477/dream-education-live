@@ -1513,7 +1513,12 @@ document.addEventListener("click", function (event) {
       return;
     }
 
-    if (action === "universal-connector") {\n      if (typeof openUniversalConnector === "function") openUniversalConnector();\n      return;\n    }\n\n    if (action === "general-connections") {
+    if (action === "universal-connector") {
+      if (typeof openUniversalConnector === "function") openUniversalConnector();
+      return;
+    }
+
+    if (action === "general-connections") {
   if (typeof openGeneralConnections === "function") {
     openGeneralConnections();
   }
