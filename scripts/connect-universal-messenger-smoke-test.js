@@ -1,6 +1,7 @@
 'use strict';
 const assert=require('assert');
 const {createUniversalMessage,resolveRecipient,resolveDelivery,deliverMessage}=require('../product/connect_messenger_engine');
+const {buildNativeMessengerConnectors,getDreamInboxMessages}=require('../product/native_messenger_connectors');
 const message=createUniversalMessage({body:'Hello exact recipient',recipient:{type:'person',name:'Amina Otieno',platform:'email'}});
 assert.ok(message.message_id.startsWith('msg_'));
 const resolved=resolveRecipient(message.recipient,[{name:'Wrong Person',platform:'email'},{name:'Amina Otieno',platform:'email',email:'amina@example.com'}]);
@@ -13,6 +14,17 @@ assert.strictEqual(resolved.selected.email,'amina@example.com');
  const sent=await deliverMessage(message,connectors);
  assert.strictEqual(sent.success,true);
  assert.strictEqual(sent.status,'delivered');
+
+ const defaultConnectors=buildNativeMessengerConnectors({});
+ const defaultMessage=createUniversalMessage({body:'Guaranteed Dream inbox delivery'});
+ const defaultPlan=await resolveDelivery(defaultMessage.recipient,defaultConnectors);
+ assert.strictEqual(defaultPlan.delivery_ready,true);
+ assert.strictEqual(defaultPlan.default_destination,true);
+ const defaultSent=await deliverMessage(defaultMessage,defaultConnectors);
+ assert.strictEqual(defaultSent.success,true);
+ assert.strictEqual(defaultSent.status,'delivered');
+ assert.strictEqual(defaultSent.channel.platform,'dream_inbox');
+ assert.ok(getDreamInboxMessages(10).some(item=>item.message_id===defaultMessage.message_id));
  const blocked=await deliverMessage(message,[{id:'x',recipients:[{name:'Amina Otieno',platform:'email'}],channels:[{type:'email',platform:'email',authorized:false,enabled:true,send:async()=>({success:true})}]}]);
  assert.strictEqual(blocked.success,false);
  assert.strictEqual(blocked.status,'no_authorized_channel');
