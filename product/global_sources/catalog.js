@@ -6,13 +6,14 @@ const SOURCES = [
   {id:"wikidata",name:"Wikidata",family:"general",access:"api",license:"CC0",status:"connected"},
   {id:"internet_archive",name:"Internet Archive",family:"general",access:"api",license:"mixed",status:"connected"},
   {id:"library_of_congress",name:"Library of Congress",family:"general",access:"api",license:"mixed",status:"connected"},
+  {id:"wikimedia_commons",name:"Wikimedia Commons",family:"general",access:"api",license:"mixed-open",status:"connected"},
   {id:"open_library",name:"Open Library",family:"general",access:"api",license:"mixed",status:"ready"},
 
   // RESEARCH
   {id:"openalex",name:"OpenAlex",family:"research",access:"rest",license:"CC0",status:"connected"},
   {id:"crossref",name:"Crossref",family:"research",access:"rest",license:"metadata/open",status:"connected"},
   {id:"datacite",name:"DataCite",family:"research",access:"rest",license:"metadata/open",status:"connected"},
-  {id:"openaire",name:"OpenAIRE",family:"research",access:"rest",license:"mixed",status:"ready"},
+  {id:"openaire",name:"OpenAIRE",family:"research",access:"rest",license:"mixed",status:"connected"},
   {id:"doaj",name:"DOAJ",family:"research",access:"rest",license:"open-access-index",status:"connected"},
   {id:"unpaywall",name:"Unpaywall",family:"research",access:"rest",license:"open-access-metadata",status:"ready"},
   {id:"core",name:"CORE",family:"research",access:"rest",license:"mixed/open",status:"planned"},
@@ -24,7 +25,7 @@ const SOURCES = [
   {id:"open_textbook_library",name:"Open Textbook Library",family:"education",access:"web",license:"mixed-open",status:"ready"},
   {id:"oer_commons",name:"OER Commons",family:"education",access:"web",license:"mixed-open",status:"ready"},
   {id:"merlot",name:"MERLOT",family:"education",access:"web",license:"mixed",status:"planned"},
-  {id:"wikibooks",name:"Wikibooks",family:"education",access:"api",license:"CC BY-SA",status:"ready"},
+  {id:"wikibooks",name:"Wikibooks",family:"education",access:"api",license:"CC BY-SA",status:"connected"},
   {id:"bc_campus",name:"BCcampus Open Textbooks",family:"education",access:"web",license:"mixed-open",status:"ready"},
 
   // BIOMEDICAL
@@ -54,7 +55,7 @@ const SOURCES = [
 
   // SOFTWARE / COMPUTING KNOWLEDGE
   {id:"github",name:"GitHub public repositories",family:"software",access:"api",license:"repository-specific",status:"ready"},
-  {id:"stack_exchange",name:"Stack Exchange",family:"software",access:"api",license:"CC BY-SA",status:"ready"},
+  {id:"stack_exchange",name:"Stack Exchange",family:"software",access:"api",license:"CC BY-SA",status:"connected"},
 
   // ARCHIVES / REPOSITORIES
   {id:"zenodo",name:"Zenodo",family:"research",access:"api",license:"record-specific",status:"connected"},
