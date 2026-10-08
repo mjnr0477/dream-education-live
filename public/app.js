@@ -8932,7 +8932,7 @@ function openUniversalConnector() {
   panelTitle.textContent = "Universal Connector";
   if (panelDescription) panelDescription.textContent = "One place for authorized platforms. Dream only sends through a channel that is actually connected and permitted.";
 
-  panelBody.innerHTML = \`
+  panelBody.innerHTML = `
     <div class="subscription-page">
       <div class="subscription-header">
         <span class="subscription-kicker">GLOBAL COMMUNICATION HUB</span>
@@ -8958,7 +8958,7 @@ function openUniversalConnector() {
         <button class="panel-button primary" id="messenger-send" type="button" disabled>Send message</button>
       </div>
       <div class="panel-actions"><button class="panel-action secondary" type="button" data-action="close">Close</button></div>
-    </div>\`;
+    </div>`;
 
   panel.classList.remove("hidden");
   document.body.classList.add("panel-open");
