@@ -343,7 +343,7 @@
               : isGeneralConnections
                 ? '<button class="panel-action" type="button" data-panel-action="general-connections">Open General Connections</button>'
                 : isUniversalMessenger
-                  ? '<button class="panel-action" type="button" data-panel-action="universal-messenger">Open Universal Connector</button>'
+                  ? '<button class="panel-action" type="button" data-panel-action="universal-connector">Open Universal Connector</button>'
                 : isCodingLab
                   ? '<button class="panel-action" type="button" data-panel-action="coding-lab">Open Coding Studio</button>'
                   : isCodingLearning
