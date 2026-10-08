@@ -6115,8 +6115,7 @@ function getConfiguredMessengerConnectors() {
   }
 
   let raw = String(process.env.CONNECT_MESSENGER_CONNECTORS || "").trim();
-  let raw = String(process.env.CONNECT_MESSENGER_CONNECTORS || "").trim();
-  if (!raw) return [];
+  if (!raw) return connectors;
   try {
     const definitions = JSON.parse(raw);
     if (!Array.isArray(definitions)) return [];
