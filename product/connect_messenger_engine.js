@@ -148,7 +148,7 @@ async function resolveDelivery(recipient, connectors = []) {
     }
   }
 
-  const automaticFanout = !hasExplicitDestination && Boolean(resolved.default_destination);
+  const automaticFanout = !hasExplicitDestination;
 
   const eligible = channelOrder(channels).filter(channel => {
     if (!resolved.selected || automaticFanout) return false;
