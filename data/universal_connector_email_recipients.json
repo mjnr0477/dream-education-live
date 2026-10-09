@@ -221,6 +221,174 @@
       "lead_type": "Inclusive EdTech and accessible learning partnership",
       "source_url": "https://eduletafrica.com/partners/",
       "source_note": "Official partnership page publishes this general contact address."
+    },
+    {
+      "organization": "UNESCO Global Education Coalition",
+      "email": "globalEDcoalition@unesco.org",
+      "lead_type": "Global education coalition and partnership",
+      "source_url": "https://www.unesco.org/en/global-education-coalition",
+      "source_note": "UNESCO officially publishes this address for organizations applying to join the Global Education Coalition."
+    },
+    {
+      "organization": "UNESCO Global Education Monitoring Report",
+      "email": "gemreport@unesco.org",
+      "lead_type": "Global education research and evidence engagement",
+      "source_url": "https://www.unesco.org/gem-report/en/about",
+      "source_note": "Official GEM Report page publishes this general email address."
+    },
+    {
+      "organization": "Global EdTech Testbed Network",
+      "email": "info@globaledtech.org",
+      "lead_type": "Global EdTech network and partnership",
+      "source_url": "https://globaledtech.org/network/",
+      "source_note": "Official network page publishes this address for enquiries."
+    },
+    {
+      "organization": "Learning Spark",
+      "email": "askedtech@learningspark.io",
+      "lead_type": "EdTech testbed and evidence partnership",
+      "source_url": "https://globaledtech.org/network/",
+      "source_note": "Global EdTech Testbed Network directory publishes this contact for Learning Spark."
+    },
+    {
+      "organization": "WISE at Qatar Foundation",
+      "email": "accelerator@wise.org.qa",
+      "lead_type": "Education innovation accelerator and partnership",
+      "source_url": "https://globaledtech.org/network/",
+      "source_note": "Global EdTech Testbed Network directory publishes this contact for WISE at Qatar Foundation."
+    },
+    {
+      "organization": "Instructure / Learn Platform",
+      "email": "support-lp@instructure.com",
+      "lead_type": "Learning platform ecosystem partnership",
+      "source_url": "https://globaledtech.org/network/",
+      "source_note": "Global EdTech Testbed Network directory publishes this contact for Learn Platform."
+    },
+    {
+      "organization": "EdTech Impact",
+      "email": "hello@edtechimpact.com",
+      "lead_type": "EdTech evaluation and evidence partnership",
+      "source_url": "https://globaledtech.org/network/",
+      "source_note": "Global EdTech Testbed Network directory publishes this contact."
+    },
+    {
+      "organization": "Open Development & Education",
+      "email": "contact@opendeved.net",
+      "lead_type": "Open education and digital learning partnership",
+      "source_url": "https://globaledtech.org/network/",
+      "source_note": "Global EdTech Testbed Network directory publishes this contact."
+    },
+    {
+      "organization": "MindCET",
+      "email": "info@mindcet.org",
+      "lead_type": "Education innovation and EdTech accelerator",
+      "source_url": "https://globaledtech.org/network/",
+      "source_note": "Global EdTech Testbed Network directory publishes this contact."
+    },
+    {
+      "organization": "EdUGrowth",
+      "email": "hello@edugrowth.org.au",
+      "lead_type": "Education innovation and EdTech partnership",
+      "source_url": "https://globaledtech.org/network/",
+      "source_note": "Global EdTech Testbed Network directory publishes this contact."
+    },
+    {
+      "organization": "EdTech Station",
+      "email": "info@edtechstation.be",
+      "lead_type": "EdTech innovation hub and partnership",
+      "source_url": "https://globaledtech.org/network/",
+      "source_note": "Global EdTech Testbed Network directory publishes this contact."
+    },
+    {
+      "organization": "NOLAI",
+      "email": "nolai@ru.nl",
+      "lead_type": "AI in education research and collaboration",
+      "source_url": "https://globaledtech.org/network/",
+      "source_note": "Global EdTech Testbed Network directory publishes this contact."
+    },
+    {
+      "organization": "Swiss EdTech Collider",
+      "email": "contact@edtech-collider.ch",
+      "lead_type": "EdTech startup ecosystem and partnership",
+      "source_url": "https://globaledtech.org/network/",
+      "source_note": "Global EdTech Testbed Network directory publishes this contact."
+    },
+    {
+      "organization": "Helsinki Education Hub",
+      "email": "heh@helsinki.fi",
+      "lead_type": "Education innovation and research partnership",
+      "source_url": "https://globaledtech.org/network/",
+      "source_note": "Global EdTech Testbed Network directory publishes this contact."
+    },
+    {
+      "organization": "Foundation For Excellence",
+      "email": "csr@ffe.org",
+      "lead_type": "Education funding and CSR partnership",
+      "source_url": "https://ffe.org/contact/",
+      "source_note": "Official contact page lists this address for CSR and donor relations."
+    },
+    {
+      "organization": "Foundation For Excellence",
+      "email": "scholarships@ffe.org",
+      "lead_type": "Education funding programme contact",
+      "source_url": "https://ffe.org/contact/",
+      "source_note": "Official contact page lists this address for scholarship queries."
+    },
+    {
+      "organization": "Foundation For Excellence",
+      "email": "training@ffe.org",
+      "lead_type": "Education and training programme contact",
+      "source_url": "https://ffe.org/contact/",
+      "source_note": "Official contact page lists this address for training queries."
+    },
+    {
+      "organization": "Foundation For Excellence",
+      "email": "mentoring@ffe.org",
+      "lead_type": "Education mentorship programme contact",
+      "source_url": "https://ffe.org/contact/",
+      "source_note": "Official contact page lists this address for mentoring queries."
+    },
+    {
+      "organization": "Foundation For Excellence",
+      "email": "alumnirelations@ffe.org",
+      "lead_type": "Education alumni network partnership",
+      "source_url": "https://ffe.org/contact/",
+      "source_note": "Official contact page lists this address for alumni relations."
+    },
+    {
+      "organization": "Foundation For Excellence",
+      "email": "india_support@ffe.org",
+      "lead_type": "Education foundation general contact",
+      "source_url": "https://ffe.org/contact/",
+      "source_note": "Official contact page lists this address for its India office."
+    },
+    {
+      "organization": "Foundation For Excellence",
+      "email": "us_support@ffe.org",
+      "lead_type": "Education foundation general contact",
+      "source_url": "https://ffe.org/contact/",
+      "source_note": "Official contact page lists this address for its US office."
+    },
+    {
+      "organization": "Foundation For Excellence",
+      "email": "ramesh@ffe.org",
+      "lead_type": "Education foundation executive contact",
+      "source_url": "https://ffe.org/contact/",
+      "source_note": "Official contact page names this email for the executive director; use only for relevant, individualized outreach."
+    },
+    {
+      "organization": "Optimize Africa Development Foundation",
+      "email": "info@oadfoundation.org",
+      "lead_type": "African education and youth innovation partnership",
+      "source_url": "https://www.oadfoundation.org/get-involved",
+      "source_note": "Official site lists this contact for education, partnership, mentoring and youth innovation enquiries."
+    },
+    {
+      "organization": "Kenya Education Fund",
+      "email": "info@kenyaeducationfund.org",
+      "lead_type": "Kenya education access and school partnership",
+      "source_url": "https://www.kenyaeducationfund.org/contact-us",
+      "source_note": "Official contact page publishes this address."
     }
   ]
 }
