@@ -8958,6 +8958,11 @@ function openUniversalConnector() {
       </div>
 
       <div class="panel-card">
+        <label class="panel-label" for="messenger-subject">Email subject (optional)</label>
+        <input class="panel-input" id="messenger-subject" maxlength="200" placeholder="Message from Dream Education" aria-label="Email subject" />
+        <label class="panel-label" for="messenger-email-recipients">Email recipients (owner only; one per line or comma-separated)</label>
+        <textarea class="panel-input" id="messenger-email-recipients" rows="3" maxlength="12000" placeholder="buyer@example.com&#10;school@example.org" aria-label="Email recipients"></textarea>
+        <p class="panel-description">Email requires RESEND_API_KEY and EMAIL_FROM on the server. Leave recipients blank to use the configured email list.</p>
         <label class="panel-label" for="messenger-body">Message</label>
         <textarea class="panel-input" id="messenger-body" rows="10" maxlength="10000" placeholder="Write your message..." aria-label="Universal message"></textarea>
         <div id="messenger-status" class="subscription-message" aria-live="polite"></div>
@@ -8979,6 +8984,8 @@ function openUniversalConnector() {
   document.body.classList.add("panel-open");
 
   const bodyInput = panelBody.querySelector("#messenger-body");
+  const subjectInput = panelBody.querySelector("#messenger-subject");
+  const emailRecipientsInput = panelBody.querySelector("#messenger-email-recipients");
   const send = panelBody.querySelector("#messenger-send");
   const status = panelBody.querySelector("#messenger-status");
   const receiptsBox = panelBody.querySelector("#messenger-receipts");
@@ -9012,7 +9019,11 @@ function openUniversalConnector() {
           "Content-Type": "application/json",
           "Authorization": "Bearer " + token
         },
-        body: JSON.stringify({ body })
+        body: JSON.stringify({
+          body,
+          subject: subjectInput?.value.trim() || "",
+          email_recipients: emailRecipientsInput?.value.trim() || undefined
+        })
       });
 
       const data = await response.json().catch(() => ({}));
