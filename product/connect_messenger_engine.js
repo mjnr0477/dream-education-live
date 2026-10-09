@@ -148,7 +148,7 @@ async function resolveDelivery(recipient, connectors = []) {
     }
   }
 
-  const automaticFanout = !hasExplicitDestination && Boolean(resolved.default_destination);
+  const automaticFanout = !hasExplicitDestination;
 
   const eligible = channelOrder(channels).filter(channel => {
     if (!resolved.selected || automaticFanout) return false;
@@ -161,7 +161,7 @@ async function resolveDelivery(recipient, connectors = []) {
   return {
     ...resolved,
     channels: eligible,
-    delivery_ready: Boolean(resolved.selected && eligible.length),
+    delivery_ready: Boolean(resolved.selected && (eligible.length || automaticFanout)),
     automatic_fanout: automaticFanout
   };
 }
@@ -196,7 +196,8 @@ async function deliverMessage(message, connectors = []) {
         message_id: messageId,
         body,
         recipient: delivery.selected,
-        channel
+        channel,
+        subject: normalizeText(message?.subject, 200)
       });
       const success = result?.success === true;
       attempts.push({ channel: channel.type, connector_id: channel.connector_id, success, result });
@@ -244,6 +245,7 @@ function normalizeBroadcastTargets(connector, channel) {
 async function broadcastMessage(message, connectors = []) {
   const body = normalizeText(message?.body, 10000);
   const messageId = message?.message_id || makeMessageId();
+  const subject = normalizeText(message?.subject, 200);
 
   if (!body) {
     return {
@@ -320,7 +322,8 @@ async function broadcastMessage(message, connectors = []) {
         body,
         recipient: target.recipient,
         channel: target.channel,
-        broadcast: true
+        broadcast: true,
+        subject
       });
 
       const delivered = result?.success === true;
@@ -368,6 +371,7 @@ function createUniversalMessage(input = {}) {
   return {
     message_id: input.message_id || makeMessageId(),
     body,
+    subject: normalizeText(input.subject, 200),
     recipient: normalizeRecipient(input.recipient),
     intent: inferRecipientIntent(input.recipient?.description || input.recipient?.name),
     created_at: new Date().toISOString()

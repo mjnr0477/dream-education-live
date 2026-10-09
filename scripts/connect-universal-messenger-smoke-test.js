@@ -22,8 +22,10 @@ assert.strictEqual(resolved.selected.email,'amina@example.com');
  assert.strictEqual(defaultPlan.default_destination,true);
  const defaultSent=await deliverMessage(defaultMessage,defaultConnectors);
  assert.strictEqual(defaultSent.success,true);
- assert.strictEqual(defaultSent.status,'delivered');
- assert.strictEqual(defaultSent.channel.platform,'dream_inbox');
+ assert.strictEqual(defaultSent.status,'delivered_everywhere_configured');
+ assert.strictEqual(defaultSent.attempted,1);
+ assert.strictEqual(defaultSent.delivered,1);
+ assert.ok(defaultSent.receipts.some((receipt)=>receipt.platform==='dream_inbox' && receipt.success===true));
  assert.ok(getDreamInboxMessages(10).some(item=>item.message_id===defaultMessage.message_id));
 
  const fanoutMessage=createUniversalMessage({body:'Automatic fan-out verification',recipient:{}});
