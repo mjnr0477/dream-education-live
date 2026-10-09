@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "title": "Publicly listed Dream Education outreach leads",
+  "title": "Publicly listed Dream Education institutional outreach contacts",
   "last_reviewed": "2026-10-09",
-  "purpose": "Owner-reviewed outreach about a possible acquisition, licensing, investment, or strategic partnership for Dream Education.",
-  "important_note": "These are publicly listed organizational/professional contact addresses, not confirmed active inboxes and not confirmed interested buyers. Confirm relevance and review the message before sending. Do not send repeated unsolicited messages.",
+  "purpose": "Owner-reviewed outreach to education institutions and professional organizations about Dream Education learning access, pilots, licensing, acquisition, or strategic partnership.",
+  "important_note": "These are publicly listed organizational/professional contacts, not confirmed active inboxes, registered Dream Education users, or confirmed interested buyers. Confirm relevance and review the message before sending. Do not send repeated unsolicited messages. Individual user email addresses must be collected through opt-in registration.",
   "contacts": [
     {
       "organization": "Future of Learning Fund",
@@ -639,133 +639,938 @@
       "verification_status": "source_verified_not_mailbox_verified"
     },
     {
-      "organization": "Afghanistan National Commission for UNESCO",
-      "email": "unesco.natcom@moe.gov.af",
-      "lead_type": "National education/science/culture commission",
-      "source_url": "https://www.unesco.org/en/national-commissions-unesco/list",
-      "source_note": "Email is publicly listed on UNESCO's official National Commissions directory. Public listing does not establish mailbox deliverability or interest in Dream Education."
+      "organization": "Umm Al-Qura University",
+      "email": "callcenter@uqu.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
     },
     {
-      "organization": "Albanian National Commission for UNESCO",
-      "email": "natcom.al@natcom.unesco.org",
-      "lead_type": "National education/science/culture commission",
-      "source_url": "https://www.unesco.org/en/national-commissions-unesco/list",
-      "source_note": "Email is publicly listed on UNESCO's official National Commissions directory. Public listing does not establish mailbox deliverability or interest in Dream Education."
+      "organization": "Islamic University of Madinah",
+      "email": "contact@iu.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
     },
     {
-      "organization": "Algerian National Commission for Education, Science and Culture",
-      "email": "natcomalgerie@unesco.dz",
-      "lead_type": "National education/science/culture commission",
-      "source_url": "https://www.unesco.org/en/national-commissions-unesco/list",
-      "source_note": "Email is publicly listed on UNESCO's official National Commissions directory. Public listing does not establish mailbox deliverability or interest in Dream Education."
+      "organization": "King Saud University",
+      "email": "info@ksu.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
     },
     {
-      "organization": "Bhutan National Commission for UNESCO",
-      "email": "natcom.bt@natcom.unesco.org",
-      "lead_type": "National education/science/culture commission",
-      "source_url": "https://www.unesco.org/en/national-commissions-unesco/list",
-      "source_note": "Email is publicly listed on UNESCO's official National Commissions directory. Public listing does not establish mailbox deliverability or interest in Dream Education."
+      "organization": "King Abdulaziz University",
+      "email": "webmaster@kau.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
     },
     {
-      "organization": "Bolivian National Commission for Education, Science and Culture",
-      "email": "natcom.bo@natcom.unesco.org",
-      "lead_type": "National education/science/culture commission",
-      "source_url": "https://www.unesco.org/en/national-commissions-unesco/list",
-      "source_note": "Email is publicly listed on UNESCO's official National Commissions directory. Public listing does not establish mailbox deliverability or interest in Dream Education."
+      "organization": "King Fahd University of Petroleum and Minerals",
+      "email": "info@kfupm.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
     },
     {
-      "organization": "Croatian Commission for UNESCO",
-      "email": "natcom.hr@natcom.unesco.org",
-      "lead_type": "National education/science/culture commission",
-      "source_url": "https://www.unesco.org/en/national-commissions-unesco/list",
-      "source_note": "Email is publicly listed on UNESCO's official National Commissions directory. Public listing does not establish mailbox deliverability or interest in Dream Education."
+      "organization": "King Faisal University",
+      "email": "info@kfu.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
     },
     {
-      "organization": "Faroese National Commission for UNESCO",
-      "email": "natcom.fo@natcom.unesco.org",
-      "lead_type": "National education/science/culture commission",
-      "source_url": "https://www.unesco.org/en/national-commissions-unesco/list",
-      "source_note": "Email is publicly listed on UNESCO's official National Commissions directory. Public listing does not establish mailbox deliverability or interest in Dream Education."
+      "organization": "King Khalid University",
+      "email": "Reg-admission@kku.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
     },
     {
-      "organization": "Fijian National Commission for UNESCO",
-      "email": "natcom.fj@natcom.unesco.org",
-      "lead_type": "National education/science/culture commission",
-      "source_url": "https://www.unesco.org/en/national-commissions-unesco/list",
-      "source_note": "Email is publicly listed on UNESCO's official National Commissions directory. Public listing does not establish mailbox deliverability or interest in Dream Education."
+      "organization": "Qassim University",
+      "email": "info@qu.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
     },
     {
-      "organization": "Finnish National Commission for UNESCO",
-      "email": "unesco.okm@gov.fi",
-      "lead_type": "National education/science/culture commission",
-      "source_url": "https://www.unesco.org/en/national-commissions-unesco/list",
-      "source_note": "Email is publicly listed on UNESCO's official National Commissions directory. Public listing does not establish mailbox deliverability or interest in Dream Education."
+      "organization": "Taibah University",
+      "email": "tawasul@taibahu.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
     },
     {
-      "organization": "Korean National Commission for UNESCO",
-      "email": "kocom@unesco.or.kr",
-      "lead_type": "National education/science/culture commission",
-      "source_url": "https://www.unesco.org/en/national-commissions-unesco/list",
-      "source_note": "Email is publicly listed on UNESCO's official National Commissions directory. Public listing does not establish mailbox deliverability or interest in Dream Education."
+      "organization": "Taif University",
+      "email": "admission@tu.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
     },
     {
-      "organization": "Nepal National Commission for UNESCO",
-      "email": "natcom.np@natcom.unesco.org",
-      "lead_type": "National education/science/culture commission",
-      "source_url": "https://www.unesco.org/en/national-commissions-unesco/list",
-      "source_note": "Email is publicly listed on UNESCO's official National Commissions directory. Public listing does not establish mailbox deliverability or interest in Dream Education."
+      "organization": "Jazan University",
+      "email": "webmaster@jazanu.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
     },
     {
-      "organization": "Netherlands National Commission for UNESCO",
-      "email": "natcom.nl@natcom.unesco.org",
-      "lead_type": "National education/science/culture commission",
-      "source_url": "https://www.unesco.org/en/national-commissions-unesco/list",
-      "source_note": "Email is publicly listed on UNESCO's official National Commissions directory. Public listing does not establish mailbox deliverability or interest in Dream Education."
+      "organization": "Jouf University",
+      "email": "contact@ju.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
     },
     {
-      "organization": "New Zealand National Commission for UNESCO",
-      "email": "unesco.nz@education.govt.nz",
-      "lead_type": "National education/science/culture commission",
-      "source_url": "https://www.unesco.org/en/national-commissions-unesco/list",
-      "source_note": "Email is publicly listed on UNESCO's official National Commissions directory. Public listing does not establish mailbox deliverability or interest in Dream Education."
+      "organization": "University of Tabuk",
+      "email": "ut@ut.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
     },
     {
-      "organization": "United Kingdom National Commission for UNESCO",
-      "email": "natcom.gb@natcom.unesco.org",
-      "lead_type": "National education/science/culture commission",
-      "source_url": "https://www.unesco.org/en/national-commissions-unesco/list",
-      "source_note": "Email is publicly listed on UNESCO's official National Commissions directory. Public listing does not establish mailbox deliverability or interest in Dream Education."
+      "organization": "Najran University",
+      "email": "info@nu.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
     },
     {
-      "organization": "Venezuelan National Commission for UNESCO",
-      "email": "natcom.ve@natcom.unesco.org",
-      "lead_type": "National education/science/culture commission",
-      "source_url": "https://www.unesco.org/en/national-commissions-unesco/list",
-      "source_note": "Email is publicly listed on UNESCO's official National Commissions directory. Public listing does not establish mailbox deliverability or interest in Dream Education."
+      "organization": "Northern Border University",
+      "email": "opu@nbu.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
     },
     {
-      "organization": "Kenya National Commission for UNESCO",
-      "email": "natcom.ke@natcom.unesco.org",
-      "lead_type": "National education/science/culture commission",
-      "source_url": "https://www.unesco.org/en/national-commissions-unesco/list",
-      "source_note": "Email is publicly listed on UNESCO's official National Commissions directory. Public listing does not establish mailbox deliverability or interest in Dream Education."
+      "organization": "Princess Nourah bint Abdulrahman University",
+      "email": "info@pnu.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
     },
     {
-      "organization": "Estonian National Commission for UNESCO",
-      "email": "unesco@unesco.ee",
-      "lead_type": "National education/science/culture commission",
-      "source_url": "https://www.unesco.org/en/national-commissions-unesco/list",
-      "source_note": "Email is publicly listed on UNESCO's official National Commissions directory. Public listing does not establish mailbox deliverability or interest in Dream Education."
+      "organization": "Imam Abdulrahman bin Faisal University",
+      "email": "pr@iau.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Prince Sattam bin Abdulaziz University",
+      "email": "ithelp@psau.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Saudi Electronic University",
+      "email": "contact@seu.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Jeddah",
+      "email": "help@uj.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Bisha",
+      "email": "ub@ub.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "King Abdullah University of Science and Technology",
+      "email": "admissions@kaust.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Hafr Al Batin",
+      "email": "info@uhb.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Town",
+      "email": "admissions@uct.ac.za",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.uct.ac.za/general-contacts",
+      "source_note": "Published in the institution's official contact directory. Public listing checked; mailbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Town",
+      "email": "ched@uct.ac.za",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.uct.ac.za/general-contacts",
+      "source_note": "Published in the institution's official contact directory. Public listing checked; mailbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Town",
+      "email": "educare@uct.ac.za",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.uct.ac.za/general-contacts",
+      "source_note": "Published in the institution's official contact directory. Public listing checked; mailbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Town",
+      "email": "libraries@uct.ac.za",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.uct.ac.za/general-contacts",
+      "source_note": "Published in the institution's official contact directory. Public listing checked; mailbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Town",
+      "email": "vc@uct.ac.za",
+      "lead_type": "Public university education contact",
+      "source_url": "https://uct.ac.za/general-contacts",
+      "source_note": "Published in the institution's official contact directory. Public listing checked; mailbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Coast",
+      "email": "registrar@ucc.edu.gh",
+      "lead_type": "Public university education contact",
+      "source_url": "https://directory.ucc.edu.gh/contacts",
+      "source_note": "Published in the institution's official contact directory. Public listing checked; mailbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Coast",
+      "email": "international@ucc.edu.gh",
+      "lead_type": "Public university education contact",
+      "source_url": "https://directory.ucc.edu.gh/contacts",
+      "source_note": "Published in the institution's official contact directory. Public listing checked; mailbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Coast",
+      "email": "studentfinsupport@ucc.edu.gh",
+      "lead_type": "Public university education contact",
+      "source_url": "https://directory.ucc.edu.gh/contacts",
+      "source_note": "Published in the institution's official contact directory. Public listing checked; mailbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Coast",
+      "email": "vc@ucc.edu.gh",
+      "lead_type": "Public university education contact",
+      "source_url": "https://directory.ucc.edu.gh/contacts",
+      "source_note": "Published in the institution's official contact directory. Public listing checked; mailbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Coast",
+      "email": "ces@ucc.edu.gh",
+      "lead_type": "Public university education contact",
+      "source_url": "https://directory.ucc.edu.gh/contacts",
+      "source_note": "Published in the institution's official contact directory. Public listing checked; mailbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Coast",
+      "email": "code.provost@ucc.edu.gh",
+      "lead_type": "Public university education contact",
+      "source_url": "https://directory.ucc.edu.gh/contacts",
+      "source_note": "Published in the institution's official contact directory. Public listing checked; mailbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Ghana",
+      "email": "coeacademic@ug.edu.gh",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.ug.edu.gh/aad/node/90",
+      "source_note": "Published in the institution's official contact directory. Public listing checked; mailbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Ghana",
+      "email": "admissions@ug.edu.gh",
+      "lead_type": "Public university education contact",
+      "source_url": "https://admissions.ug.edu.gh/contact-us",
+      "source_note": "Published in the institution's official contact directory. Public listing checked; mailbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Lagos",
+      "email": "academicaffairs@unilag.edu.ng",
+      "lead_type": "Public university education contact",
+      "source_url": "https://unilag.edu.ng/office-of-the-registrar-staff/",
+      "source_note": "Published in the institution's official contact directory. Public listing checked; mailbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Lagos",
+      "email": "admissionsoffice@unilag.edu.ng",
+      "lead_type": "Public university education contact",
+      "source_url": "https://unilag.edu.ng/office-of-the-registrar-staff/",
+      "source_note": "Published in the institution's official contact directory. Public listing checked; mailbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Lagos",
+      "email": "healthandsafety@unilag.edu.ng",
+      "lead_type": "Public university education contact",
+      "source_url": "https://unilag.edu.ng/office-of-the-registrar-staff/",
+      "source_note": "Published in the institution's official contact directory. Public listing checked; mailbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Coast — Pro Vice-Chancellor's Office",
+      "email": "pro-vc@ucc.edu.gh",
+      "lead_type": "Public university office contact",
+      "source_url": "https://directory.ucc.edu.gh/contacts",
+      "source_note": "Listed in the University of Cape Coast's official university contact directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Coast — College of Agriculture and Natural Sciences",
+      "email": "cans@ucc.edu.gh",
+      "lead_type": "Public university office contact",
+      "source_url": "https://directory.ucc.edu.gh/contacts",
+      "source_note": "Listed in the University of Cape Coast's official university contact directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Coast — College of Health and Allied Sciences",
+      "email": "cohas@ucc.edu.gh",
+      "lead_type": "Public university office contact",
+      "source_url": "https://directory.ucc.edu.gh/contacts",
+      "source_note": "Listed in the University of Cape Coast's official university contact directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Coast — College of Humanities and Legal Studies",
+      "email": "chls@ucc.edu.gh",
+      "lead_type": "Public university office contact",
+      "source_url": "https://directory.ucc.edu.gh/contacts",
+      "source_note": "Listed in the University of Cape Coast's official university contact directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Coast — Centre for Coastal Management",
+      "email": "ccm@ucc.edu.gh",
+      "lead_type": "Public university office contact",
+      "source_url": "https://directory.ucc.edu.gh/contacts",
+      "source_note": "Listed in the University of Cape Coast's official university contact directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Coast — Centre for Mixed Migration and Diaspora Studies",
+      "email": "cemmids@ucc.edu.gh",
+      "lead_type": "Public university office contact",
+      "source_url": "https://directory.ucc.edu.gh/contacts",
+      "source_note": "Listed in the University of Cape Coast's official university contact directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Coast — Resource Centre for Alternative Media and Assistive Technology",
+      "email": "rcamat@ucc.edu.gh",
+      "lead_type": "Public university office contact",
+      "source_url": "https://directory.ucc.edu.gh/contacts",
+      "source_note": "Listed in the University of Cape Coast's official university contact directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Coast — Directorate of Academic Affairs",
+      "email": "academic.affairs@ucc.edu.gh",
+      "lead_type": "Public university office contact",
+      "source_url": "https://directory.ucc.edu.gh/contacts",
+      "source_note": "Listed in the University of Cape Coast's official university contact directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Coast — Directorate of Academic Planning and Quality Assurance",
+      "email": "dapqa@ucc.edu.gh",
+      "lead_type": "Public university office contact",
+      "source_url": "https://directory.ucc.edu.gh/contacts",
+      "source_note": "Listed in the University of Cape Coast's official university contact directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Coast — Directorate of Finance",
+      "email": "dof@ucc.edu.gh",
+      "lead_type": "Public university office contact",
+      "source_url": "https://directory.ucc.edu.gh/contacts",
+      "source_note": "Listed in the University of Cape Coast's official university contact directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Coast — Directorate of Human Resource",
+      "email": "dhr.enquiries@ucc.edu.gh",
+      "lead_type": "Public university office contact",
+      "source_url": "https://directory.ucc.edu.gh/contacts",
+      "source_note": "Listed in the University of Cape Coast's official university contact directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Coast — Directorate of ICT Services",
+      "email": "dicts@ucc.edu.gh",
+      "lead_type": "Public university office contact",
+      "source_url": "https://directory.ucc.edu.gh/contacts",
+      "source_note": "Listed in the University of Cape Coast's official university contact directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Coast — Directorate of Internal Audit",
+      "email": "audit@ucc.edu.gh",
+      "lead_type": "Public university office contact",
+      "source_url": "https://directory.ucc.edu.gh/contacts",
+      "source_note": "Listed in the University of Cape Coast's official university contact directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Coast — Directorate of Physical Development and Estate Management",
+      "email": "dpdem@ucc.edu.gh",
+      "lead_type": "Public university office contact",
+      "source_url": "https://directory.ucc.edu.gh/contacts",
+      "source_note": "Listed in the University of Cape Coast's official university contact directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Coast — Directorate of Public Affairs",
+      "email": "dpa@ucc.edu.gh",
+      "lead_type": "Public university office contact",
+      "source_url": "https://directory.ucc.edu.gh/contacts",
+      "source_note": "Listed in the University of Cape Coast's official university contact directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Coast — Directorate of Research, Innovation and Consultancy",
+      "email": "dric@ucc.edu.gh",
+      "lead_type": "Public university office contact",
+      "source_url": "https://directory.ucc.edu.gh/contacts",
+      "source_note": "Listed in the University of Cape Coast's official university contact directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Coast — University Health Services",
+      "email": "duhs@ucc.edu.gh",
+      "lead_type": "Public university office contact",
+      "source_url": "https://directory.ucc.edu.gh/contacts",
+      "source_note": "Listed in the University of Cape Coast's official university contact directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Coast — Legal Affairs Office",
+      "email": "legalaffairs@ucc.edu.gh",
+      "lead_type": "Public university office contact",
+      "source_url": "https://directory.ucc.edu.gh/contacts",
+      "source_note": "Listed in the University of Cape Coast's official university contact directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Coast — Accra Office",
+      "email": "accraoffice@ucc.edu.gh",
+      "lead_type": "Public university office contact",
+      "source_url": "https://directory.ucc.edu.gh/contacts",
+      "source_note": "Listed in the University of Cape Coast's official university contact directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Coast — Admissions Section",
+      "email": "admissions@ucc.edu.gh",
+      "lead_type": "Public university office contact",
+      "source_url": "https://directory.ucc.edu.gh/contacts",
+      "source_note": "Listed in the University of Cape Coast's official university contact directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Coast — Alumni Relations Office",
+      "email": "alumni.association@ucc.edu.gh",
+      "lead_type": "Public university office contact",
+      "source_url": "https://directory.ucc.edu.gh/contacts",
+      "source_note": "Listed in the University of Cape Coast's official university contact directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Coast — Documentation and Information Section",
+      "email": "documentation@ucc.edu.gh",
+      "lead_type": "Public university office contact",
+      "source_url": "https://directory.ucc.edu.gh/contacts",
+      "source_note": "Listed in the University of Cape Coast's official university contact directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Coast — Institutional Advancement Office",
+      "email": "iao@ucc.edu.gh",
+      "lead_type": "Public university office contact",
+      "source_url": "https://directory.ucc.edu.gh/contacts",
+      "source_note": "Listed in the University of Cape Coast's official university contact directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Coast — Management Information Systems Section",
+      "email": "mis@ucc.edu.gh",
+      "lead_type": "Public university office contact",
+      "source_url": "https://directory.ucc.edu.gh/contacts",
+      "source_note": "Listed in the University of Cape Coast's official university contact directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Coast — Network and Infrastructure Section",
+      "email": "nis@ucc.edu.gh",
+      "lead_type": "Public university office contact",
+      "source_url": "https://directory.ucc.edu.gh/contacts",
+      "source_note": "Listed in the University of Cape Coast's official university contact directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Coast — Procurement Section",
+      "email": "procurement@ucc.edu.gh",
+      "lead_type": "Public university office contact",
+      "source_url": "https://directory.ucc.edu.gh/contacts",
+      "source_note": "Listed in the University of Cape Coast's official university contact directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Coast — Public Relations / Protocol",
+      "email": "protocol@ucc.edu.gh",
+      "lead_type": "Public university office contact",
+      "source_url": "https://directory.ucc.edu.gh/contacts",
+      "source_note": "Listed in the University of Cape Coast's official university contact directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Coast — Student Records Section",
+      "email": "students.records@ucc.edu.gh",
+      "lead_type": "Public university office contact",
+      "source_url": "https://directory.ucc.edu.gh/contacts",
+      "source_note": "Listed in the University of Cape Coast's official university contact directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Coast — University Library",
+      "email": "library@ucc.edu.gh",
+      "lead_type": "Public university office contact",
+      "source_url": "https://directory.ucc.edu.gh/contacts",
+      "source_note": "Listed in the University of Cape Coast's official university contact directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Coast — University Technical Support",
+      "email": "directory@ucc.edu.gh",
+      "lead_type": "Public university office contact",
+      "source_url": "https://directory.ucc.edu.gh/contacts",
+      "source_note": "Listed in the University of Cape Coast's official university contact directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Cape Coast — Works and Maintenance Section",
+      "email": "wrks.maintenance@ucc.edu.gh",
+      "lead_type": "Public university office contact",
+      "source_url": "https://directory.ucc.edu.gh/contacts",
+      "source_note": "Listed in the University of Cape Coast's official university contact directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "St John's University of Tanzania — General Office",
+      "email": "info@sjut.ac.tz",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.sjut.ac.tz/index.php/contact",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "St John's University of Tanzania — Vice-Chancellor's Office",
+      "email": "vc@sjut.ac.tz",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.sjut.ac.tz/index.php/contact",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "St John's University of Tanzania — Deputy Vice-Chancellor Academic Affairs",
+      "email": "dvca@sjut.ac.tz",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.sjut.ac.tz/index.php/contact",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "St John's University of Tanzania — Deputy Vice-Chancellor Planning Finance and Administration",
+      "email": "dvc-pf@sjut.ac.tz",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.sjut.ac.tz/index.php/contact",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "St John's University of Tanzania — Chaplaincy",
+      "email": "chaplaincy@sjut.ac.tz",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.sjut.ac.tz/index.php/contact",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "St John's University of Tanzania — Human Resources Directorate",
+      "email": "dhrma@sjut.ac.tz",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.sjut.ac.tz/index.php/contact",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "St John's University of Tanzania — Admissions Office",
+      "email": "admissions@sjut.ac.tz",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.sjut.ac.tz/index.php/contact",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "St John's University of Tanzania — Examinations Office",
+      "email": "examinations@sjut.ac.tz",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.sjut.ac.tz/index.php/contact",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "St John's University of Tanzania — Quality Assurance Directorate",
+      "email": "dqa@sjut.ac.tz",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.sjut.ac.tz/index.php/contact",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "St John's University of Tanzania — Research and Consultancy Directorate",
+      "email": "dric@sjut.ac.tz",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.sjut.ac.tz/index.php/contact",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "St John's University of Tanzania — Postgraduate Studies Directorate",
+      "email": "dgs@sjut.ac.tz",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.sjut.ac.tz/index.php/contact",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "St John's University of Tanzania — Undergraduate Studies Directorate",
+      "email": "dus@sjut.ac.tz",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.sjut.ac.tz/index.php/contact",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "St John's University of Tanzania — ICT Centre",
+      "email": "cict@sjut.ac.tz",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.sjut.ac.tz/index.php/contact",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Sokoine University of Agriculture — General Enquiries",
+      "email": "info@sua.ac.tz",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://arc.sua.ac.tz/contact/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Sokoine University of Agriculture — Research and Postgraduate Studies",
+      "email": "drpgs@sua.ac.tz",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://arc.sua.ac.tz/contact/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Sokoine University of Agriculture — Student Services",
+      "email": "studentservices@sua.ac.tz",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://arc.sua.ac.tz/contact/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Gulu University — General Office",
+      "email": "info@gu.ac.ug",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://gu.ac.ug/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Busitema University — Deputy Vice-Chancellor Academic Affairs",
+      "email": "dvcaa@busitema.ac.ug",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://busitema.ac.ug/services/description/contacts?service=All",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Busitema University — Dean of Students",
+      "email": "dean@dos.busitema.ac.ug",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://busitema.ac.ug/services/description/contacts?service=All",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Busitema University — Vice-Chancellor's Office",
+      "email": "vc@admin.busitema.ac.ug",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://busitema.ac.ug/services/description/contacts?service=All",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Busitema University — Library",
+      "email": "library@busitema.ac.ug",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://busitema.ac.ug/services/description/contacts?service=All",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Busitema University — Academic Registrar",
+      "email": "ar.acadreg@busitema.ac.ug",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://busitema.ac.ug/services/description/contacts?service=All",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Busitema University — Administration Contact",
+      "email": "vc.adm@busitema.ac.ug",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://busitema.ac.ug/services/description/contacts?service=All",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Kabale University — General Office",
+      "email": "info@kab.ac.ug",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.kab.ac.ug/connect/contact-us/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Kabale University — Admissions",
+      "email": "admissions@kab.ac.ug",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.kab.ac.ug/connect/contact-us/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Kabale University — Kampala Liaison Office",
+      "email": "kampalaoffice@kab.ac.ug",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.kab.ac.ug/connect/contact-us/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Soroti University — Public Relations Office",
+      "email": "pro@sun.ac.ug",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://sun.ac.ug/contact-us/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Soroti University — Academic Registrar",
+      "email": "ar@sun.ac.ug",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://sun.ac.ug/contact-us/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Soroti University — Student Affairs",
+      "email": "sas@sun.ac.ug",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://sun.ac.ug/contact-us/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Kyambogo University — Academic Registrar",
+      "email": "arkyu@kyu.ac.ug",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://kyu.ac.ug/administrative-departments/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Kyambogo University — Public Relations Office",
+      "email": "prokyu@kyu.ac.ug",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://kyu.ac.ug/administrative-departments/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Ahmadu Bello University — Undergraduate Admissions",
+      "email": "ugadmissions@abu.edu.ng",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://abu.edu.ng/contact-us/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Ahmadu Bello University — Postgraduate Admissions",
+      "email": "pgadmissions@abu.edu.ng",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://abu.edu.ng/contact-us/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Ahmadu Bello University — Undergraduate Certificates",
+      "email": "ugcertificates@abu.edu.ng",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://abu.edu.ng/contact-us/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Ahmadu Bello University — Postgraduate Certificates",
+      "email": "pgcertificates@abu.edu.ng",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://abu.edu.ng/contact-us/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Ahmadu Bello University — Transcripts",
+      "email": "etranscripts@abu.edu.ng",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://abu.edu.ng/contact-us/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Ahmadu Bello University — Alumni Relations",
+      "email": "dua@abu.edu.ng",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://abu.edu.ng/contact-us/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Ahmadu Bello University — Academic Office",
+      "email": "academicoffice@abu.edu.ng",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://abu.edu.ng/contact-us/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Ahmadu Bello University — Procurement",
+      "email": "procurement@abu.edu.ng",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://abu.edu.ng/contact-us/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Ahmadu Bello University — ICT",
+      "email": "iaiict@abu.edu.ng",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://abu.edu.ng/contact-us/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Nigeria Nsukka — Webometrics Contact",
+      "email": "webometrics@unn.edu.ng",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.unn.edu.ng/contact/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Nigeria Nsukka — Bursary Customer Services",
+      "email": "customerservices.bursary@unn.edu.ng",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.unn.edu.ng/contact/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Nigeria Nsukka — Registrar Customer Services",
+      "email": "customerservices.registrar@unn.edu.ng",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.unn.edu.ng/contact/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Nigeria Nsukka — ICT Customer Services",
+      "email": "customerservices.ict@unn.edu.ng",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.unn.edu.ng/contact/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
     }
   ],
   "change_log": [
+    {
+      "date": "2026-10-09",
+      "change": "Added 45 unique institutional office contacts from official university directories in Tanzania, Uganda, and Nigeria. Source listings checked; mailbox delivery not independently tested. Registry now contains 201 entries."
+    },
     {
       "date": "2026-10-09",
       "change": "Added 31 unique public-university contact addresses from the Universities Fund directory; source listing checked, mailbox deliverability not independently verified."
     },
     {
       "date": "2026-10-09",
-      "change": "Added 17 unique public National Commission for UNESCO contact addresses from UNESCO's official directory; addresses are source-listed, not mailbox-deliverability verified."
+      "change": "Added 23 unique public-university email contacts from the Saudi Ministry of Education's official directory; source listing checked, mailbox deliverability not independently verified."
+    },
+    {
+      "date": "2026-10-09",
+      "change": "Added 16 public university education contacts from official South African, Ghanaian, and Nigerian university directories; source listing checked, mailbox deliverability not independently verified."
+    },
+    {
+      "date": "2026-10-09",
+      "change": "Added 31 unique office contacts from the University of Cape Coast's official contact directory; mailbox delivery not independently tested."
     }
   ]
 }
