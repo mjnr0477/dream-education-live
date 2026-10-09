@@ -51,6 +51,39 @@ function normalizeBaseUrl(value, fallback) {
   return raw;
 }
 
+function splitBlueskyText(text, maxGraphemes = 280) {
+  const value = String(text || '');
+  const limit = Math.max(1, Math.min(Number(maxGraphemes) || 280, 300));
+  if (typeof Intl !== 'undefined' && typeof Intl.Segmenter === 'function') {
+    const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
+    const graphemes = Array.from(segmenter.segment(value), (part) => part.segment);
+    if (graphemes.length <= limit) return [value];
+    const chunks = [];
+    while (graphemes.length) {
+      if (graphemes.length <= limit) {
+        chunks.push(graphemes.splice(0).join(''));
+        break;
+      }
+      let cut = limit;
+      // Prefer a whitespace boundary without dropping any original characters.
+      for (let i = limit - 1; i >= Math.floor(limit / 2); i -= 1) {
+        if (/\s/u.test(graphemes[i])) {
+          cut = i + 1;
+          break;
+        }
+      }
+      chunks.push(graphemes.splice(0, cut).join(''));
+    }
+    return chunks;
+  }
+
+  // Node versions without Intl.Segmenter still avoid splitting surrogate pairs.
+  const characters = Array.from(value);
+  const chunks = [];
+  while (characters.length) chunks.push(characters.splice(0, limit).join(''));
+  return chunks;
+}
+
 function buildNativeMessengerConnectors(env = process.env) {
   const connectors = [];
 
@@ -193,24 +226,60 @@ function buildNativeMessengerConnectors(env = process.env) {
             return { success: false, status: sessionResponse.status, data: session };
           }
 
-          const response = await fetch(blueskyService + '/xrpc/com.atproto.repo.createRecord', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + session.accessJwt
-            },
-            body: JSON.stringify({
-              repo: session.did,
-              collection: 'app.bsky.feed.post',
-              record: {
-                '$type': 'app.bsky.feed.post',
-                text: String(body || ''),
-                createdAt: new Date().toISOString()
-              }
-            })
-          });
-          const data = await response.json().catch(() => ({}));
-          return { success: response.ok && Boolean(data.uri || data.cid), status: response.status, data };
+          const posts = splitBlueskyText(String(body || ''), 280);
+          let root = null;
+          let parent = null;
+          for (let index = 0; index < posts.length; index += 1) {
+            const record = {
+              '$type': 'app.bsky.feed.post',
+              text: posts[index],
+              createdAt: new Date().toISOString()
+            };
+            if (parent) record.reply = { root, parent };
+
+            const response = await fetch(blueskyService + '/xrpc/com.atproto.repo.createRecord', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + session.accessJwt
+              },
+              body: JSON.stringify({
+                repo: session.did,
+                collection: 'app.bsky.feed.post',
+                record
+              })
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || !data.uri || !data.cid) {
+              return {
+                success: false,
+                status: response.status,
+                data: {
+                  ...data,
+                  error: data.message || data.error || 'Bluesky rejected thread post ' + (index + 1) + ' of ' + posts.length + '.',
+                  posts_sent: index,
+                  posts_total: posts.length,
+                  partial: index > 0
+                }
+              };
+            }
+
+            const reference = { uri: data.uri, cid: data.cid };
+            if (!root) root = reference;
+            parent = reference;
+          }
+
+          return {
+            success: true,
+            status: 200,
+            data: {
+              uri: root.uri,
+              cid: root.cid,
+              posts_sent: posts.length,
+              posts_total: posts.length,
+              threaded: posts.length > 1
+            }
+          };
         }
       }]
     });
@@ -251,4 +320,4 @@ function buildNativeMessengerConnectors(env = process.env) {
   return connectors;
 }
 
-module.exports = { buildNativeMessengerConnectors, getDreamInboxMessages, INBOX_FILE };
+module.exports = { buildNativeMessengerConnectors, getDreamInboxMessages, INBOX_FILE, splitBlueskyText };
