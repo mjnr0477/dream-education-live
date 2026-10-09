@@ -1,0 +1,30 @@
+name: Reddit connector smoke test
+
+on:
+  pull_request:
+    paths:
+      - "product/native_messenger_connectors.js"
+      - "scripts/universal-reddit-connector-smoke-test.js"
+      - ".github/workflows/reddit-connector-smoke-test.yml"
+  push:
+    branches:
+      - "feat/reddit-quora-connector-readiness"
+    paths:
+      - "product/native_messenger_connectors.js"
+      - "scripts/universal-reddit-connector-smoke-test.js"
+      - ".github/workflows/reddit-connector-smoke-test.yml"
+
+jobs:
+  reddit-connector:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Check connector syntax
+        run: node --check product/native_messenger_connectors.js
+      - name: Check smoke test syntax
+        run: node --check scripts/universal-reddit-connector-smoke-test.js
+      - name: Run mocked Reddit connector test
+        run: node scripts/universal-reddit-connector-smoke-test.js
