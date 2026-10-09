@@ -6088,8 +6088,8 @@ app.post("/api/product/teacher", (req, res) => {
    DREAM EDUCATION UNIVERSAL MESSENGER API
    Sends only through explicitly configured and authorized connectors.
 */
-function getConfiguredMessengerConnectors() {
-  const connectors = buildNativeMessengerConnectors();
+function getConfiguredMessengerConnectors(options = {}) {
+  const connectors = buildNativeMessengerConnectors(process.env, options);
   const telegramToken = String(process.env.TELEGRAM_BOT_TOKEN || "").trim();
   if (telegramToken) {
     const rawChatIds = String(process.env.TELEGRAM_BROADCAST_CHAT_IDS || "").trim();
@@ -6306,12 +6306,38 @@ app.post("/api/product/connect/messenger/broadcast", async (req, res) => {
       return res.status(auth.status).json({ success: false, error: auth.error });
     }
 
+    const rawEmailRecipients = req.body?.email_recipients;
+    let emailRecipients = null;
+    if (rawEmailRecipients !== undefined && rawEmailRecipients !== null && String(rawEmailRecipients).trim() !== "") {
+      if (auth.account?.owner_account !== true) {
+        return res.status(403).json({ success: false, error: "Owner access is required to broadcast to an ad hoc email list." });
+      }
+      const input = Array.isArray(rawEmailRecipients)
+        ? rawEmailRecipients
+        : String(rawEmailRecipients).split(/[\\n,;]+/u);
+      const normalized = input.map((value) => String(value || "").trim().toLowerCase()).filter(Boolean);
+      if (normalized.length > 100) {
+        return res.status(400).json({ success: false, error: "A single email broadcast can include at most 100 recipients." });
+      }
+      const invalid = normalized.filter((email) => !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email));
+      if (invalid.length) {
+        return res.status(400).json({ success: false, error: "Invalid email address: " + invalid[0] });
+      }
+      emailRecipients = [...new Set(normalized)];
+      if (emailRecipients.length && (!String(process.env.RESEND_API_KEY || "").trim() || !String(process.env.EMAIL_FROM || "").trim())) {
+        return res.status(503).json({ success: false, error: "Email delivery is not configured yet. Add RESEND_API_KEY and EMAIL_FROM to the server environment." });
+      }
+    }
+
     const message = createUniversalMessage({
       body: req.body?.body,
+      subject: req.body?.subject,
       recipient: {}
     });
 
-    const connectors = getConfiguredMessengerConnectors();
+    const connectors = getConfiguredMessengerConnectors(
+      emailRecipients ? { emailRecipients } : {}
+    );
     const result = await broadcastMessage(message, connectors);
 
     const statusCode =
