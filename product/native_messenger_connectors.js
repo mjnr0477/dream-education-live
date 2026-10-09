@@ -67,7 +67,7 @@ function splitBlueskyText(text, maxGraphemes = 280) {
       let cut = limit;
       // Prefer a whitespace boundary without dropping any original characters.
       for (let i = limit - 1; i >= Math.floor(limit / 2); i -= 1) {
-        if (/\\s/u.test(graphemes[i])) {
+        if (/\s/u.test(graphemes[i])) {
           cut = i + 1;
           break;
         }
