@@ -784,59 +784,59 @@ function developmentAnswer(
       : keyIdeas.slice(0, 4);
 
     response =
-      `Let's answer your question about ${lessonTopic}.\\n\\n` +
-      `${definition ? `The main idea is simple:\\n${definition}\\n\\n` : ""}` +
+      `Let's answer your question about ${lessonTopic}.\n\n` +
+      `${definition ? `The main idea is simple:\n${definition}\n\n` : ""}` +
       `${focusedIdeas.length
-        ? `Here are the important parts to understand:\\n` +
+        ? `Here are the important parts to understand:\n` +
           focusedIdeas
             .map((idea, index) => `${index + 1}. ${idea}`)
-            .join("\\n") +
-          "\\n\\n"
+            .join("\n") +
+          "\n\n"
         : ""}` +
-      `${equation ? `Put the idea together like this:\\n${equation}\\n\\n` : ""}` +
+      `${equation ? `Put the idea together like this:\n${equation}\n\n` : ""}` +
       `${examples.length
-        ? `For example:\\n${examples[0]}\\n\\n`
+        ? `For example:\n${examples[0]}\n\n`
         : ""}` +
-      `So, the key thing to remember is not just the words. Understand how the parts connect to the main idea.\\n\\n` +
+      `So, the key thing to remember is not just the words. Understand how the parts connect to the main idea.\n\n` +
       `Now tell me in your own words: what is the main idea, and what are the most important things that make it happen?`;
 
   } else if (method === "discussion") {
     const discussionIdeas = keyIdeas.slice(0, 3);
 
     response =
-      `Let's explore ${lessonTopic} together.\\n\\n` +
-      `${definition ? `First, here's the idea we are going to discuss:\\n${definition}\\n\\n` : ""}` +
+      `Let's explore ${lessonTopic} together.\n\n` +
+      `${definition ? `First, here's the idea we are going to discuss:\n${definition}\n\n` : ""}` +
       `${discussionIdeas.length
-        ? `Think about these important points:\\n` +
+        ? `Think about these important points:\n` +
           discussionIdeas
             .map((idea, index) => `${index + 1}. ${idea}`)
-            .join("\\n") +
-          "\\n\\n"
+            .join("\n") +
+          "\n\n"
         : ""}` +
-      `Let's reason about it rather than simply memorise it.\\n\\n` +
-      `Imagine you are explaining this idea to another learner. What would you say first, and why?\\n\\n` +
+      `Let's reason about it rather than simply memorise it.\n\n` +
+      `Imagine you are explaining this idea to another learner. What would you say first, and why?\n\n` +
       `Your turn: give your answer and explain your reasoning.`;
 
   } else if (method === "examples") {
     const exampleText = examples.length
       ? examples
           .map((example, index) => `${index + 1}. ${example}`)
-          .join("\\n")
+          .join("\n")
       : `Imagine a real situation where ${target} matters.`;
 
     response =
-      `Let's learn ${lessonTopic} through examples.\\n\\n` +
-      `${definition ? `First, understand the main idea:\\n${definition}\\n\\n` : ""}` +
-      `Example 1:\\n${exampleText}\\n\\n` +
+      `Let's learn ${lessonTopic} through examples.\n\n` +
+      `${definition ? `First, understand the main idea:\n${definition}\n\n` : ""}` +
+      `Example 1:\n${exampleText}\n\n` +
       `${keyIdeas.length
-        ? `Notice what the example demonstrates:\\n` +
+        ? `Notice what the example demonstrates:\n` +
           keyIdeas
             .slice(0, 3)
             .map((idea, index) => `${index + 1}. ${idea}`)
-            .join("\\n") +
-          "\\n\\n"
+            .join("\n") +
+          "\n\n"
         : ""}` +
-      `The important part is the connection between the example and the concept.\\n\\n` +
+      `The important part is the connection between the example and the concept.\n\n` +
       `Now create your own example and explain why it demonstrates ${lessonTopic}.`;
 
   } else if (!hasVerifiedSpecialistResult && method === "step_by_step") {
@@ -844,59 +844,59 @@ function developmentAnswer(
 
     if (definition) {
       steps.push(
-        `Step 1 — Start with the main idea:\\n${definition}`
+        `Step 1 — Start with the main idea:\n${definition}`
       );
     }
 
     if (keyIdeas.length) {
       steps.push(
-        `Step 2 — Identify what is needed:\\n${keyIdeas.slice(0, 3)
+        `Step 2 — Identify what is needed:\n${keyIdeas.slice(0, 3)
           .map((idea, index) => `${index + 1}. ${idea}`)
-          .join("\\n")}`
+          .join("\n")}`
       );
     }
 
     if (keyIdeas.length > 3) {
       steps.push(
-        `Step 3 — Follow what happens:\\n${keyIdeas.slice(3)
+        `Step 3 — Follow what happens:\n${keyIdeas.slice(3)
           .map((idea, index) => `${index + 1}. ${idea}`)
-          .join("\\n")}`
+          .join("\n")}`
       );
     } else {
       steps.push(
-        `Step 3 — Connect the idea:\\nThink about how the parts work together to produce the result.`
+        `Step 3 — Connect the idea:\nThink about how the parts work together to produce the result.`
       );
     }
 
     if (equation) {
       steps.push(
-        `Step 4 — Put the process together:\\n${equation}`
+        `Step 4 — Put the process together:\n${equation}`
       );
     }
 
     if (examples.length) {
       steps.push(
-        `Step 5 — See it in a real situation:\\n${examples[0]}`
+        `Step 5 — See it in a real situation:\n${examples[0]}`
       );
     }
 
     response =
-      `Let's work through ${lessonTopic} step by step.\\n\\n` +
-      steps.join("\\n\\n") +
-      `\\n\\nNow teach it back to me in your own words. Start with what happens first, then explain what happens next and what the process produces.`;
+      `Let's work through ${lessonTopic} step by step.\n\n` +
+      steps.join("\n\n") +
+      `\n\nNow teach it back to me in your own words. Start with what happens first, then explain what happens next and what the process produces.`;
 
   } else if (method === "problem_solving") {
     const problemExample = examples[0] ||
       `A learner encounters a situation involving ${lessonTopic}.`;
 
     response =
-      `Let's learn ${lessonTopic} by solving a problem.\\n\\n` +
-      `Here's the situation:\\n${problemExample}\\n\\n` +
-      `${definition ? `What you need to know first:\\n${definition}\\n\\n` : ""}` +
-      `Step 1: Identify what the situation is asking you to understand.\\n\\n` +
-      `Step 2: Identify the important information or factors involved.\\n\\n` +
-      `Step 3: Use the concept to reason from the information to an answer.\\n\\n` +
-      `Step 4: Explain why your answer makes sense.\\n\\n` +
+      `Let's learn ${lessonTopic} by solving a problem.\n\n` +
+      `Here's the situation:\n${problemExample}\n\n` +
+      `${definition ? `What you need to know first:\n${definition}\n\n` : ""}` +
+      `Step 1: Identify what the situation is asking you to understand.\n\n` +
+      `Step 2: Identify the important information or factors involved.\n\n` +
+      `Step 3: Use the concept to reason from the information to an answer.\n\n` +
+      `Step 4: Explain why your answer makes sense.\n\n` +
       `Now solve the situation yourself. Show your reasoning, not just the final answer.`;
 
   } else if (method === "custom") {
@@ -905,18 +905,18 @@ function developmentAnswer(
       "a clear and learner-friendly approach";
 
     response =
-      `I'll teach ${lessonTopic} using the approach you requested: "${customMethod}".\\n\\n` +
-      `${definition ? `The foundation is:\\n${definition}\\n\\n` : ""}` +
+      `I'll teach ${lessonTopic} using the approach you requested: "${customMethod}".\n\n` +
+      `${definition ? `The foundation is:\n${definition}\n\n` : ""}` +
       `${keyIdeas.length
-        ? `The important ideas to work with are:\\n` +
+        ? `The important ideas to work with are:\n` +
           keyIdeas
             .slice(0, 4)
             .map((idea, index) => `${index + 1}. ${idea}`)
-            .join("\\n") +
-          "\\n\\n"
+            .join("\n") +
+          "\n\n"
         : ""}` +
       `${examples.length
-        ? `A useful real-world connection is:\\n${examples[0]}\\n\\n`
+        ? `A useful real-world connection is:\n${examples[0]}\n\n`
         : ""}` +
       `Now use the same approach to explain what you have understood.`;
 
@@ -5848,7 +5848,7 @@ app.post("/api/auth/login", async (req, res) => {
         role: "learner",
         email,
         phone: metadata.phone
-          ? String(metadata.phone).trim().replace(/[\\s()-]/g, "")
+          ? String(metadata.phone).trim().replace(/[\s()-]/g, "")
           : null,
         learner_id: recoveredProfile.learner_id,
         created_at: new Date().toISOString(),
@@ -6314,12 +6314,12 @@ app.post("/api/product/connect/messenger/broadcast", async (req, res) => {
       }
       const input = Array.isArray(rawEmailRecipients)
         ? rawEmailRecipients
-        : String(rawEmailRecipients).split(/[\\n,;]+/u);
+        : String(rawEmailRecipients).split(/[\n,;]+/u);
       const normalized = input.map((value) => String(value || "").trim().toLowerCase()).filter(Boolean);
       if (normalized.length > 100) {
         return res.status(400).json({ success: false, error: "A single email broadcast can include at most 100 recipients." });
       }
-      const invalid = normalized.filter((email) => !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email));
+      const invalid = normalized.filter((email) => !/^[^\s@]+@[^\s@]+\\.[^\s@]+$/.test(email));
       if (invalid.length) {
         return res.status(400).json({ success: false, error: "Invalid email address: " + invalid[0] });
       }
@@ -6335,9 +6335,13 @@ app.post("/api/product/connect/messenger/broadcast", async (req, res) => {
       recipient: {}
     });
 
-    const connectors = getConfiguredMessengerConnectors(
+    let connectors = getConfiguredMessengerConnectors(
       emailRecipients ? { emailRecipients } : {}
     );
+    // Email broadcasting is owner-only; other authorized channels remain available to other roles.
+    if (auth.account?.owner_account !== true) {
+      connectors = connectors.filter((connector) => String(connector.platform || "").toLowerCase() !== "email");
+    }
     const result = await broadcastMessage(message, connectors);
 
     const statusCode =
