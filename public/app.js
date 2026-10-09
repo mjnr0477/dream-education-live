@@ -8961,8 +8961,8 @@ function openUniversalConnector() {
         <label class="panel-label" for="messenger-subject">Email subject (optional)</label>
         <input class="panel-input" id="messenger-subject" maxlength="200" placeholder="Message from Dream Education" aria-label="Email subject" />
         <label class="panel-label" for="messenger-email-recipients">Email recipients (owner only; one per line or comma-separated)</label>
-        <textarea class="panel-input" id="messenger-email-recipients" rows="3" maxlength="12000" placeholder="buyer@example.com&#10;school@example.org" aria-label="Email recipients"></textarea>
-        <p class="panel-description">Email requires RESEND_API_KEY and EMAIL_FROM on the server. Leave recipients blank to use the configured email list.</p>
+        <textarea class="panel-input" id="messenger-email-recipients" rows="6" maxlength="12000" placeholder="Add recipient emails here" aria-label="Email recipients">info@futureoflearningfund.com&#10;gigi@injini.africa&#10;partnerships@injini.africa&#10;partnerships@eidu.com&#10;info@theedtechfund.com&#10;partner@eduletafrica.com&#10;sales@eduletafrica.com&#10;info@upskillsafrica.org&#10;info@spixfoundation.org</textarea>
+        <p class="panel-description">A starter list of publicly listed education-technology contacts is prefilled. They are outreach leads, not confirmed buyers. Review the list and message before sending. Email requires RESEND_API_KEY and EMAIL_FROM on the server.</p>
         <label class="panel-label" for="messenger-body">Message</label>
         <textarea class="panel-input" id="messenger-body" rows="10" maxlength="10000" placeholder="Write your message..." aria-label="Universal message"></textarea>
         <div id="messenger-status" class="subscription-message" aria-live="polite"></div>
