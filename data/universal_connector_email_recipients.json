@@ -165,6 +165,62 @@
       "lead_type": "Global education research and technology partnership",
       "source_url": "https://digitalpromise.org/initiative/global-education/partner-with-us/",
       "source_note": "Official global education partnership page lists this address for collaboration enquiries."
+    },
+    {
+      "organization": "African Schools Network",
+      "email": "info@africanschoolsnetwork.org",
+      "lead_type": "African school network and institutional partnership",
+      "source_url": "https://africanschoolsnetwork.org/contact.html",
+      "source_note": "Official contact page invites partnerships with schools, ministries, NGOs, foundations and businesses."
+    },
+    {
+      "organization": "Education for Africa",
+      "email": "info@education-for-africa.org",
+      "lead_type": "Education access and digital learning partnership",
+      "source_url": "https://education-for-africa.org/contact/",
+      "source_note": "Official contact page lists this address for enquiries and partnerships."
+    },
+    {
+      "organization": "Africa Special Needs Education Network (ASNEN)",
+      "email": "info@asnenafrica.org",
+      "lead_type": "Inclusive education and accessibility partnership",
+      "source_url": "https://www.asnenafrica.org/contact",
+      "source_note": "Official contact page lists this address for programme and partnership questions."
+    },
+    {
+      "organization": "Eneza Education",
+      "email": "BD@enezaeducation.com",
+      "lead_type": "African mobile learning and strategic business development",
+      "source_url": "https://ke.linkedin.com/company/enezaeducation",
+      "source_note": "Eneza Education's company profile publicly lists this address for business development enquiries."
+    },
+    {
+      "organization": "RELI Africa — Kenya support",
+      "email": "kenya@reliafrica.org",
+      "lead_type": "Kenyan education network partnership",
+      "source_url": "https://reliafrica.org/contact-us-2/",
+      "source_note": "Official contact page lists this as the Kenya support team address."
+    },
+    {
+      "organization": "RELI Africa — Uganda support",
+      "email": "uganda@reliafrica.org",
+      "lead_type": "Ugandan education network partnership",
+      "source_url": "https://reliafrica.org/contact-us-2/",
+      "source_note": "Official contact page lists this as the Uganda support team address."
+    },
+    {
+      "organization": "RELI Africa — Tanzania support",
+      "email": "tanzania@reliafrica.org",
+      "lead_type": "Tanzanian education network partnership",
+      "source_url": "https://reliafrica.org/contact-us-2/",
+      "source_note": "Official contact page lists this as the Tanzania support team address."
+    },
+    {
+      "organization": "eduLET Africa",
+      "email": "info@eduletafrica.com",
+      "lead_type": "Inclusive EdTech and accessible learning partnership",
+      "source_url": "https://eduletafrica.com/partners/",
+      "source_note": "Official partnership page publishes this general contact address."
     }
   ]
 }
