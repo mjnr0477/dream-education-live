@@ -163,7 +163,8 @@ function buildNativeMessengerConnectors(env = process.env) {
     });
   }
 
-  const blueskyIdentifier = String(env.BLUESKY_IDENTIFIER || '').trim();
+  // Accept either a Bluesky handle or the same handle prefixed with @.
+  const blueskyIdentifier = String(env.BLUESKY_IDENTIFIER || '').trim().replace(/^@+/, '');
   const blueskyPassword = String(env.BLUESKY_APP_PASSWORD || '').trim();
   const blueskyService = normalizeBaseUrl(env.BLUESKY_SERVICE_URL, 'https://bsky.social');
 
