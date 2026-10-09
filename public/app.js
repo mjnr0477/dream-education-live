@@ -8964,7 +8964,7 @@ function openUniversalConnector() {
         <p class="panel-description">Loads up to 100 published institutional contacts per batch from the owner-only registry. Review the recipient list and message before sending. Public listing does not confirm inbox delivery or user consent; use relevant, responsible outreach and include a clear opt-out.</p>
         <label class="panel-label" for="messenger-email-recipients">Email recipients (owner only; maximum 100 per send)</label>
         <textarea class="panel-input" id="messenger-email-recipients" rows="6" maxlength="12000" placeholder="Load a contact batch or enter recipients you are authorized to contact" aria-label="Email recipients"></textarea>
-        <p class="panel-description">A curated list of publicly listed education, EdTech, publishing, investor and partnership contacts is prefilled. These are not confirmed buyers or verified active inboxes. Review relevance and the message before sending; do not send repeated unsolicited messages. Email requires RESEND_API_KEY and EMAIL_FROM on the server.</p>
+        <p class="panel-description">The registry contains public institutional education contacts, not confirmed Dream Education users or verified active inboxes. Loading a batch does not send anything. Review recipients and message carefully. Email delivery requires either Gmail SMTP credentials or a complete Resend configuration on the server.</p>
         <label class="panel-label" for="messenger-body">Message</label>
         <textarea class="panel-input" id="messenger-body" rows="10" maxlength="10000" placeholder="Write your message..." aria-label="Universal message"></textarea>
         <div id="messenger-status" class="subscription-message" aria-live="polite"></div>
