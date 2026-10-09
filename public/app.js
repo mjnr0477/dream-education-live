@@ -9049,10 +9049,23 @@ function openUniversalConnector() {
           receipt.recipient?.handle ||
           receipt.recipient?.name ||
           "";
+        const result = receipt.result || {};
+        const resultData = result.data || {};
+        const detail = String(
+          receipt.error ||
+          result.error ||
+          resultData.message ||
+          resultData.error ||
+          (result.status ? "HTTP status " + result.status : "")
+        ).trim().slice(0, 500);
         return '<div class="panel-card" style="margin-top:10px"><strong>' +
           escapeHTML(name) + '</strong><p>' +
           escapeHTML(state + (target ? " · " + target : "")) +
-          '</p></div>';
+          '</p>' +
+          (detail && !receipt.success
+            ? '<p class="subscription-message error">' + escapeHTML("Reason: " + detail) + '</p>'
+            : '') +
+          '</div>';
       }).join("");
 
       receiptsBox.hidden = false;
