@@ -11,7 +11,7 @@ function main() {
   const emails = registry.contacts.map(contact => String(contact.email || "").trim().toLowerCase());
   assert.strictEqual(new Set(emails).size, emails.length, "Registry email addresses must be unique");
   for (const contact of registry.contacts) {
-    assert.ok(/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(contact.email || ""), "Every contact must have a valid email shape");
+    assert.ok(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email || ""), "Every contact must have a valid email shape");
     assert.ok(contact.organization, "Every contact must identify an organization");
     assert.ok(contact.source_url, "Every contact must retain source provenance");
   }
