@@ -6312,7 +6312,7 @@ app.get("/api/product/connect/messenger/email-contacts", async (req, res) => {
     const allContacts = (Array.isArray(registry.contacts) ? registry.contacts : [])
       .filter(contact => {
         const email = String(contact?.email || "").trim();
-        return /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email) &&
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) &&
           String(contact?.organization || "").trim() &&
           String(contact?.source_url || "").trim();
       })
