@@ -36,6 +36,12 @@ function main() {
   assert.ok(resendOnly.some((connector) => connector.id === 'email-resend-native'),
     'Existing Resend delivery must remain available when Gmail is not configured');
 
+  const server = require('fs').readFileSync(require('path').join(__dirname, '..', 'server.js'), 'utf8');
+  assert.ok(server.includes('const gmailConfigured ='),
+    'Ad-hoc owner email broadcasts must recognize Gmail SMTP credentials');
+  assert.ok(server.includes('!resendConfigured && !gmailConfigured'),
+    'Email broadcast gate must allow either configured Gmail or configured Resend');
+
   console.log('Universal Connector Gmail SMTP configuration smoke test: PASS');
 }
 
