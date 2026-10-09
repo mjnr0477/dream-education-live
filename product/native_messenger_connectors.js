@@ -91,6 +91,7 @@ function splitBlueskyText(text, maxGraphemes = 280) {
 
 function buildNativeMessengerConnectors(env = process.env, options = {}) {
   const connectors = [];
+  const fetchImpl = typeof options.fetchImpl === 'function' ? options.fetchImpl : fetch;
 
   // Guaranteed first-party delivery destination. This is a real persistent
   // Dream Education inbox, not a fake external connector. External connectors
@@ -288,6 +289,113 @@ function buildNativeMessengerConnectors(env = process.env, options = {}) {
         }
       }]
     });
+  }
+
+  // Reddit uses its official OAuth API. Credentials are configured server-side.
+  // The refresh token must have the scopes needed for the selected actions.
+  const redditClientId = String(env.REDDIT_CLIENT_ID || '').trim();
+  const redditClientSecret = String(env.REDDIT_CLIENT_SECRET || '').trim();
+  const redditRefreshToken = String(env.REDDIT_REFRESH_TOKEN || '').trim();
+  const redditUserAgent = String(env.REDDIT_USER_AGENT || 'web:dream-education:1.0 (by /u/dreameducation)').trim();
+  const redditSubreddits = splitList(env.REDDIT_BROADCAST_SUBREDDITS).map((value) => value.replace(/^r\\//i, '').replace(/^\\/+|\\/+$/g, '')).filter(Boolean);
+  const redditMessageRecipients = splitList(env.REDDIT_MESSAGE_TO).map((value) => value.replace(/^u\\//i, '').replace(/^@+/, '')).filter(Boolean);
+
+  if (redditClientId && redditClientSecret && redditRefreshToken && (redditSubreddits.length || redditMessageRecipients.length)) {
+    const getRedditAccessToken = async () => {
+      const credentials = Buffer.from(redditClientId + ':' + redditClientSecret).toString('base64');
+      const response = await fetchImpl('https://www.reddit.com/api/v1/access_token', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Basic ' + credentials,
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'User-Agent': redditUserAgent
+        },
+        body: new URLSearchParams({ grant_type: 'refresh_token', refresh_token: redditRefreshToken })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.access_token) {
+        const error = new Error(data.error_description || data.message || data.error || 'Reddit OAuth token refresh failed.');
+        error.status = response.status;
+        throw error;
+      }
+      return data.access_token;
+    };
+
+    const redditConnector = {
+      id: 'reddit-native',
+      name: 'Reddit',
+      platform: 'reddit',
+      recipients: [
+        ...redditSubreddits.map((subreddit) => ({ type: 'group', address: subreddit, platform: 'reddit', channel: 'post' })),
+        ...redditMessageRecipients.map((username) => ({ type: 'person', address: username, platform: 'reddit', channel: 'message' }))
+      ],
+      channels: []
+    };
+
+    if (redditSubreddits.length) {
+      redditConnector.channels.push({
+        type: 'post', platform: 'reddit', enabled: true, authorized: true, broadcast: true,
+        send: async ({ body, recipient, subject }) => {
+          const subreddit = String(recipient?.address || '').trim().replace(/^r\\//i, '').replace(/^\\/+|\\/+$/g, '');
+          if (!subreddit) return { success: false, status: 400, data: { error: 'A target subreddit is required.' } };
+          const title = String(subject || 'Dream Education').trim().slice(0, 300);
+          const text = String(body || '').trim();
+          if (!text) return { success: false, status: 400, data: { error: 'Post text is required.' } };
+          try {
+            const token = await getRedditAccessToken();
+            const response = await fetchImpl('https://oauth.reddit.com/api/submit', {
+              method: 'POST',
+              headers: {
+                'Authorization': 'Bearer ' + token,
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'User-Agent': redditUserAgent
+              },
+              body: new URLSearchParams({ api_type: 'json', kind: 'self', sr: subreddit, title, text, resubmit: 'false' })
+            });
+            const data = await response.json().catch(() => ({}));
+            const errors = data?.json?.errors;
+            const postData = data?.json?.data;
+            const success = response.ok && Array.isArray(errors) && errors.length === 0 && Boolean(postData?.url || postData?.name);
+            return { success, status: response.status, data: success ? { url: postData.url || null, name: postData.name || null, subreddit } : data };
+          } catch (error) {
+            return { success: false, status: Number(error.status) || 502, data: { error: error.message || 'Reddit post failed.' } };
+          }
+        }
+      });
+    }
+
+    if (redditMessageRecipients.length) {
+      redditConnector.channels.push({
+        type: 'message', platform: 'reddit', enabled: true, authorized: true, broadcast: false,
+        send: async ({ body, recipient, subject }) => {
+          const username = String(recipient?.address || '').trim().replace(/^u\\//i, '').replace(/^@+/, '');
+          if (!username) return { success: false, status: 400, data: { error: 'A Reddit username is required.' } };
+          const messageText = String(body || '').trim();
+          const messageSubject = String(subject || 'Message from Dream Education').trim().slice(0, 100);
+          if (!messageText) return { success: false, status: 400, data: { error: 'Message text is required.' } };
+          try {
+            const token = await getRedditAccessToken();
+            const response = await fetchImpl('https://oauth.reddit.com/api/compose', {
+              method: 'POST',
+              headers: {
+                'Authorization': 'Bearer ' + token,
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'User-Agent': redditUserAgent
+              },
+              body: new URLSearchParams({ api_type: 'json', to: username, subject: messageSubject, text: messageText })
+            });
+            const data = await response.json().catch(() => ({}));
+            const errors = data?.json?.errors;
+            const success = response.ok && Array.isArray(errors) && errors.length === 0;
+            return { success, status: response.status, data: success ? { sent: true, recipient: username } : data };
+          } catch (error) {
+            return { success: false, status: Number(error.status) || 502, data: { error: error.message || 'Reddit message failed.' } };
+          }
+        }
+      });
+    }
+
+    if (redditConnector.channels.length) connectors.push(redditConnector);
   }
 
   const discordWebhooks = splitList(env.DISCORD_BROADCAST_WEBHOOK_URLS);
