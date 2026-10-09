@@ -8960,7 +8960,6 @@ function openUniversalConnector() {
       <div class="panel-card">
         <label class="panel-label" for="messenger-subject">Email subject (optional)</label>
         <input class="panel-input" id="messenger-subject" maxlength="200" placeholder="Message from Dream Education" aria-label="Email subject" />
-        <label class="panel-label" for="messenger-email-recipients">Email recipients (owner only; one per line or comma-separated)</label>
         <button class="panel-button secondary" id="messenger-load-contacts" type="button">Load public education contacts (first batch)</button>
         <p class="panel-description">Loads up to 100 published institutional contacts per batch from the owner-only registry. Review the recipient list and message before sending. Public listing does not confirm inbox delivery or user consent; use relevant, responsible outreach and include a clear opt-out.</p>
         <label class="panel-label" for="messenger-email-recipients">Email recipients (owner only; maximum 100 per send)</label>
@@ -9016,7 +9015,7 @@ function openUniversalConnector() {
       emailRecipientsInput.value = (Array.isArray(data.contacts) ? data.contacts : [])
         .map(contact => String(contact.email || "").trim())
         .filter(Boolean)
-        .join("\\n");
+        .join("\n");
       if (data.next_offset === null) {
         emailContactOffset = 0;
         loadEmailContacts.textContent = "Reload first batch";
