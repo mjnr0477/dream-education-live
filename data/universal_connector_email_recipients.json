@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "title": "Publicly listed Dream Education outreach leads",
+  "title": "Publicly listed Dream Education institutional outreach contacts",
   "last_reviewed": "2026-10-09",
-  "purpose": "Owner-reviewed outreach about a possible acquisition, licensing, investment, or strategic partnership for Dream Education.",
-  "important_note": "These are publicly listed organizational/professional contact addresses, not confirmed active inboxes and not confirmed interested buyers. Confirm relevance and review the message before sending. Do not send repeated unsolicited messages.",
+  "purpose": "Owner-reviewed outreach to education institutions and professional organizations about Dream Education learning access, pilots, licensing, acquisition, or strategic partnership.",
+  "important_note": "These are publicly listed organizational/professional contacts, not confirmed active inboxes, registered Dream Education users, or confirmed interested buyers. Confirm relevance and review the message before sending. Do not send repeated unsolicited messages. Individual user email addresses must be collected through opt-in registration.",
   "contacts": [
     {
       "organization": "Future of Learning Fund",
@@ -637,12 +637,200 @@
       "source_url": "https://www.universitiesfund.go.ke/public-universities-2/",
       "source_note": "Published in the Universities Fund official public-universities directory. Public-source listing checked; mailbox existence and deliverability have not been independently confirmed.",
       "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Umm Al-Qura University",
+      "email": "callcenter@uqu.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Islamic University of Madinah",
+      "email": "contact@iu.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "King Saud University",
+      "email": "info@ksu.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "King Abdulaziz University",
+      "email": "webmaster@kau.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "King Fahd University of Petroleum and Minerals",
+      "email": "info@kfupm.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "King Faisal University",
+      "email": "info@kfu.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "King Khalid University",
+      "email": "Reg-admission@kku.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Qassim University",
+      "email": "info@qu.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Taibah University",
+      "email": "tawasul@taibahu.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Taif University",
+      "email": "admission@tu.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Jazan University",
+      "email": "webmaster@jazanu.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Jouf University",
+      "email": "contact@ju.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Tabuk",
+      "email": "ut@ut.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Najran University",
+      "email": "info@nu.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Northern Border University",
+      "email": "opu@nbu.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Princess Nourah bint Abdulrahman University",
+      "email": "info@pnu.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Imam Abdulrahman bin Faisal University",
+      "email": "pr@iau.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Prince Sattam bin Abdulaziz University",
+      "email": "ithelp@psau.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Saudi Electronic University",
+      "email": "contact@seu.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Jeddah",
+      "email": "help@uj.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Bisha",
+      "email": "ub@ub.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "King Abdullah University of Science and Technology",
+      "email": "admissions@kaust.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Hafr Al Batin",
+      "email": "info@uhb.edu.sa",
+      "lead_type": "Public university education contact",
+      "source_url": "https://www.moe.gov.sa/en/education/highereducation/Pages/UniversitiesList.aspx",
+      "source_note": "Published on the Saudi Ministry of Education's official public-universities directory. Public listing verified; inbox existence and delivery have not been independently confirmed.",
+      "verification_status": "source_verified_not_mailbox_verified"
     }
   ],
   "change_log": [
     {
       "date": "2026-10-09",
       "change": "Added 31 unique public-university contact addresses from the Universities Fund directory; source listing checked, mailbox deliverability not independently verified."
+    },
+    {
+      "date": "2026-10-09",
+      "change": "Added 23 unique public-university email contacts from the Saudi Ministry of Education's official directory; source listing checked, mailbox deliverability not independently verified."
     }
   ]
 }
