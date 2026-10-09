@@ -39,6 +39,11 @@ function getDreamInboxMessages(limit = 50) {
   return readInbox().slice(-Math.max(1, Math.min(Number(limit) || 50, 500))).reverse();
 }
 
+function isValidEmailAddress(value) {
+  const email = String(value || '').trim();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
 function splitList(value) {
   return String(value || '')
     .split(',')
@@ -326,7 +331,7 @@ function buildNativeMessengerConnectors(env = process.env, options = {}) {
     : splitList(env.EMAIL_BROADCAST_TO);
   const emailRecipients = [...new Set(configuredEmailRecipients
     .map((item) => String(item?.email || item || '').trim().toLowerCase())
-    .filter((email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)))];
+    .filter(isValidEmailAddress))];
 
   const gmailUser = String(env.GMAIL_USER || '').trim();
   const gmailAppPassword = String(env.GMAIL_APP_PASSWORD || '').trim();
@@ -353,7 +358,7 @@ function buildNativeMessengerConnectors(env = process.env, options = {}) {
         authorized: true,
         send: async ({ body, recipient, subject }) => {
           const to = String(recipient?.email || recipient?.address || '').trim();
-          if (!to || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(to)) {
+          if (!isValidEmailAddress(to)) {
             return { success: false, status: 400, data: { error: 'A valid email recipient is required.' } };
           }
           return sendGmailSmtpEmail({
@@ -385,7 +390,7 @@ function buildNativeMessengerConnectors(env = process.env, options = {}) {
         authorized: true,
         send: async ({ body, recipient, subject }) => {
           const to = String(recipient?.email || recipient?.address || '').trim();
-          if (!to || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) {
+          if (!isValidEmailAddress(to)) {
             return { success: false, status: 400, data: { error: 'A valid email recipient is required.' } };
           }
           const response = await fetch('https://api.resend.com/emails', {
@@ -415,4 +420,4 @@ function buildNativeMessengerConnectors(env = process.env, options = {}) {
   return connectors;
 }
 
-module.exports = { buildNativeMessengerConnectors, getDreamInboxMessages, INBOX_FILE, splitBlueskyText };
+module.exports = { buildNativeMessengerConnectors, getDreamInboxMessages, INBOX_FILE, splitBlueskyText, isValidEmailAddress };
