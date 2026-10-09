@@ -417,6 +417,96 @@ function buildNativeMessengerConnectors(env = process.env, options = {}) {
     });
   }
 
+
+  // PostWire publishes one message across connected social networks using one
+  // server-side API key. Networks are discovered from the account unless an
+  // explicit allow-list is configured, so disconnected networks are not guessed.
+  const postWireKey = String(env.POSTWIRE_API_KEY || '').trim();
+  const postWireBase = normalizeBaseUrl(env.POSTWIRE_BASE_URL, 'https://postwire.io');
+  const postWirePlatforms = splitList(env.POSTWIRE_PLATFORMS)
+    .map((platform) => platform.toLowerCase())
+    .filter(Boolean);
+  const postWireFetch = typeof options.fetchImpl === 'function' ? options.fetchImpl : fetch;
+
+  if (postWireKey) {
+    connectors.push({
+      id: 'postwire-universal-native',
+      name: 'PostWire (connected social networks)',
+      platform: 'postwire',
+      channels: [{
+        type: 'post',
+        platform: 'postwire',
+        enabled: true,
+        authorized: true,
+        broadcast: true,
+        send: async ({ body, message_id, subject }) => {
+          let platforms = postWirePlatforms;
+          if (!platforms.length) {
+            const connectionsResponse = await postWireFetch(postWireBase + '/api/connections', {
+              method: 'GET',
+              headers: { 'Authorization': 'Bearer ' + postWireKey }
+            });
+            const connectionsData = await connectionsResponse.json().catch(() => ({}));
+            if (!connectionsResponse.ok) {
+              return {
+                success: false,
+                status: connectionsResponse.status,
+                data: {
+                  error: connectionsData.error || 'Could not read connected PostWire networks.',
+                  code: connectionsData.code || 'postwire_connections_failed'
+                }
+              };
+            }
+            const rows = Array.isArray(connectionsData.connections) ? connectionsData.connections : [];
+            platforms = [...new Set(rows
+              .filter((row) => row && row.connected !== false && row.status !== 'disconnected')
+              .map((row) => String(row.platform || row.network || row.provider || '').trim().toLowerCase())
+              .filter(Boolean))];
+          }
+
+          if (!platforms.length) {
+            return {
+              success: false,
+              status: 400,
+              data: {
+                error: 'No connected PostWire networks were found. Connect networks in PostWire or set POSTWIRE_PLATFORMS.',
+                code: 'postwire_no_connected_networks'
+              }
+            };
+          }
+
+          const response = await postWireFetch(postWireBase + '/api/post', {
+            method: 'POST',
+            headers: {
+              'Authorization': 'Bearer ' + postWireKey,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              platforms,
+              text: String(body || ''),
+              idempotency_key: String(message_id || ('dream-education-' + Date.now())),
+              ...(String(subject || '').trim() ? { per_platform: Object.fromEntries(platforms.map((platform) => [platform, { title: String(subject).trim().slice(0, 200), text: String(body || '') }])) } : {})
+            })
+          });
+          const data = await response.json().catch(() => ({}));
+          const results = Array.isArray(data.results) ? data.results : [];
+          const actuallyPosted = Number(data.posted) > 0 || results.some((result) => result && result.ok === true);
+          const pendingApproval = response.status === 202 || data.status === 'pending_approval';
+          return {
+            success: response.ok && actuallyPosted,
+            status: response.status,
+            data: {
+              ...data,
+              pending_approval: pendingApproval,
+              platforms_requested: platforms,
+              platforms_posted: results.filter((result) => result && result.ok === true).map((result) => result.platform).filter(Boolean)
+            }
+          };
+        }
+      }]
+    });
+  }
+
   return connectors;
 }
 
