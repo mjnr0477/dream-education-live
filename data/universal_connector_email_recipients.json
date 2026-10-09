@@ -67,6 +67,104 @@
       "lead_type": "African digital education ecosystem partnership",
       "source_url": "https://respect.world/contact-us/",
       "source_note": "Official RESPECT site lists this email as its contact address."
+    },
+    {
+      "organization": "Trinity Education Technologies Solutions Africa (TETA)",
+      "email": "info@teta.co.ke",
+      "lead_type": "African digital education and technology partnership",
+      "source_url": "https://teta.co.ke/",
+      "source_note": "Official site lists this address for education technology partnership enquiries."
+    },
+    {
+      "organization": "Eleva Learning Centre",
+      "email": "partnerships@elevalearningcentre.com",
+      "lead_type": "Learning platform and institutional partnerships",
+      "source_url": "https://www.elevalearningcentre.com/partnerships",
+      "source_note": "Official partnerships page lists this address and invites EdTech integrations and curriculum partnerships."
+    },
+    {
+      "organization": "Elymica",
+      "email": "info@elymica.com",
+      "lead_type": "Learning infrastructure and integration partnership",
+      "source_url": "https://www.elymica.com/contact?type=integration-partner",
+      "source_note": "Official contact page lists this address for partnerships, rollouts and platform enquiries."
+    },
+    {
+      "organization": "ITSKILLS4AFRICA",
+      "email": "talktous@itskills4africa.org",
+      "lead_type": "Digital skills and learning partnership",
+      "source_url": "https://www.itskills4africa.org/about",
+      "source_note": "Official site lists this address for general and partnership enquiries."
+    },
+    {
+      "organization": "Africa EdTech Exchange",
+      "email": "partnership@edtechexchange.africa",
+      "lead_type": "African EdTech ecosystem and strategic partnership",
+      "source_url": "https://www.edtechexchange.africa/",
+      "source_note": "Official site lists this address for partnership enquiries across the EdTech ecosystem."
+    },
+    {
+      "organization": "Bilan AI",
+      "email": "info@bilanlearn.com",
+      "lead_type": "AI learning platform partnership",
+      "source_url": "https://www.bilanlearn.com/contact",
+      "source_note": "Official contact page invites partnership discussions with NGOs, schools and government bodies."
+    },
+    {
+      "organization": "Edukate Africa",
+      "email": "partnership@edukateafrica.com",
+      "lead_type": "Education funding and platform partnership",
+      "source_url": "https://edukateafrica.com/contact",
+      "source_note": "Official contact page lists this address for partnership and general enquiries."
+    },
+    {
+      "organization": "Wego Publishers / TAFA",
+      "email": "info@wegopublishersltd.co.ke",
+      "lead_type": "Education publishing and distribution partnership",
+      "source_url": "https://tafadevices.co.ke/become-a-distributor/",
+      "source_note": "Official partner page lists this address for publisher and school distribution enquiries."
+    },
+    {
+      "organization": "Moran (E.A.) Publishers",
+      "email": "info@moranpublishers.co.ke",
+      "lead_type": "Education publisher and digital content partnership",
+      "source_url": "https://moranpublishers.com/",
+      "source_note": "Official publisher site lists this contact address."
+    },
+    {
+      "organization": "ICT Authority Kenya",
+      "email": "partnerships@ict.go.ke",
+      "lead_type": "Public-sector digital learning and ICT collaboration",
+      "source_url": "https://icta.go.ke/partnerships",
+      "source_note": "Official partnerships page lists this address for joint technology and public-sector programmes."
+    },
+    {
+      "organization": "Kenya Ministry of Education",
+      "email": "info@education.go.ke",
+      "lead_type": "Public-sector education engagement",
+      "source_url": "https://www.education.go.ke/index.php/contact-us",
+      "source_note": "Official ministry contact page lists this address for general enquiries; not a confirmed buyer contact."
+    },
+    {
+      "organization": "Regional Education Learning Initiative (RELI) Africa",
+      "email": "reli@reliafrica.org",
+      "lead_type": "Regional education network and partnership",
+      "source_url": "https://reliafrica.org/contact-us-2/",
+      "source_note": "Official contact page lists this address for the regional hub."
+    },
+    {
+      "organization": "Regional Education Learning Initiative (RELI) Africa",
+      "email": "info@reliafrica.org",
+      "lead_type": "Regional education network and partnership",
+      "source_url": "https://reliafrica.org/contact-us-2/",
+      "source_note": "Official contact page lists this address for general enquiries."
+    },
+    {
+      "organization": "Digital Promise",
+      "email": "global@digitalpromise.org",
+      "lead_type": "Global education research and technology partnership",
+      "source_url": "https://digitalpromise.org/initiative/global-education/partner-with-us/",
+      "source_note": "Official global education partnership page lists this address for collaboration enquiries."
     }
   ]
 }
