@@ -6319,7 +6319,7 @@ app.post("/api/product/connect/messenger/broadcast", async (req, res) => {
       if (normalized.length > 100) {
         return res.status(400).json({ success: false, error: "A single email broadcast can include at most 100 recipients." });
       }
-      const invalid = normalized.filter((email) => !/^[^\s@]+@[^\s@]+\\.[^\s@]+$/.test(email));
+      const invalid = normalized.filter((email) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
       if (invalid.length) {
         return res.status(400).json({ success: false, error: "Invalid email address: " + invalid[0] });
       }
