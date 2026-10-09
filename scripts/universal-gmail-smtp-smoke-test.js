@@ -1,9 +1,15 @@
 'use strict';
 
 const assert = require('assert');
-const { buildNativeMessengerConnectors } = require('../product/native_messenger_connectors');
+const { buildNativeMessengerConnectors, isValidEmailAddress } = require('../product/native_messenger_connectors');
 
 function main() {
+  assert.strictEqual(isValidEmailAddress('partnerships@reliafrica.org'), true,
+    'Valid recipients containing the letter s must pass validation');
+  assert.strictEqual(isValidEmailAddress('tanzania@reliafrica.org'), true,
+    'Published organizational email addresses must pass syntax validation');
+  assert.strictEqual(isValidEmailAddress('not-an-email'), false,
+    'Malformed recipient values must be rejected');
   const recipients = ['buyer@example.org', 'school@example.org', 'buyer@example.org'];
   const gmailOnly = buildNativeMessengerConnectors({
     GMAIL_USER: 'dream.education@gmail.com',
