@@ -84,7 +84,7 @@ function splitBlueskyText(text, maxGraphemes = 280) {
   return chunks;
 }
 
-function buildNativeMessengerConnectors(env = process.env) {
+function buildNativeMessengerConnectors(env = process.env, options = {}) {
   const connectors = [];
 
   // Guaranteed first-party delivery destination. This is a real persistent
@@ -312,6 +312,63 @@ function buildNativeMessengerConnectors(env = process.env) {
           });
           const data = await response.text().catch(() => '');
           return { success: response.ok, status: response.status, data };
+        }
+      }]
+    });
+  }
+
+  // Email broadcast uses Resend so no extra runtime package is required.
+  // Credentials are kept in server environment variables, never in the browser.
+  const resendApiKey = String(env.RESEND_API_KEY || '').trim();
+  const emailFrom = String(env.EMAIL_FROM || '').trim();
+  const configuredEmailRecipients = Array.isArray(options.emailRecipients)
+    ? options.emailRecipients
+    : splitList(env.EMAIL_BROADCAST_TO);
+  const emailRecipients = [...new Set(configuredEmailRecipients
+    .map((item) => String(item?.email || item || '').trim().toLowerCase())
+    .filter((email) => /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)))];
+
+  if (resendApiKey && emailFrom && emailRecipients.length) {
+    connectors.push({
+      id: 'email-resend-native',
+      name: 'Email',
+      platform: 'email',
+      recipients: emailRecipients.map((email) => ({
+        type: 'person',
+        email,
+        address: email,
+        platform: 'email',
+        channel: 'email'
+      })),
+      channels: [{
+        type: 'email',
+        platform: 'email',
+        enabled: true,
+        authorized: true,
+        send: async ({ body, recipient, subject }) => {
+          const to = String(recipient?.email || recipient?.address || '').trim();
+          if (!to || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(to)) {
+            return { success: false, status: 400, data: { error: 'A valid email recipient is required.' } };
+          }
+          const response = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              'Authorization': 'Bearer ' + resendApiKey,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              from: emailFrom,
+              to: [to],
+              subject: String(subject || env.EMAIL_DEFAULT_SUBJECT || 'Message from Dream Education').trim().slice(0, 200),
+              text: String(body || '')
+            })
+          });
+          const data = await response.json().catch(() => ({}));
+          return {
+            success: response.ok && Boolean(data.id),
+            status: response.status,
+            data
+          };
         }
       }]
     });
