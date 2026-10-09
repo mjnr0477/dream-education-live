@@ -326,7 +326,7 @@ function buildNativeMessengerConnectors(env = process.env, options = {}) {
     : splitList(env.EMAIL_BROADCAST_TO);
   const emailRecipients = [...new Set(configuredEmailRecipients
     .map((item) => String(item?.email || item || '').trim().toLowerCase())
-    .filter((email) => /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)))];
+    .filter((email) => /^[^\s@]+@[^\s@]+\\.[^\s@]+$/.test(email)))];
 
   if (resendApiKey && emailFrom && emailRecipients.length) {
     connectors.push({
@@ -347,7 +347,7 @@ function buildNativeMessengerConnectors(env = process.env, options = {}) {
         authorized: true,
         send: async ({ body, recipient, subject }) => {
           const to = String(recipient?.email || recipient?.address || '').trim();
-          if (!to || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(to)) {
+          if (!to || !/^[^\s@]+@[^\s@]+\\.[^\s@]+$/.test(to)) {
             return { success: false, status: 400, data: { error: 'A valid email recipient is required.' } };
           }
           const response = await fetch('https://api.resend.com/emails', {
