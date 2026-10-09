@@ -1197,9 +1197,373 @@
       "source_url": "https://directory.ucc.edu.gh/contacts",
       "source_note": "Listed in the University of Cape Coast's official university contact directory. Public source checked; mailbox delivery not independently tested.",
       "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "St John's University of Tanzania — General Office",
+      "email": "info@sjut.ac.tz",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.sjut.ac.tz/index.php/contact",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "St John's University of Tanzania — Vice-Chancellor's Office",
+      "email": "vc@sjut.ac.tz",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.sjut.ac.tz/index.php/contact",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "St John's University of Tanzania — Deputy Vice-Chancellor Academic Affairs",
+      "email": "dvca@sjut.ac.tz",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.sjut.ac.tz/index.php/contact",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "St John's University of Tanzania — Deputy Vice-Chancellor Planning Finance and Administration",
+      "email": "dvc-pf@sjut.ac.tz",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.sjut.ac.tz/index.php/contact",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "St John's University of Tanzania — Chaplaincy",
+      "email": "chaplaincy@sjut.ac.tz",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.sjut.ac.tz/index.php/contact",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "St John's University of Tanzania — Human Resources Directorate",
+      "email": "dhrma@sjut.ac.tz",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.sjut.ac.tz/index.php/contact",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "St John's University of Tanzania — Admissions Office",
+      "email": "admissions@sjut.ac.tz",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.sjut.ac.tz/index.php/contact",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "St John's University of Tanzania — Examinations Office",
+      "email": "examinations@sjut.ac.tz",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.sjut.ac.tz/index.php/contact",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "St John's University of Tanzania — Quality Assurance Directorate",
+      "email": "dqa@sjut.ac.tz",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.sjut.ac.tz/index.php/contact",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "St John's University of Tanzania — Research and Consultancy Directorate",
+      "email": "dric@sjut.ac.tz",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.sjut.ac.tz/index.php/contact",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "St John's University of Tanzania — Postgraduate Studies Directorate",
+      "email": "dgs@sjut.ac.tz",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.sjut.ac.tz/index.php/contact",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "St John's University of Tanzania — Undergraduate Studies Directorate",
+      "email": "dus@sjut.ac.tz",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.sjut.ac.tz/index.php/contact",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "St John's University of Tanzania — ICT Centre",
+      "email": "cict@sjut.ac.tz",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.sjut.ac.tz/index.php/contact",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Sokoine University of Agriculture — General Enquiries",
+      "email": "info@sua.ac.tz",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://arc.sua.ac.tz/contact/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Sokoine University of Agriculture — Research and Postgraduate Studies",
+      "email": "drpgs@sua.ac.tz",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://arc.sua.ac.tz/contact/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Sokoine University of Agriculture — Student Services",
+      "email": "studentservices@sua.ac.tz",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://arc.sua.ac.tz/contact/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Gulu University — General Office",
+      "email": "info@gu.ac.ug",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://gu.ac.ug/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Busitema University — Deputy Vice-Chancellor Academic Affairs",
+      "email": "dvcaa@busitema.ac.ug",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://busitema.ac.ug/services/description/contacts?service=All",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Busitema University — Dean of Students",
+      "email": "dean@dos.busitema.ac.ug",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://busitema.ac.ug/services/description/contacts?service=All",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Busitema University — Vice-Chancellor's Office",
+      "email": "vc@admin.busitema.ac.ug",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://busitema.ac.ug/services/description/contacts?service=All",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Busitema University — Library",
+      "email": "library@busitema.ac.ug",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://busitema.ac.ug/services/description/contacts?service=All",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Busitema University — Academic Registrar",
+      "email": "ar.acadreg@busitema.ac.ug",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://busitema.ac.ug/services/description/contacts?service=All",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Busitema University — Administration Contact",
+      "email": "vc.adm@busitema.ac.ug",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://busitema.ac.ug/services/description/contacts?service=All",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Kabale University — General Office",
+      "email": "info@kab.ac.ug",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.kab.ac.ug/connect/contact-us/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Kabale University — Admissions",
+      "email": "admissions@kab.ac.ug",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.kab.ac.ug/connect/contact-us/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Kabale University — Kampala Liaison Office",
+      "email": "kampalaoffice@kab.ac.ug",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.kab.ac.ug/connect/contact-us/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Soroti University — Public Relations Office",
+      "email": "pro@sun.ac.ug",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://sun.ac.ug/contact-us/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Soroti University — Academic Registrar",
+      "email": "ar@sun.ac.ug",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://sun.ac.ug/contact-us/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Soroti University — Student Affairs",
+      "email": "sas@sun.ac.ug",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://sun.ac.ug/contact-us/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Kyambogo University — Academic Registrar",
+      "email": "arkyu@kyu.ac.ug",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://kyu.ac.ug/administrative-departments/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Kyambogo University — Public Relations Office",
+      "email": "prokyu@kyu.ac.ug",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://kyu.ac.ug/administrative-departments/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Ahmadu Bello University — Undergraduate Admissions",
+      "email": "ugadmissions@abu.edu.ng",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://abu.edu.ng/contact-us/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Ahmadu Bello University — Postgraduate Admissions",
+      "email": "pgadmissions@abu.edu.ng",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://abu.edu.ng/contact-us/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Ahmadu Bello University — Undergraduate Certificates",
+      "email": "ugcertificates@abu.edu.ng",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://abu.edu.ng/contact-us/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Ahmadu Bello University — Postgraduate Certificates",
+      "email": "pgcertificates@abu.edu.ng",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://abu.edu.ng/contact-us/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Ahmadu Bello University — Transcripts",
+      "email": "etranscripts@abu.edu.ng",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://abu.edu.ng/contact-us/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Ahmadu Bello University — Alumni Relations",
+      "email": "dua@abu.edu.ng",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://abu.edu.ng/contact-us/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Ahmadu Bello University — Academic Office",
+      "email": "academicoffice@abu.edu.ng",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://abu.edu.ng/contact-us/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Ahmadu Bello University — Procurement",
+      "email": "procurement@abu.edu.ng",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://abu.edu.ng/contact-us/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "Ahmadu Bello University — ICT",
+      "email": "iaiict@abu.edu.ng",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://abu.edu.ng/contact-us/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Nigeria Nsukka — Webometrics Contact",
+      "email": "webometrics@unn.edu.ng",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.unn.edu.ng/contact/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Nigeria Nsukka — Bursary Customer Services",
+      "email": "customerservices.bursary@unn.edu.ng",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.unn.edu.ng/contact/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Nigeria Nsukka — Registrar Customer Services",
+      "email": "customerservices.registrar@unn.edu.ng",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.unn.edu.ng/contact/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Nigeria Nsukka — ICT Customer Services",
+      "email": "customerservices.ict@unn.edu.ng",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.unn.edu.ng/contact/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
+    },
+    {
+      "organization": "University of Nigeria Nsukka — General Issues",
+      "email": "issues@unn.edu.ng",
+      "lead_type": "Public university institutional office contact",
+      "source_url": "https://www.unn.edu.ng/contact/",
+      "source_note": "Listed on the institution's official contact page or directory. Public source checked; mailbox delivery not independently tested.",
+      "verification_status": "source_verified_not_mailbox_verified"
     }
   ],
   "change_log": [
+    {
+      "date": "2026-10-09",
+      "change": "Added 45 unique institutional office contacts from official university directories in Tanzania, Uganda, and Nigeria. Source listings checked; mailbox delivery not independently tested. Registry now contains 201 entries."
+    },
     {
       "date": "2026-10-09",
       "change": "Added 31 unique public-university contact addresses from the Universities Fund directory; source listing checked, mailbox deliverability not independently verified."
