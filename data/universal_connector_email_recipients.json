@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "title": "Publicly listed Dream Education outreach leads",
+  "last_reviewed": "2026-10-09",
+  "purpose": "Owner-reviewed outreach about a possible acquisition, licensing, investment, or strategic partnership for Dream Education.",
+  "important_note": "These are publicly listed organizational/professional contact addresses, not confirmed active inboxes and not confirmed interested buyers. Confirm relevance and review the message before sending. Do not send repeated unsolicited messages.",
+  "contacts": [
+    {
+      "organization": "Future of Learning Fund",
+      "email": "info@futureoflearningfund.com",
+      "lead_type": "Africa-focused EdTech investor",
+      "source_url": "https://www.futureoflearningfund.com/",
+      "source_note": "Official site describes a specialist early-stage fund focused on learning and work in Africa."
+    },
+    {
+      "organization": "Injini",
+      "email": "gigi@injini.africa",
+      "lead_type": "Education innovation investment contact",
+      "source_url": "https://www.injini.africa/support-our-impact",
+      "source_note": "Official site lists this address under Education Innovation Investment."
+    },
+    {
+      "organization": "Injini",
+      "email": "partnerships@injini.africa",
+      "lead_type": "EdTech partnerships and fundraising",
+      "source_url": "https://www.injini.africa/support-our-impact",
+      "source_note": "Official site lists this address for partnerships and fundraising."
+    },
+    {
+      "organization": "EIDU",
+      "email": "partnerships@eidu.com",
+      "lead_type": "Strategic education technology partnership",
+      "source_url": "https://www.eidu.com/organisation/partners",
+      "source_note": "Official site lists this address for funding and strategic alliances."
+    },
+    {
+      "organization": "The EdTech Fund",
+      "email": "info@theedtechfund.com",
+      "lead_type": "Education technology investor",
+      "source_url": "https://www.theedtechfund.com/investors/",
+      "source_note": "Official site lists this address for education-technology investment enquiries."
+    },
+    {
+      "organization": "eduLET Africa",
+      "email": "partner@eduletafrica.com",
+      "lead_type": "African EdTech strategic partnership",
+      "source_url": "https://eduletafrica.com/partners/",
+      "source_note": "Official site lists this address for partnership enquiries."
+    },
+    {
+      "organization": "eduLET Africa",
+      "email": "sales@eduletafrica.com",
+      "lead_type": "African EdTech business discussion",
+      "source_url": "https://eduletafrica.com/partners/",
+      "source_note": "Official site lists this address for demos and sales enquiries."
+    },
+    {
+      "organization": "UpskillsAfrica Foundation",
+      "email": "info@upskillsafrica.org",
+      "lead_type": "Education and AI learning collaboration",
+      "source_url": "https://upskillsafrica.org/contact",
+      "source_note": "Official site lists this address for general and partnership enquiries."
+    },
+    {
+      "organization": "Spix Foundation / RESPECT",
+      "email": "info@spixfoundation.org",
+      "lead_type": "African digital education ecosystem partnership",
+      "source_url": "https://respect.world/contact-us/",
+      "source_note": "Official RESPECT site lists this email as its contact address."
+    }
+  ]
+}
