@@ -16,8 +16,9 @@ assert.ok(chunks.length > 1, "Long messages should split into a thread.");
 assert.equal(chunks.join(""), long, "Splitting must preserve every character in the original message.");
 assert.ok(chunks.every((chunk) => graphemeCount(chunk) <= 300), "Every post must stay within Bluesky's 300-grapheme limit.");
 
-const emojiText = "👨‍👩‍👧‍👦".repeat(100);
+const emojiText = "👨‍👩‍👧‍👦".repeat(350);
 const emojiChunks = splitBlueskyText(emojiText);
+assert.ok(emojiChunks.length > 1, "Long emoji-only messages should split into a thread.");
 assert.equal(emojiChunks.join(""), emojiText, "Emoji grapheme clusters must be preserved.");
 assert.ok(emojiChunks.every((chunk) => graphemeCount(chunk) <= 300), "Emoji posts must also stay within the limit.");
 
