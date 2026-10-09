@@ -6299,6 +6299,32 @@ app.post("/api/product/connect/messenger/send", async (req, res) => {
   }
 });
 
+app.get("/api/product/connect/messenger/email-contacts", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    if (auth.account?.owner_account !== true) return res.status(403).json({ success: false, error: "Owner access required." });
+    const registryPath = path.join(__dirname, "data", "universal_connector_email_recipients.json");
+    const registry = JSON.parse(fs.readFileSync(registryPath, "utf8"));
+    const seen = new Set();
+    const allContacts = (Array.isArray(registry.contacts) ? registry.contacts : []).filter(contact => {
+      const email = String(contact?.email || "").trim();
+      const key = email.toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !String(contact?.organization || "").trim() || !String(contact?.source_url || "").trim() || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    const requestedOffset = Number.parseInt(req.query?.offset, 10);
+    const requestedLimit = Number.parseInt(req.query?.limit, 10);
+    const offset = Number.isFinite(requestedOffset) ? Math.max(0, requestedOffset) : 0;
+    const limit = Number.isFinite(requestedLimit) ? Math.max(1, Math.min(requestedLimit, 100)) : 100;
+    const contacts = allContacts.slice(offset, offset + limit).map(contact => ({ organization: contact.organization, email: String(contact.email).trim().toLowerCase(), lead_type: contact.lead_type || "Education contact", source_url: contact.source_url, verification_status: contact.verification_status || "source_listed_not_mailbox_verified" }));
+    return res.json({ success: true, contacts, total: allContacts.length, offset, next_offset: offset + contacts.length < allContacts.length ? offset + contacts.length : null, note: "Public institutional contact listing is not proof of mailbox deliverability, user registration, or consent." });
+  } catch (error) {
+    console.error("Public email contact registry error:", error);
+    return res.status(500).json({ success: false, error: "Public email contact registry is unavailable." });
+  }
+});
 app.post("/api/product/connect/messenger/broadcast", async (req, res) => {
   try {
     const auth = await getAuthenticatedAccount(req);
