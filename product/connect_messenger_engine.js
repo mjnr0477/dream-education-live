@@ -161,7 +161,7 @@ async function resolveDelivery(recipient, connectors = []) {
   return {
     ...resolved,
     channels: eligible,
-    delivery_ready: Boolean(resolved.selected && eligible.length),
+    delivery_ready: Boolean(resolved.selected && (eligible.length || automaticFanout)),
     automatic_fanout: automaticFanout
   };
 }
