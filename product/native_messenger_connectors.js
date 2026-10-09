@@ -297,8 +297,8 @@ function buildNativeMessengerConnectors(env = process.env, options = {}) {
   const redditClientSecret = String(env.REDDIT_CLIENT_SECRET || '').trim();
   const redditRefreshToken = String(env.REDDIT_REFRESH_TOKEN || '').trim();
   const redditUserAgent = String(env.REDDIT_USER_AGENT || 'web:dream-education:1.0 (by /u/dreameducation)').trim();
-  const redditSubreddits = splitList(env.REDDIT_BROADCAST_SUBREDDITS).map((value) => value.replace(/^r\\//i, '').replace(/^\\/+|\\/+$/g, '')).filter(Boolean);
-  const redditMessageRecipients = splitList(env.REDDIT_MESSAGE_TO).map((value) => value.replace(/^u\\//i, '').replace(/^@+/, '')).filter(Boolean);
+  const redditSubreddits = splitList(env.REDDIT_BROADCAST_SUBREDDITS).map((value) => value.replace(/^r\//i, '').replace(/^\/+|\/+$/g, '')).filter(Boolean);
+  const redditMessageRecipients = splitList(env.REDDIT_MESSAGE_TO).map((value) => value.replace(/^u\//i, '').replace(/^@+/, '')).filter(Boolean);
 
   if (redditClientId && redditClientSecret && redditRefreshToken && (redditSubreddits.length || redditMessageRecipients.length)) {
     const getRedditAccessToken = async () => {
@@ -336,7 +336,7 @@ function buildNativeMessengerConnectors(env = process.env, options = {}) {
       redditConnector.channels.push({
         type: 'post', platform: 'reddit', enabled: true, authorized: true, broadcast: true,
         send: async ({ body, recipient, subject }) => {
-          const subreddit = String(recipient?.address || '').trim().replace(/^r\\//i, '').replace(/^\\/+|\\/+$/g, '');
+          const subreddit = String(recipient?.address || '').trim().replace(/^r\//i, '').replace(/^\/+|\/+$/g, '');
           if (!subreddit) return { success: false, status: 400, data: { error: 'A target subreddit is required.' } };
           const title = String(subject || 'Dream Education').trim().slice(0, 300);
           const text = String(body || '').trim();
@@ -368,7 +368,7 @@ function buildNativeMessengerConnectors(env = process.env, options = {}) {
       redditConnector.channels.push({
         type: 'message', platform: 'reddit', enabled: true, authorized: true, broadcast: false,
         send: async ({ body, recipient, subject }) => {
-          const username = String(recipient?.address || '').trim().replace(/^u\\//i, '').replace(/^@+/, '');
+          const username = String(recipient?.address || '').trim().replace(/^u\//i, '').replace(/^@+/, '');
           if (!username) return { success: false, status: 400, data: { error: 'A Reddit username is required.' } };
           const messageText = String(body || '').trim();
           const messageSubject = String(subject || 'Message from Dream Education').trim().slice(0, 100);
