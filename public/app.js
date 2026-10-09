@@ -8961,7 +8961,10 @@ function openUniversalConnector() {
         <label class="panel-label" for="messenger-subject">Email subject (optional)</label>
         <input class="panel-input" id="messenger-subject" maxlength="200" placeholder="Message from Dream Education" aria-label="Email subject" />
         <label class="panel-label" for="messenger-email-recipients">Email recipients (owner only; one per line or comma-separated)</label>
-        <textarea class="panel-input" id="messenger-email-recipients" rows="6" maxlength="12000" placeholder="Add recipient emails here" aria-label="Email recipients">info@futureoflearningfund.com&#10;gigi@injini.africa&#10;partnerships@injini.africa&#10;partnerships@eidu.com&#10;info@theedtechfund.com&#10;partner@eduletafrica.com&#10;sales@eduletafrica.com&#10;info@upskillsafrica.org&#10;info@spixfoundation.org&#10;info@teta.co.ke&#10;partnerships@elevalearningcentre.com&#10;info@elymica.com&#10;talktous@itskills4africa.org&#10;partnership@edtechexchange.africa&#10;info@bilanlearn.com&#10;partnership@edukateafrica.com&#10;info@wegopublishersltd.co.ke&#10;info@moranpublishers.co.ke&#10;partnerships@ict.go.ke&#10;info@education.go.ke&#10;reli@reliafrica.org&#10;info@reliafrica.org&#10;global@digitalpromise.org&#10;info@africanschoolsnetwork.org&#10;info@education-for-africa.org&#10;info@asnenafrica.org&#10;BD@enezaeducation.com&#10;kenya@reliafrica.org&#10;uganda@reliafrica.org&#10;tanzania@reliafrica.org&#10;info@eduletafrica.com&#10;globalEDcoalition@unesco.org&#10;gemreport@unesco.org&#10;info@globaledtech.org&#10;askedtech@learningspark.io&#10;accelerator@wise.org.qa&#10;support-lp@instructure.com&#10;hello@edtechimpact.com&#10;contact@opendeved.net&#10;info@mindcet.org&#10;hello@edugrowth.org.au&#10;info@edtechstation.be&#10;nolai@ru.nl&#10;contact@edtech-collider.ch&#10;heh@helsinki.fi&#10;csr@ffe.org&#10;scholarships@ffe.org&#10;training@ffe.org&#10;mentoring@ffe.org&#10;alumnirelations@ffe.org&#10;india_support@ffe.org&#10;us_support@ffe.org&#10;ramesh@ffe.org&#10;info@oadfoundation.org&#10;info@kenyaeducationfund.org</textarea>
+        <button class="panel-button secondary" id="messenger-load-contacts" type="button">Load public education contacts (first batch)</button>
+        <p class="panel-description">Loads up to 100 published institutional contacts per batch from the owner-only registry. Review the recipient list and message before sending. Public listing does not confirm inbox delivery or user consent; use relevant, responsible outreach and include a clear opt-out.</p>
+        <label class="panel-label" for="messenger-email-recipients">Email recipients (owner only; maximum 100 per send)</label>
+        <textarea class="panel-input" id="messenger-email-recipients" rows="6" maxlength="12000" placeholder="Load a contact batch or enter recipients you are authorized to contact" aria-label="Email recipients"></textarea>
         <p class="panel-description">A curated list of publicly listed education, EdTech, publishing, investor and partnership contacts is prefilled. These are not confirmed buyers or verified active inboxes. Review relevance and the message before sending; do not send repeated unsolicited messages. Email requires RESEND_API_KEY and EMAIL_FROM on the server.</p>
         <label class="panel-label" for="messenger-body">Message</label>
         <textarea class="panel-input" id="messenger-body" rows="10" maxlength="10000" placeholder="Write your message..." aria-label="Universal message"></textarea>
@@ -8986,6 +8989,7 @@ function openUniversalConnector() {
   const bodyInput = panelBody.querySelector("#messenger-body");
   const subjectInput = panelBody.querySelector("#messenger-subject");
   const emailRecipientsInput = panelBody.querySelector("#messenger-email-recipients");
+  const loadEmailContacts = panelBody.querySelector("#messenger-load-contacts");
   const send = panelBody.querySelector("#messenger-send");
   const status = panelBody.querySelector("#messenger-status");
   const receiptsBox = panelBody.querySelector("#messenger-receipts");
@@ -8996,6 +9000,38 @@ function openUniversalConnector() {
     status.textContent = message || "";
     status.className = "subscription-message" + (kind ? " " + kind : "");
   };
+
+  let emailContactOffset = 0;
+  loadEmailContacts?.addEventListener("click", async () => {
+    loadEmailContacts.disabled = true;
+    const originalLabel = loadEmailContacts.textContent;
+    loadEmailContacts.textContent = "Loading contacts...";
+    setStatus("Loading published education contacts for owner review...", "");
+    try {
+      const response = await fetch("/api/product/connect/messenger/email-contacts?offset=" + emailContactOffset + "&limit=100", {
+        headers: { "Authorization": "Bearer " + token }
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.success) throw new Error(data.error || "Could not load public education contacts.");
+      emailRecipientsInput.value = (Array.isArray(data.contacts) ? data.contacts : [])
+        .map(contact => String(contact.email || "").trim())
+        .filter(Boolean)
+        .join("\\n");
+      if (data.next_offset === null) {
+        emailContactOffset = 0;
+        loadEmailContacts.textContent = "Reload first batch";
+      } else {
+        emailContactOffset = data.next_offset;
+        loadEmailContacts.textContent = "Load next batch (" + Math.min(Number(data.total) - emailContactOffset, 100) + " remaining)";
+      }
+      setStatus("Loaded " + data.contacts.length + " of " + data.total + " public institutional contacts. Review the list before sending.", "success");
+    } catch (error) {
+      loadEmailContacts.textContent = originalLabel;
+      setStatus(error.message || "Could not load public education contacts.", "error");
+    } finally {
+      loadEmailContacts.disabled = false;
+    }
+  });
 
   send.addEventListener("click", async () => {
     const body = bodyInput?.value.trim() || "";
