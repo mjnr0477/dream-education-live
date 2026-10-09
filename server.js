@@ -6324,8 +6324,17 @@ app.post("/api/product/connect/messenger/broadcast", async (req, res) => {
         return res.status(400).json({ success: false, error: "Invalid email address: " + invalid[0] });
       }
       emailRecipients = [...new Set(normalized)];
-      if (emailRecipients.length && (!String(process.env.RESEND_API_KEY || "").trim() || !String(process.env.EMAIL_FROM || "").trim())) {
-        return res.status(503).json({ success: false, error: "Email delivery is not configured yet. Add RESEND_API_KEY and EMAIL_FROM to the server environment." });
+      const resendConfigured =
+        Boolean(String(process.env.RESEND_API_KEY || "").trim()) &&
+        Boolean(String(process.env.EMAIL_FROM || "").trim());
+      const gmailConfigured =
+        Boolean(String(process.env.GMAIL_USER || "").trim()) &&
+        Boolean(String(process.env.GMAIL_APP_PASSWORD || "").trim());
+      if (emailRecipients.length && !resendConfigured && !gmailConfigured) {
+        return res.status(503).json({
+          success: false,
+          error: "Email delivery is not configured yet. Configure Gmail with GMAIL_USER and GMAIL_APP_PASSWORD, or Resend with RESEND_API_KEY and EMAIL_FROM."
+        });
       }
     }
 
