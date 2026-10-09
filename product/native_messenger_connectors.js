@@ -328,7 +328,45 @@ function buildNativeMessengerConnectors(env = process.env, options = {}) {
     .map((item) => String(item?.email || item || '').trim().toLowerCase())
     .filter((email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)))];
 
-  if (resendApiKey && emailFrom && emailRecipients.length) {
+  const gmailUser = String(env.GMAIL_USER || '').trim();
+  const gmailAppPassword = String(env.GMAIL_APP_PASSWORD || '').trim();
+
+  // Prefer Gmail when explicitly configured so an old Resend configuration
+  // with an unverified sender cannot intercept the user's email broadcasts.
+  if (gmailUser && gmailAppPassword && emailRecipients.length) {
+    const { sendGmailSmtpEmail } = require('./gmail_smtp_transport');
+    connectors.push({
+      id: 'email-gmail-smtp-native',
+      name: 'Gmail',
+      platform: 'email',
+      recipients: emailRecipients.map((email) => ({
+        type: 'person',
+        email,
+        address: email,
+        platform: 'email',
+        channel: 'email'
+      })),
+      channels: [{
+        type: 'email',
+        platform: 'email',
+        enabled: true,
+        authorized: true,
+        send: async ({ body, recipient, subject }) => {
+          const to = String(recipient?.email || recipient?.address || '').trim();
+          if (!to || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(to)) {
+            return { success: false, status: 400, data: { error: 'A valid email recipient is required.' } };
+          }
+          return sendGmailSmtpEmail({
+            user: gmailUser,
+            appPassword: gmailAppPassword,
+            to,
+            subject: String(subject || env.EMAIL_DEFAULT_SUBJECT || 'Message from Dream Education').trim().slice(0, 200),
+            text: String(body || '')
+          });
+        }
+      }]
+    });
+  } else if (resendApiKey && emailFrom && emailRecipients.length) {
     connectors.push({
       id: 'email-resend-native',
       name: 'Email',
