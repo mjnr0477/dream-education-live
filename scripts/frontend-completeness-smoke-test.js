@@ -76,45 +76,33 @@ for (const token of [
   }
 }
 
-const requiredLandingSections = [
-  'class="gateway-section"',
-  'class="statement-section"',
-  'class="cta-section"',
-  'data-panel="explore"',
-  'data-panel="about"',
-  'data-panel="signin"',
-  'data-panel="join"',
-  'data-panel="learn"',
-  'data-panel="teach"',
-  'data-panel="connect"',
-  'data-panel="tools"',
-  'data-panel="school"'
+const requiredCompactDestinations = [
+  'data-panel="learn"', 'data-panel="teach"', 'data-panel="connect"',
+  'data-panel="tools"', 'data-panel="school"', 'data-panel="about"',
+  'id="dream-search-form"', 'id="dream-search-input"', 'id="dream-search-results"',
+  'id="experience-panel"', 'id="panel-body"', 'data-panel="signin"', 'data-panel="join"'
 ];
-
-for (const token of requiredLandingSections) {
-  if (!index.includes(token)) {
-    throw new Error("Required original landing entry point missing: " + token);
+for (const token of requiredCompactDestinations) {
+  if (!index.includes(token) && !nextgen.includes(token)) {
+    throw new Error("Required compact landing destination or wired interaction missing: " + token);
   }
 }
-
-if (nextgen.includes('section.classList.add("de-legacy-landing-hidden")')) {
-  throw new Error("Next-gen landing must not hide existing landing destinations.");
-}
-
 for (const token of [
-  'card("LEARNER", "Learn"',
-  'card("TEACHER", "Teach"',
-  'card("PARENT", "Support"',
-  'card("SCHOOL", "Scale"',
-  'className = "de-role-strip"',
-  'className = "de-feature-grid"'
+  'className = "de-landing-destinations"',
+  'data-panel="learn"', 'data-panel="teach"', 'data-panel="connect"',
+  'data-panel="tools"', 'data-panel="school"', 'data-panel="about"',
+  'searchShell.classList.add("de-compact-search")',
+  'node.remove()'
 ]) {
-  if (!nextgen.includes(token)) {
-    throw new Error("Next-gen landing enhancement missing: " + token);
-  }
+  if (!nextgen.includes(token)) throw new Error("Compact landing behavior missing: " + token);
 }
-
-if (index.includes("across Dream Education's connected sources,\n            across Dream Education's connected public sources.")) {
+if (index.includes('class="gateway-section"') || index.includes('class="statement-section"') || index.includes('class="cta-section"')) {
+  throw new Error("Legacy long-scroll landing sections must not be present in the HTML.");
+}
+if (!css.includes(".de-landing-destinations") || !css.includes("height: 100svh")) {
+  throw new Error("Compact one-screen landing layout rules are missing.");
+}
+if (index.includes("across Dream Education's connected sources,\\n            across Dream Education's connected public sources.")) {
   throw new Error("Duplicate Dream Search description remains.");
 }
 
