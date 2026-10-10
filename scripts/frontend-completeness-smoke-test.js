@@ -96,7 +96,7 @@ for (const token of [
 ]) {
   if (!nextgen.includes(token)) throw new Error("Compact landing behavior missing: " + token);
 }
-if (index.includes('class="gateway-section"') || index.includes('class="statement-section"') || index.includes('class="cta-section"')) {
+if (index.includes('class="gateway-section"') || index.includes('class="statement-section"') || index.includes('class="cta-section"') || index.includes('class="landing-subscribe"') || index.includes('class="footer"') || index.includes('class="floating-card')) {
   throw new Error("Legacy long-scroll landing sections must not be present in the HTML.");
 }
 if (!css.includes(".de-landing-destinations") || !css.includes("height: 100svh")) {
