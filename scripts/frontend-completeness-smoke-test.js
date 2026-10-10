@@ -108,6 +108,13 @@ if (!app.includes('if (action === "close") {') || !app.includes("closePanel();")
   throw new Error("Dynamically rendered close actions must close the shared panel.");
 }
 
+const primaryDispatcherCount = (app.match(/if \\(action === "primary"\\)/g) || []).length;
+if (primaryDispatcherCount !== 1 ||
+    !app.includes('currentTitle.trim() === "Education, together."') ||
+    !app.includes('currentTitle.trim().toLowerCase() === "stay connected."')) {
+  throw new Error("Primary panel actions must route both school-dashboard and teacher-connections actions.");
+}
+
 if (!index.includes('data-panel-action="subscription"') || !app.includes("function openSubscription") || !app.includes("handlePayPalReturn")) {
   throw new Error("Subscription/PayPal flow is missing.");
 }
