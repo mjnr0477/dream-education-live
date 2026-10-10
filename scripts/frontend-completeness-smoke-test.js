@@ -104,12 +104,52 @@ if (!app.includes('if (action === "signin") {') || !app.includes('openPanel("sig
   throw new Error("Dynamically rendered sign-in actions must open the shared sign-in panel.");
 }
 
+if (!app.includes('if (action === "close") {') || !app.includes("closePanel();")) {
+  throw new Error("Dynamically rendered close actions must close the shared panel.");
+}
+
+const primaryDispatcherCount = app.split('if (action === "primary")').length - 1;
+if (primaryDispatcherCount !== 1 ||
+    !app.includes('currentTitle.trim() === "Education, together."') ||
+    !app.includes('currentTitle.trim().toLowerCase() === "stay connected."')) {
+  throw new Error("Primary panel actions must route both school-dashboard and teacher-connections actions.");
+}
+
 if (!index.includes('data-panel-action="subscription"') || !app.includes("function openSubscription") || !app.includes("handlePayPalReturn")) {
   throw new Error("Subscription/PayPal flow is missing.");
 }
 
 if (/Test Learner View/.test(app)) {
   throw new Error("Non-functional teacher test control remains.");
+}
+
+// Audit statically declared panel actions against the shared dispatcher so a new
+// dynamically rendered button cannot silently become inert without a regression failure.
+const declaredPanelActions = new Set(
+  [...app.matchAll(/data-panel-action=["']([^"'$]+)["']/g)].map(match => match[1])
+);
+for (const action of declaredPanelActions) {
+  if (!app.includes('action === "' + action + '"')) {
+    throw new Error("Panel action has no matching dispatcher branch: " + action);
+  }
+}
+
+const declaredWorkspaceActions = new Set(
+  [...workspace.matchAll(/data-de-action=["']([^"'$]+)["']/g)].map(match => match[1])
+);
+for (const action of declaredWorkspaceActions) {
+  if (!workspace.includes('name === "' + action + '"')) {
+    throw new Error("Workspace action has no matching dispatcher branch: " + action);
+  }
+}
+
+const declaredPrimaryActions = new Set(
+  [...(index + app).matchAll(/data-action=["']([^"'$]+)["']/g)].map(match => match[1])
+);
+for (const action of declaredPrimaryActions) {
+  if (!app.includes('action === "' + action + '"')) {
+    throw new Error("Primary navigation action has no matching dispatcher branch: " + action);
+  }
 }
 
 for (const [name, source] of [["public/index.html", index], ["public/app.js", app], ["public/frontend-workspace.js", workspace]]) {
