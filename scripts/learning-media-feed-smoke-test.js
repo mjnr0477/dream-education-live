@@ -13,6 +13,10 @@ assert.ok(workspace.includes("de-learn-hub-grid"), "Learn should open as a clean
 assert.ok(app.includes('if (name === "learn" && existingAuth && existingAuth.account)'), "Authenticated landing-page Learn must open the real learner workspace.");
 assert.ok(app.includes('currentTitle.trim().toLowerCase() === "start learning."'), "Logged-out Learn primary action must lead to sign-in instead of doing nothing.");
 assert.ok(workspace.includes('data-de-action="progress"'), "Progress should be behind its own button.");
+assert.ok(/function openAdaptive\(\)\s*\{[\s\S]*?window\.openAdaptiveQuestion\(\)/.test(workspace), "Adaptive Learning must call the existing adaptive question flow directly.");
+assert.ok(/function openAsk\(\)\s*\{[\s\S]*?window\.DreamEducationLearner\.openAsk\(\)/.test(workspace), "Ask Dream must call the existing Ask Dream flow directly.");
+assert.ok(!/function openAdaptive\(\)[\s\S]*?const learnerButton = document\.querySelector\('\[data-action="open"\]\[data-panel="learn"\]'\)/.test(workspace), "Adaptive Learning must not loop back to the Learn landing panel.");
+assert.ok(!/function openAsk\(\)[\s\S]*?const learn = document\.querySelector\('\[data-action="open"\]\[data-panel="learn"\]'\)/.test(workspace), "Ask Dream must not loop back to the Learn landing panel.");
 const learnerHub = workspace.slice(workspace.indexOf("async function loadLearnerWorkspace"), workspace.indexOf("function roleMetricValue"));
 assert.ok(!learnerHub.includes('data-de-action="sessions"'), "Keep the Learn hub uncluttered; sessions remain available elsewhere.");
 assert.ok(!learnerHub.includes('data-de-action="connections"'), "Keep connections out of the primary Learn choices.");
