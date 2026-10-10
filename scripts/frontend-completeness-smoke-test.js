@@ -76,12 +76,46 @@ for (const token of [
   }
 }
 
-if (!nextgen.includes("de-legacy-landing-hidden")) {
-  throw new Error("Legacy landing deduplication is missing.");
+const requiredLandingSections = [
+  'class="gateway-section"',
+  'class="statement-section"',
+  'class="cta-section"',
+  'data-panel="explore"',
+  'data-panel="about"',
+  'data-panel="signin"',
+  'data-panel="join"',
+  'data-panel="learn"',
+  'data-panel="teach"',
+  'data-panel="connect"',
+  'data-panel="tools"',
+  'data-panel="school"'
+];
+
+for (const token of requiredLandingSections) {
+  if (!index.includes(token)) {
+    throw new Error("Required original landing entry point missing: " + token);
+  }
 }
 
-if (!css.includes(".de-nextgen-visual .de-legacy-landing-hidden")) {
-  throw new Error("Legacy landing hide rule is missing.");
+if (nextgen.includes('section.classList.add("de-legacy-landing-hidden")')) {
+  throw new Error("Next-gen landing must not hide existing landing destinations.");
+}
+
+for (const token of [
+  'card("LEARNER", "Learn"',
+  'card("TEACHER", "Teach"',
+  'card("PARENT", "Support"',
+  'card("SCHOOL", "Scale"',
+  'className = "de-role-strip"',
+  'className = "de-feature-grid"'
+]) {
+  if (!nextgen.includes(token)) {
+    throw new Error("Next-gen landing enhancement missing: " + token);
+  }
+}
+
+if (index.includes("across Dream Education's connected sources,\n            across Dream Education's connected public sources.")) {
+  throw new Error("Duplicate Dream Search description remains.");
 }
 
 if (!app.includes("function openSubscription") || !app.includes("handlePayPalReturn")) {
