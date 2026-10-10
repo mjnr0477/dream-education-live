@@ -1089,6 +1089,17 @@ function escapeHTML(value) {
   function openPanel(name) {
     const existingAuth = getAuth();
 
+    // The landing-page Learn entry must open the real learner workspace,
+    // where the button hub and searchable vertical media feed live.
+    // Do not leave authenticated learners on the old placeholder cards.
+    if (name === "learn" && existingAuth && existingAuth.account) {
+      const workspaceButton = document.querySelector("[data-de-workspace]");
+      if (workspaceButton) {
+        workspaceButton.click();
+        return;
+      }
+    }
+
     if (name === "connect" && window.DreamEducationSearch) {
       // Connect remains the entry point; Authorized Search is rendered only
       // when the authenticated owner account is present.
@@ -1489,6 +1500,13 @@ document.addEventListener("click", function (event) {
     if (action === "primary") {
       const currentTitle =
         document.getElementById("panel-title")?.textContent || "";
+
+      if (currentTitle.trim().toLowerCase() === "start learning.") {
+        // A logged-out visitor must authenticate instead of pressing a
+        // dead "Enter learning" button.
+        openPanel("signin");
+        return;
+      }
 
       if (currentTitle.trim() === "Education, together.") {
         openSchoolDashboard();
