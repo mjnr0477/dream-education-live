@@ -108,7 +108,7 @@ if (!app.includes('if (action === "close") {') || !app.includes("closePanel();")
   throw new Error("Dynamically rendered close actions must close the shared panel.");
 }
 
-const primaryDispatcherCount = (app.match(/if \\(action === "primary"\\)/g) || []).length;
+const primaryDispatcherCount = app.split('if (action === "primary")').length - 1;
 if (primaryDispatcherCount !== 1 ||
     !app.includes('currentTitle.trim() === "Education, together."') ||
     !app.includes('currentTitle.trim().toLowerCase() === "stay connected."')) {
