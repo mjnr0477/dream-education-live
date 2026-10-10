@@ -1487,12 +1487,13 @@ document.addEventListener("click", function (event) {
     }
 
     if (action === "primary") {
-      const currentPanel =
-        document.getElementById("experience-panel") ||
-        document.querySelector(".experience-panel");
-
       const currentTitle =
         document.getElementById("panel-title")?.textContent || "";
+
+      if (currentTitle.trim() === "Education, together.") {
+        openSchoolDashboard();
+        return;
+      }
 
       if (
         currentTitle.trim().toLowerCase() === "stay connected." &&
@@ -1627,13 +1628,6 @@ if (action === "chat") {
         }
         return;
       }
-
-      if (action === "primary") {
-      if (panelTitle && panelTitle.textContent === "Education, together.") {
-        openSchoolDashboard();
-        return;
-      }
-    }
 
     if (action === "logout") {
       clearAuth();
