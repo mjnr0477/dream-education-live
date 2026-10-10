@@ -31,13 +31,15 @@ assert.strictEqual(engine.isPlayableResource({ type: "image", media_url: "https:
 assert.strictEqual(engine.isPlayableResource({ type: "experiment", embed_url: "https://phet.colorado.edu/sims/html/example/latest/example_en.html" }), true);
 assert.strictEqual(engine.isPlayableResource({ type: "experiment", url: "https://example.org/experiment" }), false);
 assert.ok(engine.scoreResource({ title: "Photosynthesis process", description: "How plants make food" }, "photosynthesis") >= 0.35);
-const naturalSelection = engine.searchPhetExperiments("natural selection", 4);
-assert.strictEqual(naturalSelection[0].embed_url, "https://phet.colorado.edu/sims/html/natural-selection/latest/natural-selection_en.html");
-const fractions = engine.searchPhetExperiments("fractions", 4);
-assert.ok(fractions.length > 0, "Math topics should surface an in-feed interactive experiment.");
-
-new Function(workspace);
-new Function(app);
-new Function(engineSource);
-
-console.log("Learning media feed smoke test passed.");
+(async function verifyInteractiveExperiments() {
+  const naturalSelection = await engine.searchPhetExperiments("natural selection", 4);
+  assert.strictEqual(naturalSelection[0].embed_url, "https://phet.colorado.edu/sims/html/natural-selection/latest/natural-selection_en.html");
+  const fractions = await engine.searchPhetExperiments("fractions", 4);
+  assert.ok(fractions.length > 0, "Math topics should surface an in-feed interactive experiment.");
+  const greenhouse = await engine.searchPhetExperiments("climate", 4);
+  assert.strictEqual(greenhouse[0].embed_url, "https://phet.colorado.edu/sims/html/greenhouse/latest/greenhouse_en.html");
+  new Function(workspace);
+  new Function(app);
+  new Function(engineSource);
+  console.log("Learning media feed smoke test passed.");
+})().catch(function (error) { console.error(error); process.exitCode = 1; });
