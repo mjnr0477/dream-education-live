@@ -6,7 +6,9 @@ const workspace = fs.readFileSync("public/frontend-workspace.js", "utf8");
 const css = fs.readFileSync("public/style.css", "utf8");
 
 assert(/<script[^>]+src=["\']\/frontend-workspace\.js(?:\?[^"\']*)?["\']/i.test(index), "frontend workspace script must be loaded.");
-assert(workspace.includes('"/api/intelligence/"'));
+const learnerHub = workspace.slice(workspace.indexOf("async function loadLearnerWorkspace"), workspace.indexOf("function roleMetricValue"));
+assert(learnerHub.includes("de-learn-hub-grid"), "Learner Learn should open with a button-first hub.");
+assert(!learnerHub.includes("/api/intelligence/"), "Learn should not fetch intelligence before the learner opens a destination.");
 assert(workspace.includes('"/api/v1/role/"'));
 assert(workspace.includes('"/api/progress/"'));
 assert(workspace.includes('"/api/v1/learner/"'));
