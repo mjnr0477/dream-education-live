@@ -2845,3 +2845,70 @@ body.panel-open .experience-panel{
   .de-learn-tile { transition:none; }
   .de-learn-tile:hover { transform:none; }
 }
+
+
+/* About Dream: content-rich, responsive sections inside the existing side panel. */
+.de-about-dream { gap: 16px; }
+.de-about-dream .de-about-hero {
+  padding: clamp(20px, 4vw, 30px);
+  border: 1px solid rgba(115, 213, 255, 0.22);
+  background:
+    radial-gradient(ellipse at 92% 8%, rgba(59, 130, 246, 0.20), transparent 48%),
+    linear-gradient(145deg, rgba(17, 37, 58, 0.98), rgba(8, 17, 31, 0.98));
+}
+.de-about-dream .de-about-hero h2 {
+  max-width: 15ch;
+  margin: 10px 0;
+  font-size: clamp(28px, 5vw, 40px);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+}
+.de-about-dream .de-about-hero p,
+.de-about-dream .de-about-section > p,
+.de-about-dream .de-about-cta > p {
+  line-height: 1.7;
+}
+.de-about-dream .de-about-section {
+  scroll-margin-top: 18px;
+  padding: clamp(16px, 3vw, 23px);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  border-radius: 18px;
+  background: rgba(12, 23, 38, 0.66);
+}
+.de-about-dream .de-about-section h3,
+.de-about-dream .de-about-cta h3 {
+  margin: 8px 0 10px;
+  font-size: clamp(20px, 3vw, 26px);
+  line-height: 1.2;
+}
+.de-about-dream .de-eyebrow {
+  color: #73d5ff;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.13em;
+}
+.de-about-dream .de-list { gap: 9px; margin-top: 14px; }
+.de-about-dream .de-list-item {
+  border-color: rgba(148, 163, 184, 0.12);
+  background: rgba(19, 38, 58, 0.62);
+}
+.de-about-dream .de-list-item strong { color: #f4f8ff; }
+.de-about-dream .de-list-item span { line-height: 1.55; }
+.de-about-dream .de-about-signoff {
+  display: grid;
+  gap: 6px;
+  margin-top: 16px;
+  padding: 17px;
+  border-radius: 14px;
+  background: linear-gradient(120deg, rgba(21, 59, 89, 0.72), rgba(14, 27, 45, 0.8));
+}
+.de-about-dream .de-about-signoff strong { font-size: 18px; }
+.de-about-dream .de-about-signoff span { color: #b9cada; font-size: 13px; }
+.de-about-dream .de-about-cta {
+  border: 1px solid rgba(115, 213, 255, 0.2);
+  background: linear-gradient(145deg, rgba(16, 37, 58, 0.94), rgba(8, 17, 31, 0.98));
+}
+@media (max-width: 520px) {
+  .de-about-dream .de-actions { flex-wrap: wrap; }
+  .de-about-dream .de-actions .de-action { flex: 1 1 100%; }
+}
