@@ -30,7 +30,7 @@ const requiredFrontendRoutes = [
   "/api/auth/register",
   "/api/auth/login",
   "/api/adaptive",
-  "/api/next-question",
+  "/api/v1/learning/resources",
   "/api/session",
   "/api/product/teacher",
   "/api/product/parent",
@@ -158,8 +158,8 @@ for (const [name, source] of [["public/index.html", index], ["public/app.js", ap
   }
 }
 
-if (!workspace.includes("<video") || !workspace.includes("<audio") || !workspace.includes("Source:")) {
-  throw new Error("Inline text/video/audio material experience is incomplete.");
+if (!workspace.includes("<video") || !workspace.includes("de-feed-image") || !workspace.includes("de-feed-experiment") || !app.includes("<audio")) {
+  throw new Error("Inline video/photo/experiment feed or existing audio learning experience is incomplete.");
 }
 
 if (app.includes('data-answer-resource-type="image"') || app.includes('data-answer-resource-type="experiment"')) {

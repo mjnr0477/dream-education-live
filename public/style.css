@@ -2787,3 +2787,61 @@ body.panel-open .experience-panel{
 .de-resource-video iframe{width:100%;min-height:320px;border:0;border-radius:1rem}
 .de-resource-video-player{width:100%;border-radius:1rem}
 .de-resource-audio audio{width:100%}
+
+
+/* Learn hub: button-first entry and vertical, media-only discovery feed */
+.de-learn-hub { gap:20px; }
+.de-learn-welcome { padding:22px; border:1px solid rgba(127,127,127,.22); border-radius:20px; background:rgba(127,127,127,.045); }
+.de-learn-welcome h3 { margin:8px 0; font-size:clamp(1.35rem,3vw,1.9rem); letter-spacing:-.025em; }
+.de-learn-welcome p { margin:0; opacity:.74; line-height:1.55; }
+.de-learn-hub-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.de-learn-tile { appearance:none; display:flex; flex-direction:column; align-items:flex-start; gap:9px; min-height:142px; padding:18px; border:1px solid rgba(127,127,127,.23); border-radius:18px; background:rgba(127,127,127,.055); color:inherit; text-align:left; font:inherit; cursor:pointer; transition:transform .16s ease,border-color .16s ease,background .16s ease; }
+.de-learn-tile:hover { transform:translateY(-2px); border-color:rgba(127,127,127,.5); background:rgba(127,127,127,.1); }
+.de-learn-tile:focus-visible { outline:3px solid #60a5fa; outline-offset:3px; }
+.de-learn-tile-primary { background:linear-gradient(135deg,rgba(16,185,129,.16),rgba(59,130,246,.12)); border-color:rgba(16,185,129,.35); }
+.de-learn-tile-icon { display:grid; place-items:center; width:34px; height:34px; border-radius:11px; background:rgba(127,127,127,.14); font-size:1.25rem; font-weight:800; }
+.de-learn-tile strong { font-size:1rem; line-height:1.3; }
+.de-learn-tile small { font-size:.82rem; opacity:.72; line-height:1.45; }
+.de-feed-workspace { gap:14px; }
+.de-feed-search { position:sticky; top:0; z-index:4; background:var(--panel-bg,rgba(18,20,29,.96)); backdrop-filter:blur(14px); }
+.de-feed-summary { display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px; margin:4px 0 10px; font-size:.86rem; }
+.de-feed-summary strong { font-size:.96rem; }
+.de-feed-summary span { opacity:.72; }
+.de-feed-summary .de-feed-hint { margin-left:auto; }
+.de-learning-feed { display:flex; flex-direction:column; gap:14px; max-height:72svh; overflow-y:auto; overscroll-behavior:contain; scroll-snap-type:y mandatory; scroll-padding:10px; padding:2px 4px 12px 0; }
+.de-feed-card { display:flex; flex-direction:column; flex:0 0 auto; min-height:66svh; overflow:hidden; scroll-snap-align:start; scroll-snap-stop:always; border:1px solid rgba(127,127,127,.23); border-radius:20px; background:rgba(127,127,127,.045); }
+.de-feed-card-head { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:12px 14px; }
+.de-feed-type { font-size:.7rem; font-weight:850; letter-spacing:.08em; }
+.de-feed-source { max-width:55%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.75rem; opacity:.68; }
+.de-feed-media { position:relative; width:100%; aspect-ratio:16/9; min-height:220px; overflow:hidden; background:#050608; }
+.de-feed-media iframe,.de-feed-media video { display:block; width:100%; height:100%; min-height:220px; border:0; object-fit:contain; background:#050608; }
+.de-feed-image-stage { display:grid; place-items:center; aspect-ratio:4/3; background:rgba(0,0,0,.16); }
+.de-feed-media .de-feed-image { display:block; width:100%; height:100%; max-height:46svh; object-fit:contain; }
+.de-feed-experiment { aspect-ratio:4/3; min-height:300px; }
+.de-feed-experiment iframe { min-height:300px; }
+.de-feed-card-body { display:flex; flex-direction:column; align-items:flex-start; gap:9px; padding:14px 16px 16px; }
+.de-feed-card-body h3 { margin:0; font-size:1.03rem; line-height:1.35; }
+.de-feed-card-body p { margin:0; max-width:72ch; font-size:.88rem; line-height:1.5; opacity:.78; }
+.de-feed-card-body small { font-size:.75rem; line-height:1.45; }
+.de-feed-actions { display:flex; width:100%; gap:8px; flex-wrap:wrap; margin-top:3px; }
+.de-feed-actions .de-action { flex:1 1 145px; }
+.de-feed-workspace .de-resource-search-row select { min-width:0; }
+@media(max-width:760px) {
+  .de-learn-hub-grid { grid-template-columns:1fr; gap:10px; }
+  .de-learn-tile { min-height:112px; padding:16px; }
+  .de-feed-search { position:relative; }
+  .de-feed-summary .de-feed-hint { width:100%; margin-left:0; }
+  .de-learning-feed { max-height:70svh; gap:12px; }
+  .de-feed-card { min-height:64svh; border-radius:16px; }
+  .de-feed-card-head { padding:10px 12px; }
+  .de-feed-media { min-height:190px; }
+  .de-feed-media iframe,.de-feed-media video { min-height:190px; }
+  .de-feed-experiment,.de-feed-experiment iframe { min-height:280px; }
+  .de-feed-card-body { padding:12px; }
+  .de-feed-actions { flex-direction:column; }
+  .de-feed-actions .de-action { width:100%; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .de-learn-tile { transition:none; }
+  .de-learn-tile:hover { transform:none; }
+}

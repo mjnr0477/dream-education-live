@@ -47,11 +47,12 @@ function clampLimit(value) {
 }
 
 function wantedTypes(value) {
-  const allowed = new Set(["video", "audio", "text", "any"]);
-  const values = Array.isArray(value) ? value : [value || "any"];
-  const normalized = values.map(normalize).filter(Boolean);
-  const selected = normalized.filter(type => allowed.has(type));
-  return selected.length ? selected : ["any"];
+  const allowed = new Set(["video", "image", "audio", "text", "experiment", "interactive", "book", "document", "research", "article", "web", "any"]);
+  const values = Array.isArray(value) ? value : String(value || "any").split(",");
+  const normalized = values.flatMap(item => String(item || "").split(",")).map(normalize).filter(Boolean);
+  const aliases = { photos: "image", photo: "image", pictures: "image", picture: "image", experiments: "experiment", simulations: "experiment" };
+  const selected = normalized.map(type => aliases[type] || type).filter(type => allowed.has(type));
+  return selected.length ? [...new Set(selected)] : ["any"];
 }
 
 function wants(types, type) {
@@ -395,20 +396,11 @@ async function searchPhetExperiments(query, limit) {
 
   const match = matches[0]?.sim || null;
 
-  if (!match) {
-    return [{
-      type:"experiment", provider:"phet",
-      title:"PhET interactive simulation search: " + raw,
-      description:"Find an interactive science or mathematics simulation related to this topic.",
-      url:"https://phet.colorado.edu/en/simulations/filter?search=" + encodeURIComponent(raw),
-      embed_url:null, creator:"PhET Interactive Simulations, University of Colorado Boulder",
-      attribution_required:true,
-      license:"CC BY-NC 4.0 for regular HTML simulations; commercial use requires permission"
-    }].slice(0, limit);
-  }
+  if (!match) return [];
 
   return [{
     type:"experiment", provider:"phet", title:match.title, description:match.description,
+    tags:match.terms,
     url:"https://phet.colorado.edu/en/simulations/" + match.slug + "?locale=en",
     embed_url:"https://phet.colorado.edu/sims/html/" + match.slug + "/latest/" + match.slug + "_en.html",
     creator:"PhET Interactive Simulations, University of Colorado Boulder",
@@ -513,7 +505,11 @@ function isCodingQuery(query) {
 function isPlayableResource(resource) {
   if (!resource) return false;
   if (resource.type === "text") return Boolean(resource.content || resource.description);
-  if (resource.type !== "video" && resource.type !== "audio") return false;
+  if (resource.type === "image") return Boolean(
+    isDirectMediaUrl(resource.media_url, "image") ||
+    isDirectMediaUrl(resource.thumbnail, "image")
+  );
+  if (!["video", "audio", "experiment"].includes(resource.type)) return false;
   return Boolean(
     isDirectMediaUrl(resource.media_url, resource.type) ||
     /^https?:\/\//i.test(resource.embed_url || "")
@@ -544,6 +540,8 @@ async function discoverLearningResources(query, options = {}) {
 
   if (wants(types, "image") || wants(types, "any")) {
     jobs.push(safeProvider("openverse", () => searchOpenverseImages(searchQuery, limit)));
+  }
+  if (wants(types, "image") || wants(types, "video") || wants(types, "any")) {
     jobs.push(safeProvider("wikimedia_commons", () => searchWikimediaImages(searchQuery, Math.min(limit, 8))));
   }
   if (wants(types, "audio") || wants(types, "any")) {
@@ -568,8 +566,9 @@ async function discoverLearningResources(query, options = {}) {
     jobs.push(safeProvider("crossref", () => searchCrossrefResearch(searchQuery, Math.min(limit, 8))));
   }
   if (wants(types, "experiment") || wants(types, "interactive") || wants(types, "any")) {
+    // Only true interactive simulations belong in the media feed. NASA OSDR
+    // datasets are valuable research data, but are not themselves in-app simulations.
     jobs.push(safeProvider("phet", () => searchPhetExperiments(conceptQuery, Math.min(limit, 4))));
-    jobs.push(safeProvider("nasa_osdr", () => searchNASAExperiments(conceptQuery, Math.min(limit, 4))));
   }
 
   const results = await Promise.all(jobs);
@@ -583,7 +582,7 @@ async function discoverLearningResources(query, options = {}) {
         type,
         content: resource.content || resource.description || "",
         resource_topic: conceptQuery,
-        relevance: Number(scoreResource(resource, searchQuery).toFixed(3))
+        relevance: Number(scoreResource(resource, conceptQuery).toFixed(3))
       };
 
       normalized.direct_media = isDirectMediaUrl(normalized.media_url || "", normalized.type);
@@ -596,12 +595,20 @@ async function discoverLearningResources(query, options = {}) {
 
       return normalized;
     })
-    // Learner-facing materials are intentionally limited to the three supported modes:
-    // inline text, embedded/playable video, and playable audio. Other provider
-    // capabilities may still exist internally, but they never become learner materials.
+    // Honor the requested media filter, including comma-separated feed modes.
+    .filter(resource => {
+      if (types.includes("any")) return true;
+      const aliases = { article: "text", book: "text", document: "text", research: "text", web: "text", interactive: "experiment" };
+      const allowedTypes = new Set(types.map(type => aliases[type] || type));
+      return allowedTypes.has(resource.type);
+    })
+    // Keep only materials that can genuinely be experienced inside Dream Education.
+    // A media feed never falls back to text/audio or non-interactive experiment pages.
     .filter(resource => {
       if (resource.type === "text") return Boolean(resource.content);
-      if (resource.type === "video" || resource.type === "audio") return resource.playable_in_app;
+      if (resource.type === "image") return resource.playable_in_app && resource.relevance >= 0.35;
+      if (resource.type === "video" || resource.type === "audio") return resource.playable_in_app && resource.relevance >= 0.35;
+      if (resource.type === "experiment") return resource.playable_in_app && resource.relevance >= 0.35;
       return false;
     })
     .filter(resource => resource.url || resource.media_url || resource.embed_url);
@@ -662,5 +669,8 @@ module.exports = {
   searchNASAImages,
   searchNASAExperiments,
   searchPhetExperiments,
-  searchCrossrefResearch
+  searchCrossrefResearch,
+  wantedTypes,
+  isPlayableResource,
+  scoreResource
 };
