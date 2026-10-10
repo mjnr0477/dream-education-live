@@ -55,13 +55,9 @@
       content.appendChild(command);
     }
 
-    // The next-generation landing replaces the legacy landing sections visually.
-    // Keep their DOM/routes intact so existing panel actions remain available, but avoid
-    // rendering the old landing twice on the same page.
-    document.querySelectorAll(".gateway-section, .statement-section, .cta-section").forEach(function (section) {
-      section.classList.add("de-legacy-landing-hidden");
-      section.setAttribute("aria-hidden", "true");
-    });
+    // Preserve every existing landing destination and section.
+    // The role strip and capability cards supplement the original gateway grid;
+    // they must never hide existing Connect, AI Lab, School, Dream/About or CTA entry points.
 
     var gatewaySection = document.querySelector(".gateway-section");
     if (!gatewaySection || gatewaySection.dataset.nextgenRoles === "1") return;
@@ -92,8 +88,8 @@
       '<article class="de-feature-card"><span class="de-command-kicker">PORTFOLIO</span><h3>Proof</h3><p>Turn learning activity into visible evidence of growth.</p><div class="de-feature-icon" aria-hidden="true">↗</div></article>';
     gatewaySection.parentNode.insertBefore(featureGrid, gatewaySection);
 
-    // The legacy gateway is intentionally hidden above; the new role cards are the
-    // single visible entry point for the same existing panel actions.
+    // Keep both role shortcuts and the complete original gateway grid visible.
+    // Role shortcuts are convenience entry points, not replacements for existing destinations.
     roleStrip.querySelectorAll("[data-action=\"open\"]").forEach(function (button) {
       button.setAttribute("aria-label", button.textContent.trim() + " workspace");
     });
