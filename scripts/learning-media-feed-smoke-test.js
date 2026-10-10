@@ -13,6 +13,9 @@ assert.ok(workspace.includes("de-learn-hub-grid"), "Learn should open as a clean
 assert.ok(app.includes('if (name === "learn" && existingAuth && existingAuth.account)'), "Authenticated landing-page Learn must open the real learner workspace.");
 assert.ok(app.includes('currentTitle.trim().toLowerCase() === "start learning."'), "Logged-out Learn primary action must lead to sign-in instead of doing nothing.");
 assert.ok(workspace.includes('data-de-action="progress"'), "Progress should be behind its own button.");
+const learnerHub = workspace.slice(workspace.indexOf("async function loadLearnerWorkspace"), workspace.indexOf("function roleMetricValue"));
+assert.ok(!learnerHub.includes('data-de-action="sessions"'), "Keep the Learn hub uncluttered; sessions remain available elsewhere.");
+assert.ok(!learnerHub.includes('data-de-action="connections"'), "Keep connections out of the primary Learn choices.");
 assert.ok(workspace.includes('value="video,image,experiment"'), "The default feed should search only media types.");
 assert.ok(workspace.includes("de-learning-feed"), "Search results should render in a vertical media feed.");
 assert.ok(workspace.includes("de-feed-image"), "Photos must render inline.");
@@ -28,9 +31,15 @@ assert.strictEqual(engine.isPlayableResource({ type: "image", media_url: "https:
 assert.strictEqual(engine.isPlayableResource({ type: "experiment", embed_url: "https://phet.colorado.edu/sims/html/example/latest/example_en.html" }), true);
 assert.strictEqual(engine.isPlayableResource({ type: "experiment", url: "https://example.org/experiment" }), false);
 assert.ok(engine.scoreResource({ title: "Photosynthesis process", description: "How plants make food" }, "photosynthesis") >= 0.35);
-
-new Function(workspace);
-new Function(app);
-new Function(engineSource);
-
-console.log("Learning media feed smoke test passed.");
+(async function verifyInteractiveExperiments() {
+  const naturalSelection = await engine.searchPhetExperiments("natural selection", 4);
+  assert.strictEqual(naturalSelection[0].embed_url, "https://phet.colorado.edu/sims/html/natural-selection/latest/natural-selection_en.html");
+  const fractions = await engine.searchPhetExperiments("fractions", 4);
+  assert.ok(fractions.length > 0, "Math topics should surface an in-feed interactive experiment.");
+  const greenhouse = await engine.searchPhetExperiments("climate", 4);
+  assert.strictEqual(greenhouse[0].embed_url, "https://phet.colorado.edu/sims/html/greenhouse/latest/greenhouse_en.html");
+  new Function(workspace);
+  new Function(app);
+  new Function(engineSource);
+  console.log("Learning media feed smoke test passed.");
+})().catch(function (error) { console.error(error); process.exitCode = 1; });

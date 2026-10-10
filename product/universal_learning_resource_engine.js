@@ -375,12 +375,17 @@ async function searchPhetExperiments(query, limit) {
 
   const simulations = [
     { terms:["circuit","electricity","current","voltage","ohm","resistor","resistance"], title:"Circuit Construction Kit: DC", description:"Build circuits, connect batteries, bulbs, switches and resistors, and measure voltage and current.", slug:"circuit-construction-kit-dc" },
-    { terms:["greenhouse","climate","carbon dioxide","co2","atmosphere"], title:"The Greenhouse Effect", description:"Explore how atmospheric gases affect radiation and temperature in a visual interactive model.", slug:"greenhouse-effect" },
+    { terms:["greenhouse","climate","carbon dioxide","co2","atmosphere"], title:"The Greenhouse Effect", description:"Explore how atmospheric gases affect radiation and temperature in a visual interactive model.", slug:"greenhouse" },
     { terms:["gas","pressure","temperature","volume","particle"], title:"Gas Properties", description:"Change pressure, volume and temperature and observe particle behavior in an interactive model.", slug:"gas-properties" },
     { terms:["motion","velocity","acceleration","position","speed"], title:"Moving Man", description:"Explore position, velocity and acceleration by controlling motion and observing the graphs.", slug:"moving-man" },
     { terms:["projectile","trajectory","launch","parabola"], title:"Projectile Motion", description:"Launch objects and investigate how angle, speed and gravity affect their trajectories.", slug:"projectile-motion" },
     { terms:["force","friction","net force","newton","forces and motion"], title:"Forces and Motion: Basics", description:"Experiment with forces, friction, mass and motion and observe the resulting changes.", slug:"forces-and-motion-basics" },
-    { terms:["density","buoyancy","float","sink"], title:"Density", description:"Compare mass, volume and density and investigate why objects float or sink.", slug:"density" }
+    { terms:["density","buoyancy","float","sink"], title:"Density", description:"Compare mass, volume and density and investigate why objects float or sink.", slug:"density" },
+    { terms:["natural selection","evolution","adaptation","genetics","mutation","species"], title:"Natural Selection", description:"Change environmental factors and observe how traits affect a population over generations.", slug:"natural-selection" },
+    { terms:["fraction","fractions","equivalent fractions","mixed numbers"], title:"Fractions: Intro", description:"Explore fractions visually and compare equivalent fractions using an interactive model.", slug:"fractions-intro" },
+    { terms:["build a fraction","fraction model","numerator","denominator"], title:"Build a Fraction", description:"Build and compare fractions using visual models and interactive challenges.", slug:"build-a-fraction" },
+    { terms:["balance chemical equations","chemical equation","reactants","products","chemistry equation"], title:"Balancing Chemical Equations", description:"Experiment with coefficients and balance atoms on both sides of a chemical equation.", slug:"balancing-chemical-equations" },
+    { terms:["molecule shape","molecular geometry","bond angle","molecule shapes"], title:"Molecule Shapes", description:"Build molecules and explore how electron pairs affect molecular shape.", slug:"molecule-shapes" }
   ];
 
   const matches = simulations

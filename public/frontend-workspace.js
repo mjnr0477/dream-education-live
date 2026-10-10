@@ -160,7 +160,8 @@
     const description = resource.description || "";
     const mediaUrl = resource.media_url || resource.thumbnail || "";
     const embedUrl = resource.embed_url || "";
-    const provider = resource.source || resource.provider || "Learning source";
+    const providerKey = String(resource.source || resource.provider || "learning_source").toLowerCase();
+    const provider = ({ openverse: "Openverse", openverse_audio: "Openverse Audio", wikimedia_commons: "Wikimedia Commons", internet_archive: "Internet Archive", youtube: "YouTube", nasa: "NASA", nasa_osdr: "NASA Open Science", phet: "Interactive Experiment" })[providerKey] || providerKey.replace(/_/g, " ").replace(/\b\w/g, function (letter) { return letter.toUpperCase(); });
     let media = "";
 
     if (type === "image" && mediaUrl) {
@@ -308,7 +309,7 @@
     openPanel(
       "LEARNING FEED",
       "Explore a topic",
-      "Search once, then scroll through relevant videos, photos and interactive experiments.",
+      "Search any subject, then swipe through playable videos, photos and interactive experiments.",
       '<div class="de-resource-workspace de-feed-workspace">' +
         '<form class="de-resource-form de-feed-search" id="de-resource-form">' +
           '<label for="de-resource-query">What do you want to explore?</label>' +
@@ -378,8 +379,6 @@
           '<button type="button" class="de-learn-tile" data-de-action="resources"><span class="de-learn-tile-icon">▤</span><strong>Learning Feed</strong><small>Search videos, photos and experiments</small></button>' +
           '<button type="button" class="de-learn-tile" data-de-action="ask"><span class="de-learn-tile-icon">?</span><strong>Ask Dream</strong><small>Ask a question or explore an idea</small></button>' +
           '<button type="button" class="de-learn-tile" data-de-action="progress"><span class="de-learn-tile-icon">◷</span><strong>Learner Progress</strong><small>Open your progress when you need it</small></button>' +
-          '<button type="button" class="de-learn-tile" data-de-action="sessions"><span class="de-learn-tile-icon">▣</span><strong>Learning Sessions</strong><small>Return to your learning activity</small></button>' +
-          '<button type="button" class="de-learn-tile" data-de-action="connections"><span class="de-learn-tile-icon">⌘</span><strong>Connections</strong><small>Reach your learning network</small></button>' +
         '</div>' +
       '</div>'
     );

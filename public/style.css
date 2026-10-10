@@ -2912,3 +2912,32 @@ body.panel-open .experience-panel{
   .de-about-dream .de-actions { flex-wrap: wrap; }
   .de-about-dream .de-actions .de-action { flex: 1 1 100%; }
 }
+
+
+/* Learn redesign: keep the hub focused and make the media feed feel like a continuous learning stream. */
+.de-learn-hub { gap: 16px; }
+.de-learn-welcome { padding: clamp(16px, 3vw, 24px); border: 1px solid rgba(127,127,127,.18); border-radius: 20px; background: linear-gradient(135deg, rgba(91,133,255,.11), rgba(127,127,127,.035)); }
+.de-learn-welcome h3 { margin: 6px 0 8px; font-size: clamp(1.2rem, 2.5vw, 1.65rem); }
+.de-learn-welcome p { margin: 0; max-width: 54ch; line-height: 1.55; opacity: .76; }
+.de-learn-hub-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.de-learn-tile { min-height: 118px; padding: 17px; text-align: left; display: grid; align-content: start; justify-items: start; gap: 8px; border: 1px solid rgba(127,127,127,.2); border-radius: 18px; background: rgba(127,127,127,.035); color: inherit; cursor: pointer; transition: transform .16s ease, border-color .16s ease, background .16s ease; }
+.de-learn-tile:hover { transform: translateY(-2px); border-color: rgba(91,133,255,.5); background: rgba(91,133,255,.07); }
+.de-learn-tile strong { font-size: 1rem; }
+.de-learn-tile small { font-size: .83rem; line-height: 1.45; opacity: .72; }
+.de-learn-tile-icon { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 12px; background: rgba(91,133,255,.13); font-size: 1.1rem; }
+.de-learn-tile-primary { border-color: rgba(91,133,255,.35); }
+.de-feed-card { min-height: min(680px, 66svh); }
+.de-feed-card-head { min-height: 42px; }
+.de-feed-source { font-weight: 650; }
+.de-feed-card-body { gap: 8px; }
+.de-feed-card-body small.de-muted { opacity: .6; }
+.de-learning-feed { scrollbar-width: thin; }
+.de-feed-media iframe:focus-visible, .de-feed-media video:focus-visible, .de-feed-image:focus-visible { outline: 3px solid #648bff; outline-offset: -3px; }
+@media(max-width:760px) {
+  .de-learn-hub-grid { grid-template-columns: 1fr; }
+  .de-learn-tile { min-height: 94px; grid-template-columns: 38px minmax(0,1fr); align-items: center; column-gap: 12px; }
+  .de-learn-tile-icon { grid-row: span 2; }
+  .de-learn-tile strong, .de-learn-tile small { grid-column: 2; }
+  .de-feed-card { min-height: 62svh; }
+}
+@media(prefers-reduced-motion:reduce) { .de-learn-tile { transition: none; } .de-learn-tile:hover { transform: none; } }
