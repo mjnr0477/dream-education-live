@@ -3,7 +3,7 @@
 const assert = require('assert');
 const { buildNativeMessengerConnectors, isValidEmailAddress } = require('../product/native_messenger_connectors');
 
-function main() {
+async function main() {
   assert.strictEqual(isValidEmailAddress('partnerships@reliafrica.org'), true,
     'Valid recipients containing the letter s must pass validation');
   assert.strictEqual(isValidEmailAddress('tanzania@reliafrica.org'), true,
@@ -28,6 +28,60 @@ function main() {
   assert.strictEqual(resend.channels[0].authorized, true);
   assert.strictEqual(resend.recipients[0].email, 'buyer@example.org');
   assert.strictEqual(resend.recipients[1].email, 'school@example.org');
+
+  let resendRequest = null;
+  const mockedResend = buildNativeMessengerConnectors({
+    RESEND_API_KEY: 're_test_key',
+    EMAIL_FROM: 'Dream Education <verified@example.com>'
+  }, {
+    emailRecipients: ['test-recipient@example.org'],
+    fetchImpl: async (url, init) => {
+      resendRequest = { url, init };
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ id: 'email_test_123' })
+      };
+    }
+  });
+  const resendSendResult = await mockedResend
+    .find((connector) => connector.id === 'email-resend-native')
+    .channels[0].send({
+      body: 'Dream Education delivery smoke test',
+      subject: 'Delivery test',
+      recipient: { email: 'test-recipient@example.org' }
+    });
+  assert.strictEqual(resendSendResult.success, true, 'Resend success response must be treated as delivered');
+  assert.strictEqual(resendRequest.url, 'https://api.resend.com/emails');
+  assert.strictEqual(resendRequest.init.method, 'POST');
+  assert.strictEqual(resendRequest.init.headers.Authorization, 'Bearer re_test_key');
+  assert.deepStrictEqual(JSON.parse(resendRequest.init.body), {
+    from: 'Dream Education <verified@example.com>',
+    to: ['test-recipient@example.org'],
+    subject: 'Delivery test',
+    text: 'Dream Education delivery smoke test'
+  });
+
+  const mockedResendFailure = buildNativeMessengerConnectors({
+    RESEND_API_KEY: 're_test_key',
+    EMAIL_FROM: 'Dream Education <verified@example.com>'
+  }, {
+    emailRecipients: ['test-recipient@example.org'],
+    fetchImpl: async () => ({
+      ok: false,
+      status: 403,
+      json: async () => ({ name: 'validation_error', message: 'Sender domain is not verified' })
+    })
+  });
+  const resendFailureResult = await mockedResendFailure
+    .find((connector) => connector.id === 'email-resend-native')
+    .channels[0].send({
+      body: 'test',
+      recipient: { email: 'test-recipient@example.org' }
+    });
+  assert.strictEqual(resendFailureResult.success, false, 'Resend API rejection must not be reported as delivered');
+  assert.strictEqual(resendFailureResult.status, 403);
+  assert.strictEqual(resendFailureResult.data.message, 'Sender domain is not verified');
 
   const gmailOnly = buildNativeMessengerConnectors({
     GMAIL_USER: 'dream.education@gmail.com',
@@ -64,7 +118,7 @@ function main() {
 }
 
 try {
-  main();
+  main().catch((error) => {\n    console.error(error);\n    process.exit(1);\n  });
 } catch (error) {
   console.error('Universal Connector email provider selection smoke test: FAIL');
   console.error(error);
