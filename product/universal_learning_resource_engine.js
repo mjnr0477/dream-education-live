@@ -400,6 +400,7 @@ async function searchPhetExperiments(query, limit) {
 
   return [{
     type:"experiment", provider:"phet", title:match.title, description:match.description,
+    tags:match.terms,
     url:"https://phet.colorado.edu/en/simulations/" + match.slug + "?locale=en",
     embed_url:"https://phet.colorado.edu/sims/html/" + match.slug + "/latest/" + match.slug + "_en.html",
     creator:"PhET Interactive Simulations, University of Colorado Boulder",
