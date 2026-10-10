@@ -340,7 +340,93 @@ function buildNativeMessengerConnectors(env = process.env, options = {}) {
   // Prefer the HTTPS Resend API when configured. Render Free web services
   // block outbound SMTP ports 25, 465, and 587, so Gmail SMTP cannot deliver
   // from those instances. Gmail SMTP remains a fallback for hosts that allow it.
-  if (gmailUser && gmailAppPassword && emailRecipients.length && !(resendApiKey && emailFrom)) {
+  const gmailOAuthClientId = String(env.GMAIL_OAUTH_CLIENT_ID || '').trim();
+  const gmailOAuthClientSecret = String(env.GMAIL_OAUTH_CLIENT_SECRET || '').trim();
+  const gmailOAuthRefreshToken = String(env.GMAIL_OAUTH_REFRESH_TOKEN || '').trim();
+  const gmailOAuthAccessToken = String(env.GMAIL_OAUTH_ACCESS_TOKEN || '').trim();
+  const gmailOAuthConfigured = Boolean(gmailUser && gmailOAuthClientId && gmailOAuthClientSecret && (gmailOAuthRefreshToken || gmailOAuthAccessToken));
+
+  // Gmail API uses HTTPS and OAuth, so it works on Render Free without SMTP ports or a custom domain.
+  if (gmailOAuthConfigured && emailRecipients.length) {
+    connectors.push({
+      id: 'email-gmail-api-native',
+      name: 'Gmail API',
+      platform: 'email',
+      recipients: emailRecipients.map((email) => ({
+        type: 'person', email, address: email, platform: 'email', channel: 'email'
+      })),
+      channels: [{
+        type: 'email',
+        platform: 'email',
+        enabled: true,
+        authorized: true,
+        send: async ({ body, recipient, subject }) => {
+          const to = String(recipient?.email || recipient?.address || '').trim();
+          if (!isValidEmailAddress(to)) {
+            return { success: false, status: 400, data: { error: 'A valid email recipient is required.' } };
+          }
+
+          let accessToken = gmailOAuthAccessToken;
+          if (gmailOAuthRefreshToken) {
+            const tokenResponse = await emailFetch('https://oauth2.googleapis.com/token', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: new URLSearchParams({
+                client_id: gmailOAuthClientId,
+                client_secret: gmailOAuthClientSecret,
+                refresh_token: gmailOAuthRefreshToken,
+                grant_type: 'refresh_token'
+              }).toString()
+            });
+            const tokenData = await tokenResponse.json().catch(() => ({}));
+            if (!tokenResponse.ok || !tokenData.access_token) {
+              return {
+                success: false,
+                status: tokenResponse.status,
+                data: {
+                  error: tokenData.error_description || tokenData.error || 'Google OAuth could not refresh the Gmail access token.',
+                  code: tokenData.error || 'gmail_oauth_refresh_failed'
+                }
+              };
+            }
+            accessToken = tokenData.access_token;
+          }
+
+          const safeSubject = String(subject || env.EMAIL_DEFAULT_SUBJECT || 'Message from Dream Education')
+            .replace(/[\\r\\n]/g, ' ').trim().slice(0, 200);
+          const encodedSubject = '=?UTF-8?B?' + Buffer.from(safeSubject, 'utf8').toString('base64') + '?=';
+          const mime = [
+            'From: Dream Education <' + gmailUser + '>',
+            'To: ' + to,
+            'Subject: ' + encodedSubject,
+            'MIME-Version: 1.0',
+            'Content-Type: text/plain; charset=UTF-8',
+            'Content-Transfer-Encoding: base64',
+            '',
+            (Buffer.from(String(body || ''), 'utf8').toString('base64').match(/.{1,76}/g) || ['']).join('\\r\\n')
+          ].join('\\r\\n');
+          const raw = Buffer.from(mime, 'utf8').toString('base64')
+            .replace(/\\+/g, '-').replace(/\\//g, '_').replace(/=+$/g, '');
+          const response = await emailFetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+            method: 'POST',
+            headers: {
+              'Authorization': 'Bearer ' + accessToken,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ raw })
+          });
+          const data = await response.json().catch(() => ({}));
+          return {
+            success: response.ok && Boolean(data.id),
+            status: response.status,
+            data: response.ok && data.id
+              ? { id: data.id, threadId: data.threadId, provider: 'gmail-api', accepted: true }
+              : { error: data.error?.message || data.error || 'Gmail API did not accept the message.', code: data.error?.status || 'gmail_api_send_failed' }
+          };
+        }
+      }]
+    });
+  } else if (gmailUser && gmailAppPassword && emailRecipients.length && !(resendApiKey && emailFrom)) {
     const { sendGmailSmtpEmail } = require('./gmail_smtp_transport');
     connectors.push({
       id: 'email-gmail-smtp-native',
