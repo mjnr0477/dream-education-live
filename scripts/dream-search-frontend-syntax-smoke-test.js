@@ -15,5 +15,10 @@ assert.match(search, /window\.DreamEducationSearch\s*=\s*\{\s*openAuthorizedSear
 assert.match(search, /data-panel-action="authorized-search"/);
 assert.match(search, /\/api\/dream-search\/public/);
 assert.match(search, /\/api\/dream-search\/authorized/);
+assert.match(search, /function openResultsPage\(query\)/, 'public search should open a dedicated results page');
+assert.match(search, /function closeResultsPage\(\)/, 'results page should return to the landing page');
+assert.match(search, /data-dream-search-back/g, 'results page should expose Back to Home controls');
+assert.match(search, /dream-search-page-results/, 'results should render inside the dedicated results view');
+assert.match(search, /search\(cleanQuery, null, state\.resultsStatus, state\.resultsHost\)/, 'public results should use the existing search function');
 
 console.log('DREAM SEARCH FRONTEND SYNTAX SMOKE TEST: PASS');
