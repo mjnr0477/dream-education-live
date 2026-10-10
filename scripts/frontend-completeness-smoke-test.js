@@ -100,6 +100,10 @@ if (index.includes("across Dream Education's connected sources,\\n            ac
   throw new Error("Duplicate Dream Search description remains.");
 }
 
+if (!app.includes('if (action === "signin") {') || !app.includes('openPanel("signin")')) {
+  throw new Error("Dynamically rendered sign-in actions must open the shared sign-in panel.");
+}
+
 if (!index.includes('data-panel-action="subscription"') || !app.includes("function openSubscription") || !app.includes("handlePayPalReturn")) {
   throw new Error("Subscription/PayPal flow is missing.");
 }
