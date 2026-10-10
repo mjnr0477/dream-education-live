@@ -205,12 +205,21 @@
     const resources = Array.isArray(data.resources) ? data.resources : [];
     window.__dreamResourceResults = resources;
     const intent = data.intent || {};
+    const providerStatus = Array.isArray(data.providers) ? data.providers : [];
+    const activeProviders = providerStatus.filter(function (provider) { return provider && provider.success && Number(provider.count) > 0; });
+    const failedProviders = providerStatus.filter(function (provider) { return provider && !provider.success; });
+    const sourceSummary = activeProviders.length
+      ? '<span class="de-feed-sources"><strong>Sources returning results:</strong> ' + escapeHTML(activeProviders.map(function (provider) { return String(provider.provider || "source").replace(/_/g, " "); }).join(" · ")) + '</span>'
+      : '<span class="de-feed-sources">No media source returned a playable result for this search.</span>';
+    const sourceHealth = providerStatus.length
+      ? '<span class="de-feed-source-health">' + activeProviders.length + '/' + providerStatus.length + ' sources returned materials' + (failedProviders.length ? ' · ' + failedProviders.length + ' unavailable this time' : '') + '</span>'
+      : "";
     if (!resources.length) {
       return '<div class="de-resource-empty"><strong>No playable materials matched that topic yet.</strong><p>Try a shorter or more specific topic. Dream only shows media it can display inside the learning feed.</p></div>';
     }
 
     return '<div class="de-feed-summary"><strong>' + escapeHTML(resources.length) +
-      ' relevant materials</strong><span>' + escapeHTML(intent.reason || "Matched video, photo and interactive experiment sources.") + '</span><span class="de-feed-hint">Scroll down for the next item</span></div>' +
+      ' relevant materials</strong><span>' + escapeHTML(intent.reason || "Matched video, photo and interactive experiment sources.") + '</span>' + sourceHealth + sourceSummary + '<span class="de-feed-hint">Scroll for the next full-screen item</span></div>' +
       '<div class="de-learning-feed" aria-label="Scrollable learning media feed">' +
       resources.map(renderResource).join("") +
       '</div>';
@@ -345,7 +354,7 @@
           q: query,
           type: form.elements.type.value,
           learner_id: info.id,
-          limit: "12"
+          limit: "20"
         });
         const data = await getJSON("/api/v1/learning/resources?" + params.toString(), auth);
         if (sequence !== searchSequence) return;
