@@ -285,7 +285,7 @@ async function searchLibraryOfCongressImages(query, limit) {
   const data = await fetchJson("https://www.loc.gov/photos/?" + params.toString());
   return (Array.isArray(data.results) ? data.results : []).map(item => {
     const imageCandidates = Array.isArray(item.image_url) ? item.image_url : [item.image_url];
-    const mediaUrl = imageCandidates.find(url => typeof url === "string" && /^https?:\\/\\//i.test(url)) || null;
+    const mediaUrl = imageCandidates.find(url => typeof url === "string" && /^https?:\/\//i.test(url)) || null;
     return {
       type: "image",
       provider: "library_of_congress",
