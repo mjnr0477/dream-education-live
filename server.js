@@ -149,12 +149,15 @@ function buildPublicSearchLearningEvidence(publicResult, question, queryInfo) {
     "structured_knowledge"
   ]);
 
-  const candidates = rows.filter(row => {
-    const excerpt = String(row?.excerpt || "").trim();
+  const candidates = rows.map(row => ({
+    ...row,
+    excerpt: String(row?.excerpt || row?.extract || row?.snippet || row?.description || row?.abstract || row?.content || "").trim()
+  })).filter(row => {
+    const excerpt = row.excerpt;
     const provider = String(row?.provider || "").trim();
     const sourceType = String(row?.source_type || "").trim();
     return excerpt.length >= 80 &&
-      (trustedTypes.has(sourceType) || /^(wikipedia|wikidata|nasa|noaa|ncbi_pubmed|europe_pmc|pubchem|nist|world_bank|openalex|crossref|semantic_scholar)$/i.test(provider));
+      (trustedTypes.has(sourceType) || /^(wikipedia|wikidata|nasa|noaa|ncbi_pubmed|europe_pmc|pubchem|nist|world_bank|openalex|crossref|semantic_scholar|wikibooks|zenodo|datacite|openaire|doaj|library_of_congress)$/i.test(provider));
   });
 
   if (!candidates.length) return null;
@@ -2334,6 +2337,45 @@ Return a learner-facing teaching response only.
      * specialist result, curriculum evidence, trusted retrieval, or AI
      * response is available, do not manufacture an answer.
      */
+    // Last bounded recovery: reuse the existing public search and accept only
+    // sufficiently long excerpts from trusted source types/providers. AI-only
+    // text and arbitrary search snippets never become verified answers.
+    try {
+      if (requestedQuestion.trim()) {
+        const publicRecovery = await Promise.race([
+          publicSearch(requestedQuestion, 12),
+          new Promise(resolve => setTimeout(() => resolve({ success: false, results: [] }), 6000))
+        ]);
+        const evidence = buildPublicSearchLearningEvidence(publicRecovery, requestedQuestion, queryEngine.analyzeQuery(requestedQuestion, {
+          subject: req.body?.subject,
+          topic: req.body?.topic,
+          level: req.body?.level
+        }));
+        if (evidence && evidence.success === true) {
+          const recoveryAnswer = buildVerifiedEvidenceAnswer(requestedQuestion, {
+            success: true,
+            source: { name: evidence.evidence[0]?.source || evidence.evidence[0]?.provider || "trusted public source" },
+            knowledge: { definition: evidence.definition, source: evidence.evidence[0]?.source || evidence.evidence[0]?.provider || "trusted public source" },
+            evidence: evidence.evidence.map(item => ({ extract: item.excerpt, source: item.source, title: item.title }))
+          });
+          if (recoveryAnswer) {
+            return res.json({
+              success: true,
+              answer: recoveryAnswer,
+              cached: false,
+              ai_mode: AI_MODE,
+              answer_sources: evidence.evidence.slice(0, 5).map(item => ({ type: item.source_type || "trusted_public_evidence", name: item.source || item.provider || "Trusted public source", title: item.title || null })),
+              fallback: true,
+              answer_verified: true,
+              answer_contract: "verified-v1"
+            });
+          }
+        }
+      }
+    } catch (publicRecoveryError) {
+      console.error("Public-search verified answer recovery error:", publicRecoveryError.message || publicRecoveryError);
+    }
+
     return res.status(503).json({
       success: false,
       message: "Dream Education could not verify a correct answer yet.",

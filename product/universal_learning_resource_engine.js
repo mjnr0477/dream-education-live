@@ -43,7 +43,7 @@ function isDirectMediaUrl(url, type) {
 function clampLimit(value) {
   const n = Number.parseInt(value, 10);
   if (!Number.isFinite(n)) return DEFAULT_LIMIT;
-  return Math.max(1, Math.min(n, 12));
+  return Math.max(1, Math.min(n, 24));
 }
 
 function wantedTypes(value) {
@@ -279,6 +279,26 @@ async function searchInternetArchive(query, limit) {
   }));
 }
 
+
+async function searchLibraryOfCongressImages(query, limit) {
+  const params = new URLSearchParams({ fo: "json", q: query, c: String(Math.min(Number(limit) || 8, 24)) });
+  const data = await fetchJson("https://www.loc.gov/photos/?" + params.toString());
+  return (Array.isArray(data.results) ? data.results : []).map(item => {
+    const imageCandidates = Array.isArray(item.image_url) ? item.image_url : [item.image_url];
+    const mediaUrl = imageCandidates.find(url => typeof url === "string" && /^https?:\/\//i.test(url)) || null;
+    return {
+      type: "image",
+      provider: "library_of_congress",
+      title: item.title || "Library of Congress photograph",
+      description: item.description || item.summary || item.notes || "",
+      url: item.id || item.url || null,
+      media_url: mediaUrl,
+      thumbnail: mediaUrl,
+      creator: item.contributor || item.created_published || "Library of Congress",
+      license: item.rights || item.usage || null
+    };
+  }).filter(item => item.media_url);
+}
 
 async function searchNASAImages(query, limit) {
   const url =
@@ -545,6 +565,7 @@ async function discoverLearningResources(query, options = {}) {
 
   if (wants(types, "image") || wants(types, "any")) {
     jobs.push(safeProvider("openverse", () => searchOpenverseImages(searchQuery, limit)));
+    jobs.push(safeProvider("library_of_congress", () => searchLibraryOfCongressImages(searchQuery, Math.min(limit, 16))));
   }
   if (wants(types, "image") || wants(types, "video") || wants(types, "any")) {
     jobs.push(safeProvider("wikimedia_commons", () => searchWikimediaImages(searchQuery, Math.min(limit, 8))));
@@ -672,6 +693,7 @@ module.exports = {
   searchInternetArchive,
   searchYouTube,
   searchNASAImages,
+  searchLibraryOfCongressImages,
   searchNASAExperiments,
   searchPhetExperiments,
   searchCrossrefResearch,

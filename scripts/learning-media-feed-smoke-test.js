@@ -23,6 +23,10 @@ assert.ok(!learnerHub.includes('data-de-action="connections"'), "Keep connection
 assert.ok(workspace.includes('value="video,image,experiment"'), "The default feed should search only media types.");
 assert.ok(workspace.includes("de-learning-feed"), "Search results should render in a vertical media feed.");
 assert.ok(workspace.includes("de-feed-image"), "Photos must render inline.");
+assert.ok(workspace.includes('limit: "20"'), "The feed should request an expanded set of learning resources.");
+assert.ok(workspace.includes("Sources returning results:"), "The feed should report which media providers actually returned results.");
+assert.ok(css.includes("width:min(920px,100vw)"), "The experience frame should be wide enough for an immersive feed.");
+assert.ok(css.includes("height:min(76svh,780px)"), "The media feed should use a sizable viewport with snap-scrolling cards.");
 assert.ok(workspace.includes("de-feed-experiment"), "Interactive experiments must render inline.");
 assert.ok(workspace.includes("data-resource-check"), "Learners must be able to check understanding.");
 assert.ok(css.includes(".de-learning-feed"), "Feed container styles are required.");
@@ -34,6 +38,7 @@ assert.deepStrictEqual(engine.wantedTypes("photos"), ["image"]);
 assert.strictEqual(engine.isPlayableResource({ type: "image", media_url: "https://example.org/biology.jpg" }), true);
 assert.strictEqual(engine.isPlayableResource({ type: "experiment", embed_url: "https://phet.colorado.edu/sims/html/example/latest/example_en.html" }), true);
 assert.strictEqual(engine.isPlayableResource({ type: "experiment", url: "https://example.org/experiment" }), false);
+assert.strictEqual(typeof engine.searchLibraryOfCongressImages, "function", "Library of Congress image search should be connected as an additional free media provider.");
 assert.ok(engine.scoreResource({ title: "Photosynthesis process", description: "How plants make food" }, "photosynthesis") >= 0.35);
 (async function verifyInteractiveExperiments() {
   const naturalSelection = await engine.searchPhetExperiments("natural selection", 4);

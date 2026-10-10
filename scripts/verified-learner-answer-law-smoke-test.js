@@ -10,6 +10,9 @@ function assert(condition, message) {
 assert(server.includes('answer_contract: "verified-v1"'), "Successful learner responses require the verified answer contract.");
 assert(server.includes('cache[cacheKey].answer_contract === "verified-v1"'), "Unverified cached answers must never be served.");
 assert(server.includes("No verified evidence is available for this learner question."), "The hard answer gate must reject unsupported answers.");
+assert(server.includes("Public-search verified answer recovery"), "Ask Dream must have a final trusted-public-evidence recovery path.");
+assert(server.includes("row?.excerpt || row?.extract || row?.snippet || row?.description || row?.abstract || row?.content"), "Trusted public evidence must normalize common source excerpt fields.");
+assert(server.includes("answer_verified: true,\n              answer_contract: \"verified-v1\""), "Public evidence recovery must retain the verified answer contract.");
 assert(server.includes("answer_verified: true"), "Successful learner answers must explicitly report verification.");
 
 assert(server.includes('fallback: true,\n        answer_verified: true,\n        answer_contract: "verified-v1"'), "Built-in verified recovery must preserve the verified lesson contract.");
