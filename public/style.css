@@ -2926,7 +2926,7 @@ body.panel-open .experience-panel{
 .de-learn-tile small { font-size: .83rem; line-height: 1.45; opacity: .72; }
 .de-learn-tile-icon { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 12px; background: rgba(91,133,255,.13); font-size: 1.1rem; }
 .de-learn-tile-primary { border-color: rgba(91,133,255,.35); }
-.de-feed-card { min-height: min(680px, 66svh); }
+.de-feed-card { min-height: 0; }
 .de-feed-card-head { min-height: 42px; }
 .de-feed-source { font-weight: 650; }
 .de-feed-card-body { gap: 8px; }
@@ -2938,6 +2938,6 @@ body.panel-open .experience-panel{
   .de-learn-tile { min-height: 94px; grid-template-columns: 38px minmax(0,1fr); align-items: center; column-gap: 12px; }
   .de-learn-tile-icon { grid-row: span 2; }
   .de-learn-tile strong, .de-learn-tile small { grid-column: 2; }
-  .de-feed-card { min-height: 62svh; }
+  .de-feed-card { min-height: 0; }
 }
 @media(prefers-reduced-motion:reduce) { .de-learn-tile { transition: none; } .de-learn-tile:hover { transform: none; } }
