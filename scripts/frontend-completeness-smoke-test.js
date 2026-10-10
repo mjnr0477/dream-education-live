@@ -64,16 +64,10 @@ for (const route of requiredServerRoutes) {
 }
 
 for (const token of [
-  "/nextgen-visual.js?v=20261001",
-  "/frontend-workspace.js?v=20261001",
-  'card("LEARNER", "Learn", "Adaptive learning built around your progress.", "learn"',
-  'card("TEACHER", "Teach", "See learning evidence and guide learners.", "teach"',
-  'card("PARENT", "Support", "Stay connected to meaningful learning progress.", "connect"',
-  'card("SCHOOL", "Scale", "Bring your learning community together.", "school"'
+  "/nextgen-visual.js?v=20261010a",
+  "/frontend-workspace.js?v=20261010a"
 ]) {
-  if (!index.includes(token) && !nextgen.includes(token)) {
-    throw new Error("Required frontend surface missing: " + token);
-  }
+  if (!index.includes(token)) throw new Error("Required frontend script missing: " + token);
 }
 
 const requiredCompactDestinations = [
