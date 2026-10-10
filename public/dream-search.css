@@ -74,3 +74,5 @@ body.dream-search-page-open{overflow:auto}
 .dream-search-page-bottom{display:flex;justify-content:center;padding:34px 0 12px;margin-top:auto}
 .dream-search-page-bottom .dream-search-back{min-width:180px}
 @media(max-width:640px){.dream-search-results-page{padding:18px 14px 24px}.dream-search-page-top{align-items:flex-start;margin-bottom:26px}.dream-search-page-form .dream-search-button{width:100%}.dream-search-page-results{grid-template-columns:1fr}.dream-search-page-title{font-size:36px}}
+
+.app-shell[hidden]{display:none!important}
