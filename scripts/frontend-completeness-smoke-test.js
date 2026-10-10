@@ -116,6 +116,35 @@ if (/Test Learner View/.test(app)) {
   throw new Error("Non-functional teacher test control remains.");
 }
 
+// Audit statically declared panel actions against the shared dispatcher so a new
+// dynamically rendered button cannot silently become inert without a regression failure.
+const declaredPanelActions = new Set(
+  [...app.matchAll(/data-panel-action=["']([^"'$]+)["']/g)].map(match => match[1])
+);
+for (const action of declaredPanelActions) {
+  if (!app.includes('action === "' + action + '"')) {
+    throw new Error("Panel action has no matching dispatcher branch: " + action);
+  }
+}
+
+const declaredWorkspaceActions = new Set(
+  [...workspace.matchAll(/data-de-action=["']([^"'$]+)["']/g)].map(match => match[1])
+);
+for (const action of declaredWorkspaceActions) {
+  if (!workspace.includes('name === "' + action + '"')) {
+    throw new Error("Workspace action has no matching dispatcher branch: " + action);
+  }
+}
+
+const declaredPrimaryActions = new Set(
+  [...(index + app).matchAll(/data-action=["']([^"'$]+)["']/g)].map(match => match[1])
+);
+for (const action of declaredPrimaryActions) {
+  if (!app.includes('action === "' + action + '"')) {
+    throw new Error("Primary navigation action has no matching dispatcher branch: " + action);
+  }
+}
+
 for (const [name, source] of [["public/index.html", index], ["public/app.js", app], ["public/frontend-workspace.js", workspace]]) {
   if (/<a\b/i.test(source) || /target\s*=\s*["\']_blank/i.test(source)) {
     throw new Error("Learner-facing frontend must not render material links: " + name);
