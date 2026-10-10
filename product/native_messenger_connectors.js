@@ -367,6 +367,7 @@ function buildNativeMessengerConnectors(env = process.env, options = {}) {
           }
 
           let accessToken = gmailOAuthAccessToken;
+          let refreshFailure = null;
           if (gmailOAuthRefreshToken) {
             const tokenResponse = await emailFetch('https://oauth2.googleapis.com/token', {
               method: 'POST',
@@ -380,16 +381,38 @@ function buildNativeMessengerConnectors(env = process.env, options = {}) {
             });
             const tokenData = await tokenResponse.json().catch(() => ({}));
             if (!tokenResponse.ok || !tokenData.access_token) {
-              return {
-                success: false,
+              refreshFailure = {
                 status: tokenResponse.status,
-                data: {
-                  error: tokenData.error_description || tokenData.error || 'Google OAuth could not refresh the Gmail access token.',
-                  code: tokenData.error || 'gmail_oauth_refresh_failed'
-                }
+                code: String(tokenData.error || 'gmail_oauth_refresh_failed'),
+                message: String(tokenData.error_description || tokenData.error || 'Google OAuth could not refresh the Gmail access token.')
               };
+              // If an independently configured access token is available, still try it.
+              // This avoids needlessly blocking delivery when only refresh fails.
+              if (!accessToken) {
+                return {
+                  success: false,
+                  status: tokenResponse.status,
+                  data: {
+                    error: 'Google OAuth token refresh failed (HTTP ' + tokenResponse.status + '): ' + refreshFailure.message,
+                    code: refreshFailure.code,
+                    stage: 'oauth_token_refresh'
+                  }
+                };
+              }
+            } else {
+              accessToken = tokenData.access_token;
             }
-            accessToken = tokenData.access_token;
+          }
+          if (!accessToken) {
+            return {
+              success: false,
+              status: 401,
+              data: {
+                error: 'No usable Gmail access token is available after OAuth refresh.',
+                code: 'gmail_access_token_missing',
+                stage: 'oauth_token_refresh'
+              }
+            };
           }
 
           const safeSubject = String(subject || env.EMAIL_DEFAULT_SUBJECT || 'Message from Dream Education')
@@ -416,12 +439,32 @@ function buildNativeMessengerConnectors(env = process.env, options = {}) {
             body: JSON.stringify({ raw })
           });
           const data = await response.json().catch(() => ({}));
+          const apiErrorMessage = String(
+            data.error?.message ||
+            (typeof data.error === 'string' ? data.error : '') ||
+            'Gmail API did not accept the message.'
+          );
+          const apiErrorCode = String(
+            data.error?.errors?.[0]?.reason ||
+            data.error?.status ||
+            data.error?.code ||
+            'gmail_api_send_failed'
+          );
+          const apiError = {
+            error: 'Gmail API send failed (HTTP ' + response.status + '): ' + apiErrorMessage +
+              (refreshFailure
+                ? ' | OAuth refresh also failed (HTTP ' + refreshFailure.status + ', ' + refreshFailure.code + '): ' + refreshFailure.message
+                : ''),
+            code: apiErrorCode,
+            stage: 'gmail_api_send',
+            ...(refreshFailure ? { refresh_status: refreshFailure.status, refresh_code: refreshFailure.code } : {})
+          };
           return {
             success: response.ok && Boolean(data.id),
             status: response.status,
             data: response.ok && data.id
               ? { id: data.id, threadId: data.threadId, provider: 'gmail-api', accepted: true }
-              : { error: data.error?.message || data.error || 'Gmail API did not accept the message.', code: data.error?.status || 'gmail_api_send_failed' }
+              : apiError
           };
         }
       }]

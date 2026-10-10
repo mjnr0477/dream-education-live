@@ -7,6 +7,39 @@ const { buildNativeMessengerConnectors } = require("../product/native_messenger_
 const { broadcastMessage, createUniversalMessage } = require("../product/connect_messenger_engine");
 
 async function main() {
+  // Gmail OAuth must preserve provider status/code without leaking credentials and
+  // should fall back to an available access token if refresh fails.
+  const gmailRequests = [];
+  const gmail = buildNativeMessengerConnectors({
+    GMAIL_USER: "sender@gmail.com",
+    GMAIL_OAUTH_CLIENT_ID: "client-id",
+    GMAIL_OAUTH_CLIENT_SECRET: "client-secret",
+    GMAIL_OAUTH_REFRESH_TOKEN: "refresh-token",
+    GMAIL_OAUTH_ACCESS_TOKEN: "still-available-access-token"
+  }, {
+    emailRecipients: ["buyer@example.com"],
+    fetchImpl: async (url, options) => {
+      gmailRequests.push({ url, options });
+      if (String(url).includes("oauth2.googleapis.com/token")) {
+        return { ok: false, status: 400, json: async () => ({ error: "invalid_grant", error_description: "Refresh token was rejected" }) };
+      }
+      return { ok: false, status: 401, json: async () => ({ error: { code: 401, status: "UNAUTHENTICATED", message: "Invalid Credentials", errors: [{ reason: "authError" }] } }) };
+    }
+  }).find((connector) => connector.id === "email-gmail-api-native");
+  assert.ok(gmail, "Gmail OAuth connector should be configured");
+  const gmailResult = await gmail.channels[0].send({
+    body: "diagnostic test",
+    recipient: { email: "buyer@example.com" },
+    subject: "OAuth diagnostic"
+  });
+  assert.strictEqual(gmailRequests.length, 2, "Gmail should attempt the access token when refresh fails");
+  assert.strictEqual(gmailResult.status, 401);
+  assert.strictEqual(gmailResult.data.code, "authError");
+  assert.ok(gmailResult.data.error.includes("HTTP 401"));
+  assert.ok(gmailResult.data.error.includes("OAuth refresh also failed (HTTP 400, invalid_grant)"));
+  assert.ok(!JSON.stringify(gmailResult).includes("client-secret"));
+  assert.ok(!JSON.stringify(gmailResult).includes("refresh-token"));
+
   const noCredentials = buildNativeMessengerConnectors({}, { emailRecipients: ["buyer@example.com"] });
   assert.ok(!noCredentials.some((connector) => connector.platform === "email"),
     "Email must remain unavailable without provider credentials");

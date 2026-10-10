@@ -9084,13 +9084,18 @@ function openUniversalConnector() {
           "";
         const result = receipt.result || {};
         const resultData = result.data || {};
-        const detail = String(
-          receipt.error ||
-          result.error ||
-          resultData.message ||
-          resultData.error ||
-          (result.status ? "HTTP status " + result.status : "")
-        ).trim().slice(0, 500);
+        const detailParts = [
+          receipt.error,
+          result.error,
+          resultData.message,
+          resultData.error,
+          resultData.code ? "code: " + resultData.code : "",
+          resultData.stage ? "stage: " + resultData.stage : "",
+          result.status && !String(resultData.error || "").includes("HTTP " + result.status)
+            ? "HTTP status " + result.status
+            : ""
+        ].filter(Boolean);
+        const detail = String([...new Set(detailParts)].join(" · ")).trim().slice(0, 700);
         return '<div class="panel-card" style="margin-top:10px"><strong>' +
           escapeHTML(name) + '</strong><p>' +
           escapeHTML(state + (target ? " · " + target : "")) +
