@@ -368,67 +368,21 @@
   }
 
   async function loadLearnerWorkspace(info) {
+    // Keep Learn as a lightweight button hub. Progress/intelligence loads only
+    // when the learner deliberately opens those destinations.
     renderShell(info,
-      '<div class="de-loading"><span></span><p>Building your learning picture...</p></div>'
+      '<div class="de-workspace de-learn-hub">' +
+        '<section class="de-learn-welcome"><span class="de-eyebrow">YOUR LEARNING SPACE</span><h3>What would you like to do?</h3><p>Choose one action to get started. Your progress and adaptive learning stay connected in the background.</p></section>' +
+        '<div class="de-learn-hub-grid">' +
+          '<button type="button" class="de-learn-tile de-learn-tile-primary" data-de-action="adaptive"><span class="de-learn-tile-icon">↗</span><strong>Adaptive Learning</strong><small>Continue your personalized lesson</small></button>' +
+          '<button type="button" class="de-learn-tile" data-de-action="resources"><span class="de-learn-tile-icon">▤</span><strong>Learning Feed</strong><small>Search videos, photos and experiments</small></button>' +
+          '<button type="button" class="de-learn-tile" data-de-action="ask"><span class="de-learn-tile-icon">?</span><strong>Ask Dream</strong><small>Ask a question or explore an idea</small></button>' +
+          '<button type="button" class="de-learn-tile" data-de-action="progress"><span class="de-learn-tile-icon">◷</span><strong>Learner Progress</strong><small>Open your progress when you need it</small></button>' +
+          '<button type="button" class="de-learn-tile" data-de-action="sessions"><span class="de-learn-tile-icon">▣</span><strong>Learning Sessions</strong><small>Return to your learning activity</small></button>' +
+          '<button type="button" class="de-learn-tile" data-de-action="connections"><span class="de-learn-tile-icon">⌘</span><strong>Connections</strong><small>Reach your learning network</small></button>' +
+        '</div>' +
+      '</div>'
     );
-
-    try {
-      const auth = getAuth();
-      const intelligence = await getJSON(
-        "/api/intelligence/" + encodeURIComponent(info.id),
-        auth
-      );
-      const nextQuestionData = await getJSON(
-        "/api/next-question/" + encodeURIComponent(info.id),
-        auth
-      );
-
-      const profile = intelligence.learning_profile || {};
-      const decision = intelligence.decision || {};
-      const recommendation = intelligence.recommendation || {};
-      const nextQuestion = nextQuestionData.next_question || {};
-      const subjects = intelligence.subject_performance || {};
-      const recent = Array.isArray(intelligence.recent_learning)
-        ? intelligence.recent_learning
-        : [];
-
-      const subjectRows = Object.keys(subjects).slice(0, 8).map(function (key) {
-        const item = subjects[key] || {};
-        const score = Number(item.average_score);
-        return (
-          '<div class="de-row">' +
-            '<span>' + escapeHTML(key) + '</span>' +
-            '<b>' + (Number.isFinite(score) ? score : "—") + '</b>' +
-          '</div>'
-        );
-      }).join("");
-
-      const recentRows = recent.length
-        ? recent.map(function (item) {
-            return (
-              '<div class="de-list-item">' +
-                '<strong>' + escapeHTML(item.topic || item.subject || "Learning activity") + '</strong>' +
-                '<span>' + escapeHTML(item.subject || "") + '</span>' +
-              '</div>'
-            );
-          }).join("")
-        : '<p class="de-muted">No recent learning activity recorded yet.</p>';
-
-      panelBody.innerHTML =
-        '<div class="de-workspace de-learn-hub">' +
-          '<section class="de-learn-welcome"><span class="de-eyebrow">YOUR LEARNING SPACE</span><h3>What would you like to do?</h3><p>Choose one action to get started. Your progress and adaptive learning stay connected in the background.</p></section>' +
-          '<div class="de-learn-hub-grid">' +
-            '<button type="button" class="de-learn-tile de-learn-tile-primary" data-de-action="adaptive"><span class="de-learn-tile-icon">↗</span><strong>Adaptive Learning</strong><small>Continue your personalized lesson</small></button>' +
-            '<button type="button" class="de-learn-tile" data-de-action="resources"><span class="de-learn-tile-icon">▤</span><strong>Learning Feed</strong><small>Search videos, photos and experiments</small></button>' +
-            '<button type="button" class="de-learn-tile" data-de-action="ask"><span class="de-learn-tile-icon">?</span><strong>Ask Dream</strong><small>Ask a question or explore an idea</small></button>' +
-            '<button type="button" class="de-learn-tile" data-de-action="progress"><span class="de-learn-tile-icon">◷</span><strong>Learner Progress</strong><small>Open your progress when you need it</small></button>' +
-            '<button type="button" class="de-learn-tile" data-de-action="sessions"><span class="de-learn-tile-icon">▣</span><strong>Learning Sessions</strong><small>Return to your learning activity</small></button>' +
-            '<button type="button" class="de-learn-tile" data-de-action="connections"><span class="de-learn-tile-icon">⌘</span><strong>Connections</strong><small>Reach your learning network</small></button>' +
-          '</div>' +
-        '</div>';
-    } catch (error) {
-      renderError(error.message);
-    }
   }
 
   function roleMetricValue(intelligence, role) {
