@@ -594,8 +594,15 @@ async function discoverLearningResources(query, options = {}) {
 
       return normalized;
     })
+    // Honor the requested media filter, including comma-separated feed modes.
+    .filter(resource => {
+      if (types.includes("any")) return true;
+      const aliases = { article: "text", book: "text", document: "text", research: "text", web: "text", interactive: "experiment" };
+      const allowedTypes = new Set(types.map(type => aliases[type] || type));
+      return allowedTypes.has(resource.type);
+    })
     // Keep only materials that can genuinely be experienced inside Dream Education.
-    // A feed request explicitly for video,image,experiment never falls back to text/audio.
+    // A media feed never falls back to text/audio or non-interactive experiment pages.
     .filter(resource => {
       if (resource.type === "text") return Boolean(resource.content);
       if (resource.type === "image") return resource.playable_in_app && resource.relevance >= 0.35;
@@ -661,5 +668,8 @@ module.exports = {
   searchNASAImages,
   searchNASAExperiments,
   searchPhetExperiments,
-  searchCrossrefResearch
+  searchCrossrefResearch,
+  wantedTypes,
+  isPlayableResource,
+  scoreResource
 };
