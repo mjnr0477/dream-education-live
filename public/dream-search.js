@@ -1,7 +1,7 @@
 'use strict';
 
 (function () {
-  const state = { mode: 'public' };
+  const state = { mode: 'public', resultsHost: null, resultsStatus: null, resultsPage: null };
 
   function escapeHtml(value) {
     return String(value || '')
@@ -111,8 +111,8 @@
     return '<div class="dream-search-evidence-text">' + escapeHtml(text.slice(0, 500)) + '</div>';
   }
 
-  function renderResults(data) {
-    const el = elements().results;
+  function renderResults(data, targetElement) {
+    const el = targetElement || state.resultsHost || elements().results;
     if (!el) return;
     const results = data.results || [];
 
@@ -132,7 +132,7 @@
     `).join('');
   }
 
-  async function search(query, onSuccess, statusElement) {
+  async function search(query, onSuccess, statusElement, resultsElement) {
     const status = statusElement || elements().status;
     if (!query.trim()) return;
     if (status) status.textContent = 'Searching…';
@@ -162,7 +162,7 @@
         throw new Error(data.error || 'Search failed.');
       }
 
-      renderResults(data);
+      renderResults(data, resultsElement);
       if (typeof onSuccess === 'function') onSuccess(data);
       if (status) {
         status.textContent = state.mode === 'authorized'
@@ -172,6 +172,82 @@
     } catch (error) {
       if (status) status.textContent = error.message || 'Search failed.';
     }
+  }
+
+
+  function closeResultsPage() {
+    const page = state.resultsPage || document.getElementById('dream-search-results-page');
+    if (page) page.hidden = true;
+    state.resultsHost = null;
+    state.resultsStatus = null;
+    document.body.classList.remove('dream-search-page-open');
+    const shell = document.querySelector('.app-shell');
+    if (shell) shell.hidden = false;
+    const input = elements().input;
+    if (input) input.focus({ preventScroll: true });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function openResultsPage(query) {
+    const shell = document.querySelector('.app-shell');
+    if (!shell) return null;
+
+    let page = state.resultsPage || document.getElementById('dream-search-results-page');
+    if (!page) {
+      page = document.createElement('section');
+      page.id = 'dream-search-results-page';
+      page.className = 'dream-search-results-page';
+      page.hidden = true;
+      page.setAttribute('aria-label', 'Dream Search results');
+      page.innerHTML = `
+        <div class="dream-search-page-shell">
+          <div class="dream-search-page-top">
+            <button class="dream-search-back" type="button" data-dream-search-back>← Back to Home</button>
+            <span class="dream-search-kicker">DREAM SEARCH</span>
+          </div>
+          <h1 class="dream-search-page-title">Search results</h1>
+          <p class="dream-search-page-copy">Explore evidence and information from Dream Education's connected public sources.</p>
+          <form class="dream-search-box dream-search-page-form" id="dream-search-page-form">
+            <input id="dream-search-page-input" type="search" name="query" autocomplete="off" aria-label="Search Dream Education again" placeholder="Search another topic…">
+            <button class="dream-search-button" type="submit">Search</button>
+          </form>
+          <div class="dream-search-status" id="dream-search-page-status" aria-live="polite">Preparing your search…</div>
+          <div class="dream-search-results dream-search-page-results" id="dream-search-page-results" aria-live="polite"></div>
+          <div class="dream-search-page-bottom">
+            <button class="dream-search-back" type="button" data-dream-search-back>← Back to Home</button>
+          </div>
+        </div>`;
+      document.body.appendChild(page);
+      state.resultsPage = page;
+    }
+
+    const pageInput = document.getElementById('dream-search-page-input');
+    if (pageInput) pageInput.value = query;
+    state.resultsHost = document.getElementById('dream-search-page-results');
+    state.resultsStatus = document.getElementById('dream-search-page-status');
+    state.mode = 'public';
+    page.hidden = false;
+    shell.hidden = true;
+    document.body.classList.add('dream-search-page-open');
+    const status = state.resultsStatus;
+    if (status) status.textContent = 'Searching public sources…';
+    window.scrollTo({ top: 0, behavior: 'auto' });
+    if (pageInput) pageInput.focus({ preventScroll: true });
+    return page;
+  }
+
+  function submitPublicSearch(query) {
+    const cleanQuery = String(query || '').trim();
+    if (!cleanQuery) {
+      elements().input?.focus();
+      return;
+    }
+    const page = openResultsPage(cleanQuery);
+    if (!page) {
+      search(cleanQuery);
+      return;
+    }
+    search(cleanQuery, null, state.resultsStatus, state.resultsHost);
   }
 
 
@@ -260,9 +336,33 @@
     }
   });
 
+  document.addEventListener('click', event => {
+    if (event.target.closest('[data-dream-search-back]')) {
+      event.preventDefault();
+      closeResultsPage();
+    }
+  });
+
   document.addEventListener('submit', event => {
-    if (!event.target.matches('#dream-search-form')) return;
-    event.preventDefault();
-    search(elements().input?.value || '');
+    if (event.target.matches('#dream-search-form')) {
+      event.preventDefault();
+      submitPublicSearch(elements().input?.value || '');
+      return;
+    }
+    if (event.target.matches('#dream-search-page-form')) {
+      event.preventDefault();
+      const input = document.getElementById('dream-search-page-input');
+      const query = String(input?.value || '').trim();
+      if (!query) {
+        input?.focus();
+        return;
+      }
+      const host = document.getElementById('dream-search-page-results');
+      const status = document.getElementById('dream-search-page-status');
+      state.resultsHost = host;
+      state.resultsStatus = status;
+      if (host) host.innerHTML = '';
+      search(query, null, status, host);
+    }
   });
 })();
