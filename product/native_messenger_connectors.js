@@ -336,9 +336,10 @@ function buildNativeMessengerConnectors(env = process.env, options = {}) {
   const gmailUser = String(env.GMAIL_USER || '').trim();
   const gmailAppPassword = String(env.GMAIL_APP_PASSWORD || '').trim();
 
-  // Prefer Gmail when explicitly configured so an old Resend configuration
-  // with an unverified sender cannot intercept the user's email broadcasts.
-  if (gmailUser && gmailAppPassword && emailRecipients.length) {
+  // Prefer the HTTPS Resend API when configured. Render Free web services
+  // block outbound SMTP ports 25, 465, and 587, so Gmail SMTP cannot deliver
+  // from those instances. Gmail SMTP remains a fallback for hosts that allow it.
+  if (gmailUser && gmailAppPassword && emailRecipients.length && !(resendApiKey && emailFrom)) {
     const { sendGmailSmtpEmail } = require('./gmail_smtp_transport');
     connectors.push({
       id: 'email-gmail-smtp-native',
