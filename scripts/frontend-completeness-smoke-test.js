@@ -74,7 +74,7 @@ const requiredCompactDestinations = [
   'data-panel="learn"', 'data-panel="teach"', 'data-panel="connect"',
   'data-panel="tools"', 'data-panel="school"', 'data-panel="about"',
   'id="dream-search-form"', 'id="dream-search-input"', 'id="dream-search-results"',
-  'id="experience-panel"', 'id="panel-body"', 'data-panel="signin"', 'data-panel="join"'
+  'id="experience-panel"', 'id="panel-body"', 'data-panel="signin"', 'data-panel="join"', 'data-panel-action="subscription"'
 ];
 for (const token of requiredCompactDestinations) {
   if (!index.includes(token) && !nextgen.includes(token)) {
@@ -100,7 +100,7 @@ if (index.includes("across Dream Education's connected sources,\\n            ac
   throw new Error("Duplicate Dream Search description remains.");
 }
 
-if (!app.includes("function openSubscription") || !app.includes("handlePayPalReturn")) {
+if (!index.includes('data-panel-action="subscription"') || !app.includes("function openSubscription") || !app.includes("handlePayPalReturn")) {
   throw new Error("Subscription/PayPal flow is missing.");
 }
 
