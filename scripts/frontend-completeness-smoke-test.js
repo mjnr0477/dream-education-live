@@ -64,27 +64,43 @@ for (const route of requiredServerRoutes) {
 }
 
 for (const token of [
-  "/nextgen-visual.js?v=20261001",
-  "/frontend-workspace.js?v=20261001",
-  'card("LEARNER", "Learn", "Adaptive learning built around your progress.", "learn"',
-  'card("TEACHER", "Teach", "See learning evidence and guide learners.", "teach"',
-  'card("PARENT", "Support", "Stay connected to meaningful learning progress.", "connect"',
-  'card("SCHOOL", "Scale", "Bring your learning community together.", "school"'
+  "/nextgen-visual.js?v=20261010a",
+  "/frontend-workspace.js?v=20261010a"
 ]) {
+  if (!index.includes(token)) throw new Error("Required frontend script missing: " + token);
+}
+
+const requiredCompactDestinations = [
+  'data-panel="learn"', 'data-panel="teach"', 'data-panel="connect"',
+  'data-panel="tools"', 'data-panel="school"', 'data-panel="about"',
+  'id="dream-search-form"', 'id="dream-search-input"', 'id="dream-search-results"',
+  'id="experience-panel"', 'id="panel-body"', 'data-panel="signin"', 'data-panel="join"', 'data-panel-action="subscription"'
+];
+for (const token of requiredCompactDestinations) {
   if (!index.includes(token) && !nextgen.includes(token)) {
-    throw new Error("Required frontend surface missing: " + token);
+    throw new Error("Required compact landing destination or wired interaction missing: " + token);
   }
 }
-
-if (!nextgen.includes("de-legacy-landing-hidden")) {
-  throw new Error("Legacy landing deduplication is missing.");
+for (const token of [
+  'className = "de-landing-destinations"',
+  'data-panel="learn"', 'data-panel="teach"', 'data-panel="connect"',
+  'data-panel="tools"', 'data-panel="school"', 'data-panel="about"',
+  'searchShell.classList.add("de-compact-search")',
+  'node.remove()'
+]) {
+  if (!nextgen.includes(token)) throw new Error("Compact landing behavior missing: " + token);
+}
+if (index.includes('class="gateway-section"') || index.includes('class="statement-section"') || index.includes('class="cta-section"') || index.includes('class="landing-subscribe"') || index.includes('class="footer"') || index.includes('class="floating-card')) {
+  throw new Error("Legacy long-scroll landing sections must not be present in the HTML.");
+}
+if (!css.includes(".de-landing-destinations") || !css.includes("height: 100svh")) {
+  throw new Error("Compact one-screen landing layout rules are missing.");
+}
+if (index.includes("across Dream Education's connected sources,\\n            across Dream Education's connected public sources.")) {
+  throw new Error("Duplicate Dream Search description remains.");
 }
 
-if (!css.includes(".de-nextgen-visual .de-legacy-landing-hidden")) {
-  throw new Error("Legacy landing hide rule is missing.");
-}
-
-if (!app.includes("function openSubscription") || !app.includes("handlePayPalReturn")) {
+if (!index.includes('data-panel-action="subscription"') || !app.includes("function openSubscription") || !app.includes("handlePayPalReturn")) {
   throw new Error("Subscription/PayPal flow is missing.");
 }
 
