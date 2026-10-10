@@ -1468,6 +1468,12 @@ document.addEventListener("click", function (event) {
 
     const action = button.dataset.panelAction;
 
+    // Dynamic sign-in prompts use the shared panel-action dispatcher.
+    if (action === "signin") {
+      openPanel("signin");
+      return;
+    }
+
     if (action === "subscription") {
       if (typeof openSubscription === "function") {
         openSubscription();
