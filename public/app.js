@@ -1474,6 +1474,11 @@ document.addEventListener("click", function (event) {
       return;
     }
 
+    if (action === "close") {
+      closePanel();
+      return;
+    }
+
     if (action === "subscription") {
       if (typeof openSubscription === "function") {
         openSubscription();
