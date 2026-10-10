@@ -9,114 +9,47 @@
     }
   }
 
-  function addStyle() {
-    if (document.getElementById("dream-nextgen-style")) return;
-    var link = document.createElement("link");
-    link.id = "dream-nextgen-style";
-    link.rel = "stylesheet";
-    link.href = "/nextgen-visual.css?v=20261001";
-    document.head.appendChild(link);
-  }
-
-  function card(role, title, text, panel, glow) {
-    return (
-      '<button type="button" class="de-role-card de-magnetic" data-action="open" ' +
-      'data-panel="' + panel + '" style="--role-glow:' + glow + '">' +
-      '<small>' + role + '</small>' +
-      '<strong>' + title + '</strong>' +
-      '<span>' + text + '</span>' +
-      '</button>'
-    );
-  }
-
-  function inject() {
+  function injectCompactLanding() {
     var hero = document.querySelector(".hero");
-    if (!hero || hero.dataset.nextgenReady === "1") return;
-    hero.dataset.nextgenReady = "1";
-    hero.classList.add("de-nextgen-visual");
+    var content = hero && hero.querySelector(".hero-content");
+    var search = document.querySelector(".dream-search-section");
+    var searchShell = search && search.querySelector(".dream-search-shell");
+    if (!hero || !content || hero.dataset.compactReady === "1") return;
+    hero.dataset.compactReady = "1";
+    document.body.classList.add("de-compact-landing");
+    hero.classList.add("de-compact-hero");
 
-    var content = hero.querySelector(".hero-content");
-    if (content) {
-      var command = document.createElement("section");
-      command.className = "de-hero-command";
-      command.setAttribute("aria-label", "Dream Education intelligence overview");
-      command.innerHTML =
-        '<div class="de-command-main">' +
-          '<span class="de-command-kicker">Global Learning Intelligence</span>' +
-          '<h3>Your learning system is more than a dashboard.</h3>' +
-          '<p>Dream Education connects knowledge, learning state, evidence, progress and the next best action into one intelligent experience.</p>' +
-        '</div>' +
-        '<div class="de-command-side">' +
-          '<div class="de-command-orbit"><div class="de-orbit" aria-hidden="true"></div></div>' +
-          '<div class="de-command-stat"><b>AI</b><span>Intelligence</span></div>' +
-          '<div class="de-command-stat"><b>∞</b><span>Learning paths</span></div>' +
-          '<div class="de-command-stat"><b>24/7</b><span>Knowledge access</span></div>' +
-        '</div>';
-      content.appendChild(command);
+    // Put the existing, wired Dream Search UI inside the hero so the landing is one screen.
+    if (searchShell) {
+      searchShell.classList.add("de-compact-search");
+      content.appendChild(searchShell);
+      search.remove();
     }
 
-    // Preserve every existing landing destination and section.
-    // The role strip and capability cards supplement the original gateway grid;
-    // they must never hide existing Connect, AI Lab, School, Dream/About or CTA entry points.
+    // One compact navigation grid keeps every primary destination accessible without duplicate legacy sections.
+    var destinations = document.createElement("nav");
+    destinations.className = "de-landing-destinations";
+    destinations.setAttribute("aria-label", "Dream Education destinations");
+    destinations.innerHTML =
+      '<button type="button" data-action="open" data-panel="learn"><small>01 · LEARNER</small><strong>Learn</strong><span>Adaptive learning →</span></button>' +
+      '<button type="button" data-action="open" data-panel="teach"><small>02 · EDUCATOR</small><strong>Teach</strong><span>Teaching tools →</span></button>' +
+      '<button type="button" data-action="open" data-panel="connect"><small>03 · COMMUNITY</small><strong>Connect</strong><span>Parents & meetings →</span></button>' +
+      '<button type="button" data-action="open" data-panel="tools"><small>04 · INTELLIGENCE</small><strong>AI Lab</strong><span>Create & explore →</span></button>' +
+      '<button type="button" data-action="open" data-panel="school"><small>05 · INSTITUTIONS</small><strong>School</strong><span>School workspace →</span></button>' +
+      '<button type="button" data-action="open" data-panel="about"><small>06 · THE IDEA</small><strong>About Dream</strong><span>Our approach →</span></button>';
+    content.appendChild(destinations);
 
-    var gatewaySection = document.querySelector(".gateway-section");
-    if (!gatewaySection || gatewaySection.dataset.nextgenRoles === "1") return;
-    gatewaySection.dataset.nextgenRoles = "1";
-
-    var roleStrip = document.createElement("section");
-    roleStrip.className = "de-role-strip";
-    roleStrip.setAttribute("aria-label", "Dream Education role experiences");
-    roleStrip.innerHTML =
-      card("LEARNER", "Learn", "Adaptive learning built around your progress.", "learn", "rgba(125,231,255,.16)") +
-      card("TEACHER", "Teach", "See learning evidence and guide learners.", "teach", "rgba(155,124,255,.16)") +
-      card("PARENT", "Support", "Stay connected to meaningful learning progress.", "connect", "rgba(223,255,99,.13)") +
-      card("SCHOOL", "Scale", "Bring your learning community together.", "school", "rgba(255,122,217,.13)");
-    gatewaySection.parentNode.insertBefore(roleStrip, gatewaySection);
-
-    var featureGrid = document.createElement("section");
-    featureGrid.className = "de-feature-grid";
-    featureGrid.setAttribute("aria-label", "Dream Education platform capabilities");
-    featureGrid.innerHTML =
-      '<article class="de-feature-card featured">' +
-        '<span class="de-command-kicker">ADAPTIVE INTELLIGENCE</span>' +
-        '<h3>The interface should understand the learner.</h3>' +
-        '<p>Learning state, misconceptions, retention, transfer readiness and next-best actions can surface as clear decisions instead of buried analytics.</p>' +
-        '<div class="de-feature-meter"><div><span>Learning signal</span><b>LIVE</b></div><i></i></div>' +
-        '<div class="de-feature-icon" aria-hidden="true">✦</div>' +
-      '</article>' +
-      '<article class="de-feature-card"><span class="de-command-kicker">KNOWLEDGE</span><h3>Evidence</h3><p>Ground learning experiences in connected knowledge sources.</p><div class="de-feature-icon" aria-hidden="true">◌</div></article>' +
-      '<article class="de-feature-card"><span class="de-command-kicker">PORTFOLIO</span><h3>Proof</h3><p>Turn learning activity into visible evidence of growth.</p><div class="de-feature-icon" aria-hidden="true">↗</div></article>';
-    gatewaySection.parentNode.insertBefore(featureGrid, gatewaySection);
-
-    // Keep both role shortcuts and the complete original gateway grid visible.
-    // Role shortcuts are convenience entry points, not replacements for existing destinations.
-    roleStrip.querySelectorAll("[data-action=\"open\"]").forEach(function (button) {
-      button.setAttribute("aria-label", button.textContent.trim() + " workspace");
+    // The compact page supersedes the old long-form landing sections; workspaces stay in the shared panel.
+    document.querySelectorAll(".gateway-section, .statement-section, .cta-section, .landing-subscribe, .footer").forEach(function (node) {
+      node.remove();
     });
+    var floating = hero.querySelectorAll(".floating-card, .scroll-hint");
+    floating.forEach(function (node) { node.remove(); });
 
-    enableMagnetics();
+    var command = content.querySelector(".de-hero-command");
+    if (command) command.remove();
+    document.querySelectorAll(".de-role-strip, .de-feature-grid").forEach(function (node) { node.remove(); });
   }
 
-  function enableMagnetics() {
-    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    var finePointer = window.matchMedia ? window.matchMedia("(pointer:fine)").matches : false;
-    if (!finePointer) return;
-
-    document.querySelectorAll(".de-magnetic").forEach(function (el) {
-      el.addEventListener("pointermove", function (event) {
-        var r = el.getBoundingClientRect();
-        var x = (event.clientX - r.left) / r.width - 0.5;
-        var y = (event.clientY - r.top) / r.height - 0.5;
-        el.style.transform = "translate(" + (x * 5) + "px," + (y * 5) + "px)";
-      });
-      el.addEventListener("pointerleave", function () {
-        el.style.transform = "";
-      });
-    });
-  }
-
-  ready(function () {
-    addStyle();
-    inject();
-  });
+  ready(injectCompactLanding);
 })();
