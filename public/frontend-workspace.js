@@ -944,5 +944,8 @@
    */
   window.openCodingLab = openCodingLab;
   window.openCodingLearning = openCodingLearning;
+  // Expose the canonical Learn hub so the landing-page navigation opens the
+  // same compact workspace as the in-workspace buttons.
+  window.openDreamLearningHub = openWorkspace;
 
 })();

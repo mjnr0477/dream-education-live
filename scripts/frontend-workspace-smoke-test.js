@@ -13,6 +13,12 @@ assert(workspace.includes('"/api/v1/role/"'));
 assert(workspace.includes('"/api/progress/"'));
 assert(workspace.includes('"/api/v1/learner/"'));
 assert(workspace.includes("data-de-workspace"));
+assert(workspace.includes("window.openDreamLearningHub = openWorkspace"), "The compact Learn hub must be exposed to the landing-page dashboard entry point.");
+assert(/if \(typeof window\.openDreamLearningHub === "function"\)\s*\{\s*window\.openDreamLearningHub\(\);\s*return;/.test(readApp()), "Authenticated Start learning must open the compact Learn hub instead of the legacy dashboard.");
+
+function readApp() {
+  return fs.readFileSync("public/app.js", "utf8");
+}
 assert(workspace.includes("escapeHTML"));
 assert(css.includes(".de-workspace"));
 assert(css.includes("@media (prefers-reduced-motion: reduce)"));
