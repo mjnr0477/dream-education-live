@@ -83,6 +83,66 @@ async function main() {
   assert.strictEqual(resendFailureResult.status, 403);
   assert.strictEqual(resendFailureResult.data.message, 'Sender domain is not verified');
 
+  let gmailApiCalls = [];
+  const gmailApiConfigured = buildNativeMessengerConnectors({
+    GMAIL_USER: 'dream.education@gmail.com',
+    GMAIL_OAUTH_CLIENT_ID: 'client-id.apps.googleusercontent.com',
+    GMAIL_OAUTH_CLIENT_SECRET: 'client-secret',
+    GMAIL_OAUTH_REFRESH_TOKEN: 'refresh-token',
+    GMAIL_OAUTH_ACCESS_TOKEN: 'expired-access-token',
+    RESEND_API_KEY: 're_test_key',
+    EMAIL_FROM: 'Dream Education <unverified@gmail.com>'
+  }, {
+    emailRecipients: ['test-recipient@example.org'],
+    fetchImpl: async (url, init) => {
+      gmailApiCalls.push({ url, init });
+      if (url === 'https://oauth2.googleapis.com/token') {
+        return { ok: true, status: 200, json: async () => ({ access_token: 'fresh-access-token' }) };
+      }
+      return { ok: true, status: 200, json: async () => ({ id: 'gmail_message_123', threadId: 'gmail_thread_123' }) };
+    }
+  });
+  const gmailApi = gmailApiConfigured.find((connector) => connector.id === 'email-gmail-api-native');
+  assert.ok(gmailApi, 'Gmail OAuth API must be selected when OAuth credentials are configured');
+  assert.strictEqual(gmailApiConfigured.filter((connector) => connector.platform === 'email').length, 1,
+    'Gmail OAuth API must take precedence over unverified Resend and Gmail SMTP');
+  const gmailApiResult = await gmailApi.channels[0].send({
+    body: 'Dream Education Gmail API test',
+    subject: 'Gmail API test',
+    recipient: { email: 'test-recipient@example.org' }
+  });
+  assert.strictEqual(gmailApiResult.success, true, 'Gmail API acceptance must be reported as successful');
+  assert.strictEqual(gmailApiResult.data.provider, 'gmail-api');
+  assert.strictEqual(gmailApiCalls[0].url, 'https://oauth2.googleapis.com/token');
+  assert.strictEqual(gmailApiCalls[0].init.method, 'POST');
+  assert.match(gmailApiCalls[0].init.body, /grant_type=refresh_token/);
+  assert.strictEqual(gmailApiCalls[1].url, 'https://gmail.googleapis.com/gmail/v1/users/me/messages/send');
+  assert.strictEqual(gmailApiCalls[1].init.headers.Authorization, 'Bearer fresh-access-token');
+  const gmailApiPayload = JSON.parse(gmailApiCalls[1].init.body);
+  assert.ok(gmailApiPayload.raw, 'Gmail API request must include a Base64URL MIME message');
+  assert.match(gmailApiPayload.raw, /^[A-Za-z0-9_-]+$/);
+  assert.strictEqual(gmailApiResult.data.id, 'gmail_message_123');
+
+  const gmailOAuthInvalid = buildNativeMessengerConnectors({
+    GMAIL_USER: 'dream.education@gmail.com',
+    GMAIL_OAUTH_CLIENT_ID: 'client-id',
+    GMAIL_OAUTH_CLIENT_SECRET: 'client-secret',
+    GMAIL_OAUTH_REFRESH_TOKEN: 'bad-refresh-token'
+  }, {
+    emailRecipients: ['test-recipient@example.org'],
+    fetchImpl: async () => ({
+      ok: false,
+      status: 400,
+      json: async () => ({ error: 'invalid_grant', error_description: 'Token has been expired or revoked.' })
+    })
+  });
+  const invalidOAuthResult = await gmailOAuthInvalid
+    .find((connector) => connector.id === 'email-gmail-api-native')
+    .channels[0].send({ body: 'test', recipient: { email: 'test-recipient@example.org' } });
+  assert.strictEqual(invalidOAuthResult.success, false, 'Invalid OAuth refresh token must not report delivery');
+  assert.strictEqual(invalidOAuthResult.status, 400);
+  assert.match(invalidOAuthResult.data.error, /expired or revoked/i);
+
   const gmailOnly = buildNativeMessengerConnectors({
     GMAIL_USER: 'dream.education@gmail.com',
     GMAIL_APP_PASSWORD: 'test-app-password',
@@ -109,8 +169,10 @@ async function main() {
     'Resend delivery must remain available when Gmail is not configured');
 
   const server = require('fs').readFileSync(require('path').join(__dirname, '..', 'server.js'), 'utf8');
-  assert.ok(server.includes('const gmailConfigured ='),
-    'Ad-hoc owner email broadcasts must recognize Gmail SMTP credentials');
+  assert.ok(server.includes('const gmailOAuthConfigured ='),
+    'Ad-hoc owner email broadcasts must recognize Gmail OAuth credentials');
+  assert.ok(server.includes('GMAIL_OAUTH_REFRESH_TOKEN'),
+    'Ad-hoc owner email broadcasts must allow Gmail API configuration without SMTP');
   assert.ok(server.includes('!resendConfigured && !gmailConfigured'),
     'Email broadcast gate must allow either configured Gmail or configured Resend');
 
