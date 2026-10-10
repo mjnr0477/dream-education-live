@@ -23,7 +23,7 @@ assert.match(search, /search\(cleanQuery, null, state\.resultsStatus, state\.res
 
 console.log('DREAM SEARCH FRONTEND SYNTAX SMOKE TEST: PASS');
 
-const searchCss = fs.readFileSync(path.join(root, 'public', 'dream-search.css'), 'utf8');
+const searchCss = fs.readFileSync('public/dream-search.css', 'utf8');
 assert.match(searchCss, /\.dream-search-page-shell\{max-width:1440px;width:100%\}/, 'results view should use a wider content shell');
 assert.match(searchCss, /min\(100%,520px\)/, 'result cards should have a wider desktop layout');
 assert.match(searchCss, /max-height:480px/, 'evidence media should use more of the available results space');
