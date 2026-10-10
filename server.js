@@ -6353,13 +6353,18 @@ app.post("/api/product/connect/messenger/broadcast", async (req, res) => {
       const resendConfigured =
         Boolean(String(process.env.RESEND_API_KEY || "").trim()) &&
         Boolean(String(process.env.EMAIL_FROM || "").trim());
+      const gmailOAuthConfigured =
+        Boolean(String(process.env.GMAIL_USER || "").trim()) &&
+        Boolean(String(process.env.GMAIL_OAUTH_CLIENT_ID || "").trim()) &&
+        Boolean(String(process.env.GMAIL_OAUTH_CLIENT_SECRET || "").trim()) &&
+        Boolean(String(process.env.GMAIL_OAUTH_REFRESH_TOKEN || process.env.GMAIL_OAUTH_ACCESS_TOKEN || "").trim());
       const gmailConfigured =
         Boolean(String(process.env.GMAIL_USER || "").trim()) &&
         Boolean(String(process.env.GMAIL_APP_PASSWORD || "").trim());
-      if (emailRecipients.length && !resendConfigured && !gmailConfigured) {
+      if (emailRecipients.length && !gmailOAuthConfigured && !resendConfigured && !gmailConfigured) {
         return res.status(503).json({
           success: false,
-          error: "Email delivery is not configured yet. Configure Gmail with GMAIL_USER and GMAIL_APP_PASSWORD, or Resend with RESEND_API_KEY and EMAIL_FROM."
+          error: "Email delivery is not configured yet. Configure Gmail OAuth with GMAIL_OAUTH_CLIENT_ID, GMAIL_OAUTH_CLIENT_SECRET and GMAIL_OAUTH_REFRESH_TOKEN, Gmail SMTP where supported, or Resend with a verified sender."
         });
       }
     }
