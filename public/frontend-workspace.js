@@ -805,26 +805,35 @@
   }
 
   function openAdaptive() {
+    // Route directly to the existing adaptive engine. Returning to the landing
+    // Learn panel here would loop the learner back to the hub instead of a lesson.
+    if (typeof window.openAdaptiveQuestion === "function") {
+      window.openAdaptiveQuestion();
+      return;
+    }
     const body = document.querySelector("#panel-body");
-    if (!body) return;
-    const button = body.querySelector('[data-panel-action="adaptive-learning"]');
+    const button = body && body.querySelector('[data-panel-action="adaptive-learning"]');
     if (button) {
       button.click();
       return;
     }
-    const learnerButton = document.querySelector('[data-action="open"][data-panel="learn"]');
-    if (learnerButton) learnerButton.click();
+    renderError("Adaptive learning is temporarily unavailable. Please try again.");
   }
 
   function openAsk() {
+    // Reuse the established Ask Dream surface rather than reopening the landing
+    // Learn panel, which makes the Ask Dream hub button appear unresponsive.
+    if (window.DreamEducationLearner && typeof window.DreamEducationLearner.openAsk === "function") {
+      window.DreamEducationLearner.openAsk();
+      return;
+    }
     const body = document.querySelector("#panel-body");
     const button = body && body.querySelector('[data-panel-action="ask-dream"]');
     if (button) {
       button.click();
       return;
     }
-    const learn = document.querySelector('[data-action="open"][data-panel="learn"]');
-    if (learn) learn.click();
+    renderError("Ask Dream is temporarily unavailable. Please try again.");
   }
 
   function openAccount() {
