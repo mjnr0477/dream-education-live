@@ -117,10 +117,8 @@ async function main() {
   console.log('Universal Connector email provider selection smoke test: PASS');
 }
 
-try {
-  main().catch((error) => {\n    console.error(error);\n    process.exit(1);\n  });
-} catch (error) {
+main().catch((error) => {
   console.error('Universal Connector email provider selection smoke test: FAIL');
   console.error(error);
   process.exit(1);
-}
+});
