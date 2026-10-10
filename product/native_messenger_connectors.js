@@ -393,7 +393,7 @@ function buildNativeMessengerConnectors(env = process.env, options = {}) {
           }
 
           const safeSubject = String(subject || env.EMAIL_DEFAULT_SUBJECT || 'Message from Dream Education')
-            .replace(/[\\r\\n]/g, ' ').trim().slice(0, 200);
+            .replace(/[\r\n]/g, ' ').trim().slice(0, 200);
           const encodedSubject = '=?UTF-8?B?' + Buffer.from(safeSubject, 'utf8').toString('base64') + '?=';
           const mime = [
             'From: Dream Education <' + gmailUser + '>',
@@ -403,10 +403,10 @@ function buildNativeMessengerConnectors(env = process.env, options = {}) {
             'Content-Type: text/plain; charset=UTF-8',
             'Content-Transfer-Encoding: base64',
             '',
-            (Buffer.from(String(body || ''), 'utf8').toString('base64').match(/.{1,76}/g) || ['']).join('\\r\\n')
-          ].join('\\r\\n');
+            (Buffer.from(String(body || ''), 'utf8').toString('base64').match(/.{1,76}/g) || ['']).join('\r\n')
+          ].join('\r\n');
           const raw = Buffer.from(mime, 'utf8').toString('base64')
-            .replace(/\\+/g, '-').replace(/\\//g, '_').replace(/=+$/g, '');
+            .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
           const response = await emailFetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
             method: 'POST',
             headers: {
