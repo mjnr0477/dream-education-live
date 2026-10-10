@@ -322,7 +322,7 @@ body.de-compact-landing { overflow-x: hidden; }
 body.de-compact-landing .app-shell { min-height: 100svh; height: 100svh; overflow: hidden; }
 body.de-compact-landing .navbar { height: 68px; padding: 0 clamp(16px, 4vw, 52px); }
 body.de-compact-landing .hero {
-  height: 100svh; min-height: 620px; max-height: 100svh;
+  height: 100svh; min-height: 0; max-height: 100svh;
   padding: 76px clamp(14px, 4vw, 48px) 18px; align-items: center; overflow-y: auto;
 }
 body.de-compact-landing .hero-content { width: min(1040px, 100%); margin: 0 auto; }
@@ -383,6 +383,9 @@ body.de-compact-landing .noise { z-index: 50; }
   body.de-compact-landing .hero-actions button { padding: 10px 13px; font-size: 11px; }
   body.de-compact-landing .dream-search-shell.de-compact-search { margin-top: 13px; }
   body.de-compact-landing .dream-search-copy { font-size: 10px; }
+  body.de-compact-landing .dream-search-box { flex-direction: row; gap: 6px; padding: 5px; }
+  body.de-compact-landing .dream-search-box input { padding: 10px 8px; font-size: 12px; }
+  body.de-compact-landing .dream-search-button { width: auto; padding: 10px 12px; font-size: 11px; }
 }
 @media (max-height: 700px) {
   body.de-compact-landing .hero { min-height: 100svh; }
