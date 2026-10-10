@@ -30,7 +30,7 @@ const requiredFrontendRoutes = [
   "/api/auth/register",
   "/api/auth/login",
   "/api/adaptive",
-  "/api/next-question",
+  "/api/v1/learning/resources",
   "/api/session",
   "/api/product/teacher",
   "/api/product/parent",
