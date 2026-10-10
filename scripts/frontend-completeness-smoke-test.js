@@ -104,6 +104,10 @@ if (!app.includes('if (action === "signin") {') || !app.includes('openPanel("sig
   throw new Error("Dynamically rendered sign-in actions must open the shared sign-in panel.");
 }
 
+if (!app.includes('if (action === "close") {') || !app.includes("closePanel();")) {
+  throw new Error("Dynamically rendered close actions must close the shared panel.");
+}
+
 if (!index.includes('data-panel-action="subscription"') || !app.includes("function openSubscription") || !app.includes("handlePayPalReturn")) {
   throw new Error("Subscription/PayPal flow is missing.");
 }
