@@ -326,6 +326,7 @@ function buildNativeMessengerConnectors(env = process.env, options = {}) {
   // Credentials are kept in server environment variables, never in the browser.
   const resendApiKey = String(env.RESEND_API_KEY || '').trim();
   const emailFrom = String(env.EMAIL_FROM || '').trim();
+  const emailFetch = typeof options.fetchImpl === 'function' ? options.fetchImpl : fetch;
   const configuredEmailRecipients = Array.isArray(options.emailRecipients)
     ? options.emailRecipients
     : splitList(env.EMAIL_BROADCAST_TO);
@@ -394,7 +395,7 @@ function buildNativeMessengerConnectors(env = process.env, options = {}) {
           if (!isValidEmailAddress(to)) {
             return { success: false, status: 400, data: { error: 'A valid email recipient is required.' } };
           }
-          const response = await fetch('https://api.resend.com/emails', {
+          const response = await emailFetch('https://api.resend.com/emails', {
             method: 'POST',
             headers: {
               'Authorization': 'Bearer ' + resendApiKey,
