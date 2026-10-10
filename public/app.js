@@ -1086,6 +1086,87 @@ function escapeHTML(value) {
     });
   }
 
+  function renderAboutDream() {
+    return `
+      <div class="de-workspace de-about-dream">
+        <section class="de-section de-highlight de-about-hero">
+          <span class="de-eyebrow">OUR PURPOSE · OUR FUTURE</span>
+          <h2>Education that understands the learner.</h2>
+          <p>A vision for more accessible, personal and adaptive education — connecting learners, teachers, parents and schools in one learning environment.</p>
+          <div class="de-actions">
+            <button type="button" class="de-action" data-about-jump="vision">Our vision</button>
+            <button type="button" class="de-action primary" data-about-jump="learning-cycle">How it works ↓</button>
+          </div>
+        </section>
+
+        <section class="de-section de-about-section" id="de-about-vision">
+          <span class="de-eyebrow">01 / THE VISION</span>
+          <h3>Learning without unnecessary barriers.</h3>
+          <p>Dream Education aims to make quality learning more accessible, regardless of where a person lives or their financial circumstances. Our goal is to use technology to make learning more personal, understandable and effective.</p>
+          <div class="de-list">
+            <div class="de-list-item"><strong>A global learning vision</strong><span>Built with the needs of Kenyan learners in mind, with the ambition to serve a wider global learning community.</span></div>
+            <div class="de-list-item"><strong>Our mission</strong><span>Build an accessible, intelligent and adaptive learning platform that helps people learn better and gives educational communities better ways to support progress.</span></div>
+          </div>
+        </section>
+
+        <section class="de-section de-about-section" id="de-about-learning-cycle">
+          <span class="de-eyebrow">02 / THE LEARNING CYCLE</span>
+          <h3>Not just answers. Real understanding.</h3>
+          <p>The platform is designed around a continuous learning cycle: understand what a learner knows, identify gaps, provide relevant teaching, assess progress and guide the next learning step.</p>
+          <div class="de-list">
+            <div class="de-list-item"><strong>01 · Understand</strong><span>Start with a learner's question, topic or current understanding.</span></div>
+            <div class="de-list-item"><strong>02 · Teach</strong><span>Provide explanations and learning materials suited to the topic and learner.</span></div>
+            <div class="de-list-item"><strong>03 · Assess</strong><span>Check the learner's response and look for evidence of understanding.</span></div>
+            <div class="de-list-item"><strong>04 · Adapt</strong><span>Use learning evidence to guide the next appropriate step.</span></div>
+          </div>
+        </section>
+
+        <section class="de-section de-about-section" id="de-about-community">
+          <span class="de-eyebrow">03 / ONE LEARNING COMMUNITY</span>
+          <h3>Everyone has a role in education.</h3>
+          <div class="de-list">
+            <div class="de-list-item"><strong>Learners</strong><span>Explore subjects, practise skills and build understanding.</span></div>
+            <div class="de-list-item"><strong>Teachers</strong><span>Guide learning, support learners and follow progress.</span></div>
+            <div class="de-list-item"><strong>Parents</strong><span>Stay connected to children's learning and progress.</span></div>
+            <div class="de-list-item"><strong>Schools</strong><span>Bring learning, teaching and educational support into a connected environment.</span></div>
+            <div class="de-list-item"><strong>Meetings and communication</strong><span>Help the people around learning collaborate and stay connected.</span></div>
+          </div>
+        </section>
+
+        <section class="de-section de-about-section" id="de-about-commitment">
+          <span class="de-eyebrow">04 / OUR COMMITMENT</span>
+          <h3>Technology should serve learning.</h3>
+          <div class="de-list">
+            <div class="de-list-item"><strong>Accuracy and evidence</strong><span>Work toward reliable information supported by relevant evidence and sources.</span></div>
+            <div class="de-list-item"><strong>Adaptability</strong><span>Support different learning needs, levels and approaches.</span></div>
+            <div class="de-list-item"><strong>Accessibility</strong><span>Make learning easier to reach and use across the learning community.</span></div>
+            <div class="de-list-item"><strong>Continuous improvement</strong><span>Improve the platform through testing, feedback and responsible development.</span></div>
+          </div>
+          <p>These are the standards Dream Education is working toward, not a claim that every feature or outcome is already perfect.</p>
+        </section>
+
+        <section class="de-section de-about-section" id="de-about-founder">
+          <span class="de-eyebrow">05 / THE FOUNDER'S STORY</span>
+          <h3>A vision worth building.</h3>
+          <p>Dream Education is being developed around a simple idea: education can do more than deliver information. It can help people understand, practise, receive feedback and keep improving. The founder's story is part of that journey — building toward a future where more learners have opportunities to grow.</p>
+          <div class="de-about-signoff">
+            <strong>Dream bigger. Learn deeper.</strong>
+            <span>Learn better. Understand deeper. Grow further.</span>
+          </div>
+        </section>
+
+        <section class="de-section de-highlight de-about-cta">
+          <h3>Ready to explore?</h3>
+          <p>Discover the learning, teaching and connection spaces available in Dream Education.</p>
+          <div class="de-actions">
+            <button type="button" class="de-action primary" data-about-explore>Explore Dream Education →</button>
+            <button type="button" class="de-action" data-action="close">Close About Dream</button>
+          </div>
+        </section>
+      </div>
+    `;
+  }
+
   function openPanel(name) {
     const existingAuth = getAuth();
 
@@ -1124,6 +1205,8 @@ function escapeHTML(value) {
 
     if (experience.form) {
       body = renderAuthForm(experience.form);
+    } else if (name === "about") {
+      body = renderAboutDream();
     } else {
       body += renderCards(experience.cards);
       body += renderActions(experience);
@@ -1137,6 +1220,22 @@ function escapeHTML(value) {
 
     updateLearnerFieldsVisibility();
   }
+
+  // About Dream section controls stay inside the existing experience panel.
+  document.addEventListener("click", function (event) {
+    const jump = event.target.closest("[data-about-jump]");
+    if (jump) {
+      const sectionName = jump.getAttribute("data-about-jump");
+      const target = document.getElementById("de-about-" + sectionName);
+      if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+
+    const explore = event.target.closest("[data-about-explore]");
+    if (explore) {
+      openPanel("explore");
+    }
+  });
 
   function closePanel() {
     if (!panel) {
