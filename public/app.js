@@ -6506,6 +6506,15 @@ function getDreamEducationAuth() {
 }
 
 async function openLearnerDashboard() {
+  // The compact, media-first Learn hub is the canonical learner landing screen.
+  // Keep the legacy dashboard renderer as a fallback only if the workspace bundle
+  // is unavailable; this prevents the old information-heavy dashboard from
+  // shadowing the new Learning Feed / Learner Progress hub.
+  if (typeof window.openDreamLearningHub === "function") {
+    window.openDreamLearningHub();
+    return;
+  }
+
   const panelBody = document.getElementById("panel-body");
 
   if (!panelBody) return;
