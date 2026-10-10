@@ -82,7 +82,7 @@ body.dream-search-page-open{overflow:auto}
 .dream-search-page-shell{max-width:1440px;width:100%}
 .dream-search-page-title,.dream-search-page-copy,.dream-search-page-form,.dream-search-page-status{width:100%}
 .dream-search-page-copy{max-width:900px}
-.dream-search-page-results{width:100%;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:22px;margin-top:28px}
+.dream-search-page-results{width:100%;grid-template-columns:minmax(0,1fr);gap:22px;margin-top:28px}
 .dream-search-page-results .dream-search-result h3{font-size:clamp(21px,2vw,26px);padding:22px 24px 14px}
 .dream-search-page-results .dream-search-evidence img,.dream-search-page-results .dream-search-evidence video{height:clamp(260px,28vw,480px);max-height:480px;min-height:240px}
 .dream-search-page-results .dream-search-evidence-text{font-size:16px;line-height:1.75;padding:20px 24px 12px}
