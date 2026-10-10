@@ -155,35 +155,33 @@
   }
 
   function renderResource(resource, index) {
-    const type = resource.type || "text";
+    const type = resource.type || "video";
     const title = resource.title || "Learning material";
     const description = resource.description || "";
-    const content = resource.content || description || "This material is ready to study.";
-    const mediaUrl = resource.media_url || "";
+    const mediaUrl = resource.media_url || resource.thumbnail || "";
     const embedUrl = resource.embed_url || "";
     const provider = resource.source || resource.provider || "Learning source";
     let media = "";
 
-    if (type === "video" && embedUrl) {
-      media = '<div class="de-resource-video"><iframe src="' + escapeHTML(embedUrl) + '" title="' + escapeHTML(title) + '" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>';
+    if (type === "image" && mediaUrl) {
+      media = '<div class="de-feed-media de-feed-image-stage"><img class="de-feed-image" src="' + escapeHTML(mediaUrl) + '" alt="' + escapeHTML(title) + '" loading="lazy" referrerpolicy="no-referrer"></div>';
+    } else if (type === "video" && embedUrl) {
+      media = '<div class="de-feed-media"><iframe src="' + escapeHTML(embedUrl) + '" title="' + escapeHTML(title) + '" loading="lazy" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>';
     } else if (type === "video" && mediaUrl) {
-      media = '<video class="de-resource-video-player" controls preload="metadata" src="' + escapeHTML(mediaUrl) + '" data-resource-media="video"></video>';
-    } else if (type === "audio" && mediaUrl) {
-      media = '<div class="de-resource-audio"><div class="de-resource-audio-title">Listen here</div><audio controls preload="metadata" src="' + escapeHTML(mediaUrl) + '" data-resource-media="audio"></audio></div>';
-    } else if (type === "audio" && embedUrl) {
-      media = '<div class="de-resource-video de-resource-audio-embed"><iframe src="' + escapeHTML(embedUrl) + '" title="' + escapeHTML(title) + '" loading="lazy" allow="autoplay" allowfullscreen></iframe></div>';
-    } else if (type === "text") {
-      media = '<div class="de-resource-text">' + escapeHTML(content).replace(/\n/g, "<br>") + '</div>';
+      media = '<div class="de-feed-media"><video controls playsinline preload="metadata" src="' + escapeHTML(mediaUrl) + '" data-resource-media="video"></video></div>';
+    } else if (type === "experiment" && embedUrl) {
+      media = '<div class="de-feed-media de-feed-experiment"><iframe src="' + escapeHTML(embedUrl) + '" title="' + escapeHTML(title) + '" loading="lazy" allow="fullscreen; accelerometer; clipboard-write" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>';
     }
 
     const attribution = [resource.creator, resource.license].filter(Boolean).join(" · ");
-    return '<article class="de-resource-card" data-resource-index="' + index + '">' + media +
-      '<div class="de-resource-card-body"><div class="de-resource-meta"><span>' + escapeHTML(resourceTypeLabel(type)) + '</span><span>' + escapeHTML(provider) + '</span></div>' +
-      '<h4>' + escapeHTML(title) + '</h4>' +
-      (description && type !== "text" ? '<p>' + escapeHTML(description.slice(0, 420)) + '</p>' : '') +
+    const typeLabel = type === "image" ? "PHOTO" : type === "experiment" ? "INTERACTIVE EXPERIMENT" : "VIDEO";
+    return '<article class="de-feed-card" data-resource-index="' + index + '">' +
+      '<div class="de-feed-card-head"><span class="de-feed-type">' + escapeHTML(typeLabel) + '</span><span class="de-feed-source">' + escapeHTML(provider) + '</span></div>' +
+      media +
+      '<div class="de-feed-card-body"><h3>' + escapeHTML(title) + '</h3>' +
+      (description ? '<p>' + escapeHTML(description.slice(0, 300)) + '</p>' : '') +
       (attribution ? '<small class="de-muted">' + escapeHTML(attribution) + '</small>' : '') +
-      '<div class="de-resource-source">Source: ' + escapeHTML(provider) + '</div>' +
-      '<div class="de-resource-actions"><button type="button" class="de-action" data-resource-complete="' + index + '">Mark complete</button><button type="button" class="de-action" data-resource-check="' + index + '">Check my understanding</button></div></div></article>';
+      '<div class="de-feed-actions"><button type="button" class="de-action" data-resource-complete="' + index + '">Mark complete</button><button type="button" class="de-action" data-resource-check="' + index + '">Check understanding</button></div></div></article>';
   }
 
   function wireResourceMediaCompletion(container) {
@@ -207,12 +205,12 @@
     window.__dreamResourceResults = resources;
     const intent = data.intent || {};
     if (!resources.length) {
-      return '<div class="de-resource-empty"><strong>No resource was found yet.</strong><p>Try a broader topic or another learning format.</p></div>';
+      return '<div class="de-resource-empty"><strong>No playable materials matched that topic yet.</strong><p>Try a shorter or more specific topic. Dream only shows media it can display inside the learning feed.</p></div>';
     }
 
-    return '<div class="de-resource-summary"><strong>' + escapeHTML(resources.length) +
-      ' learning options found</strong><span>' + escapeHTML(intent.reason || "Dream searched available learning sources.") + '</span></div>' +
-      '<div class="de-resource-grid">' +
+    return '<div class="de-feed-summary"><strong>' + escapeHTML(resources.length) +
+      ' relevant materials</strong><span>' + escapeHTML(intent.reason || "Matched video, photo and interactive experiment sources.") + '</span><span class="de-feed-hint">Scroll down for the next item</span></div>' +
+      '<div class="de-learning-feed" aria-label="Scrollable learning media feed">' +
       resources.map(renderResource).join("") +
       '</div>';
   }
@@ -308,25 +306,25 @@
     }
 
     openPanel(
-      "LEARNING RESOURCES",
-      "Learn your way",
-      "Find text, video and audio learning material for any topic.",
-      '<div class="de-resource-workspace">' +
-        '<form class="de-resource-form" id="de-resource-form">' +
-          '<label for="de-resource-query">What do you want to learn?</label>' +
+      "LEARNING FEED",
+      "Explore a topic",
+      "Search once, then scroll through relevant videos, photos and interactive experiments.",
+      '<div class="de-resource-workspace de-feed-workspace">' +
+        '<form class="de-resource-form de-feed-search" id="de-resource-form">' +
+          '<label for="de-resource-query">What do you want to explore?</label>' +
           '<div class="de-resource-search-row">' +
-            '<input id="de-resource-query" name="q" type="search" required maxlength="300" placeholder="e.g. photosynthesis, electricity, Python loops" value="' + escapeHTML(initialQuery || "") + '">' +
-            '<select id="de-resource-type" name="type" aria-label="Learning format">' +
-              '<option value="any">All learning materials</option>' +
-              '<option value="text">Text</option>' +
-              '<option value="video">Video</option>' +
-              '<option value="audio">Audio</option>' +
+            '<input id="de-resource-query" name="q" type="search" required maxlength="300" autocomplete="off" placeholder="e.g. calculus, photosynthesis, electricity" value="' + escapeHTML(initialQuery || "") + '">' +
+            '<select id="de-resource-type" name="type" aria-label="Feed material type">' +
+              '<option value="video,image,experiment">All media</option>' +
+              '<option value="video">Videos</option>' +
+              '<option value="image">Photos</option>' +
+              '<option value="experiment">Experiments</option>' +
             '</select>' +
-            '<button class="de-action primary" type="submit">Find resources</button>' +
+            '<button class="de-action primary" type="submit">Search feed</button>' +
           '</div>' +
         '</form>' +
         '<div id="de-resource-results" aria-live="polite">' +
-          (initialQuery ? '<div class="de-loading"><span></span><p>Finding the best learning resources...</p></div>' : '<div class="de-resource-empty"><strong>Start with a topic.</strong><p>Dream will choose useful formats when you do not specify one.</p></div>') +
+          (initialQuery ? '<div class="de-loading"><span></span><p>Finding relevant media...</p></div>' : '<div class="de-resource-empty"><strong>Search for a topic to begin.</strong><p>Your feed will contain only relevant videos, photos and interactive experiments that can be shown here.</p></div>') +
         '</div>' +
       '</div>'
     );
@@ -334,31 +332,37 @@
     const form = document.getElementById("de-resource-form");
     const results = document.getElementById("de-resource-results");
     if (!form || !results) return;
+    let searchSequence = 0;
 
     async function search() {
       const query = form.elements.q.value.trim();
       if (!query) return;
-      results.innerHTML = '<div class="de-loading"><span></span><p>Finding learning resources...</p></div>';
+      const sequence = ++searchSequence;
+      results.innerHTML = '<div class="de-loading"><span></span><p>Searching free learning sources...</p></div>';
       try {
-        const type = form.elements.type.value;
         const params = new URLSearchParams({
           q: query,
-          type: type,
+          type: form.elements.type.value,
           learner_id: info.id,
           limit: "12"
         });
         const data = await getJSON("/api/v1/learning/resources?" + params.toString(), auth);
+        if (sequence !== searchSequence) return;
         results.innerHTML = renderResourceResults(data);
         wireResourceMediaCompletion(results);
       } catch (error) {
-        results.innerHTML = '<div class="de-error"><strong>Resource search failed.</strong><p>' +
-          escapeHTML(error.message) + '</p></div>';
+        if (sequence !== searchSequence) return;
+        results.innerHTML = '<div class="de-error"><strong>Feed search failed.</strong><p>' +
+          escapeHTML(error.message) + '</p><button type="button" class="de-action" data-feed-retry>Try again</button></div>';
       }
     }
 
     form.addEventListener("submit", function (event) {
       event.preventDefault();
       search();
+    });
+    results.addEventListener("click", function (event) {
+      if (event.target.closest("[data-feed-retry]")) search();
     });
     if (initialQuery) search();
   }
@@ -411,43 +415,15 @@
         : '<p class="de-muted">No recent learning activity recorded yet.</p>';
 
       panelBody.innerHTML =
-        '<div class="de-workspace">' +
-          '<div class="de-metrics">' +
-            metric("Average score", profile.average_score == null ? "—" : profile.average_score, "Current learning profile") +
-            metric("Difficulty", profile.difficulty || "Adaptive", "Current challenge level") +
-            metric("Strongest", profile.strongest_subject || "—", "Current evidence") +
-            metric("Needs focus", profile.weakest_subject || "—", "Potential next focus") +
-          '</div>' +
-          '<section class="de-section de-highlight">' +
-            '<span class="de-eyebrow">NEXT BEST ACTION</span>' +
-            '<h3>' + escapeHTML(recommendation.action || decision.action || "Continue learning") + '</h3>' +
-            '<p>' + escapeHTML(recommendation.message || "Continue building understanding.") + '</p>' +
-            '<div class="de-actions">' +
-              action("Start adaptive learning", "adaptive", true) +
-              action("Learn with video, pictures or audio", "resources") +
-              action("Ask Dream AI", "ask") +
-              action("Refresh intelligence", "workspace") +
-            '</div>' +
-          '</section>' +
-          '<section class="de-section">' +
-            '<div class="de-section-title"><h3>Next learning question</h3><span>' + escapeHTML(nextQuestion.subject || "General") + '</span></div>' +
-            '<p>' + escapeHTML(nextQuestion.question || "What would you like to learn today?") + '</p>' +
-            '<small class="de-muted">' + escapeHTML(nextQuestionData.based_on ? "Generated from your recorded learning history." : "No previous learning history was available.") + '</small>' +
-          '</section>' +
-          '<div class="de-columns">' +
-            '<section class="de-section"><div class="de-section-title"><h3>Subject picture</h3><span>Evidence</span></div>' +
-              (subjectRows || '<p class="de-muted">Subject evidence will appear as you learn.</p>') +
-            '</section>' +
-            '<section class="de-section"><div class="de-section-title"><h3>Recent learning</h3><span>Latest</span></div>' +
-              '<div class="de-list">' + recentRows + '</div>' +
-            '</section>' +
-          '</div>' +
-          '<div class="de-actions de-bottom-actions">' +
-            action("Find learning resources", "resources") +
-            action("Learning progress", "progress") +
-            action("Learning sessions", "sessions") +
-            action("Connections", "connections") +
-            action("Account", "account") +
+        '<div class="de-workspace de-learn-hub">' +
+          '<section class="de-learn-welcome"><span class="de-eyebrow">YOUR LEARNING SPACE</span><h3>What would you like to do?</h3><p>Choose one action to get started. Your progress and adaptive learning stay connected in the background.</p></section>' +
+          '<div class="de-learn-hub-grid">' +
+            '<button type="button" class="de-learn-tile de-learn-tile-primary" data-de-action="adaptive"><span class="de-learn-tile-icon">↗</span><strong>Adaptive Learning</strong><small>Continue your personalized lesson</small></button>' +
+            '<button type="button" class="de-learn-tile" data-de-action="resources"><span class="de-learn-tile-icon">▤</span><strong>Learning Feed</strong><small>Search videos, photos and experiments</small></button>' +
+            '<button type="button" class="de-learn-tile" data-de-action="ask"><span class="de-learn-tile-icon">?</span><strong>Ask Dream</strong><small>Ask a question or explore an idea</small></button>' +
+            '<button type="button" class="de-learn-tile" data-de-action="progress"><span class="de-learn-tile-icon">◷</span><strong>Learner Progress</strong><small>Open your progress when you need it</small></button>' +
+            '<button type="button" class="de-learn-tile" data-de-action="sessions"><span class="de-learn-tile-icon">▣</span><strong>Learning Sessions</strong><small>Return to your learning activity</small></button>' +
+            '<button type="button" class="de-learn-tile" data-de-action="connections"><span class="de-learn-tile-icon">⌘</span><strong>Connections</strong><small>Reach your learning network</small></button>' +
           '</div>' +
         '</div>';
     } catch (error) {
@@ -965,7 +941,7 @@
 
     const name = target.getAttribute("data-de-action");
     if (name === "workspace") return openWorkspace();
-    if (name === "resources") return openLearningResources();
+    if (name === "resources" || name === "feed") return openLearningResources();
     if (name === "progress") return loadProgress();
     if (name === "sessions") return loadSessions();
     if (name === "connections") return openConnections();
