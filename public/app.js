@@ -2309,7 +2309,7 @@ async function openTeacherLessonStudio() {
   document.body.classList.add("panel-open");
   panel.setAttribute("aria-hidden", "false");
 
-  const escape = value => String(value == null ? "" : value).replace(/[&<>"\']/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"' : "&quot;", "\'": "&#039;" })[character]);
+  const escape = value => String(value == null ? "" : value).replace(/[&<>"']/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[character]);
   const request = async (url, options = {}, timeoutMs = 12000) => {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
