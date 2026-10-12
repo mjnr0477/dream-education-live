@@ -4519,6 +4519,19 @@ async function openMeetings() {
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
 
+  const supportedMeetingUrl = value => {
+    try {
+      const url = new URL(String(value || "").trim());
+      return url.protocol === "https:" && (
+        url.hostname === "meet.google.com" ||
+        url.hostname === "teams.microsoft.com" ||
+        url.hostname === "teams.live.com"
+      ) ? url.href : "";
+    } catch {
+      return "";
+    }
+  };
+
   try {
     const [meetingsResponse, connectionsResponse] = await Promise.all([
       fetchWithTimeout("/api/product/meetings", {
@@ -4578,34 +4591,44 @@ async function openMeetings() {
       return connection.to_id || connection.from_id || "Connected account";
     }
 
+    const providerLabel = provider => ({
+      dream: "Dream Education",
+      jitsi: "Jitsi Meet",
+      "google-meet": "Google Meet",
+      teams: "Microsoft Teams"
+    }[provider] || "Meeting");
+
     const renderMeeting = meeting => `
-      <article class="panel-card">
-        <div class="teacher-dashboard-card-label">
-          ${escapeText(meeting.type || "meeting")}
+      <article class="de-meeting-card">
+        <div class="de-meeting-card-top">
+          <span class="de-meeting-type">${escapeText(String(meeting.type || "meeting").replace(/-/g, " "))}</span>
+          <span class="de-meeting-provider">${escapeText(providerLabel(meeting.provider))}</span>
         </div>
-        <h3>${escapeText(meeting.title)}</h3>
-        <p>
-          ${escapeText(meeting.scheduled_date)}
-          at
-          ${escapeText(meeting.scheduled_time)}
-        </p>
-        <p class="teacher-dashboard-card-label">
-          Status: ${escapeText(meeting.status || "scheduled")}
-        </p>
-        <div class="panel-actions">
-          <button
-            class="panel-action"
-            type="button"
-            data-meeting-action="join"
-            data-meeting-id="${escapeText(meeting.meeting_id)}">
-            Join Meeting
-          </button>
+        <h3>${escapeText(meeting.title || "Meeting")}</h3>
+        <p class="de-meeting-date"><span aria-hidden="true">◷</span> ${escapeText(meeting.scheduled_date)} · ${escapeText(meeting.scheduled_time)}</p>
+        <p class="de-meeting-status">Status: ${escapeText(meeting.status || "scheduled")}</p>
+        <div class="de-meeting-card-actions">
+          <button class="panel-action" type="button" data-meeting-action="join" data-meeting-id="${escapeText(meeting.meeting_id)}">Join meeting <span aria-hidden="true">→</span></button>
         </div>
       </article>
     `;
 
     if (!panelBodyElement.dataset.meetingJoinHandler) {
       panelBodyElement.addEventListener("click", async function (event) {
+        const tab = event.target.closest("[data-meeting-tab]");
+        if (tab) {
+          const selectedTab = tab.dataset.meetingTab;
+          panelBodyElement.querySelectorAll("[data-meeting-tab]").forEach(item => {
+            const active = item === tab;
+            item.classList.toggle("is-active", active);
+            item.setAttribute("aria-selected", active ? "true" : "false");
+          });
+          panelBodyElement.querySelectorAll("[data-meeting-list]").forEach(list => {
+            list.hidden = list.dataset.meetingList !== selectedTab;
+          });
+          return;
+        }
+
         const button = event.target.closest(
           '[data-meeting-action="join"]'
         );
@@ -4641,15 +4664,12 @@ async function openMeetings() {
           window.DreamEducationMeetingRoom =
             data;
 
-          if (
-            data.meeting?.provider === "jitsi" &&
-            data.meeting?.external_url
-          ) {
-            window.open(
-              data.meeting.external_url,
-              "_blank",
-              "noopener,noreferrer"
-            );
+          if (data.meeting?.external_url) {
+            const safeMeetingUrl = supportedMeetingUrl(data.meeting.external_url);
+            if (!safeMeetingUrl) {
+              throw new Error("This meeting link is missing or is not from a supported secure meeting provider.");
+            }
+            window.open(safeMeetingUrl, "_blank", "noopener,noreferrer");
             return;
           }
 
@@ -4691,21 +4711,21 @@ async function openMeetings() {
     const upcomingHTML = upcoming.length
       ? upcoming.map(renderMeeting).join("")
       : `
-        <section class="panel-card">
-          <div class="teacher-dashboard-card-label">UPCOMING</div>
+        <article class="de-meeting-empty">
+          <span class="de-meeting-empty-icon" aria-hidden="true">▣</span>
           <h3>No upcoming meetings</h3>
-          <p>No meetings are currently scheduled.</p>
-        </section>
+          <p>Meetings you schedule with connected people will appear here.</p>
+        </article>
       `;
 
     const pastHTML = past.length
       ? past.map(renderMeeting).join("")
       : `
-        <section class="panel-card">
-          <div class="teacher-dashboard-card-label">PAST</div>
-          <h3>No past meetings</h3>
-          <p>Your completed meetings will appear here.</p>
-        </section>
+        <article class="de-meeting-empty">
+          <span class="de-meeting-empty-icon" aria-hidden="true">◷</span>
+          <h3>No past meetings yet</h3>
+          <p>Your previous meetings will be listed here when their scheduled time has passed.</p>
+        </article>
       `;
 
     const connectionOptions = connections.length
@@ -4719,68 +4739,100 @@ async function openMeetings() {
         `;
 
     panelBodyElement.innerHTML = `
-      <section class="panel-card">
-        <div class="teacher-dashboard-card-label">MEETINGS</div>
-        <h3>Create a meeting</h3>
-        <p>Set up a meeting with an existing active connection.</p>
+      <div class="de-meetings">
+        <section class="de-meetings-hero">
+          <div class="de-meetings-hero-copy">
+            <span class="de-meetings-eyebrow">CONNECTED EDUCATION</span>
+            <h3>Meet, learn and grow together.</h3>
+            <p>One place for lessons, parent conferences and school conversations.</p>
+          </div>
+          <div class="de-meetings-hero-icon" aria-hidden="true">▣</div>
+        </section>
 
-        <label class="panel-label" for="meeting-connection">
-          Connected person
-        </label>
-        <select class="panel-input" id="meeting-connection">
-          <option value="">Select a connected person</option>
-          ${connectionOptions}
-        </select>
+        <section class="de-meeting-stats" aria-label="Meeting overview">
+          <article class="de-meeting-stat"><span class="de-meeting-stat-icon">▦</span><strong>${upcoming.length}</strong><span>Upcoming</span></article>
+          <article class="de-meeting-stat"><span class="de-meeting-stat-icon">◷</span><strong>${past.length}</strong><span>Past meetings</span></article>
+          <article class="de-meeting-stat"><span class="de-meeting-stat-icon">♧</span><strong>${connections.length}</strong><span>Connections</span></article>
+        </section>
 
-        <label class="panel-label" for="meeting-title">Meeting title</label>
-        <input
-          class="panel-input"
-          id="meeting-title"
-          type="text"
-          placeholder="e.g. Mathematics revision"
-        >
+        <section class="de-meeting-create">
+          <div class="de-meeting-section-heading">
+            <span class="de-meetings-eyebrow">GET TOGETHER</span>
+            <h3>Create a meeting</h3>
+            <p>Invite someone already connected to your Dream Education account.</p>
+          </div>
+          <div class="de-meeting-form-grid">
+            <div class="de-meeting-field de-meeting-field-wide">
+              <label class="panel-label" for="meeting-connection">Connected person</label>
+              <select class="panel-input" id="meeting-connection">
+                <option value="">Select a connected person</option>
+                ${connectionOptions}
+              </select>
+            </div>
+            <div class="de-meeting-field de-meeting-field-wide">
+              <label class="panel-label" for="meeting-title">Meeting title</label>
+              <input class="panel-input" id="meeting-title" type="text" maxlength="160" placeholder="e.g. Mathematics revision">
+            </div>
+            <div class="de-meeting-field">
+              <label class="panel-label" for="meeting-type">Meeting type</label>
+              <select class="panel-input" id="meeting-type">
+                <option value="learning">Online lesson</option>
+                <option value="teaching">Teaching session</option>
+                <option value="parent-support">Parent–teacher support</option>
+                <option value="school">School meeting</option>
+              </select>
+            </div>
+            <div class="de-meeting-field">
+              <label class="panel-label" for="meeting-provider">Meeting platform</label>
+              <select class="panel-input" id="meeting-provider">
+                <option value="dream">Dream Education room</option>
+                <option value="jitsi">Jitsi Meet — free room</option>
+                <option value="google-meet">Google Meet — use your meeting link</option>
+                <option value="teams">Microsoft Teams — use your meeting link</option>
+              </select>
+            </div>
+            <div class="de-meeting-field">
+              <label class="panel-label" for="meeting-date">Date</label>
+              <input class="panel-input" id="meeting-date" type="date">
+            </div>
+            <div class="de-meeting-field">
+              <label class="panel-label" for="meeting-time">Time</label>
+              <input class="panel-input" id="meeting-time" type="time">
+            </div>
+            <div class="de-meeting-field de-meeting-field-wide" id="meeting-external-link-wrap" hidden>
+              <label class="panel-label" for="meeting-external-link">Meeting link</label>
+              <input class="panel-input" id="meeting-external-link" type="url" inputmode="url" placeholder="https://meet.google.com/…">
+              <p class="de-meeting-field-help" id="meeting-provider-help">Create the meeting on the selected provider first, then paste its invitation link here.</p>
+            </div>
+          </div>
+          <div class="de-meeting-create-footer">
+            <p id="meeting-create-message" class="de-meeting-message" role="status" aria-live="polite"></p>
+            <button class="panel-action" type="button" id="create-meeting-button" ${connections.length ? "" : "disabled"}>Create meeting <span aria-hidden="true">→</span></button>
+          </div>
+          ${connections.length ? "" : '<p class="de-meeting-no-connections">You need an active connection before scheduling a meeting. Connect with a learner, teacher or parent first.</p>'}
+        </section>
 
-        <label class="panel-label" for="meeting-type">Meeting type</label>
-        <select class="panel-input" id="meeting-type">
-          <option value="learning">Learning</option>
-          <option value="teaching">Teaching</option>
-          <option value="parent-support">Parent support</option>
-          <option value="school">School meeting</option>
-        </select>
+        <section class="de-meeting-schedule">
+          <div class="de-meeting-section-heading">
+            <span class="de-meetings-eyebrow">YOUR SCHEDULE</span>
+            <h3>Meeting calendar</h3>
+          </div>
+          <div class="de-meeting-tabs" role="tablist" aria-label="Meeting schedule">
+            <button type="button" class="de-meeting-tab is-active" data-meeting-tab="upcoming" role="tab" aria-selected="true">Upcoming <span>${upcoming.length}</span></button>
+            <button type="button" class="de-meeting-tab" data-meeting-tab="past" role="tab" aria-selected="false">Past <span>${past.length}</span></button>
+          </div>
+          <div class="de-meeting-list" data-meeting-list="upcoming">${upcomingHTML}</div>
+          <div class="de-meeting-list" data-meeting-list="past" hidden>${pastHTML}</div>
+        </section>
 
-        <label class="panel-label" for="meeting-provider">Meeting platform</label>
-        <select class="panel-input" id="meeting-provider">
-          <option value="dream">Dream Education — built-in meeting</option>
-          <option value="jitsi">Jitsi Meet — external free meeting</option>
-        </select>
-
-        <label class="panel-label" for="meeting-date">Date</label>
-        <input class="panel-input" id="meeting-date" type="date">
-
-        <label class="panel-label" for="meeting-time">Time</label>
-        <input class="panel-input" id="meeting-time" type="time">
-
-        <div class="panel-actions">
-          <button
-            class="panel-action"
-            type="button"
-            id="create-meeting-button"
-            ${connections.length ? "" : "disabled"}
-          >
-            Create Meeting
-          </button>
-        </div>
-
-        <p id="meeting-create-message" class="teacher-dashboard-card-label"></p>
-      </section>
-
-      ${upcomingHTML}
-      ${pastHTML}
-
-      <div class="panel-actions">
-        <button class="panel-action secondary" type="button" data-action="close">
-          Close
-        </button>
+        <section class="de-meeting-tools">
+          <div class="de-meeting-section-heading"><span class="de-meetings-eyebrow">MEETING WORKSPACE</span><h3>Everything around the conversation</h3></div>
+          <div class="de-meeting-tool-grid">
+            <article><span aria-hidden="true">▤</span><strong>Learning materials</strong><p>Keep lesson resources ready to share during a session.</p></article>
+            <article><span aria-hidden="true">✓</span><strong>Attendance & follow-up</strong><p>Use your meeting history to plan the next conversation.</p></article>
+          </div>
+        </section>
+        <div class="panel-actions"><button class="panel-action secondary" type="button" data-action="close">Close</button></div>
       </div>
     `;
 
@@ -4789,6 +4841,31 @@ async function openMeetings() {
 
     const messageElement =
       document.getElementById("meeting-create-message");
+    const providerSelect = document.getElementById("meeting-provider");
+    const externalLinkWrap = document.getElementById("meeting-external-link-wrap");
+    const externalLinkInput = document.getElementById("meeting-external-link");
+    const providerHelp = document.getElementById("meeting-provider-help");
+
+    const syncProviderFields = () => {
+      const provider = providerSelect?.value || "dream";
+      const externalProvider = provider === "google-meet" || provider === "teams";
+      if (externalLinkWrap) externalLinkWrap.hidden = !externalProvider;
+      if (externalLinkInput) {
+        externalLinkInput.required = externalProvider;
+        externalLinkInput.placeholder = provider === "teams"
+          ? "https://teams.microsoft.com/l/meetup-join/…"
+          : "https://meet.google.com/…";
+      }
+      if (providerHelp) {
+        providerHelp.textContent = provider === "teams"
+          ? "Create a Teams meeting in Microsoft Teams, then paste its invitation URL. Dream Education saves the link and opens it when participants join."
+          : "Create a Google Meet in Google Meet, then paste its invitation URL. Dream Education saves the link and opens it when participants join.";
+      }
+    };
+    if (providerSelect) {
+      providerSelect.addEventListener("change", syncProviderFields);
+      syncProviderFields();
+    }
 
     if (createButton) {
       createButton.addEventListener("click", async function () {
@@ -4802,6 +4879,11 @@ async function openMeetings() {
           document.getElementById("meeting-type")?.value;
         const provider =
           document.getElementById("meeting-provider")?.value || "dream";
+        const externalUrlRaw =
+          document.getElementById("meeting-external-link")?.value.trim() || "";
+        const externalUrl = provider === "google-meet" || provider === "teams"
+          ? supportedMeetingUrl(externalUrlRaw)
+          : "";
 
         const scheduledDate =
           document.getElementById("meeting-date")?.value;
@@ -4817,6 +4899,14 @@ async function openMeetings() {
           return;
         }
 
+        if ((provider === "google-meet" || provider === "teams") && !externalUrl) {
+          if (messageElement) {
+            messageElement.textContent = "Paste a valid secure meeting link from the selected provider.";
+          }
+          externalLinkInput?.focus();
+          return;
+        }
+
         createButton.disabled = true;
         createButton.textContent = "Creating...";
 
@@ -4829,6 +4919,7 @@ async function openMeetings() {
               title,
               type,
               provider,
+              external_url: externalUrl || undefined,
               scheduled_date: scheduledDate,
               scheduled_time: scheduledTime
             })
