@@ -277,7 +277,8 @@ function escapeHTML(value) {
 
   function isOwnerAccount(auth) {
     const account = auth?.account || {};
-    return String(account.email || "").trim().toLowerCase() === "mathiassimiyu52@gmail.com";
+    return account.owner_account === true ||
+      String(account.email || auth?.email || "").trim().toLowerCase() === "mathiassimiyu52@gmail.com";
   }
 
   function getAuth() {
@@ -1584,6 +1585,11 @@ document.addEventListener("click", function (event) {
       return;
     }
 
+    if (action === "owner-control-room") {
+      openOwnerControlRoom();
+      return;
+    }
+
     if (action === "close") {
       closePanel();
       return;
@@ -1773,6 +1779,11 @@ if (action === "chat") {
             continueAuth.account.role
           )
         );
+
+      if (isOwnerAccount(continueAuth)) {
+        openOwnerControlRoom();
+        return;
+      }
 
       if (String(continueRole).toLowerCase() === "learner") {
         openAdaptiveQuestion();
@@ -2254,6 +2265,30 @@ function teacherDashboardMarkup(data) {
 
 
 
+
+async function openOwnerControlRoom() {
+  const panel = document.getElementById("experience-panel");
+  const body = document.getElementById("panel-body");
+  const kicker = document.getElementById("panel-kicker");
+  const title = document.getElementById("panel-title");
+  const description = document.getElementById("panel-description");
+  if (!panel || !body) return;
+  kicker.textContent = "DREAM EDUCATION · OWNER";
+  title.textContent = "Owner Control Room";
+  description.textContent = "Open the existing learner, teacher, parent, school and platform workspaces from your owner account.";
+  body.innerHTML = '<section class="panel-card"><h3>Project workspaces</h3><p>Owner access does not change the role or data of other accounts. Choose a workspace to inspect its existing features.</p><div class="panel-actions">' +
+    '<button class="panel-button primary" type="button" data-panel-action="adaptive-learning">Open Learner Workspace</button>' +
+    '<button class="panel-button primary" type="button" data-panel-action="teacher-lesson-studio">Open Teacher Workspace & Lesson Plans</button>' +
+    '<button class="panel-button primary" type="button" data-panel-action="school-dashboard">Open School Workspace</button>' +
+    '<button class="panel-button" type="button" data-panel-action="parent-space">Open Parent Workspace</button>' +
+    '<button class="panel-button" type="button" data-panel-action="meetings">Open Meetings</button>' +
+    '<button class="panel-button" type="button" data-panel-action="universal-connector">Open Universal Connector</button>' +
+    '<button class="panel-button" type="button" data-panel-action="authorized-search">Open Authorized Search</button>' +
+    '<button class="panel-button" type="button" data-panel-action="close">Close</button>' +
+    '</div></section>';
+  document.body.classList.add("panel-open");
+  panel.setAttribute("aria-hidden", "false");
+}
 
 async function openTeacherLessonStudio() {
   const panel = document.getElementById("experience-panel");
