@@ -9,7 +9,7 @@
   function styleOnce() {
     if (document.getElementById(STYLE_ID)) return;
     const link = document.createElement("link");
-    link.id = STYLE_ID; link.rel = "stylesheet"; link.href = "/school-workspace.css?v=20261012a";
+    link.id = STYLE_ID; link.rel = "stylesheet"; link.href = "/school-workspace.css?v=20261012b";
     document.head.appendChild(link);
   }
   function moduleButton(id,label) { return '<button type="button" data-school-module-tab="' + esc(id) + '">' + esc(label) + '</button>'; }
@@ -51,9 +51,17 @@
     const teacherContent = '<div class="school-module-card"><h4>Teacher register</h4><p>Teachers currently associated with school classes.</p><input class="school-module-search" type="search" data-school-table-filter="teachers" placeholder="Search teachers…" aria-label="Search teachers"><div class="school-module-table-wrap"><table class="school-module-table"><thead><tr><th>Teacher</th><th>Assigned classes</th></tr></thead><tbody>' + tableRows(tables.teachers,2) + '</tbody></table></div><p class="school-module-note">Teacher invitations and role assignments must be handled by the authenticated school-management backend.</p></div>';
     const classContent = '<div class="school-module-card"><h4>Classes & subjects</h4><p>Classes and class teachers currently linked to this school.</p><input class="school-module-search" type="search" data-school-table-filter="classes" placeholder="Search classes…" aria-label="Search classes"><div class="school-module-table-wrap"><table class="school-module-table"><thead><tr><th>Class</th><th>Teacher</th><th>Learners</th></tr></thead><tbody>' + tableRows(tables.classes,3) + '</tbody></table></div><p class="school-module-note">Class creation and subject assignments are not exposed here until the server enforces school-scoped permissions.</p></div>';
     const lessons = '<div class="school-module-grid">' +
-      card("▣","Lesson plans","Create structured lessons and keep objectives, lesson steps, teacher notes and assessment questions together.","Open Lesson Studio","teaching") +
-      card("⌕","Knowledge & sources","Use Dream Education’s existing source and knowledge tools to enrich lesson preparation at the learner’s level.","Open AI Lab","lab") +
-      card("▤","Learner materials","Teacher-provided notes and assignments should be published through the authenticated teaching workflow.","Open teaching tools","teaching") + '</div>';
+      '<article class="school-module-card school-lesson-create"><span class="school-module-icon" aria-hidden="true">▣</span><h4>Prepare a complete lesson</h4><p>Generate evidence-backed teaching notes, timed lesson steps and an assessment with answers using Dream’s existing lesson engine.</p>' +
+      '<form id="school-lesson-form"><label>Subject<input name="subject" required minlength="2" maxlength="100" placeholder="e.g. Mathematics"></label>' +
+      '<label>Topic<input name="topic" required minlength="2" maxlength="180" placeholder="e.g. Fractions"></label>' +
+      '<label>Class / learner level<input name="level" required minlength="2" maxlength="100" placeholder="e.g. Grade 6"></label>' +
+      '<label>Lesson duration (minutes)<input name="duration_minutes" type="number" min="15" max="240" value="40" required></label>' +
+      '<label>Curriculum/framework<input name="curriculum" maxlength="180" placeholder="e.g. Kenya CBC/CBE"></label>' +
+      '<label>School needs or teacher instructions<textarea name="instructions" maxlength="1200" rows="3" placeholder="Language needs, local examples, available materials…"></textarea></label>' +
+      '<div class="school-module-actions"><button class="school-module-action primary" type="submit" id="school-lesson-submit">Prepare lesson & assessment</button></div>' +
+      '<p id="school-lesson-feedback" class="school-module-note" aria-live="polite"></p></form></article>' +
+      '<article class="school-module-card"><span class="school-module-icon" aria-hidden="true">✓</span><h4>Saved lesson plans</h4><p>Lesson plans prepared by this signed-in school account appear here after they are saved.</p><div id="school-lesson-saved" aria-live="polite"><p>Loading saved lessons…</p></div><button class="school-module-action" type="button" data-school-module-action="reload-school-lessons">Refresh saved lessons</button></article>' +
+      '</div>';
     const assessments = '<div class="school-module-card"><h4>Assessment register</h4><p>Results currently available from the connected school data.</p><input class="school-module-search" type="search" data-school-table-filter="results" placeholder="Search assessment results…" aria-label="Search assessment results"><div class="school-module-table-wrap"><table class="school-module-table"><thead><tr><th>Assessment / topic</th><th>Learner</th><th>Score</th></tr></thead><tbody>' + tableRows(tables.results,3) + '</tbody></table></div><div class="school-module-actions"><button class="school-module-action primary" type="button" data-school-module-action="teaching">Prepare lesson & questions →</button></div></div>';
     const analytics = '<div class="school-module-grid">' +
       card("▥","Recorded outcomes","The dashboard’s average score and results table reflect only the records returned by the server.","View assessment data","assessments") +
@@ -78,8 +86,74 @@
       const selected = button.getAttribute("data-school-module-tab");
       nav.querySelectorAll("button").forEach(item => item.classList.toggle("active", item === button));
       moduleRoot.querySelectorAll("[data-school-module-panel]").forEach(item => item.classList.toggle("active", item.getAttribute("data-school-module-panel") === selected));
+      if (selected === "lessons") loadSchoolLessons();
     }));
     nav.querySelector('[data-school-module-tab="overview"]').classList.add("active");
+    let schoolLessonsLoading = false;
+    async function loadSchoolLessons() {
+      const target = moduleRoot.querySelector("#school-lesson-saved");
+      if (!target || schoolLessonsLoading) return;
+      const auth = window.DreamEducationUI && typeof window.DreamEducationUI.getAuth === "function"
+        ? window.DreamEducationUI.getAuth() : null;
+      const token = auth && auth.session && auth.session.access_token;
+      if (!token) { target.innerHTML = "<p>Please sign in again to load saved school lessons.</p>"; return; }
+      schoolLessonsLoading = true;
+      target.innerHTML = "<p>Loading saved lessons…</p>";
+      try {
+        const response = await fetch("/api/v1/school/lessons", { headers: { "Accept": "application/json", "Authorization": "Bearer " + token } });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.success) throw new Error(data.error || "Could not load saved lessons.");
+        const saved = Array.isArray(data.lessons) ? data.lessons : [];
+        target.innerHTML = saved.length ? saved.map(lesson => {
+          const steps = lesson.lesson_plan && Array.isArray(lesson.lesson_plan.lesson_steps) ? lesson.lesson_plan.lesson_steps : [];
+          const questions = Array.isArray(lesson.assessment_questions) ? lesson.assessment_questions : [];
+          const sources = Array.isArray(lesson.sources) ? lesson.sources : [];
+          const detail = '<details><summary>Open notes, teaching steps and assessment</summary><div class="school-lesson-detail"><h5>Teaching notes</h5><div>' + esc(lesson.notes || "No notes returned.") + '</div><h5>Timed lesson steps</h5><ol>' + steps.map(step => '<li><strong>' + esc(step.stage || "Lesson step") + ' (' + esc(step.minutes || 0) + ' min)</strong><p>' + esc(step.teacher_actions || "") + '</p><p><em>Learners:</em> ' + esc(step.learner_actions || "") + '</p><p><em>Check:</em> ' + esc(step.checks_for_understanding || "") + '</p></li>').join("") + '</ol><h5>Assessment with answers</h5><ol>' + questions.map(q => '<li><strong>' + esc(q.question || "") + '</strong><p>Answer: ' + esc(q.correct_answer || "Not provided") + '</p><p>' + esc(q.explanation || "") + '</p><small>Marks: ' + esc(q.marks || 1) + '</small></li>').join("") + '</ol><p>' + sources.length + ' source reference(s) attached · ' + esc(lesson.evidence_count || 0) + ' evidence item(s)</p></div></details>';
+          return '<article class="school-module-card school-lesson-saved-card"><h5>' + esc(lesson.subject || "Subject") + ': ' + esc(lesson.topic || "Lesson") + '</h5><p>' + esc(lesson.level || "Level not set") + ' · ' + esc(lesson.duration_minutes || 40) + ' minutes · ' + questions.length + ' assessment questions</p>' + detail + '</article>';
+        }).join("") : "<p>No saved school lessons yet. Prepare the first lesson using the form.</p>";
+      } catch (error) {
+        target.innerHTML = '<p class="school-module-note">' + esc(error.message || "Could not load saved lessons.") + '</p>';
+      } finally { schoolLessonsLoading = false; }
+    }
+    const schoolLessonForm = moduleRoot.querySelector("#school-lesson-form");
+    if (schoolLessonForm) schoolLessonForm.addEventListener("submit", async event => {
+      event.preventDefault();
+      const feedback = moduleRoot.querySelector("#school-lesson-feedback");
+      const submit = moduleRoot.querySelector("#school-lesson-submit");
+      const auth = window.DreamEducationUI && typeof window.DreamEducationUI.getAuth === "function"
+        ? window.DreamEducationUI.getAuth() : null;
+      const token = auth && auth.session && auth.session.access_token;
+      if (!token) { if (feedback) feedback.textContent = "Please sign in again before preparing a lesson."; return; }
+      const values = new FormData(schoolLessonForm);
+      const payload = {
+        subject: String(values.get("subject") || "").trim(),
+        topic: String(values.get("topic") || "").trim(),
+        level: String(values.get("level") || "").trim(),
+        duration_minutes: Number(values.get("duration_minutes") || 40),
+        curriculum: String(values.get("curriculum") || "").trim(),
+        instructions: String(values.get("instructions") || "").trim()
+      };
+      if (submit) { submit.disabled = true; submit.textContent = "Preparing lesson…"; }
+      if (feedback) feedback.textContent = "Dream is retrieving topic evidence and preparing the lesson plan, notes and assessment together. Please keep this page open.";
+      try {
+        const response = await fetch("/api/v1/school/lessons", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Accept": "application/json", "Authorization": "Bearer " + token },
+          body: JSON.stringify(payload)
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.success) throw new Error(data.error || "Dream could not prepare this lesson.");
+        if (feedback) feedback.textContent = "Lesson plan and assessment prepared and saved. Open it below to review the notes, steps, answers and sources.";
+        schoolLessonForm.reset();
+        const duration = schoolLessonForm.querySelector('[name="duration_minutes"]');
+        if (duration) duration.value = "40";
+        await loadSchoolLessons();
+      } catch (error) {
+        if (feedback) feedback.textContent = error.message || "Dream could not prepare this lesson.";
+      } finally {
+        if (submit) { submit.disabled = false; submit.textContent = "Prepare lesson & assessment"; }
+      }
+    });
     moduleRoot.addEventListener("click", event => {
       const button = event.target.closest("[data-school-module-action]");
       if (!button) return;
@@ -88,9 +162,11 @@
         const refresh = root.querySelector('[data-panel-action="school-dashboard"]');
         if (refresh) refresh.click();
       } else if (action === "teaching") {
-        const aiLab = root.querySelector('[data-panel-action="school-ai-lab"]');
-        if (aiLab) aiLab.click();
-        else announce("Teaching tools are not available in this school session yet.");
+        const lessonsTab = nav.querySelector('[data-school-module-tab="lessons"]');
+        if (lessonsTab) lessonsTab.click();
+        else announce("School Lesson Studio is not available in this school session yet.");
+      } else if (action === "reload-school-lessons") {
+        loadSchoolLessons();
       } else if (action === "lab") {
         const aiLab = root.querySelector('[data-panel-action="school-ai-lab"]');
         if (aiLab) aiLab.click();

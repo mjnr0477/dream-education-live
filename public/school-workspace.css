@@ -33,3 +33,19 @@
 .school-module-search { width:100%; margin:10px 0 14px; border:1px solid var(--line,rgba(255,255,255,.1)); border-radius:12px; padding:12px 14px; background:var(--surface-2,#12151f); color:var(--text,#f7f7f8); font:inherit; }
 .school-module-search:focus { outline:2px solid #9ee7ff; outline-offset:2px; }
 @media(max-width:560px) { .school-module-grid { grid-template-columns:1fr; } .school-workspace-topline { align-items:flex-start; } .school-module-card { padding:14px; } }
+
+.school-lesson-create form { display:grid; gap:12px; margin-top:14px; }
+.school-lesson-create label { display:grid; gap:6px; color:var(--soft,#c7cad3); font-size:.82rem; font-weight:650; }
+.school-lesson-create input,.school-lesson-create textarea { width:100%; min-width:0; box-sizing:border-box; border:1px solid var(--line,rgba(255,255,255,.14)); border-radius:11px; padding:11px 12px; background:var(--surface-2,#12151f); color:var(--text,#f7f7f8); font:inherit; font-size:.9rem; }
+.school-lesson-create input:focus,.school-lesson-create textarea:focus { outline:2px solid #9ee7ff; outline-offset:2px; }
+.school-lesson-create textarea { resize:vertical; }
+.school-lesson-create button:disabled { opacity:.65; cursor:wait; }
+.school-lesson-saved-card { margin-top:12px; padding:12px; }
+.school-lesson-saved-card h5 { margin:0 0 8px; font-size:.95rem; }
+.school-lesson-saved-card details { margin-top:12px; border-top:1px solid var(--line,rgba(255,255,255,.1)); padding-top:10px; }
+.school-lesson-saved-card summary { cursor:pointer; color:var(--accent-2,#9ee7ff); font-size:.85rem; font-weight:700; }
+.school-lesson-detail { overflow-wrap:anywhere; }
+.school-lesson-detail h5 { margin:14px 0 6px; }
+.school-lesson-detail ol { padding-left:22px; }
+.school-lesson-detail li { margin:10px 0; line-height:1.55; }
+.school-lesson-detail p,.school-lesson-detail div { white-space:pre-wrap; overflow-wrap:anywhere; }
