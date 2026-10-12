@@ -119,7 +119,7 @@ function buildFallbackEvidencePacket(input = {}, rawSources = []) {
     };
   }
 
-  const knowledge = evidence.map(item => item.excerpt).join("\n\n");
+  const knowledge = "";
   const primary = evidence[0];
   return {
     success: true,
@@ -213,6 +213,7 @@ async function generateTeacherLesson(input = {}) {
   const { buildTeacherLesson } = require("./deterministic_lesson_planner");
   let evidence = null;
   let retrievalError = null;
+  let usedFallback = false;
   let evidenceTimeout;
 
   try {
@@ -251,10 +252,11 @@ async function generateTeacherLesson(input = {}) {
       const fallback = await Promise.race([
         retrieveFallbackLessonEvidence(plannerInput),
         new Promise((_, reject) => {
-          fallbackTimeout = setTimeout(() => reject(new Error("Free-source fallback timed out.")), 8000);
+          fallbackTimeout = setTimeout(() => reject(new Error("Free-source fallback timed out.")), 8500);
         })
       ]);
       if (fallback && fallback.success) {
+        usedFallback = true;
         const combined = {
           ...fallback,
           evidence: [
@@ -292,7 +294,7 @@ async function generateTeacherLesson(input = {}) {
 
   return {
     ...planned,
-    source_retrieval_method: evidence && evidence.success ? "knowledge_intelligence" : "free_source_fallback"
+    source_retrieval_method: usedFallback ? "free_source_fallback" : "knowledge_intelligence"
   };
 }
 
