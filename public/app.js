@@ -1687,6 +1687,11 @@ if (action === "chat") {
       return;
     }
 
+    if (action === "teacher-lesson-studio") {
+      openTeacherLessonStudio();
+      return;
+    }
+
     if (action === "teacher-analytics") {
       if (typeof openTeacherAnalytics === "function") {
         openTeacherAnalytics();
@@ -2210,6 +2215,13 @@ function teacherDashboardMarkup(data) {
         <button
           class="panel-button primary"
           type="button"
+          data-panel-action="teacher-lesson-studio">
+          Lesson Plans & Assessments
+        </button>
+
+        <button
+          class="panel-button primary"
+          type="button"
           data-panel-action="teacher-analytics">
           Analytics & Results
         </button>
@@ -2242,6 +2254,200 @@ function teacherDashboardMarkup(data) {
 
 
 
+
+async function openTeacherLessonStudio() {
+  const panel = document.getElementById("experience-panel");
+  const body = document.getElementById("panel-body");
+  const kicker = document.getElementById("panel-kicker");
+  const title = document.getElementById("panel-title");
+  const description = document.getElementById("panel-description");
+  const auth = window.DreamEducationUI && window.DreamEducationUI.getAuth
+    ? window.DreamEducationUI.getAuth() : null;
+  const token = auth && auth.session && auth.session.access_token || "";
+  if (!token) { alert("Please sign in again."); return; }
+  if (!panel || !body) return;
+
+  kicker.textContent = "TEACHER WORKSPACE";
+  title.textContent = "Lesson Plans & Assessments";
+  description.textContent = "Dream prepares a level-matched lesson plan, source-backed notes and topic-specific assessment questions. Review them, then assign the lesson to an actively connected learner.";
+  body.innerHTML = '<article class="panel-card"><h3>Opening Lesson Studio…</h3><p>Loading your saved lessons and connected learners.</p></article>';
+  document.body.classList.add("panel-open");
+  panel.setAttribute("aria-hidden", "false");
+
+  const escape = value => teacherEscapeHTML(String(value == null ? "" : value));
+  const request = async (url, options = {}) => {
+    const response = await fetchWithTimeout(url, Object.assign({}, options, {
+      headers: Object.assign({ "Authorization": "Bearer " + token }, options.headers || {})
+    }));
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || data.success !== true) throw new Error(data.error || "Lesson Studio request failed.");
+    return data;
+  };
+  let connectedLearners = [];
+  let lessons = [];
+  let activeLesson = null;
+
+  function lessonCard(lesson) {
+    const steps = lesson.lesson_plan && Array.isArray(lesson.lesson_plan.lesson_steps) ? lesson.lesson_plan.lesson_steps : [];
+    const questions = Array.isArray(lesson.assessment_questions) ? lesson.assessment_questions : [];
+    const objectives = lesson.lesson_plan && Array.isArray(lesson.lesson_plan.objectives) ? lesson.lesson_plan.objectives : [];
+    const assigned = Array.isArray(lesson.assigned_learner_ids) ? lesson.assigned_learner_ids : [];
+    const options = connectedLearners.map(learner =>
+      '<option value="' + escape(learner.learner_id) + '">' + escape(learner.name) + ' · ' + escape(learner.level || learner.learner_id) + '</option>'
+    ).join("");
+    return '<article class="teacher-lesson-card">' +
+      '<div class="teacher-lesson-meta"><span>' + escape(lesson.subject) + '</span><span>' + escape(lesson.level) + '</span><span>' + escape(lesson.duration_minutes) + ' min</span></div>' +
+      '<h3>' + escape(lesson.topic) + '</h3>' +
+      '<p>' + objectives.slice(0, 2).map(escape).join(" · ") + '</p>' +
+      '<div class="teacher-lesson-columns"><section><h4>Lesson sequence</h4><ol>' + steps.map(step => '<li><strong>' + escape(step.stage) + ' (' + escape(step.minutes) + ' min)</strong><p>' + escape(step.teacher_actions) + '</p></li>').join("") + '</ol></section>' +
+      '<section><h4>Source-backed notes</h4><div class="teacher-lesson-notes">' + escape(lesson.notes).replace(/\n/g, "<br>") + '</div><h4>Assessment questions (' + questions.length + ')</h4><ol>' + questions.map(question => '<li>' + escape(question.question) + '<p class="teacher-lesson-answer">Answer: ' + escape(question.correct_answer) + '</p></li>').join("") + '</ol></section></div>' +
+      '<p class="teacher-lesson-source-label">Evidence sources: ' + (Array.isArray(lesson.sources) ? lesson.sources.map(source => escape(source.title)).join(" · ") : "Retrieved knowledge") + '</p>' +
+      '<div class="teacher-lesson-assign-row">' +
+      (connectedLearners.length ? '<label>Assign to <select data-lesson-learner="' + escape(lesson.lesson_id) + '">' + options + '</select></label><button type="button" class="panel-button primary" data-lesson-assign="' + escape(lesson.lesson_id) + '">Assign lesson</button>' : '<p>Connect a learner first to assign this lesson.</p>') +
+      '<button type="button" class="panel-button" data-lesson-submissions="' + escape(lesson.lesson_id) + '">Review submissions</button></div>' +
+      '<p class="teacher-lesson-assigned">Assigned to ' + assigned.length + ' learner(s).</p><div data-lesson-feedback="' + escape(lesson.lesson_id) + '" aria-live="polite"></div></article>';
+  }
+
+  function render() {
+    body.innerHTML = '<div class="teacher-lesson-studio">' +
+      '<form id="teacher-lesson-form" class="teacher-dashboard-section teacher-lesson-form">' +
+      '<div class="teacher-dashboard-section-heading"><div><span class="teacher-dashboard-card-label">DREAM TEACHING INTELLIGENCE</span><h3>Prepare a complete lesson</h3><p>Dream will retrieve relevant evidence, prepare notes, build lesson steps and create an answer key.</p></div></div>' +
+      '<div class="teacher-lesson-form-grid">' +
+      '<label>Subject<input name="subject" required maxlength="100" placeholder="e.g. Biology"></label>' +
+      '<label>Topic<input name="topic" required maxlength="300" placeholder="e.g. Photosynthesis"></label>' +
+      '<label>Class / education level<input name="level" required maxlength="100" placeholder="e.g. Grade 8 / Junior secondary"></label>' +
+      '<label>Lesson duration<select name="duration_minutes"><option value="30">30 minutes</option><option value="40" selected>40 minutes</option><option value="60">60 minutes</option><option value="80">80 minutes</option></select></label>' +
+      '<label class="teacher-lesson-full">Teaching context or curriculum requirements (optional)<textarea name="instructions" rows="2" maxlength="1200" placeholder="Add curriculum outcomes, language needs, local examples or learner needs."></textarea></label>' +
+      '</div><div class="panel-actions"><button class="panel-button primary" type="submit">Prepare lesson with Dream</button><button class="panel-button" type="button" data-panel-action="teacher-dashboard">Back to teacher dashboard</button></div><div id="teacher-lesson-create-feedback" aria-live="polite"></div></form>' +
+      '<section class="teacher-dashboard-section"><div class="teacher-dashboard-section-heading"><h3>Saved lesson plans</h3><span>' + lessons.length + '</span></div>' +
+      (lessons.length ? lessons.map(lessonCard).join("") : '<div class="teacher-result-empty">No lesson plans yet. Prepare your first lesson above.</div>') +
+      '</section></div>';
+
+    const form = document.getElementById("teacher-lesson-form");
+    if (form) form.addEventListener("submit", async event => {
+      event.preventDefault();
+      const feedback = document.getElementById("teacher-lesson-create-feedback");
+      const submit = form.querySelector('button[type="submit"]');
+      const payload = {
+        subject: form.elements.subject.value.trim(),
+        topic: form.elements.topic.value.trim(),
+        level: form.elements.level.value.trim(),
+        duration_minutes: Number(form.elements.duration_minutes.value),
+        instructions: form.elements.instructions.value.trim()
+      };
+      submit.disabled = true;
+      feedback.innerHTML = '<p class="teacher-lesson-loading">Dream is retrieving evidence and preparing the lesson, notes and assessment. This may take a little while.</p>';
+      try {
+        const data = await request("/api/product/teacher/lessons", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        lessons.unshift(data.lesson);
+        activeLesson = data.lesson;
+        render();
+        const nextFeedback = document.getElementById("teacher-lesson-create-feedback");
+        if (nextFeedback) nextFeedback.innerHTML = '<p class="teacher-lesson-success">Lesson prepared and saved. Review the notes and answer key below, then assign it to a connected learner.</p>';
+      } catch (error) {
+        feedback.innerHTML = '<p class="teacher-lesson-error">' + escape(error.message) + '</p>';
+        submit.disabled = false;
+      }
+    });
+  }
+
+  function renderLessonSubmissions(feedback, lessonId, submissions) {
+    if (!feedback) return;
+    feedback.innerHTML = '<div class="teacher-lesson-submissions"><h4>Learner submissions</h4>' +
+      (submissions.length ? submissions.map(submission => {
+        const learnerId = escape(submission.learner_id);
+        const responses = Array.isArray(submission.responses) ? submission.responses : [];
+        const shortAnswers = responses.filter(response => response.type === "short_answer");
+        return '<article class="teacher-lesson-submission"><p><strong>' + escape(submission.learner_name) + '</strong> · Total ' + escape(submission.score) + '/' + escape(submission.max_score) + ' · ' + escape(submission.status) + '</p>' +
+          '<ol>' + responses.map(response => '<li><strong>' + escape(response.question) + '</strong><p>Learner answer: ' + escape(response.answer || "No answer provided") + '</p>' +
+            (response.type === "multiple_choice"
+              ? '<p>' + (response.correct ? 'Correct' : 'Incorrect') + ' · Answer key: ' + escape(response.correct_answer) + '</p>'
+              : '<label class="teacher-lesson-grade-label">Teacher marks (0–' + escape(response.marks) + ')<input type="number" min="0" max="' + escape(response.marks) + '" step="1" data-review-score="' + learnerId + '" data-review-question="' + escape(response.question_id) + '" value="' + (response.manual_score == null ? '' : escape(response.manual_score)) + '"></label>') +
+          '</li>').join("") + '</ol>' +
+          (shortAnswers.length ? '<button type="button" class="panel-button primary" data-lesson-review="' + escape(lessonId) + '" data-review-learner="' + learnerId + '">Save short-answer marks</button>' : '') +
+          '<div data-review-feedback="' + learnerId + '" aria-live="polite"></div></article>';
+      }).join("") : '<p>No submissions yet.</p>') + '</div>';
+  }
+
+  body.addEventListener("click", async event => {
+    const assignButton = event.target.closest("[data-lesson-assign]");
+    if (assignButton) {
+      const lessonId = assignButton.getAttribute("data-lesson-assign");
+      const select = body.querySelector('[data-lesson-learner="' + lessonId + '"]');
+      const feedback = body.querySelector('[data-lesson-feedback="' + lessonId + '"]');
+      assignButton.disabled = true;
+      try {
+        await request("/api/product/teacher/lessons/" + encodeURIComponent(lessonId) + "/assign", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ learner_id: select && select.value })
+        });
+        if (feedback) feedback.innerHTML = '<p class="teacher-lesson-success">Assigned. The learner can open this lesson from their Learn workspace.</p>';
+        const refreshed = await request("/api/product/teacher/lessons");
+        lessons = refreshed.lessons || lessons;
+        connectedLearners = refreshed.connected_learners || connectedLearners;
+        render();
+      } catch (error) {
+        if (feedback) feedback.innerHTML = '<p class="teacher-lesson-error">' + escape(error.message) + '</p>';
+        assignButton.disabled = false;
+      }
+      return;
+    }
+    const reviewButton = event.target.closest("[data-lesson-review]");
+    if (reviewButton) {
+      const lessonId = reviewButton.getAttribute("data-lesson-review");
+      const learnerId = reviewButton.getAttribute("data-review-learner");
+      const reviewFeedback = body.querySelector('[data-review-feedback="' + learnerId + '"]');
+      const manualScores = {};
+      body.querySelectorAll("[data-review-score]").forEach(input => {
+        if (input.getAttribute("data-review-score") === learnerId && input.value !== "") {
+          manualScores[input.getAttribute("data-review-question")] = Number(input.value);
+        }
+      });
+      reviewButton.disabled = true;
+      try {
+        const result = await request("/api/product/teacher/lessons/" + encodeURIComponent(lessonId) + "/submissions/" + encodeURIComponent(learnerId) + "/review", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ manual_scores: manualScores })
+        });
+        if (reviewFeedback) reviewFeedback.innerHTML = '<p class="teacher-lesson-success">Marks saved. Total score: ' + escape(result.submission.score) + '/' + escape(result.submission.max_score) + (result.submission.manual_review_required ? '. Some short answers still need marks.' : '. Assessment review complete.') + '</p>';
+        const refreshed = await request("/api/product/teacher/lessons/" + encodeURIComponent(lessonId) + "/submissions");
+        renderLessonSubmissions(body.querySelector('[data-lesson-feedback="' + lessonId + '"]'), lessonId, refreshed.submissions || []);
+      } catch (error) {
+        if (reviewFeedback) reviewFeedback.innerHTML = '<p class="teacher-lesson-error">' + escape(error.message) + '</p>';
+        reviewButton.disabled = false;
+      }
+      return;
+    }
+
+    const submissionsButton = event.target.closest("[data-lesson-submissions]");
+    if (submissionsButton) {
+      const lessonId = submissionsButton.getAttribute("data-lesson-submissions");
+      const feedback = body.querySelector('[data-lesson-feedback="' + lessonId + '"]');
+      submissionsButton.disabled = true;
+      try {
+        const data = await request("/api/product/teacher/lessons/" + encodeURIComponent(lessonId) + "/submissions");
+        renderLessonSubmissions(feedback, lessonId, data.submissions || []);
+      } catch (error) {
+        if (feedback) feedback.innerHTML = '<p class="teacher-lesson-error">' + escape(error.message) + '</p>';
+      } finally { submissionsButton.disabled = false; }
+    }
+  });
+
+  try {
+    const data = await request("/api/product/teacher/lessons");
+    lessons = data.lessons || [];
+    connectedLearners = data.connected_learners || [];
+    render();
+  } catch (error) {
+    body.innerHTML = '<article class="panel-card"><h3>Lesson Studio could not load</h3><p>' + escape(error.message) + '</p><button type="button" class="panel-button" data-panel-action="teacher-dashboard">Back to dashboard</button></article>';
+  }
+}
 
 async function openTeacherLearnerView(learnerId) {
   const panelElement = document.getElementById("experience-panel");

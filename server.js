@@ -10304,6 +10304,196 @@ app.post("/api/v1/knowledge/ingest", async (req, res) => {
   }
 });
 
+/*
+ * Teacher Lesson Studio
+ * Reuses source-grounded notes and the configured AI router. Teacher access
+ * is authenticated; assignment and learner access require an active connection.
+ */
+app.get("/api/product/teacher/lessons", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    if (String(auth.account.role || "").toLowerCase() !== "teacher" || !auth.account.teacher_id) {
+      return res.status(403).json({ success: false, error: "Only a teacher account can access Lesson Studio." });
+    }
+
+    const dataEngine = require("./product/data_engine");
+    const connectionEngine = require("./product/connection_engine");
+    const lessonEngine = require("./product/teacher_lesson_engine");
+    const store = dataEngine.loadStore();
+    const teacherId = connectionEngine.getAccountEntityId(auth.account);
+    const connections = connectionEngine.listConnections(store, {
+      status: "active", type: "teacher_learner", role: "teacher", id: teacherId
+    }).filter(connection => connection.from_role === "teacher" && connection.from_id === teacherId && connection.to_role === "learner");
+    const connectedLearners = connections.map(connection => {
+      const learner = store.learners && store.learners[connection.to_id];
+      return learner ? {
+        learner_id: learner.learner_id,
+        name: learner.name || learner.full_name || learner.display_name || learner.learner_id,
+        level: learner.level || learner.grade || learner.education_level || ""
+      } : null;
+    }).filter(Boolean);
+    return res.json({
+      success: true,
+      lessons: lessonEngine.listTeacherLessons(store, teacherId),
+      connected_learners: connectedLearners
+    });
+  } catch (error) {
+    console.error("Teacher lessons list error:", error);
+    return res.status(500).json({ success: false, error: "Could not load Lesson Studio." });
+  }
+});
+
+app.post("/api/product/teacher/lessons", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    if (String(auth.account.role || "").toLowerCase() !== "teacher" || !auth.account.teacher_id) {
+      return res.status(403).json({ success: false, error: "Only a teacher account can create lessons." });
+    }
+
+    const lessonEngine = require("./product/teacher_lesson_engine");
+    const dataEngine = require("./product/data_engine");
+    const generated = await lessonEngine.generateTeacherLesson({
+      topic: req.body && req.body.topic,
+      subject: req.body && req.body.subject,
+      level: req.body && req.body.level,
+      duration_minutes: req.body && req.body.duration_minutes,
+      instructions: req.body && req.body.instructions
+    });
+    if (!generated.success) {
+      return res.status(generated.status || 422).json({
+        success: false, error: generated.error || "Lesson preparation failed.",
+        evidence_status: generated.evidence_status || "unavailable"
+      });
+    }
+    const store = dataEngine.loadStore();
+    const teacherId = String(auth.account.teacher_id);
+    const lesson = lessonEngine.createLesson(store, teacherId, generated);
+    dataEngine.saveStore(store);
+    return res.status(201).json({ success: true, lesson });
+  } catch (error) {
+    console.error("Teacher lesson creation error:", error);
+    return res.status(500).json({ success: false, error: "Dream could not prepare this lesson right now." });
+  }
+});
+
+app.post("/api/product/teacher/lessons/:lesson_id/assign", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    if (String(auth.account.role || "").toLowerCase() !== "teacher" || !auth.account.teacher_id) {
+      return res.status(403).json({ success: false, error: "Only a teacher can assign a lesson." });
+    }
+
+    const learnerId = String(req.body && req.body.learner_id || "").trim();
+    if (!learnerId) return res.status(400).json({ success: false, error: "Choose a connected learner." });
+
+    const dataEngine = require("./product/data_engine");
+    const connectionEngine = require("./product/connection_engine");
+    const lessonEngine = require("./product/teacher_lesson_engine");
+    const store = dataEngine.loadStore();
+    const teacherId = connectionEngine.getAccountEntityId(auth.account);
+    const connected = connectionEngine.listConnections(store, {
+      status: "active", type: "teacher_learner", role: "teacher", id: teacherId
+    }).some(connection =>
+      connection.from_role === "teacher" && connection.from_id === teacherId &&
+      connection.to_role === "learner" && connection.to_id === learnerId
+    );
+    if (!connected) return res.status(403).json({ success: false, error: "You can assign lessons only to learners with an active teacher connection." });
+
+    const assigned = lessonEngine.assignLesson(store, req.params.lesson_id, teacherId, learnerId);
+    if (!assigned.success) return res.status(assigned.status || 400).json(assigned);
+    dataEngine.saveStore(store);
+    return res.json({ success: true, lesson_id: assigned.lesson.lesson_id, learner_id: learnerId, assigned: true });
+  } catch (error) {
+    console.error("Teacher lesson assignment error:", error);
+    return res.status(500).json({ success: false, error: "Could not assign this lesson." });
+  }
+});
+
+app.get("/api/product/teacher/lessons/:lesson_id/submissions", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    if (String(auth.account.role || "").toLowerCase() !== "teacher" || !auth.account.teacher_id) {
+      return res.status(403).json({ success: false, error: "Only a teacher can review lesson submissions." });
+    }
+    const dataEngine = require("./product/data_engine");
+    const lessonEngine = require("./product/teacher_lesson_engine");
+    const store = dataEngine.loadStore();
+    const submissions = lessonEngine.listLessonSubmissions(store, req.params.lesson_id, auth.account.teacher_id);
+    if (!submissions) return res.status(404).json({ success: false, error: "Lesson not found for this teacher." });
+    return res.json({ success: true, submissions });
+  } catch (error) {
+    console.error("Teacher lesson submissions error:", error);
+    return res.status(500).json({ success: false, error: "Could not load lesson submissions." });
+  }
+});
+
+app.post("/api/product/teacher/lessons/:lesson_id/submissions/:learner_id/review", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    if (String(auth.account.role || "").toLowerCase() !== "teacher" || !auth.account.teacher_id) {
+      return res.status(403).json({ success: false, error: "Only a teacher can grade lesson submissions." });
+    }
+    const dataEngine = require("./product/data_engine");
+    const lessonEngine = require("./product/teacher_lesson_engine");
+    const store = dataEngine.loadStore();
+    const result = lessonEngine.reviewLessonSubmission(
+      store,
+      req.params.lesson_id,
+      auth.account.teacher_id,
+      req.params.learner_id,
+      req.body && req.body.manual_scores
+    );
+    if (!result.success) return res.status(result.status || 400).json(result);
+    dataEngine.saveStore(store);
+    return res.json(result);
+  } catch (error) {
+    console.error("Teacher lesson grading error:", error);
+    return res.status(500).json({ success: false, error: "Could not save teacher grading." });
+  }
+});
+
+app.get("/api/v1/learning/assigned-lessons", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    if (String(auth.account.role || "").toLowerCase() !== "learner" || !auth.account.learner_id) {
+      return res.status(403).json({ success: false, error: "Only a learner account can view assigned lessons." });
+    }
+    const dataEngine = require("./product/data_engine");
+    const lessonEngine = require("./product/teacher_lesson_engine");
+    const store = dataEngine.loadStore();
+    return res.json({ success: true, lessons: lessonEngine.listAssignedLessons(store, auth.account.learner_id) });
+  } catch (error) {
+    console.error("Assigned lessons retrieval error:", error);
+    return res.status(500).json({ success: false, error: "Could not load assigned lessons." });
+  }
+});
+
+app.post("/api/v1/learning/assigned-lessons/:lesson_id/submit", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    if (String(auth.account.role || "").toLowerCase() !== "learner" || !auth.account.learner_id) {
+      return res.status(403).json({ success: false, error: "Only a learner account can submit lesson answers." });
+    }
+    const dataEngine = require("./product/data_engine");
+    const lessonEngine = require("./product/teacher_lesson_engine");
+    const store = dataEngine.loadStore();
+    const result = lessonEngine.submitLesson(store, req.params.lesson_id, auth.account.learner_id, req.body && req.body.answers);
+    if (!result.success) return res.status(result.status || 400).json(result);
+    dataEngine.saveStore(store);
+    return res.json(result);
+  } catch (error) {
+    console.error("Assigned lesson submission error:", error);
+    return res.status(500).json({ success: false, error: "Could not submit your lesson answers." });
+  }
+});
+
 app.post("/api/v1/learning/notes", async (req, res) => {
   try {
     const auth = await getAuthenticatedAccount(req);
