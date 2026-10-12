@@ -2377,13 +2377,29 @@ async function openTeacherLessonStudio() {
       '<label>Class / education level<input name="level" required maxlength="100" placeholder="e.g. Grade 8 / Junior secondary"></label>' +
       '<label>Curriculum/framework<input name="curriculum" maxlength="180" placeholder="e.g. Kenya CBC/CBE, KCSE, Cambridge, university"></label><label>Lesson duration<select name="duration_minutes"><option value="30">30 minutes</option><option value="40" selected>40 minutes</option><option value="60">60 minutes</option><option value="80">80 minutes</option></select></label>' +
       '<label class="teacher-lesson-full">Teaching context or curriculum requirements (optional)<textarea name="instructions" rows="2" maxlength="1200" placeholder="Add curriculum outcomes, language needs, local examples or learner needs."></textarea></label>' +
-      '</div><div class="panel-actions"><button class="panel-button primary" type="submit">Prepare lesson with Dream</button><button class="panel-button" type="button" data-panel-action="teacher-dashboard">Back to teacher dashboard</button></div><div id="teacher-lesson-create-feedback" aria-live="polite"></div></form>' +
+      '</div><div class="panel-actions"><button class="panel-button primary" type="submit">Prepare lesson with Dream</button><button class="panel-button" type="button" data-lesson-notes-show>Lesson Notes</button><button class="panel-button" type="button" data-panel-action="teacher-dashboard">Back to teacher dashboard</button></div><div id="teacher-lesson-create-feedback" aria-live="polite"></div></form>' +
       '<section class="teacher-dashboard-section"><div class="teacher-dashboard-section-heading"><h3>Saved lesson plans</h3><span>' + lessons.length + '</span></div>' +
       (lessons.length ? lessons.map(lessonCard).join("") : '<div class="teacher-result-empty">No lesson plans yet. Prepare your first lesson above.</div>') +
       '</section></div>';
 
     const form = document.getElementById("teacher-lesson-form");
-    if (form) form.addEventListener("submit", async event => {
+    if (form) {
+      const notesButton = form.querySelector("[data-lesson-notes-show]");
+      if (notesButton) notesButton.addEventListener("click", () => {
+        const savedSection = body.querySelector(".teacher-lesson-studio > .teacher-dashboard-section:last-child");
+        const firstLesson = savedSection && savedSection.querySelector("[data-teacher-lesson-card]");
+        const notes = firstLesson && firstLesson.querySelector("[data-lesson-notes-panel]");
+        if (notes) {
+          notes.open = true;
+          notes.scrollIntoView({ behavior: "smooth", block: "center" });
+        } else {
+          const feedback = document.getElementById("teacher-lesson-create-feedback");
+          if (feedback) feedback.textContent = "Lesson Notes are prepared with each lesson. Prepare a lesson above to generate and display the notes here.";
+          const formTop = form.getBoundingClientRect();
+          if (formTop) form.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      });
+      form.addEventListener("submit", async event => {
       event.preventDefault();
       const feedback = document.getElementById("teacher-lesson-create-feedback");
       const submit = form.querySelector('button[type="submit"]');
@@ -2420,7 +2436,8 @@ async function openTeacherLessonStudio() {
         submit.disabled = false;
         submit.textContent = originalSubmitLabel;
       }
-    });
+      });
+    }
   }
 
   function renderLessonSubmissions(feedback, lessonId, submissions) {
