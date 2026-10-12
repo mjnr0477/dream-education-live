@@ -8607,15 +8607,30 @@ async function getAuthenticatedAccount(req) {
     };
   }
 
-  const account = getAccount(userData.user.id);
+  const storedAccount = getAccount(userData.user.id);
 
-  if (!account) {
+  if (!storedAccount) {
     return {
       success: false,
       status: 403,
       error: "Authenticated account is not linked to Dream Education."
     };
   }
+
+  // Resolve owner privileges from the verified Supabase identity, not stale
+  // role/flag metadata stored in the product account record.
+  const verifiedEmail = String(userData.user.email || storedAccount.email || "").trim().toLowerCase();
+  const ownerAccount = isOwnerAccount({ email: verifiedEmail });
+  const account = ownerAccount
+    ? {
+        ...storedAccount,
+        email: verifiedEmail,
+        owner_account: true,
+        plan_type: "owner",
+        free_forever: true,
+        subscription_status: "active"
+      }
+    : storedAccount;
 
   return {
     success: true,
