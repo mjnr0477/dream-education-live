@@ -5,7 +5,7 @@ const fs = require('fs');
 
 const sourceEngine = fs.readFileSync(require.resolve('../product/source_engine'), 'utf8');
 const catalog = require('../product/global_sources/catalog');
-const notesProviders = fs.readFileSync(require.resolve('../product/notes_source_providers'), 'utf8');
+const notesProviders = require('../product/notes_source_providers');
 
 for (const provider of [
   'wikimedia_commons',
@@ -26,5 +26,6 @@ for (const id of ['wikimedia_commons', 'openaire', 'doaj', 'stack_exchange', 'ze
 
 assert.ok(sourceEngine.includes('notesSourceProviders.searchLibreTexts'), 'LibreTexts adapter not wired into source engine');
 assert.ok(sourceEngine.includes('notesSourceProviders.searchOpenStax'), 'OpenStax adapter not wired into source engine');
-assert.ok(notesProviders.includes('searchLibreTexts') && notesProviders.includes('searchOpenStax'), 'open textbook adapters missing');
+assert.strictEqual(typeof notesProviders.searchLibreTexts, 'function', 'LibreTexts adapter missing');
+assert.strictEqual(typeof notesProviders.searchOpenStax, 'function', 'OpenStax adapter missing');
 console.log('GLOBAL SOURCE EXPANSION SMOKE TEST: PASS');
