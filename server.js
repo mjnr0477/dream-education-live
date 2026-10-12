@@ -6994,6 +6994,7 @@ app.post("/api/product/meetings", async (req, res) => {
       title,
       type,
       provider,
+      external_url,
       scheduled_date,
       scheduled_time
     } = req.body || {};
@@ -7015,7 +7016,7 @@ app.post("/api/product/meetings", async (req, res) => {
 
     const meetingType = type || "learning";
 
-    const allowedProviders = ["dream", "jitsi"];
+    const allowedProviders = ["dream", "jitsi", "google-meet", "teams"];
     const meetingProvider = provider || "dream";
 
     if (!allowedProviders.includes(meetingProvider)) {
@@ -7023,6 +7024,27 @@ app.post("/api/product/meetings", async (req, res) => {
         success: false,
         error: "Invalid meeting provider."
       });
+    }
+
+    let externalMeetingUrl = null;
+    if (meetingProvider === "google-meet" || meetingProvider === "teams") {
+      try {
+        const parsedUrl = new URL(String(external_url || "").trim());
+        const allowedHost = meetingProvider === "google-meet"
+          ? parsedUrl.hostname === "meet.google.com"
+          : ["teams.microsoft.com", "teams.live.com"].includes(parsedUrl.hostname);
+        if (parsedUrl.protocol !== "https:" || !allowedHost || parsedUrl.pathname === "/") {
+          throw new Error("unsupported meeting URL");
+        }
+        externalMeetingUrl = parsedUrl.href;
+      } catch {
+        return res.status(400).json({
+          success: false,
+          error: meetingProvider === "google-meet"
+            ? "A valid HTTPS Google Meet link is required."
+            : "A valid HTTPS Microsoft Teams meeting link is required."
+        });
+      }
     }
 
     if (!allowedTypes.includes(meetingType)) {
@@ -7089,6 +7111,7 @@ app.post("/api/product/meetings", async (req, res) => {
       scheduled_time: String(scheduled_time),
       status: "scheduled",
       provider: meetingProvider,
+      external_url: externalMeetingUrl,
       external_room_name:
         meetingProvider === "jitsi"
           ? `DreamEducation-${meetingId}`
@@ -7309,7 +7332,9 @@ app.get("/api/product/meetings/:meeting_id/join", async (req, res) => {
           meeting.provider === "jitsi" && meeting.external_room_name
             ? "https://meet.jit.si/" +
               encodeURIComponent(meeting.external_room_name)
-            : null
+            : (["google-meet", "teams"].includes(meeting.provider) && meeting.external_url
+              ? meeting.external_url
+              : null)
       },
       participant: {
         role: auth.account.role,
