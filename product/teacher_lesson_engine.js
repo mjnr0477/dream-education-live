@@ -63,6 +63,7 @@ async function generateTeacherLesson(input = {}) {
     topic,
     subject,
     level,
+    curriculum,
     notesType: "Detailed notes"
   });
   if (!notesResult || notesResult.success !== true) {
