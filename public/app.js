@@ -2276,12 +2276,24 @@ async function openTeacherLessonStudio() {
 
   const escape = value => teacherEscapeHTML(String(value == null ? "" : value));
   const request = async (url, options = {}, timeoutMs = 12000) => {
-    const response = await fetchWithTimeout(url, Object.assign({}, options, {
-      headers: Object.assign({ "Authorization": "Bearer " + token }, options.headers || {})
-    }), timeoutMs);
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok || data.success !== true) throw new Error(data.error || "Lesson Studio request failed.");
-    return data;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetch(url, Object.assign({}, options, {
+        signal: controller.signal,
+        headers: Object.assign({ "Authorization": "Bearer " + token }, options.headers || {})
+      }));
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data.success !== true) throw new Error(data.error || "Lesson Studio request failed.");
+      return data;
+    } catch (error) {
+      if (error && error.name === "AbortError") {
+        throw new Error("Lesson preparation did not respond within " + Math.round(timeoutMs / 1000) + " seconds. Please try again; if this repeats, the lesson service needs investigation.");
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeout);
+    }
   };
   let connectedLearners = [];
   let lessons = [];
