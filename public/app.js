@@ -9591,21 +9591,27 @@ function openUniversalConnector() {
 
       const attempted = Number(data.attempted || 0);
       const delivered = Number(data.delivered || 0);
+      const scheduled = Number(data.scheduled || 0);
       const failed = Number(data.failed || 0);
+      const accepted = delivered + scheduled;
 
       setStatus(
-        "Delivery confirmed: " + delivered + " of " + attempted + " destinations.",
+        scheduled && !delivered
+          ? "Scheduled: " + scheduled + " of " + attempted + " destinations."
+          : scheduled
+            ? "Delivery confirmed: " + delivered + " delivered, " + scheduled + " scheduled."
+            : "Delivery confirmed: " + delivered + " of " + attempted + " destinations.",
         failed ? "" : "success"
       );
 
       summary.textContent =
         "Message " + (data.message_id || "") +
-        " · " + delivered + " delivered · " + failed + " failed";
+        " · " + delivered + " delivered · " + scheduled + " scheduled · " + failed + " failed";
 
       const receipts = Array.isArray(data.receipts) ? data.receipts : [];
       receiptList.innerHTML = receipts.map((receipt) => {
         const name = receipt.connector_name || receipt.platform || "Destination";
-        const state = receipt.success ? "Delivered" : "Not delivered";
+        const state = receipt.status === "scheduled" ? "Scheduled" : receipt.success ? "Delivered" : "Not delivered";
         const target =
           receipt.recipient?.address ||
           receipt.recipient?.email ||
@@ -9621,6 +9627,8 @@ function openUniversalConnector() {
           resultData.error,
           resultData.code ? "code: " + resultData.code : "",
           resultData.stage ? "stage: " + resultData.stage : "",
+          resultData.scheduledTime ? "Scheduled for " + resultData.scheduledTime : "",
+          resultData.postGroupId ? "Publora post ID: " + resultData.postGroupId : "",
           result.status && !String(resultData.error || "").includes("HTTP " + result.status)
             ? "HTTP status " + result.status
             : ""
@@ -9630,8 +9638,8 @@ function openUniversalConnector() {
           escapeHTML(name) + '</strong><p>' +
           escapeHTML(state + (target ? " · " + target : "")) +
           '</p>' +
-          (detail && !receipt.success
-            ? '<p class="subscription-message error">' + escapeHTML("Reason: " + detail) + '</p>'
+          (detail && (!receipt.success || receipt.status === "scheduled")
+            ? '<p class="subscription-message' + (receipt.success ? '' : ' error') + '">' + escapeHTML((receipt.success ? '' : 'Reason: ') + detail) + '</p>'
             : '') +
           '</div>';
       }).join("");
