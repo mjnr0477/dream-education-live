@@ -10359,7 +10359,8 @@ app.post("/api/v1/teacher/lessons", async (req, res) => {
       subject: req.body && req.body.subject,
       level: req.body && req.body.level,
       duration_minutes: req.body && req.body.duration_minutes,
-      instructions: req.body && req.body.instructions
+      instructions: req.body && req.body.instructions,
+      curriculum: req.body && req.body.curriculum
     });
     if (!generated.success) {
       return res.status(generated.status || 422).json({
