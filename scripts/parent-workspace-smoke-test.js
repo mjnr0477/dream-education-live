@@ -1,5 +1,8 @@
 const fs = require("fs");
 const assert = require("assert");
+const { execFileSync } = require("child_process");
+execFileSync(process.execPath, ["--check", "public/parent-workspace.js"]);
+execFileSync(process.execPath, ["--check", "public/frontend-workspace.js"]);
 const index = fs.readFileSync("public/index.html", "utf8");
 const workspace = fs.readFileSync("public/frontend-workspace.js", "utf8");
 const parent = fs.readFileSync("public/parent-workspace.js", "utf8");
