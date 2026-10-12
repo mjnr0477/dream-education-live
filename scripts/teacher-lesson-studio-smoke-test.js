@@ -30,7 +30,7 @@ assert.match(engineSource, /generateStudyNotes/);
 assert.match(engineSource, /generateAI/);
 assert.match(engineSource, /correct_answer/);
 assert.match(engineSource, /function learnerLessonView/);
-assert.match(engineSource, /function submitLesson/);
+assert.match(engineSource, /function submitLesson/);\nassert.match(engineSource, /function reviewLessonSubmission/);
 
 const engine = require("../product/teacher_lesson_engine");
 const store = { learners: { learner_1: { learner_id: "learner_1", name: "Learner One" } }, teacher_lessons: {} };
@@ -57,7 +57,7 @@ assert.equal(Object.hasOwn(learnerView.assessment_questions[0], "correct_answer"
 const submitted = engine.submitLesson(store, lesson.lesson_id, "learner_1", { q_1: "1/2", q_2: "The top number" });
 assert.equal(submitted.success, true);
 assert.equal(submitted.submission.score, 1);
-assert.equal(submitted.submission.max_score, 1);
+assert.equal(submitted.submission.max_score, 3);\nassert.equal(submitted.submission.auto_max_score, 1);
 assert.equal(submitted.submission.manual_review_required, true);
 assert.equal(engine.listLessonSubmissions(store, lesson.lesson_id, "teacher_1").length, 1);
 assert.equal(engine.listLessonSubmissions(store, lesson.lesson_id, "other_teacher"), null);
