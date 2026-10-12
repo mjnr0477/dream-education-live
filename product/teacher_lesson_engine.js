@@ -220,7 +220,11 @@ function listAssignedLessons(store, learnerId) {
             submitted_at: lesson.submissions[String(learnerId)].submitted_at,
             score: lesson.submissions[String(learnerId)].score,
             max_score: lesson.submissions[String(learnerId)].max_score,
-            status: lesson.submissions[String(learnerId)].status
+            auto_score: lesson.submissions[String(learnerId)].auto_score ?? lesson.submissions[String(learnerId)].score,
+            auto_max_score: lesson.submissions[String(learnerId)].auto_max_score ?? lesson.submissions[String(learnerId)].max_score,
+            manual_score: lesson.submissions[String(learnerId)].manual_score || 0,
+            status: lesson.submissions[String(learnerId)].status,
+            manual_review_required: Boolean(lesson.submissions[String(learnerId)].manual_review_required)
           }
         : null;
       return view;
@@ -237,31 +241,81 @@ function submitLesson(store, lessonId, learnerId, answers) {
   const answerMap = answers && typeof answers === "object" ? answers : {};
   let autoScore = 0;
   let autoMax = 0;
-  let manualCount = 0;
+  let maxScore = 0;
+  const shortAnswerQuestions = questions.filter(question => question.type === "short_answer");
   const responses = questions.map(question => {
     const answer = clean(answerMap[question.id], 1000);
+    const marks = Number(question.marks) || 1;
+    maxScore += marks;
     if (question.type === "multiple_choice") {
-      autoMax += Number(question.marks) || 1;
+      autoMax += marks;
       const correct = normalizeAnswer(answer) === normalizeAnswer(question.correct_answer);
-      if (correct) autoScore += Number(question.marks) || 1;
-      return { question_id: question.id, answer, auto_graded: true, correct };
+      if (correct) autoScore += marks;
+      return { question_id: question.id, answer, auto_graded: true, correct, marks };
     }
-    if (answer) manualCount += 1;
-    return { question_id: question.id, answer, auto_graded: false, correct: null };
+    return { question_id: question.id, answer, auto_graded: false, correct: null, marks };
   });
   if (!lesson.submissions || typeof lesson.submissions !== "object") lesson.submissions = {};
   const submission = {
     learner_id: String(learnerId),
     responses,
     score: autoScore,
-    max_score: autoMax,
-    manual_review_required: manualCount > 0,
-    status: manualCount > 0 ? "submitted_pending_teacher_review" : "auto_scored",
-    submitted_at: new Date().toISOString()
+    max_score: maxScore,
+    auto_score: autoScore,
+    auto_max_score: autoMax,
+    manual_score: 0,
+    manual_scores: {},
+    manual_review_required: shortAnswerQuestions.length > 0,
+    status: shortAnswerQuestions.length > 0 ? "submitted_pending_teacher_review" : "auto_scored",
+    submitted_at: new Date().toISOString(),
+    reviewed_at: null
   };
   lesson.submissions[String(learnerId)] = submission;
   lesson.updated_at = new Date().toISOString();
-  return { success: true, submission: { score: autoScore, max_score: autoMax, manual_review_required: submission.manual_review_required, status: submission.status, submitted_at: submission.submitted_at } };
+  return { success: true, submission: { score: autoScore, max_score: maxScore, auto_score: autoScore, auto_max_score: autoMax, manual_score: 0, manual_review_required: submission.manual_review_required, status: submission.status, submitted_at: submission.submitted_at } };
+}
+
+function reviewLessonSubmission(store, lessonId, teacherId, learnerId, manualScores) {
+  const lesson = store && store.teacher_lessons && store.teacher_lessons[lessonId];
+  if (!lesson || lesson.teacher_id !== String(teacherId)) {
+    return { success: false, status: 404, error: "Lesson not found for this teacher." };
+  }
+  const submission = lesson.submissions && lesson.submissions[String(learnerId)];
+  if (!submission) return { success: false, status: 404, error: "No submission found for this learner." };
+  const scoreMap = manualScores && typeof manualScores === "object" ? manualScores : {};
+  const shortQuestions = (lesson.assessment_questions || []).filter(question => question.type === "short_answer");
+  if (!submission.manual_scores || typeof submission.manual_scores !== "object") submission.manual_scores = {};
+  for (const question of shortQuestions) {
+    if (!Object.prototype.hasOwnProperty.call(scoreMap, question.id)) continue;
+    const score = Number(scoreMap[question.id]);
+    const max = Number(question.marks) || 1;
+    if (!Number.isFinite(score) || score < 0 || score > max) {
+      return { success: false, status: 400, error: "Manual scores must be between zero and the question's maximum marks." };
+    }
+    submission.manual_scores[question.id] = score;
+  }
+  const allReviewed = shortQuestions.every(question =>
+    Object.prototype.hasOwnProperty.call(submission.manual_scores, question.id)
+  );
+  submission.manual_score = shortQuestions.reduce((sum, question) =>
+    sum + (Number(submission.manual_scores[question.id]) || 0), 0);
+  submission.auto_score = Number(submission.auto_score ?? submission.score) || 0;
+  submission.score = submission.auto_score + submission.manual_score;
+  submission.manual_review_required = !allReviewed;
+  submission.status = allReviewed ? "reviewed" : "submitted_pending_teacher_review";
+  submission.reviewed_at = allReviewed ? new Date().toISOString() : null;
+  lesson.updated_at = new Date().toISOString();
+  return { success: true, submission: {
+    learner_id: String(learnerId),
+    score: submission.score,
+    max_score: submission.max_score,
+    auto_score: submission.auto_score,
+    auto_max_score: submission.auto_max_score,
+    manual_score: submission.manual_score,
+    manual_review_required: submission.manual_review_required,
+    status: submission.status,
+    reviewed_at: submission.reviewed_at
+  } };
 }
 
 function listLessonSubmissions(store, lessonId, teacherId) {
@@ -272,7 +326,20 @@ function listLessonSubmissions(store, lessonId, teacherId) {
     learner_name: store.learners && store.learners[learnerId]
       ? String(store.learners[learnerId].name || store.learners[learnerId].full_name || learnerId)
       : learnerId,
-    ...submission
+    ...submission,
+    responses: (submission.responses || []).map(response => {
+      const question = (lesson.assessment_questions || []).find(item => item.id === response.question_id) || {};
+      return {
+        ...response,
+        question: question.question || "",
+        type: question.type || "short_answer",
+        correct_answer: question.correct_answer || "",
+        explanation: question.explanation || "",
+        marks: Number(question.marks) || 1,
+        manual_score: submission.manual_scores && Object.prototype.hasOwnProperty.call(submission.manual_scores, response.question_id)
+          ? submission.manual_scores[response.question_id] : null
+      };
+    })
   }));
 }
 
@@ -283,6 +350,7 @@ module.exports = {
   assignLesson,
   listAssignedLessons,
   submitLesson,
+  reviewLessonSubmission,
   listLessonSubmissions,
   learnerLessonView,
   normalizeQuestions,
