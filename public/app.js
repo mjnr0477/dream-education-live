@@ -2338,7 +2338,7 @@ async function openTeacherLessonStudio() {
       submit.disabled = true;
       feedback.innerHTML = '<p class="teacher-lesson-loading">Dream is retrieving evidence and preparing the lesson, notes and assessment. This may take a little while.</p>';
       try {
-        const data = await request("/api/product/teacher/lessons", {
+        const data = await request("/api/v1/teacher/lessons", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
@@ -2381,13 +2381,13 @@ async function openTeacherLessonStudio() {
       const feedback = body.querySelector('[data-lesson-feedback="' + lessonId + '"]');
       assignButton.disabled = true;
       try {
-        await request("/api/product/teacher/lessons/" + encodeURIComponent(lessonId) + "/assign", {
+        await request("/api/v1/teacher/lessons/" + encodeURIComponent(lessonId) + "/assign", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ learner_id: select && select.value })
         });
         if (feedback) feedback.innerHTML = '<p class="teacher-lesson-success">Assigned. The learner can open this lesson from their Learn workspace.</p>';
-        const refreshed = await request("/api/product/teacher/lessons");
+        const refreshed = await request("/api/v1/teacher/lessons");
         lessons = refreshed.lessons || lessons;
         connectedLearners = refreshed.connected_learners || connectedLearners;
         render();
@@ -2410,13 +2410,13 @@ async function openTeacherLessonStudio() {
       });
       reviewButton.disabled = true;
       try {
-        const result = await request("/api/product/teacher/lessons/" + encodeURIComponent(lessonId) + "/submissions/" + encodeURIComponent(learnerId) + "/review", {
+        const result = await request("/api/v1/teacher/lessons/" + encodeURIComponent(lessonId) + "/submissions/" + encodeURIComponent(learnerId) + "/review", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ manual_scores: manualScores })
         });
         if (reviewFeedback) reviewFeedback.innerHTML = '<p class="teacher-lesson-success">Marks saved. Total score: ' + escape(result.submission.score) + '/' + escape(result.submission.max_score) + (result.submission.manual_review_required ? '. Some short answers still need marks.' : '. Assessment review complete.') + '</p>';
-        const refreshed = await request("/api/product/teacher/lessons/" + encodeURIComponent(lessonId) + "/submissions");
+        const refreshed = await request("/api/v1/teacher/lessons/" + encodeURIComponent(lessonId) + "/submissions");
         renderLessonSubmissions(body.querySelector('[data-lesson-feedback="' + lessonId + '"]'), lessonId, refreshed.submissions || []);
       } catch (error) {
         if (reviewFeedback) reviewFeedback.innerHTML = '<p class="teacher-lesson-error">' + escape(error.message) + '</p>';
@@ -2431,7 +2431,7 @@ async function openTeacherLessonStudio() {
       const feedback = body.querySelector('[data-lesson-feedback="' + lessonId + '"]');
       submissionsButton.disabled = true;
       try {
-        const data = await request("/api/product/teacher/lessons/" + encodeURIComponent(lessonId) + "/submissions");
+        const data = await request("/api/v1/teacher/lessons/" + encodeURIComponent(lessonId) + "/submissions");
         renderLessonSubmissions(feedback, lessonId, data.submissions || []);
       } catch (error) {
         if (feedback) feedback.innerHTML = '<p class="teacher-lesson-error">' + escape(error.message) + '</p>';
@@ -2440,7 +2440,7 @@ async function openTeacherLessonStudio() {
   });
 
   try {
-    const data = await request("/api/product/teacher/lessons");
+    const data = await request("/api/v1/teacher/lessons");
     lessons = data.lessons || [];
     connectedLearners = data.connected_learners || [];
     render();
