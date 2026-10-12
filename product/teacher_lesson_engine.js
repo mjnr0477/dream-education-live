@@ -53,6 +53,7 @@ async function generateTeacherLesson(input = {}) {
   const level = clean(input.level || "Not specified", 100);
   const duration = Math.max(15, Math.min(240, Number(input.duration_minutes) || 40));
   const teacherInstructions = clean(input.instructions, 1200);
+  const curriculum = clean(input.curriculum || "Use the curriculum specified by the teacher; do not claim official alignment unless supported by retrieved material.", 180);
 
   if (topic.length < 2 || subject.length < 2 || level.length < 2) {
     return { success: false, status: 400, error: "Enter a topic, subject and education level." };
@@ -74,16 +75,21 @@ async function generateTeacherLesson(input = {}) {
   }
 
   const prompt = [
-    "Create a teacher-ready lesson plan and assessment using only the source-grounded notes below.",
+    "Create a complete teacher preparation pack and assessment using only the source-grounded notes below.",
     "Return ONLY valid JSON with this exact shape:",
-    '{"objectives":["..."],"materials":["..."],"lesson_steps":[{"stage":"...","minutes":5,"teacher_actions":"...","learner_actions":"..."}],"activities":["..."],"assessment_questions":[{"question":"...","type":"multiple_choice","options":["A","B","C","D"],"correct_answer":"...","explanation":"...","marks":1},{"question":"...","type":"short_answer","options":[],"correct_answer":"...","explanation":"...","marks":2}],"homework":["..."]}',
+    '{"prior_knowledge":["..."],"key_vocabulary":[{"term":"...","meaning":"..."}],"objectives":["..."],"key_inquiry_questions":["..."],"competencies_and_values":["..."],"materials":["..."],"teacher_preparation":["..."],"lesson_steps":[{"stage":"...","minutes":5,"teacher_actions":"...","learner_actions":"...","checks_for_understanding":"..."}],"activities":["..."],"differentiation":{"support":["..."],"core":["..."],"extension":["..."]},"safety_and_inclusion":["..."],"board_plan":["..."],"assessment_questions":[{"question":"...","type":"multiple_choice","options":["A","B","C","D"],"correct_answer":"...","explanation":"...","marks":1},{"question":"...","type":"short_answer","options":[],"correct_answer":"...","explanation":"...","marks":2}],"marking_guidance":["..."],"homework":["..."],"remediation":["..."],"teacher_reflection_questions":["..."]}',
     "Subject: " + subject,
     "Topic: " + topic,
     "Learner level: " + level,
+    "Curriculum/framework requested by teacher: " + curriculum,
     "Duration: " + duration + " minutes",
     "Teacher instructions: " + (teacherInstructions || "Use an inclusive, practical, level-appropriate lesson."),
     "Requirements:",
-    "- Create 3-5 observable learning objectives, a coherent timed sequence that totals approximately the requested duration, and practical activities.",
+    "- Create 3-5 observable learning objectives, prerequisite knowledge, key vocabulary, key inquiry questions, and a coherent timed sequence totalling the requested duration.",
+    "- Prepare practical teacher setup instructions, learner-centred activities, checks for understanding, materials, board/whiteboard plan and safe/inclusive classroom considerations.",
+    "- Include differentiated support for learners who need help, core tasks for the whole class, and extension for learners ready to go further.",
+    "- Include assessment guidance, marking points, homework, remediation for misconceptions and teacher reflection questions.",
+    "- For Kenyan CBC/CBE, consider learning outcomes, inquiry questions, learning experiences, core competencies, values and pertinent issues where relevant. Do not claim official KICD alignment or quote official outcomes unless present in retrieved evidence or teacher-provided requirements.",
     "- Create 5-8 assessment questions that test this exact topic at the stated level, mixing multiple-choice and short-answer questions.",
     "- Each multiple-choice answer must exactly match one option. Keep distractors plausible but not misleading.",
     "- Include correct answers and brief explanations for teacher marking; the app will hide the answer key from learners.",
@@ -105,11 +111,15 @@ async function generateTeacherLesson(input = {}) {
   const parsed = generated && generated.success === true ? parseGeneratedJSON(generated.content) : null;
   const questions = normalizeQuestions(parsed && parsed.assessment_questions);
   const objectives = Array.isArray(parsed && parsed.objectives) ? parsed.objectives.map(x => clean(x, 500)).filter(Boolean).slice(0, 8) : [];
+  const stringList = (value, max = 8, size = 500) => Array.isArray(value) ? value.map(x => clean(x, size)).filter(Boolean).slice(0, max) : [];
+  const keyVocabulary = Array.isArray(parsed && parsed.key_vocabulary) ? parsed.key_vocabulary.map(item => ({ term: clean(item && item.term, 120), meaning: clean(item && item.meaning, 500) })).filter(item => item.term && item.meaning).slice(0, 12) : [];
+  const differentiation = parsed && parsed.differentiation && typeof parsed.differentiation === "object" ? parsed.differentiation : {};
   const lessonSteps = Array.isArray(parsed && parsed.lesson_steps) ? parsed.lesson_steps.slice(0, 12).map(step => ({
     stage: clean(step && step.stage, 120),
     minutes: Math.max(1, Math.min(120, Number(step && step.minutes) || 5)),
     teacher_actions: clean(step && step.teacher_actions, 1000),
-    learner_actions: clean(step && step.learner_actions, 1000)
+    learner_actions: clean(step && step.learner_actions, 1000),
+    checks_for_understanding: clean(step && step.checks_for_understanding, 700)
   })).filter(step => step.stage && (step.teacher_actions || step.learner_actions)) : [];
 
   if (objectives.length < 2 || lessonSteps.length < 2 || questions.length < 3) {
@@ -125,14 +135,27 @@ async function generateTeacherLesson(input = {}) {
     success: true,
     topic,
     subject,
+    curriculum,
     level,
     duration_minutes: duration,
     lesson_plan: {
+      prior_knowledge: stringList(parsed.prior_knowledge, 8),
+      key_vocabulary: keyVocabulary,
       objectives,
+      key_inquiry_questions: stringList(parsed.key_inquiry_questions, 8),
+      competencies_and_values: stringList(parsed.competencies_and_values, 10),
+      teacher_preparation: stringList(parsed.teacher_preparation, 10),
+      differentiation: { support: stringList(differentiation.support, 8), core: stringList(differentiation.core, 8), extension: stringList(differentiation.extension, 8) },
+      safety_and_inclusion: stringList(parsed.safety_and_inclusion, 8),
+      board_plan: stringList(parsed.board_plan, 8),
+      marking_guidance: stringList(parsed.marking_guidance, 10),
+      remediation: stringList(parsed.remediation, 8),
+      teacher_reflection_questions: stringList(parsed.teacher_reflection_questions, 8),
       materials: Array.isArray(parsed.materials) ? parsed.materials.map(x => clean(x, 250)).filter(Boolean).slice(0, 10) : [],
       lesson_steps: lessonSteps,
       activities: Array.isArray(parsed.activities) ? parsed.activities.map(x => clean(x, 500)).filter(Boolean).slice(0, 10) : [],
-      homework: Array.isArray(parsed.homework) ? parsed.homework.map(x => clean(x, 500)).filter(Boolean).slice(0, 10) : []
+      homework: stringList(parsed.homework, 10),
+      activities: stringList(parsed.activities, 10)
     },
     notes: notesResult.notes,
     assessment_questions: questions,
@@ -154,6 +177,7 @@ function createLesson(store, teacherId, lessonContent) {
     teacher_id: String(teacherId),
     topic: lessonContent.topic,
     subject: lessonContent.subject,
+    curriculum: lessonContent.curriculum || "",
     level: lessonContent.level,
     duration_minutes: lessonContent.duration_minutes,
     lesson_plan: lessonContent.lesson_plan,
