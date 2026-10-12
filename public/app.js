@@ -2313,7 +2313,7 @@ async function openTeacherLessonStudio() {
       '<section><h4>Marking guidance & remediation</h4><ul>' + (((lesson.lesson_plan && lesson.lesson_plan.marking_guidance) || []).concat((lesson.lesson_plan && lesson.lesson_plan.remediation) || [])).map(item => '<li>' + escape(item) + '</li>').join("") + '</ul></section>' +
       '<section><h4>Homework / extended learning</h4><ul>' + (((lesson.lesson_plan && lesson.lesson_plan.homework) || []).concat((lesson.lesson_plan && lesson.lesson_plan.activities) || [])).map(item => '<li>' + escape(item) + '</li>').join("") + '</ul></section>' +
       '<section><h4>Teacher reflection</h4><ul>' + ((lesson.lesson_plan && lesson.lesson_plan.teacher_reflection_questions) || []).map(item => '<li>' + escape(item) + '</li>').join("") + '</ul></section></div>' +
-      '<p class="teacher-lesson-source-label">Evidence sources: ' + (Array.isArray(lesson.sources) ? lesson.sources.map(source => source.url ? '<a href="' + escape(source.url) + '" target="_blank" rel="noopener noreferrer">' + escape(source.title) + '</a>' : escape(source.title)).join(" · ") : "Retrieved knowledge") + '</p>' +
+      '<p class="teacher-lesson-source-label">Evidence sources: ' + (Array.isArray(lesson.sources) ? lesson.sources.map(source => source.url ? '<button type="button" class="teacher-lesson-source-open" data-lesson-source-open="' + escape(source.url) + '">Open source: ' + escape(source.title) + '</button>' : escape(source.title)).join(" · ") : "Retrieved knowledge") + '</p>' +
       '<div class="teacher-lesson-assign-row">' +
       (connectedLearners.length ? '<label>Assign to <select data-lesson-learner="' + escape(lesson.lesson_id) + '">' + options + '</select></label><button type="button" class="panel-button primary" data-lesson-assign="' + escape(lesson.lesson_id) + '">Assign lesson</button>' : '<p>Connect a learner first to assign this lesson.</p>') +
       '<button type="button" class="panel-button" data-lesson-submissions="' + escape(lesson.lesson_id) + '">Review submissions</button></div>' +
@@ -2387,6 +2387,12 @@ async function openTeacherLessonStudio() {
   }
 
   body.addEventListener("click", async event => {
+    const sourceButton = event.target.closest("[data-lesson-source-open]");
+    if (sourceButton) {
+      const sourceUrl = sourceButton.getAttribute("data-lesson-source-open") || "";
+      if (/^https?:\\/\\//i.test(sourceUrl)) window.open(sourceUrl, "_blank", "noopener,noreferrer");
+      return;
+    }
     const assignButton = event.target.closest("[data-lesson-assign]");
     if (assignButton) {
       const lessonId = assignButton.getAttribute("data-lesson-assign");
