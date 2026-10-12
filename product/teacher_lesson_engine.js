@@ -63,13 +63,28 @@ async function generateTeacherLesson(input = {}) {
   const { retrieveKnowledgeIntelligence } = require("./knowledge_intelligence_engine");
   const { buildTeacherLesson } = require("./deterministic_lesson_planner");
   let evidence;
+  let evidenceTimeout;
   try {
-    evidence = await retrieveKnowledgeIntelligence(
-      subject + " " + topic + " " + level + (curriculum ? " " + curriculum : ""),
-      { limit: 5, context: { subject, topic, level, curriculum, intent: "educational_notes" } }
-    );
+    evidence = await Promise.race([
+      retrieveKnowledgeIntelligence(
+        subject + " " + topic + " " + level + (curriculum ? " " + curriculum : ""),
+        { limit: 5, context: { subject, topic, level, curriculum, intent: "educational_notes" } }
+      ),
+      new Promise((_, reject) => {
+        evidenceTimeout = setTimeout(() => {
+          const error = new Error("Topic evidence retrieval exceeded the 20-second lesson preparation limit.");
+          error.code = "LESSON_EVIDENCE_TIMEOUT";
+          reject(error);
+        }, 20000);
+      })
+    ]);
   } catch (error) {
+    if (error && error.code === "LESSON_EVIDENCE_TIMEOUT") {
+      return { success: false, status: 504, error: "Dream's free-source retrieval took too long. Please try again with a more specific topic.", evidence_status: "timeout" };
+    }
     return { success: false, status: 503, error: "Dream could not retrieve topic evidence. Please try again.", evidence_status: "unavailable" };
+  } finally {
+    clearTimeout(evidenceTimeout);
   }
 
   if (!evidence || evidence.success !== true) {

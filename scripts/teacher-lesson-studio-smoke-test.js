@@ -12,6 +12,8 @@ const engineSource = fs.readFileSync(path.join(root, "product/teacher_lesson_eng
 const plannerSource = fs.readFileSync(path.join(root, "product/deterministic_lesson_planner.js"), "utf8");
 const index = fs.readFileSync(path.join(root, "public/index.html"), "utf8");
 const teacherStyles = fs.readFileSync(path.join(root, "public/teacher-workspace.css"), "utf8");
+const schoolWorkspaceSource = fs.readFileSync(path.join(root, "public/school-workspace.js"), "utf8");
+new vm.Script(schoolWorkspaceSource, { filename: "public/school-workspace.js" });
 
 new vm.Script(server, { filename: "server.js" });
 new vm.Script(teacherUI, { filename: "public/app.js" });
@@ -35,6 +37,9 @@ assert.match(teacherUI, /Lesson Plans & Assessments/);
 assert.match(teacherUI, /Prepare lesson with Dream/);
 assert.match(teacherUI, /\}, 120000\)/, "Lesson generation needs a longer client timeout than normal API requests.");
 assert.match(teacherUI, /Preparing lesson…/);
+assert.match(teacherUI, /controller\.abort\(\)/, "Teacher lesson requests must time out through response-body parsing.");
+assert.match(schoolWorkspaceSource, /fetchSchoolLessonJSON/, "School lesson requests must use a bounded JSON request.");
+assert.match(schoolWorkspaceSource, /did not respond within 30 seconds/, "School lesson UI must explain a stalled request.");
 assert.match(engineSource, /buildTeacherLesson/);
 assert.match(learnerUI, /Lessons from My Teacher/);
 assert.match(learnerUI, /assigned-lessons/);

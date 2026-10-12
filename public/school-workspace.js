@@ -12,6 +12,25 @@
     link.id = STYLE_ID; link.rel = "stylesheet"; link.href = "/school-workspace.css?v=20261012b";
     document.head.appendChild(link);
   }
+  async function fetchSchoolLessonJSON(url, options, timeoutMs = 30000) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetch(url, Object.assign({}, options || {}, { signal: controller.signal }));
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data.success !== true) {
+        throw new Error(data.error || "Dream could not complete the lesson request.");
+      }
+      return data;
+    } catch (error) {
+      if (error && error.name === "AbortError") {
+        throw new Error("Dream did not respond within 30 seconds. Please try again; if this repeats, the lesson service needs investigation.");
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
   function moduleButton(id,label) { return '<button type="button" data-school-module-tab="' + esc(id) + '">' + esc(label) + '</button>'; }
   function card(icon,title,description,actionLabel,action) {
     return '<article class="school-module-card"><span class="school-module-icon" aria-hidden="true">' + icon + '</span><h4>' + esc(title) + '</h4><p>' + esc(description) + '</p>' +
@@ -100,9 +119,9 @@
       schoolLessonsLoading = true;
       target.innerHTML = "<p>Loading saved lessons…</p>";
       try {
-        const response = await fetch("/api/v1/school/lessons", { headers: { "Accept": "application/json", "Authorization": "Bearer " + token } });
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok || !data.success) throw new Error(data.error || "Could not load saved lessons.");
+        const data = await fetchSchoolLessonJSON("/api/v1/school/lessons", {
+          headers: { "Accept": "application/json", "Authorization": "Bearer " + token }
+        });
         const saved = Array.isArray(data.lessons) ? data.lessons : [];
         target.innerHTML = saved.length ? saved.map(lesson => {
           const steps = lesson.lesson_plan && Array.isArray(lesson.lesson_plan.lesson_steps) ? lesson.lesson_plan.lesson_steps : [];
@@ -136,13 +155,11 @@
       if (submit) { submit.disabled = true; submit.textContent = "Preparing lesson…"; }
       if (feedback) feedback.textContent = "Dream is retrieving topic evidence and preparing the lesson plan, notes and assessment together. Please keep this page open.";
       try {
-        const response = await fetch("/api/v1/school/lessons", {
+        const data = await fetchSchoolLessonJSON("/api/v1/school/lessons", {
           method: "POST",
           headers: { "Content-Type": "application/json", "Accept": "application/json", "Authorization": "Bearer " + token },
           body: JSON.stringify(payload)
-        });
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok || !data.success) throw new Error(data.error || "Dream could not prepare this lesson.");
+        }, 30000);
         if (feedback) feedback.textContent = "Lesson plan and assessment prepared and saved. Open it below to review the notes, steps, answers and sources.";
         schoolLessonForm.reset();
         const duration = schoolLessonForm.querySelector('[name="duration_minutes"]');
