@@ -426,7 +426,9 @@
         return '<article class="de-section de-assigned-lesson"><div class="de-section-title"><h3>' + escapeHTML(lesson.topic) + '</h3><span>' + escapeHTML(lesson.level) + '</span></div>' +
           '<p class="de-muted">' + escapeHTML(lesson.subject) + ' · ' + escapeHTML(lesson.duration_minutes) + ' minutes</p>' +
           '<h4>What you will learn</h4><ul>' + objectives.map(item => '<li>' + escapeHTML(item) + '</li>').join("") + '</ul>' +
-          '<h4>Lesson steps</h4><ol>' + steps.map(step => '<li><strong>' + escapeHTML(step.stage) + '</strong><p>' + escapeHTML(step.teacher_actions) + '</p></li>').join("") + '</ol>' +
+          '<h4>Key questions</h4><ul>' + ((lesson.lesson_plan && lesson.lesson_plan.key_inquiry_questions) || []).map(item => '<li>' + escapeHTML(item) + '</li>').join("") + '</ul>' +
+          '<h4>Key vocabulary</h4><ul>' + ((lesson.lesson_plan && lesson.lesson_plan.key_vocabulary) || []).map(item => '<li><strong>' + escapeHTML(item.term) + '</strong>: ' + escapeHTML(item.meaning) + '</li>').join("") + '</ul>' +
+          '<h4>Lesson steps</h4><ol>' + steps.map(step => '<li><strong>' + escapeHTML(step.stage) + '</strong><p>' + escapeHTML(step.teacher_actions) + '</p><p>' + escapeHTML(step.learner_actions) + '</p></li>').join("") + '</ol>' +
           '<h4>Study notes</h4><div class="de-assigned-notes">' + escapeHTML(lesson.notes).replace(/^### (.*)$/gm, '<strong>$1</strong>').replace(/^## (.*)$/gm, '<strong>$1</strong>').replace(/^# (.*)$/gm, '<strong>$1</strong>').replace(/\n/g, '<br>') + '</div>' +
           '<h4>Assessment</h4>' +
           (submitted ? '<div class="de-success"><strong>Submitted</strong><p>Automatically scored: ' + escapeHTML(submitted.auto_score) + '/' + escapeHTML(submitted.auto_max_score) + '. Total so far: ' + escapeHTML(submitted.score) + '/' + escapeHTML(submitted.max_score) + '. ' + (submitted.status === "submitted_pending_teacher_review" ? 'Your short answers are waiting for teacher review.' : submitted.status === "reviewed" ? 'Your teacher has reviewed this assessment.' : 'Your automatically scored answers are recorded.') + '</p></div>' : '<form data-assigned-lesson-form="' + escapeHTML(lesson.lesson_id) + '">' +
@@ -436,7 +438,7 @@
                 : '<input name="' + escapeHTML(question.id) + '" required maxlength="1000" placeholder="Write your answer">';
               return '<div class="de-assigned-question"><label for="de-answer-' + escapeHTML(lesson.lesson_id) + '-' + escapeHTML(question.id) + '">' + (index + 1) + '. ' + escapeHTML(question.question) + '</label><div id="de-answer-' + escapeHTML(lesson.lesson_id) + '-' + escapeHTML(question.id) + '">' + input + '</div></div>';
             }).join("") + '<button class="de-action primary" type="submit">Submit answers</button><div data-assigned-feedback="' + escapeHTML(lesson.lesson_id) + '" aria-live="polite"></div></form>') +
-          '<h4>Sources used</h4><p class="de-muted">' + (Array.isArray(lesson.sources) && lesson.sources.length ? lesson.sources.map(source => escapeHTML(source.title)).join(" · ") : 'Retrieved educational evidence') + '</p></article>';
+          '<h4>Sources used</h4><ul class="de-assigned-sources">' + (Array.isArray(lesson.sources) && lesson.sources.length ? lesson.sources.map(source => '<li>' + (source.url ? '<a href="' + escapeHTML(source.url) + '" target="_blank" rel="noopener noreferrer">' + escapeHTML(source.title) + '</a>' : escapeHTML(source.title)) + '</li>').join("") : '<li>Retrieved educational evidence; source links unavailable.</li>') + '</ul></article>';
       }).join("") + '</div>';
       panelBody.querySelectorAll("[data-assigned-lesson-form]").forEach(function (form) {
         form.addEventListener("submit", async function (event) {
