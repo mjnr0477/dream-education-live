@@ -114,7 +114,7 @@
       const questions = Array.isArray(lesson.assessment_questions) ? lesson.assessment_questions : [];
       const sources = Array.isArray(lesson.sources) ? lesson.sources : [];
       const detail = '<details' + (expandDetails ? ' open' : '') + '><summary>Open notes, teaching steps and assessment</summary><div class="school-lesson-detail"><h5>Teaching notes</h5><div>' + esc(lesson.notes || "No notes returned.") + '</div><h5>Timed lesson steps</h5><ol>' + steps.map(step => '<li><strong>' + esc(step.stage || "Lesson step") + ' (' + esc(step.minutes || 0) + ' min)</strong><p>' + esc(step.teacher_actions || "") + '</p><p><em>Learners:</em> ' + esc(step.learner_actions || "") + '</p><p><em>Check:</em> ' + esc(step.checks_for_understanding || "") + '</p></li>').join("") + '</ol><h5>Assessment with answers</h5><ol>' + questions.map(q => '<li><strong>' + esc(q.question || "") + '</strong><p>Answer: ' + esc(q.correct_answer || "Not provided") + '</p><p>' + esc(q.explanation || "") + '</p><small>Marks: ' + esc(q.marks || 1) + '</small></li>').join("") + '</ol><p>' + sources.length + ' source reference(s) attached · ' + esc(lesson.evidence_count || 0) + ' evidence item(s)</p></div></details>';
-      return '<article class="school-module-card school-lesson-saved-card" data-school-lesson-card="' + esc(lesson.lesson_id || "") + '"><h5>' + esc(lesson.subject || "Subject") + ': ' + esc(lesson.topic || "Lesson") + '</h5><p>' + esc(lesson.level || "Level not set") + ' · ' + esc(lesson.duration_minutes || 40) + ' minutes · ' + questions.length + ' assessment questions</p>' + detail + '</article>';
+      return '<article class="school-module-card school-lesson-saved-card" data-school-lesson-card="' + esc(lesson.lesson_id || "") + '"><h5>' + esc(lesson.subject || "Subject") + ': ' + esc(lesson.topic || "Lesson") + '</h5><p>' + esc(lesson.level || "Level not set") + ' · ' + esc(lesson.duration_minutes || 40) + ' minutes · ' + questions.length + ' assessment questions</p><button type="button" class="school-module-action" data-school-lesson-notes-open="' + esc(lesson.lesson_id || "") + '">Lesson Notes</button>' + detail + '</article>';
     }
     async function loadSchoolLessons(recentLesson = null) {
       const target = moduleRoot.querySelector("#school-lesson-saved");
@@ -186,6 +186,16 @@
       }
     });
     moduleRoot.addEventListener("click", event => {
+      const notesButton = event.target.closest("[data-school-lesson-notes-open]");
+      if (notesButton) {
+        const card = notesButton.closest("[data-school-lesson-card]");
+        const details = card && card.querySelector("details");
+        if (details) {
+          details.open = true;
+          details.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+        return;
+      }
       const button = event.target.closest("[data-school-module-action]");
       if (!button) return;
       const action = button.getAttribute("data-school-module-action");
