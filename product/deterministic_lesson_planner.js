@@ -184,7 +184,7 @@ function buildTeacherLesson(input = {}, evidence) {
     level,
     duration_minutes: duration,
     lesson_plan: {
-      prior_knowledge: ["Learners share existing ideas about " + topic; record them separately from verified source facts."],
+      prior_knowledge: ["Learners share existing ideas about " + topic + "; record them separately from verified source facts."],
       key_vocabulary: [],
       objectives,
       key_inquiry_questions: [
