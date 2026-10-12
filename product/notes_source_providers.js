@@ -9,7 +9,6 @@ function get(url, timeout = TIMEOUT_MS) {
   return new Promise((resolve, reject) => {
     const request = https.get(url, { headers: { "User-Agent": USER_AGENT, Accept: "application/json,text/html;q=0.9,*/*;q=0.8" } }, response => {
       let body = "";
-      response.setEncoding("utf8");
       response.on("data", chunk => { body += chunk; });
       response.on("end", () => {
         if (response.statusCode < 200 || response.statusCode >= 300) {
