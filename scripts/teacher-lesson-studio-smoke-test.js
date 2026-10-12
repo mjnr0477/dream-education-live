@@ -17,10 +17,10 @@ new vm.Script(teacherUI, { filename: "public/app.js" });
 new vm.Script(learnerUI, { filename: "public/frontend-workspace.js" });
 new vm.Script(engineSource, { filename: "product/teacher_lesson_engine.js" });
 
-assert.match(index, /teacher-workspace\\.css\\?v=/, "Teacher workspace stylesheet must be loaded.");
-assert.match(teacherStyles, /\.teacher-dashboard-header/, "Teacher dashboard must use the visual refresh.");
-assert.match(teacherStyles, /\.teacher-lesson-preparation-grid/, "Lesson preparation cards must be styled.");
-assert.match(teacherStyles, /@media \\(max-width: 760px\\)/, "Teacher surfaces must have responsive mobile styles.");
+assert(index.includes("teacher-workspace.css?v="), "Teacher workspace stylesheet must be loaded.");
+assert(teacherStyles.includes(".teacher-dashboard-header"), "Teacher dashboard must use the visual refresh.");
+assert(teacherStyles.includes(".teacher-lesson-preparation-grid"), "Lesson preparation cards must be styled.");
+assert(teacherStyles.includes("@media (max-width: 760px)"), "Teacher surfaces must have responsive mobile styles.");
 
 assert.match(server, /app\.get\("\/api\/v1\/teacher\/lessons"/);
 assert.match(server, /app\.post\("\/api\/v1\/teacher\/lessons"/);
