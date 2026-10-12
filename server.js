@@ -10357,8 +10357,8 @@ app.get("/api/v1/school/lessons", async (req, res) => {
   try {
     const auth = await getAuthenticatedAccount(req);
     if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
-    if (String(auth.account.role || "").toLowerCase() !== "school") {
-      return res.status(403).json({ success: false, error: "Only authenticated school accounts can access School Lesson Studio." });
+    if (String(auth.account.role || "").toLowerCase() !== "school" && auth.account.owner_account !== true) {
+      return res.status(403).json({ success: false, error: "Only authenticated school accounts or the project owner can access School Lesson Studio." });
     }
     const dataEngine = require("./product/data_engine");
     const lessonEngine = require("./product/teacher_lesson_engine");
@@ -10376,8 +10376,8 @@ app.post("/api/v1/school/lessons", async (req, res) => {
   try {
     const auth = await getAuthenticatedAccount(req);
     if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
-    if (String(auth.account.role || "").toLowerCase() !== "school") {
-      return res.status(403).json({ success: false, error: "Only authenticated school accounts can prepare lessons." });
+    if (String(auth.account.role || "").toLowerCase() !== "school" && auth.account.owner_account !== true) {
+      return res.status(403).json({ success: false, error: "Only authenticated school accounts or the project owner can prepare lessons." });
     }
     const scope = getSchoolLessonScope(auth);
     if (!scope) return res.status(403).json({ success: false, error: "A school account scope is required." });
@@ -10411,8 +10411,8 @@ app.get("/api/v1/teacher/lessons", async (req, res) => {
   try {
     const auth = await getAuthenticatedAccount(req);
     if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
-    if (String(auth.account.role || "").toLowerCase() !== "teacher" || !auth.account.teacher_id) {
-      return res.status(403).json({ success: false, error: "Only a teacher account can access Lesson Studio." });
+    if ((String(auth.account.role || "").toLowerCase() !== "teacher" || !auth.account.teacher_id) && auth.account.owner_account !== true) {
+      return res.status(403).json({ success: false, error: "Only a teacher account or the project owner can access Lesson Studio." });
     }
 
     const dataEngine = require("./product/data_engine");
@@ -10420,9 +10420,13 @@ app.get("/api/v1/teacher/lessons", async (req, res) => {
     const lessonEngine = require("./product/teacher_lesson_engine");
     const store = dataEngine.loadStore();
     const teacherId = connectionEngine.getAccountEntityId(auth.account);
+    const ownerLessonScope = auth.account.owner_account === true
+      ? "owner_workspace_" + String(auth.user && auth.user.id || auth.account.id || auth.account.email || "owner")
+      : "";
+    const effectiveTeacherId = ownerLessonScope || teacherId;
     const connections = connectionEngine.listConnections(store, {
-      status: "active", type: "teacher_learner", role: "teacher", id: teacherId
-    }).filter(connection => connection.from_role === "teacher" && connection.from_id === teacherId && connection.to_role === "learner");
+      status: "active", type: "teacher_learner", role: "teacher", id: effectiveTeacherId
+    }).filter(connection => connection.from_role === "teacher" && connection.from_id === effectiveTeacherId && connection.to_role === "learner");
     const connectedLearners = connections.map(connection => {
       const learner = store.learners && store.learners[connection.to_id];
       return learner ? {
@@ -10433,7 +10437,7 @@ app.get("/api/v1/teacher/lessons", async (req, res) => {
     }).filter(Boolean);
     return res.json({
       success: true,
-      lessons: lessonEngine.listTeacherLessons(store, teacherId),
+      lessons: lessonEngine.listTeacherLessons(store, effectiveTeacherId),
       connected_learners: connectedLearners
     });
   } catch (error) {
@@ -10446,8 +10450,8 @@ app.post("/api/v1/teacher/lessons", async (req, res) => {
   try {
     const auth = await getAuthenticatedAccount(req);
     if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
-    if (String(auth.account.role || "").toLowerCase() !== "teacher" || !auth.account.teacher_id) {
-      return res.status(403).json({ success: false, error: "Only a teacher account can create lessons." });
+    if ((String(auth.account.role || "").toLowerCase() !== "teacher" || !auth.account.teacher_id) && auth.account.owner_account !== true) {
+      return res.status(403).json({ success: false, error: "Only a teacher account or the project owner can create lessons." });
     }
 
     const lessonEngine = require("./product/teacher_lesson_engine");
@@ -10467,7 +10471,9 @@ app.post("/api/v1/teacher/lessons", async (req, res) => {
       });
     }
     const store = dataEngine.loadStore();
-    const teacherId = String(auth.account.teacher_id);
+    const teacherId = auth.account.owner_account === true
+      ? "owner_workspace_" + String(auth.user && auth.user.id || auth.account.id || auth.account.email || "owner")
+      : String(auth.account.teacher_id);
     const lesson = lessonEngine.createLesson(store, teacherId, generated);
     dataEngine.saveStore(store);
     return res.status(201).json({ success: true, lesson });
