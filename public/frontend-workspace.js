@@ -438,7 +438,7 @@
                 : '<input name="' + escapeHTML(question.id) + '" required maxlength="1000" placeholder="Write your answer">';
               return '<div class="de-assigned-question"><label for="de-answer-' + escapeHTML(lesson.lesson_id) + '-' + escapeHTML(question.id) + '">' + (index + 1) + '. ' + escapeHTML(question.question) + '</label><div id="de-answer-' + escapeHTML(lesson.lesson_id) + '-' + escapeHTML(question.id) + '">' + input + '</div></div>';
             }).join("") + '<button class="de-action primary" type="submit">Submit answers</button><div data-assigned-feedback="' + escapeHTML(lesson.lesson_id) + '" aria-live="polite"></div></form>') +
-          '<h4>Sources used</h4><ul class="de-assigned-sources">' + (Array.isArray(lesson.sources) && lesson.sources.length ? lesson.sources.map(source => '<li>' + (source.url ? '<a href="' + escapeHTML(source.url) + '" target="_blank" rel="noopener noreferrer">' + escapeHTML(source.title) + '</a>' : escapeHTML(source.title)) + '</li>').join("") : '<li>Retrieved educational evidence; source links unavailable.</li>') + '</ul></article>';
+          '<h4>Sources used</h4><ul class="de-assigned-sources">' + (Array.isArray(lesson.sources) && lesson.sources.length ? lesson.sources.map(source => '<li>' + (source.url ? '<button type="button" class="de-action" data-lesson-source-open="' + escapeHTML(source.url) + '">Open source: ' + escapeHTML(source.title) + '</button>' : escapeHTML(source.title)) + '</li>').join("") : '<li>Retrieved educational evidence; source links unavailable.</li>') + '</ul></article>';
       }).join("") + '</div>';
       panelBody.querySelectorAll("[data-assigned-lesson-form]").forEach(function (form) {
         form.addEventListener("submit", async function (event) {
@@ -1061,6 +1061,12 @@
   }
 
   document.addEventListener("click", function (event) {
+    const sourceButton = event.target.closest("[data-lesson-source-open]");
+    if (sourceButton) {
+      const sourceUrl = sourceButton.getAttribute("data-lesson-source-open") || "";
+      if (/^https?:\\/\\//i.test(sourceUrl)) window.open(sourceUrl, "_blank", "noopener,noreferrer");
+      return;
+    }
     const completeButton = event.target.closest("[data-resource-complete]");
     if (completeButton) {
       const resource = (window.__dreamResourceResults || [])[Number(completeButton.getAttribute("data-resource-complete"))];
