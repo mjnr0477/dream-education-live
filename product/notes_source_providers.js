@@ -15,7 +15,7 @@ function get(url, timeout = TIMEOUT_MS) {
           reject(new Error("HTTP " + (response.statusCode || "unknown")));
           return;
         }
-        resolve({ body, contentType: String(response.headers["content-type"] || "") });
+        resolve({ body, contentType: String(response.headers?.["content-type"] || "") });
       });
     });
     request.on("error", reject);
