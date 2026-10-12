@@ -2275,10 +2275,10 @@ async function openTeacherLessonStudio() {
   panel.setAttribute("aria-hidden", "false");
 
   const escape = value => teacherEscapeHTML(String(value == null ? "" : value));
-  const request = async (url, options = {}) => {
+  const request = async (url, options = {}, timeoutMs = 12000) => {
     const response = await fetchWithTimeout(url, Object.assign({}, options, {
       headers: Object.assign({ "Authorization": "Bearer " + token }, options.headers || {})
-    }));
+    }), timeoutMs);
     const data = await response.json().catch(() => ({}));
     if (!response.ok || data.success !== true) throw new Error(data.error || "Lesson Studio request failed.");
     return data;
@@ -2340,6 +2340,7 @@ async function openTeacherLessonStudio() {
       event.preventDefault();
       const feedback = document.getElementById("teacher-lesson-create-feedback");
       const submit = form.querySelector('button[type="submit"]');
+      const originalSubmitLabel = submit.textContent;
       const payload = {
         subject: form.elements.subject.value.trim(),
         topic: form.elements.topic.value.trim(),
@@ -2349,21 +2350,26 @@ async function openTeacherLessonStudio() {
         curriculum: form.elements.curriculum.value.trim()
       };
       submit.disabled = true;
-      feedback.innerHTML = '<p class="teacher-lesson-loading">Dream is retrieving evidence and preparing the lesson, notes and assessment. This may take a little while.</p>';
+      submit.textContent = "Preparing lesson…";
+      feedback.innerHTML = '<p class="teacher-lesson-loading" role="status">Dream is retrieving topic evidence, then preparing the lesson plan, teaching notes and assessment together. The form will stay open while Dream works.</p>';
       try {
         const data = await request("/api/v1/teacher/lessons", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
-        });
+        }, 120000);
         lessons.unshift(data.lesson);
         activeLesson = data.lesson;
         render();
         const nextFeedback = document.getElementById("teacher-lesson-create-feedback");
         if (nextFeedback) nextFeedback.innerHTML = '<p class="teacher-lesson-success">Lesson prepared and saved. Review the notes and answer key below, then assign it to a connected learner.</p>';
       } catch (error) {
-        feedback.innerHTML = '<p class="teacher-lesson-error">' + escape(error.message) + '</p>';
+        const message = error && error.name === "AbortError"
+          ? "Lesson preparation took longer than expected. Please try again; Dream has not saved an incomplete lesson."
+          : error.message;
+        feedback.innerHTML = '<p class="teacher-lesson-error">' + escape(message) + '</p>';
         submit.disabled = false;
+        submit.textContent = originalSubmitLabel;
       }
     });
   }
