@@ -2355,6 +2355,24 @@ async function openTeacherLessonStudio() {
     });
   }
 
+  function renderLessonSubmissions(feedback, lessonId, submissions) {
+    if (!feedback) return;
+    feedback.innerHTML = '<div class="teacher-lesson-submissions"><h4>Learner submissions</h4>' +
+      (submissions.length ? submissions.map(submission => {
+        const learnerId = escape(submission.learner_id);
+        const responses = Array.isArray(submission.responses) ? submission.responses : [];
+        const shortAnswers = responses.filter(response => response.type === "short_answer");
+        return '<article class="teacher-lesson-submission"><p><strong>' + escape(submission.learner_name) + '</strong> · Total ' + escape(submission.score) + '/' + escape(submission.max_score) + ' · ' + escape(submission.status) + '</p>' +
+          '<ol>' + responses.map(response => '<li><strong>' + escape(response.question) + '</strong><p>Learner answer: ' + escape(response.answer || "No answer provided") + '</p>' +
+            (response.type === "multiple_choice"
+              ? '<p>' + (response.correct ? 'Correct' : 'Incorrect') + ' · Answer key: ' + escape(response.correct_answer) + '</p>'
+              : '<label class="teacher-lesson-grade-label">Teacher marks (0–' + escape(response.marks) + ')<input type="number" min="0" max="' + escape(response.marks) + '" step="1" data-review-score="' + learnerId + '" data-review-question="' + escape(response.question_id) + '" value="' + (response.manual_score == null ? '' : escape(response.manual_score)) + '"></label>') +
+          '</li>').join("") + '</ol>' +
+          (shortAnswers.length ? '<button type="button" class="panel-button primary" data-lesson-review="' + escape(lessonId) + '" data-review-learner="' + learnerId + '">Save short-answer marks</button>' : '') +
+          '<div data-review-feedback="' + learnerId + '" aria-live="polite"></div></article>';
+      }).join("") : '<p>No submissions yet.</p>') + '</div>';
+  }
+
   body.addEventListener("click", async event => {
     const assignButton = event.target.closest("[data-lesson-assign]");
     if (assignButton) {
@@ -2379,6 +2397,34 @@ async function openTeacherLessonStudio() {
       }
       return;
     }
+    const reviewButton = event.target.closest("[data-lesson-review]");
+    if (reviewButton) {
+      const lessonId = reviewButton.getAttribute("data-lesson-review");
+      const learnerId = reviewButton.getAttribute("data-review-learner");
+      const reviewFeedback = body.querySelector('[data-review-feedback="' + learnerId + '"]');
+      const manualScores = {};
+      body.querySelectorAll("[data-review-score]").forEach(input => {
+        if (input.getAttribute("data-review-score") === learnerId && input.value !== "") {
+          manualScores[input.getAttribute("data-review-question")] = Number(input.value);
+        }
+      });
+      reviewButton.disabled = true;
+      try {
+        const result = await request("/api/product/teacher/lessons/" + encodeURIComponent(lessonId) + "/submissions/" + encodeURIComponent(learnerId) + "/review", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ manual_scores: manualScores })
+        });
+        if (reviewFeedback) reviewFeedback.innerHTML = '<p class="teacher-lesson-success">Marks saved. Total score: ' + escape(result.submission.score) + '/' + escape(result.submission.max_score) + (result.submission.manual_review_required ? '. Some short answers still need marks.' : '. Assessment review complete.') + '</p>';
+        const refreshed = await request("/api/product/teacher/lessons/" + encodeURIComponent(lessonId) + "/submissions");
+        renderLessonSubmissions(body.querySelector('[data-lesson-feedback="' + lessonId + '"]'), lessonId, refreshed.submissions || []);
+      } catch (error) {
+        if (reviewFeedback) reviewFeedback.innerHTML = '<p class="teacher-lesson-error">' + escape(error.message) + '</p>';
+        reviewButton.disabled = false;
+      }
+      return;
+    }
+
     const submissionsButton = event.target.closest("[data-lesson-submissions]");
     if (submissionsButton) {
       const lessonId = submissionsButton.getAttribute("data-lesson-submissions");
@@ -2386,9 +2432,7 @@ async function openTeacherLessonStudio() {
       submissionsButton.disabled = true;
       try {
         const data = await request("/api/product/teacher/lessons/" + encodeURIComponent(lessonId) + "/submissions");
-        if (feedback) feedback.innerHTML = '<div class="teacher-lesson-submissions"><h4>Learner submissions</h4>' + (data.submissions.length ? data.submissions.map(submission =>
-          '<p><strong>' + escape(submission.learner_name) + '</strong> · ' + escape(submission.score) + '/' + escape(submission.max_score) + ' automatically scored · ' + escape(submission.status) + (submission.manual_review_required ? '<br>Short answers need teacher review.' : '') + '</p>'
-        ).join("") : '<p>No submissions yet.</p>') + '</div>';
+        renderLessonSubmissions(feedback, lessonId, data.submissions || []);
       } catch (error) {
         if (feedback) feedback.innerHTML = '<p class="teacher-lesson-error">' + escape(error.message) + '</p>';
       } finally { submissionsButton.disabled = false; }
