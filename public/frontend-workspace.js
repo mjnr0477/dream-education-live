@@ -389,9 +389,87 @@
           '<button type="button" class="de-learn-tile" data-de-action="ask"><span class="de-learn-tile-icon">?</span><strong>Ask Dream</strong><small>Ask a question or explore an idea</small></button>' +
           '<button type="button" class="de-learn-tile" data-de-action="progress"><span class="de-learn-tile-icon">◷</span><strong>Learner Progress</strong><small>Open your progress when you need it</small></button>' +
           '<button type="button" class="de-learn-tile" data-de-action="notes"><span class="de-learn-tile-icon">▤</span><strong>Notes &amp; Study Materials</strong><small>Get topic notes for your education level</small></button>' +
+          '<button type="button" class="de-learn-tile" data-de-action="assigned-lessons"><span class="de-learn-tile-icon">✓</span><strong>Lessons from My Teacher</strong><small>Open assigned notes and submit assessment answers</small></button>' +
         '</div>' +
       '</div>'
     );
+  }
+
+  async function openAssignedLessons() {
+    const auth = getAuth();
+    const info = accountInfo(auth);
+    if (!auth || !auth.session || !auth.session.access_token || info.role !== "learner") {
+      const signIn = document.querySelector('[data-action="open"][data-panel="signin"]');
+      if (signIn) signIn.click();
+      return;
+    }
+    openPanel("ASSIGNED LESSONS", "Lessons from your teacher", "Read your teacher's lesson plan and notes, then answer the topic assessment. Short answers may require teacher review.", '<div class="de-loading"><span></span><p>Loading your assigned lessons…</p></div>');
+    const request = async (url, options) => {
+      const response = await fetch(url, Object.assign({
+        headers: Object.assign({ "Content-Type": "application/json", Accept: "application/json" }, headers(auth)),
+        credentials: "same-origin"
+      }, options || {}));
+      const data = await response.json().catch(function () { return {}; });
+      if (!response.ok || data.success !== true) throw new Error(data.error || "Could not load assigned lessons.");
+      return data;
+    };
+    function render(lessons, notice) {
+      if (!lessons.length) {
+        panelBody.innerHTML = '<div class="de-section"><h3>No lessons assigned yet</h3><p>Your teacher’s lesson plans will appear here when they assign them to you.</p><div class="de-actions">' + action("Back to Learn", "workspace", true) + '</div></div>';
+        return;
+      }
+      panelBody.innerHTML = '<div class="de-workspace de-assigned-lessons">' + (notice ? '<div class="de-section"><p>' + escapeHTML(notice) + '</p></div>' : '') + lessons.map(function (lesson) {
+        const steps = lesson.lesson_plan && Array.isArray(lesson.lesson_plan.lesson_steps) ? lesson.lesson_plan.lesson_steps : [];
+        const objectives = lesson.lesson_plan && Array.isArray(lesson.lesson_plan.objectives) ? lesson.lesson_plan.objectives : [];
+        const questions = Array.isArray(lesson.assessment_questions) ? lesson.assessment_questions : [];
+        const submitted = lesson.submission;
+        return '<article class="de-section de-assigned-lesson"><div class="de-section-title"><h3>' + escapeHTML(lesson.topic) + '</h3><span>' + escapeHTML(lesson.level) + '</span></div>' +
+          '<p class="de-muted">' + escapeHTML(lesson.subject) + ' · ' + escapeHTML(lesson.duration_minutes) + ' minutes</p>' +
+          '<h4>What you will learn</h4><ul>' + objectives.map(item => '<li>' + escapeHTML(item) + '</li>').join("") + '</ul>' +
+          '<h4>Lesson steps</h4><ol>' + steps.map(step => '<li><strong>' + escapeHTML(step.stage) + '</strong><p>' + escapeHTML(step.teacher_actions) + '</p></li>').join("") + '</ol>' +
+          '<h4>Study notes</h4><div class="de-assigned-notes">' + escapeHTML(lesson.notes).replace(/^### (.*)$/gm, '<strong>$1</strong>').replace(/^## (.*)$/gm, '<strong>$1</strong>').replace(/^# (.*)$/gm, '<strong>$1</strong>').replace(/\n/g, '<br>') + '</div>' +
+          '<h4>Assessment</h4>' +
+          (submitted ? '<div class="de-success"><strong>Submitted</strong><p>Auto-scored: ' + escapeHTML(submitted.score) + '/' + escapeHTML(submitted.max_score) + '. ' + (submitted.status === "submitted_pending_teacher_review" ? 'Your short answers are waiting for teacher review.' : 'Your automatically scored answers are recorded.') + '</p></div>' : '<form data-assigned-lesson-form="' + escapeHTML(lesson.lesson_id) + '">' +
+            questions.map(function (question, index) {
+              const input = question.type === "multiple_choice"
+                ? '<select name="' + escapeHTML(question.id) + '" required><option value="">Choose an answer</option>' + (question.options || []).map(option => '<option value="' + escapeHTML(option) + '">' + escapeHTML(option) + '</option>').join("") + '</select>'
+                : '<input name="' + escapeHTML(question.id) + '" required maxlength="1000" placeholder="Write your answer">';
+              return '<div class="de-assigned-question"><label for="de-answer-' + escapeHTML(lesson.lesson_id) + '-' + escapeHTML(question.id) + '">' + (index + 1) + '. ' + escapeHTML(question.question) + '</label><div id="de-answer-' + escapeHTML(lesson.lesson_id) + '-' + escapeHTML(question.id) + '">' + input + '</div></div>';
+            }).join("") + '<button class="de-action primary" type="submit">Submit answers</button><div data-assigned-feedback="' + escapeHTML(lesson.lesson_id) + '" aria-live="polite"></div></form>') +
+          '<h4>Sources used</h4><p class="de-muted">' + (Array.isArray(lesson.sources) && lesson.sources.length ? lesson.sources.map(source => escapeHTML(source.title)).join(" · ") : 'Retrieved educational evidence') + '</p></article>';
+      }).join("") + '</div>';
+      panelBody.querySelectorAll("[data-assigned-lesson-form]").forEach(function (form) {
+        form.addEventListener("submit", async function (event) {
+          event.preventDefault();
+          const lessonId = form.getAttribute("data-assigned-lesson-form");
+          const feedback = form.querySelector("[data-assigned-feedback]");
+          const button = form.querySelector('button[type="submit"]');
+          const answers = {};
+          Array.from(form.elements).forEach(function (field) {
+            if (field.name) answers[field.name] = field.value;
+          });
+          button.disabled = true;
+          feedback.innerHTML = '<p>Submitting answers…</p>';
+          try {
+            const result = await request("/api/v1/learning/assigned-lessons/" + encodeURIComponent(lessonId) + "/submit", {
+              method: "POST",
+              body: JSON.stringify({ answers })
+            });
+            const refreshed = await request("/api/v1/learning/assigned-lessons");
+            render(refreshed.lessons || [], "Answers submitted. Automatically scored: " + result.submission.score + "/" + result.submission.max_score + (result.submission.manual_review_required ? ". Short answers need teacher review." : "."));
+          } catch (error) {
+            feedback.innerHTML = '<p class="de-error">' + escapeHTML(error.message) + '</p>';
+            button.disabled = false;
+          }
+        });
+      });
+    }
+    try {
+      const data = await request("/api/v1/learning/assigned-lessons");
+      render(data.lessons || []);
+    } catch (error) {
+      renderError(error.message);
+    }
   }
 
   function openStudyNotes() {
@@ -1013,6 +1091,7 @@
     if (name === "resources" || name === "feed") return openLearningResources();
     if (name === "progress") return loadProgress();
     if (name === "notes") return openStudyNotes();
+    if (name === "assigned-lessons") return openAssignedLessons();
     if (name === "sessions") return loadSessions();
     if (name === "connections") return openConnections();
     if (name === "chat") {
