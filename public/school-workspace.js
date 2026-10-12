@@ -109,7 +109,14 @@
     }));
     nav.querySelector('[data-school-module-tab="overview"]').classList.add("active");
     let schoolLessonsLoading = false;
-    async function loadSchoolLessons() {
+    function renderSchoolLessonCard(lesson, expandDetails = false) {
+      const steps = lesson.lesson_plan && Array.isArray(lesson.lesson_plan.lesson_steps) ? lesson.lesson_plan.lesson_steps : [];
+      const questions = Array.isArray(lesson.assessment_questions) ? lesson.assessment_questions : [];
+      const sources = Array.isArray(lesson.sources) ? lesson.sources : [];
+      const detail = '<details' + (expandDetails ? ' open' : '') + '><summary>Open notes, teaching steps and assessment</summary><div class="school-lesson-detail"><h5>Teaching notes</h5><div>' + esc(lesson.notes || "No notes returned.") + '</div><h5>Timed lesson steps</h5><ol>' + steps.map(step => '<li><strong>' + esc(step.stage || "Lesson step") + ' (' + esc(step.minutes || 0) + ' min)</strong><p>' + esc(step.teacher_actions || "") + '</p><p><em>Learners:</em> ' + esc(step.learner_actions || "") + '</p><p><em>Check:</em> ' + esc(step.checks_for_understanding || "") + '</p></li>').join("") + '</ol><h5>Assessment with answers</h5><ol>' + questions.map(q => '<li><strong>' + esc(q.question || "") + '</strong><p>Answer: ' + esc(q.correct_answer || "Not provided") + '</p><p>' + esc(q.explanation || "") + '</p><small>Marks: ' + esc(q.marks || 1) + '</small></li>').join("") + '</ol><p>' + sources.length + ' source reference(s) attached · ' + esc(lesson.evidence_count || 0) + ' evidence item(s)</p></div></details>';
+      return '<article class="school-module-card school-lesson-saved-card" data-school-lesson-card="' + esc(lesson.lesson_id || "") + '"><h5>' + esc(lesson.subject || "Subject") + ': ' + esc(lesson.topic || "Lesson") + '</h5><p>' + esc(lesson.level || "Level not set") + ' · ' + esc(lesson.duration_minutes || 40) + ' minutes · ' + questions.length + ' assessment questions</p>' + detail + '</article>';
+    }
+    async function loadSchoolLessons(recentLesson = null) {
       const target = moduleRoot.querySelector("#school-lesson-saved");
       if (!target || schoolLessonsLoading) return;
       const auth = window.DreamEducationUI && typeof window.DreamEducationUI.getAuth === "function"
@@ -123,13 +130,12 @@
           headers: { "Accept": "application/json", "Authorization": "Bearer " + token }
         });
         const saved = Array.isArray(data.lessons) ? data.lessons : [];
-        target.innerHTML = saved.length ? saved.map(lesson => {
-          const steps = lesson.lesson_plan && Array.isArray(lesson.lesson_plan.lesson_steps) ? lesson.lesson_plan.lesson_steps : [];
-          const questions = Array.isArray(lesson.assessment_questions) ? lesson.assessment_questions : [];
-          const sources = Array.isArray(lesson.sources) ? lesson.sources : [];
-          const detail = '<details><summary>Open notes, teaching steps and assessment</summary><div class="school-lesson-detail"><h5>Teaching notes</h5><div>' + esc(lesson.notes || "No notes returned.") + '</div><h5>Timed lesson steps</h5><ol>' + steps.map(step => '<li><strong>' + esc(step.stage || "Lesson step") + ' (' + esc(step.minutes || 0) + ' min)</strong><p>' + esc(step.teacher_actions || "") + '</p><p><em>Learners:</em> ' + esc(step.learner_actions || "") + '</p><p><em>Check:</em> ' + esc(step.checks_for_understanding || "") + '</p></li>').join("") + '</ol><h5>Assessment with answers</h5><ol>' + questions.map(q => '<li><strong>' + esc(q.question || "") + '</strong><p>Answer: ' + esc(q.correct_answer || "Not provided") + '</p><p>' + esc(q.explanation || "") + '</p><small>Marks: ' + esc(q.marks || 1) + '</small></li>').join("") + '</ol><p>' + sources.length + ' source reference(s) attached · ' + esc(lesson.evidence_count || 0) + ' evidence item(s)</p></div></details>';
-          return '<article class="school-module-card school-lesson-saved-card"><h5>' + esc(lesson.subject || "Subject") + ': ' + esc(lesson.topic || "Lesson") + '</h5><p>' + esc(lesson.level || "Level not set") + ' · ' + esc(lesson.duration_minutes || 40) + ' minutes · ' + questions.length + ' assessment questions</p>' + detail + '</article>';
-        }).join("") : "<p>No saved school lessons yet. Prepare the first lesson using the form.</p>";
+        if (recentLesson && !saved.some(lesson => lesson.lesson_id === recentLesson.lesson_id)) saved.unshift(recentLesson);
+        target.innerHTML = saved.length ? saved.map(lesson => renderSchoolLessonCard(lesson, Boolean(recentLesson && lesson.lesson_id === recentLesson.lesson_id))).join("") : "<p>No saved school lessons yet. Prepare the first lesson using the form.</p>";
+        if (recentLesson) {
+          const createdCard = target.querySelector('[data-school-lesson-card="' + String(recentLesson.lesson_id || "").replace(/["\\]/g, "") + '"]');
+          if (createdCard) createdCard.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
       } catch (error) {
         target.innerHTML = '<p class="school-module-note">' + esc(error.message || "Could not load saved lessons.") + '</p>';
       } finally { schoolLessonsLoading = false; }
@@ -160,11 +166,12 @@
           headers: { "Content-Type": "application/json", "Accept": "application/json", "Authorization": "Bearer " + token },
           body: JSON.stringify(payload)
         }, 30000);
-        if (feedback) feedback.textContent = "Lesson plan and assessment prepared and saved. Open it below to review the notes, steps, answers and sources.";
+        if (!data.lesson || !data.lesson.lesson_id) throw new Error("Dream returned success without a lesson result. Please try again.");
+        if (feedback) feedback.textContent = "Lesson plan prepared. The notes, timed teaching steps and assessment answers are opening below.";
         schoolLessonForm.reset();
         const duration = schoolLessonForm.querySelector('[name="duration_minutes"]');
         if (duration) duration.value = "40";
-        await loadSchoolLessons();
+        await loadSchoolLessons(data.lesson);
       } catch (error) {
         if (feedback) feedback.textContent = error.message || "Dream could not prepare this lesson.";
       } finally {
