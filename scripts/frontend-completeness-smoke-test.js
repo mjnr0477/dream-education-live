@@ -65,7 +65,7 @@ for (const route of requiredServerRoutes) {
 
 for (const token of [
   "/nextgen-visual.js?v=20261011a",
-  "/frontend-workspace.js?v=20261011b"
+  "/frontend-workspace.js?v=20261012a"
 ]) {
   if (!index.includes(token)) throw new Error("Required frontend script missing: " + token);
 }
