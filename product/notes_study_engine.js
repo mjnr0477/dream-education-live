@@ -18,6 +18,7 @@ async function generateStudyNotes(input = {}) {
   const topic = clean(input.topic);
   const subject = clean(input.subject || "General", 100);
   const level = clean(input.level || "Not specified", 100);
+  const curriculum = clean(input.curriculum || "", 180);
   const notesType = ALLOWED_TYPES.has(input.notesType)
     ? input.notesType
     : "Detailed notes";
@@ -27,8 +28,8 @@ async function generateStudyNotes(input = {}) {
   }
 
   const evidence = await retrieveKnowledgeIntelligence(
-    subject + " " + topic,
-    { limit: 5, context: { subject, topic, level, intent: "educational_notes" } }
+    subject + " " + topic + (curriculum ? " " + curriculum + " curriculum learning outcomes teaching resources" : ""),
+    { limit: 5, context: { subject, topic, level, curriculum, intent: "educational_notes" } }
   );
 
   if (!evidence || evidence.success !== true) {
