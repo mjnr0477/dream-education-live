@@ -137,7 +137,8 @@
           if (createdCard) createdCard.scrollIntoView({ behavior: "smooth", block: "start" });
         }
       } catch (error) {
-        target.innerHTML = '<p class="school-module-note">' + esc(error.message || "Could not load saved lessons.") + '</p>';
+        target.innerHTML = (recentLesson ? renderSchoolLessonCard(recentLesson, true) : "") +
+          '<p class="school-module-note">' + esc(error.message || "Could not load saved lessons.") + '</p>';
       } finally { schoolLessonsLoading = false; }
     }
     const schoolLessonForm = moduleRoot.querySelector("#school-lesson-form");
@@ -168,6 +169,12 @@
         }, 30000);
         if (!data.lesson || !data.lesson.lesson_id) throw new Error("Dream returned success without a lesson result. Please try again.");
         if (feedback) feedback.textContent = "Lesson plan prepared. The notes, timed teaching steps and assessment answers are opening below.";
+        const resultTarget = moduleRoot.querySelector("#school-lesson-saved");
+        if (resultTarget) {
+          resultTarget.innerHTML = renderSchoolLessonCard(data.lesson, true);
+          const createdCard = resultTarget.querySelector('[data-school-lesson-card="' + String(data.lesson.lesson_id).replace(/["\\]/g, "") + '"]');
+          if (createdCard) createdCard.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
         schoolLessonForm.reset();
         const duration = schoolLessonForm.querySelector('[name="duration_minutes"]');
         if (duration) duration.value = "40";
