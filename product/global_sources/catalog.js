@@ -21,7 +21,8 @@ const SOURCES = [
 
   // OPEN EDUCATION
   {id:"mit_ocw",name:"MIT OpenCourseWare",family:"education",access:"web",license:"CC BY-NC-SA",commercial_use:false,status:"ready"},
-  {id:"openstax",name:"OpenStax",family:"education",access:"web",license:"CC BY-NC-SA",commercial_use:false,status:"ready"},
+  {id:"openstax",name:"OpenStax",family:"education",access:"public catalog API",license:"check individual book",commercial_use:false,status:"connected"},
+  {id:"libretexts",name:"LibreTexts Open Textbooks",family:"education",access:"public catalog and page APIs",license:"per-book license",commercial_use:false,status:"connected"},
   {id:"open_textbook_library",name:"Open Textbook Library",family:"education",access:"web",license:"mixed-open",status:"ready"},
   {id:"oer_commons",name:"OER Commons",family:"education",access:"web",license:"mixed-open",status:"ready"},
   {id:"merlot",name:"MERLOT",family:"education",access:"web",license:"mixed",status:"planned"},
