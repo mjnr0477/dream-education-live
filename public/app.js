@@ -2299,9 +2299,21 @@ async function openTeacherLessonStudio() {
       '<div class="teacher-lesson-meta"><span>' + escape(lesson.subject) + '</span><span>' + escape(lesson.level) + '</span><span>' + escape(lesson.duration_minutes) + ' min</span></div>' +
       '<h3>' + escape(lesson.topic) + '</h3>' +
       '<p>' + objectives.slice(0, 2).map(escape).join(" · ") + '</p>' +
-      '<div class="teacher-lesson-columns"><section><h4>Lesson sequence</h4><ol>' + steps.map(step => '<li><strong>' + escape(step.stage) + ' (' + escape(step.minutes) + ' min)</strong><p>' + escape(step.teacher_actions) + '</p></li>').join("") + '</ol></section>' +
+      '<div class="teacher-lesson-preparation-grid">' +
+      '<section><h4>Prior knowledge</h4><ul>' + ((lesson.lesson_plan && lesson.lesson_plan.prior_knowledge) || []).map(item => '<li>' + escape(item) + '</li>').join("") + '</ul></section>' +
+      '<section><h4>Key inquiry questions</h4><ul>' + ((lesson.lesson_plan && lesson.lesson_plan.key_inquiry_questions) || []).map(item => '<li>' + escape(item) + '</li>').join("") + '</ul></section>' +
+      '<section><h4>Key vocabulary</h4><ul>' + ((lesson.lesson_plan && lesson.lesson_plan.key_vocabulary) || []).map(item => '<li><strong>' + escape(item.term) + '</strong>: ' + escape(item.meaning) + '</li>').join("") + '</ul></section>' +
+      '<section><h4>Teacher preparation & materials</h4><ul>' + (((lesson.lesson_plan && lesson.lesson_plan.teacher_preparation) || []).concat((lesson.lesson_plan && lesson.lesson_plan.materials) || [])).map(item => '<li>' + escape(item) + '</li>').join("") + '</ul></section></div>' +
+      '<div class="teacher-lesson-columns"><section><h4>Lesson sequence</h4><ol>' + steps.map(step => '<li><strong>' + escape(step.stage) + ' (' + escape(step.minutes) + ' min)</strong><p><b>Teacher:</b> ' + escape(step.teacher_actions) + '</p><p><b>Learners:</b> ' + escape(step.learner_actions) + '</p>' + (step.checks_for_understanding ? '<p><b>Check:</b> ' + escape(step.checks_for_understanding) + '</p>' : '') + '</li>').join("") + '</ol></section>' +
       '<section><h4>Source-backed notes</h4><div class="teacher-lesson-notes">' + escape(lesson.notes).replace(/\n/g, "<br>") + '</div><h4>Assessment questions (' + questions.length + ')</h4><ol>' + questions.map(question => '<li>' + escape(question.question) + '<p class="teacher-lesson-answer">Answer: ' + escape(question.correct_answer) + '</p></li>').join("") + '</ol></section></div>' +
-      '<p class="teacher-lesson-source-label">Evidence sources: ' + (Array.isArray(lesson.sources) ? lesson.sources.map(source => escape(source.title)).join(" · ") : "Retrieved knowledge") + '</p>' +
+      '<div class="teacher-lesson-preparation-grid">' +
+      '<section><h4>Differentiation</h4><p><strong>Support:</strong></p><ul>' + ((lesson.lesson_plan && lesson.lesson_plan.differentiation && lesson.lesson_plan.differentiation.support) || []).map(item => '<li>' + escape(item) + '</li>').join("") + '</ul><p><strong>Core:</strong></p><ul>' + ((lesson.lesson_plan && lesson.lesson_plan.differentiation && lesson.lesson_plan.differentiation.core) || []).map(item => '<li>' + escape(item) + '</li>').join("") + '</ul><p><strong>Extension:</strong></p><ul>' + ((lesson.lesson_plan && lesson.lesson_plan.differentiation && lesson.lesson_plan.differentiation.extension) || []).map(item => '<li>' + escape(item) + '</li>').join("") + '</ul></section>' +
+      '<section><h4>Competencies, values & inclusion</h4><ul>' + (((lesson.lesson_plan && lesson.lesson_plan.competencies_and_values) || []).concat((lesson.lesson_plan && lesson.lesson_plan.safety_and_inclusion) || [])).map(item => '<li>' + escape(item) + '</li>').join("") + '</ul></section>' +
+      '<section><h4>Board plan</h4><ul>' + ((lesson.lesson_plan && lesson.lesson_plan.board_plan) || []).map(item => '<li>' + escape(item) + '</li>').join("") + '</ul></section>' +
+      '<section><h4>Marking guidance & remediation</h4><ul>' + (((lesson.lesson_plan && lesson.lesson_plan.marking_guidance) || []).concat((lesson.lesson_plan && lesson.lesson_plan.remediation) || [])).map(item => '<li>' + escape(item) + '</li>').join("") + '</ul></section>' +
+      '<section><h4>Homework / extended learning</h4><ul>' + (((lesson.lesson_plan && lesson.lesson_plan.homework) || []).concat((lesson.lesson_plan && lesson.lesson_plan.activities) || [])).map(item => '<li>' + escape(item) + '</li>').join("") + '</ul></section>' +
+      '<section><h4>Teacher reflection</h4><ul>' + ((lesson.lesson_plan && lesson.lesson_plan.teacher_reflection_questions) || []).map(item => '<li>' + escape(item) + '</li>').join("") + '</ul></section></div>' +
+      '<p class="teacher-lesson-source-label">Evidence sources: ' + (Array.isArray(lesson.sources) ? lesson.sources.map(source => source.url ? '<button type="button" class="teacher-lesson-source-open" data-lesson-source-open="' + escape(source.url) + '">Open source: ' + escape(source.title) + '</button>' : escape(source.title)).join(" · ") : "Retrieved knowledge") + '</p>' +
       '<div class="teacher-lesson-assign-row">' +
       (connectedLearners.length ? '<label>Assign to <select data-lesson-learner="' + escape(lesson.lesson_id) + '">' + options + '</select></label><button type="button" class="panel-button primary" data-lesson-assign="' + escape(lesson.lesson_id) + '">Assign lesson</button>' : '<p>Connect a learner first to assign this lesson.</p>') +
       '<button type="button" class="panel-button" data-lesson-submissions="' + escape(lesson.lesson_id) + '">Review submissions</button></div>' +
@@ -2316,7 +2328,7 @@ async function openTeacherLessonStudio() {
       '<label>Subject<input name="subject" required maxlength="100" placeholder="e.g. Biology"></label>' +
       '<label>Topic<input name="topic" required maxlength="300" placeholder="e.g. Photosynthesis"></label>' +
       '<label>Class / education level<input name="level" required maxlength="100" placeholder="e.g. Grade 8 / Junior secondary"></label>' +
-      '<label>Lesson duration<select name="duration_minutes"><option value="30">30 minutes</option><option value="40" selected>40 minutes</option><option value="60">60 minutes</option><option value="80">80 minutes</option></select></label>' +
+      '<label>Curriculum/framework<input name="curriculum" maxlength="180" placeholder="e.g. Kenya CBC/CBE, KCSE, Cambridge, university"></label><label>Lesson duration<select name="duration_minutes"><option value="30">30 minutes</option><option value="40" selected>40 minutes</option><option value="60">60 minutes</option><option value="80">80 minutes</option></select></label>' +
       '<label class="teacher-lesson-full">Teaching context or curriculum requirements (optional)<textarea name="instructions" rows="2" maxlength="1200" placeholder="Add curriculum outcomes, language needs, local examples or learner needs."></textarea></label>' +
       '</div><div class="panel-actions"><button class="panel-button primary" type="submit">Prepare lesson with Dream</button><button class="panel-button" type="button" data-panel-action="teacher-dashboard">Back to teacher dashboard</button></div><div id="teacher-lesson-create-feedback" aria-live="polite"></div></form>' +
       '<section class="teacher-dashboard-section"><div class="teacher-dashboard-section-heading"><h3>Saved lesson plans</h3><span>' + lessons.length + '</span></div>' +
@@ -2333,7 +2345,8 @@ async function openTeacherLessonStudio() {
         topic: form.elements.topic.value.trim(),
         level: form.elements.level.value.trim(),
         duration_minutes: Number(form.elements.duration_minutes.value),
-        instructions: form.elements.instructions.value.trim()
+        instructions: form.elements.instructions.value.trim(),
+        curriculum: form.elements.curriculum.value.trim()
       };
       submit.disabled = true;
       feedback.innerHTML = '<p class="teacher-lesson-loading">Dream is retrieving evidence and preparing the lesson, notes and assessment. This may take a little while.</p>';
@@ -2374,6 +2387,12 @@ async function openTeacherLessonStudio() {
   }
 
   body.addEventListener("click", async event => {
+    const sourceButton = event.target.closest("[data-lesson-source-open]");
+    if (sourceButton) {
+      const sourceUrl = sourceButton.getAttribute("data-lesson-source-open") || "";
+      if (sourceUrl.startsWith("https://") || sourceUrl.startsWith("http://")) window.open(sourceUrl, "_blank", "noopener,noreferrer");
+      return;
+    }
     const assignButton = event.target.closest("[data-lesson-assign]");
     if (assignButton) {
       const lessonId = assignButton.getAttribute("data-lesson-assign");

@@ -3004,3 +3004,7 @@ body.panel-open .experience-panel{
   .teacher-lesson-form-grid .teacher-lesson-full { grid-column:auto; }
   .teacher-lesson-card { padding:15px; }
 }
+
+
+/* Complete teacher lesson preparation pack */
+.teacher-lesson-preparation-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:16px 0}.teacher-lesson-preparation-grid>section{min-width:0;padding:14px;border:1px solid var(--line,rgba(128,128,128,.2));border-radius:14px;background:rgba(128,128,128,.045)}.teacher-lesson-preparation-grid h4{margin:0 0 9px}.teacher-lesson-preparation-grid ul{padding-left:20px;margin:8px 0 12px}.teacher-lesson-preparation-grid li{margin:5px 0;line-height:1.45}.teacher-lesson-source-label a,.de-assigned-sources a{color:var(--accent,#6b72ff);text-decoration:underline;overflow-wrap:anywhere}.de-assigned-sources{padding-left:20px}.de-assigned-sources li{margin:6px 0}@media print{.panel-close,.panel-actions,.teacher-lesson-assign-row{display:none!important}.teacher-lesson-card{break-inside:avoid}}
