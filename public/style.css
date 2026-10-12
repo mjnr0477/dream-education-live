@@ -2941,3 +2941,28 @@ body.panel-open .experience-panel{
   .de-feed-card { min-height: 0; }
 }
 @media(prefers-reduced-motion:reduce) { .de-learn-tile { transition: none; } .de-learn-tile:hover { transform: none; } }
+
+
+/* Notes & Study Materials — visually consistent with the existing Learn workspace. */
+.de-notes-workspace { display: grid; gap: 16px; }
+#de-notes-form { display: grid; gap: 10px; }
+#de-notes-form label { display: block; margin-top: 5px; color: var(--text, #f7f7f8); font-size: .9rem; font-weight: 650; }
+#de-notes-form input, #de-notes-form select {
+  width: 100%; min-height: 46px; padding: 12px 13px; border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.15); background: rgba(255,255,255,.045);
+  color: inherit; font: inherit; outline-offset: 3px;
+}
+#de-notes-form select option { color: #111; background: #fff; }
+.de-notes-output { overflow-wrap: anywhere; }
+.de-notes-content { margin-top: 18px; line-height: 1.75; color: var(--text, #f7f7f8); }
+.de-notes-content h2, .de-notes-content h3, .de-notes-content h4 { margin: 20px 0 8px; line-height: 1.3; }
+.de-notes-content ul, .de-notes-content ol { padding-left: 1.5rem; margin: 8px 0 14px; }
+.de-notes-content a, #de-notes-result a { color: var(--accent-2, #9ee7ff); overflow-wrap: anywhere; }
+#de-notes-result .de-section { margin-top: 14px; }
+@media print {
+  body * { visibility: hidden !important; }
+  #de-notes-result, #de-notes-result * { visibility: visible !important; }
+  #de-notes-result { position: absolute; inset: 0; width: 100%; color: #111 !important; background: #fff !important; }
+  #de-notes-result .de-actions, #de-notes-result .de-muted { display: none !important; }
+  .de-notes-content { color: #111 !important; }
+}
