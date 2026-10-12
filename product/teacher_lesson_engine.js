@@ -153,9 +153,8 @@ async function generateTeacherLesson(input = {}) {
       teacher_reflection_questions: stringList(parsed.teacher_reflection_questions, 8),
       materials: Array.isArray(parsed.materials) ? parsed.materials.map(x => clean(x, 250)).filter(Boolean).slice(0, 10) : [],
       lesson_steps: lessonSteps,
-      activities: Array.isArray(parsed.activities) ? parsed.activities.map(x => clean(x, 500)).filter(Boolean).slice(0, 10) : [],
-      homework: stringList(parsed.homework, 10),
-      activities: stringList(parsed.activities, 10)
+      activities: stringList(parsed.activities, 10),
+      homework: stringList(parsed.homework, 10)
     },
     notes: notesResult.notes,
     assessment_questions: questions,
