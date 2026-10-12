@@ -638,6 +638,111 @@ function buildNativeMessengerConnectors(env = process.env, options = {}) {
     });
   }
 
+
+  // Publora schedules a text post to connected social accounts via its REST API.
+  // Platforms requiring media are excluded from text-only broadcasts; users can
+  // explicitly configure PUBLORA_PLATFORMS, but media-required targets remain excluded.
+  const publoraApiKey = String(env.PUBLORA_API_KEY || '').trim();
+  const publoraBase = normalizeBaseUrl(env.PUBLORA_BASE_URL, 'https://api.publora.com/api/v1');
+  const publoraAllowList = splitList(env.PUBLORA_PLATFORMS).map((value) => value.trim()).filter(Boolean);
+  const publoraFetch = typeof options.fetchImpl === 'function' ? options.fetchImpl : fetch;
+  const publoraTextPlatforms = new Set(['twitter', 'x', 'linkedin', 'threads', 'facebook', 'bluesky', 'mastodon', 'telegram']);
+
+  if (publoraApiKey) {
+    connectors.push({
+      id: 'publora-universal-native',
+      name: 'Publora (connected text platforms)',
+      platform: 'publora',
+      channels: [{
+        type: 'post',
+        platform: 'publora',
+        enabled: true,
+        authorized: true,
+        broadcast: true,
+        send: async ({ body, message_id }) => {
+          const headers = { 'x-publora-key': publoraApiKey, 'Accept': 'application/json' };
+          let platforms = publoraAllowList;
+
+          if (!platforms.length) {
+            const connectionsResponse = await publoraFetch(publoraBase + '/platform-connections', {
+              method: 'GET',
+              headers
+            });
+            const connectionsData = await connectionsResponse.json().catch(() => ({}));
+            if (!connectionsResponse.ok) {
+              return {
+                success: false,
+                status: connectionsResponse.status,
+                data: {
+                  error: connectionsData.error || 'Could not read connected Publora accounts.',
+                  code: 'publora_connections_failed'
+                }
+              };
+            }
+            const rows = Array.isArray(connectionsData.connections) ? connectionsData.connections : [];
+            platforms = rows
+              .filter((row) => row && row.platformId &&
+                row.connectionStatus !== 'disconnected' &&
+                row.connectionStatus !== 'revoked' &&
+                row.tokenStatus !== 'invalid' &&
+                row.tokenStatus !== 'expired')
+              .map((row) => String(row.platformId).trim())
+              .filter((platformId) => publoraTextPlatforms.has(platformId.split('-')[0].toLowerCase()));
+          }
+
+          platforms = [...new Set(platforms.filter((platformId) =>
+            publoraTextPlatforms.has(String(platformId).split('-')[0].toLowerCase())
+          ))];
+
+          if (!platforms.length) {
+            return {
+              success: false,
+              status: 400,
+              data: {
+                error: 'No connected text-only Publora accounts were found. Connect a text-capable platform such as Bluesky, LinkedIn, Facebook, Threads, Mastodon, Telegram or X. TikTok, YouTube and Instagram require media.',
+                code: 'publora_no_text_platforms'
+              }
+            };
+          }
+
+          // Publora requires scheduledTime at least five minutes in the future;
+          // omitting it creates a draft and does not publish.
+          const scheduledTime = new Date(Date.now() + 6 * 60 * 1000).toISOString();
+          const response = await publoraFetch(publoraBase + '/create-post', {
+            method: 'POST',
+            headers: { ...headers, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              content: String(body || ''),
+              platforms,
+              scheduledTime
+            })
+          });
+          const data = await response.json().catch(() => ({}));
+          const postGroupId = String(data.postGroupId || data.post_group_id || '').trim();
+          const success = response.ok && data.success !== false && Boolean(postGroupId);
+
+          return {
+            success,
+            status: response.status,
+            data: {
+              ...data,
+              ...(success ? {
+                status: 'scheduled',
+                scheduledTime: data.scheduledTime || scheduledTime,
+                postGroupId,
+                platforms_scheduled: platforms
+              } : {}),
+              ...(!success ? {
+                error: data.error || data.message || 'Publora did not confirm that the post was scheduled.',
+                code: data.code || 'publora_schedule_failed'
+              } : {})
+            }
+          };
+        }
+      }]
+    });
+  }
+
   return connectors;
 }
 
