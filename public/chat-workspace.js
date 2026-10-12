@@ -109,6 +109,7 @@
     const box = document.getElementById("de-chat-people");
     if (!box) return;
     const list = Array.isArray(users) ? users : [];
+    window.__dreamChatLastUsers = list;
     if (!list.length) {
       box.innerHTML = '<p class="de-chat-muted">' + escapeHTML(heading || "No people found. Try a name or exact email address.") + '</p>';
       return;
@@ -203,7 +204,6 @@
   async function refreshPeople() {
     try {
       await loadRecent();
-      window.__dreamChatLastUsers = [];
     } catch (error) {
       status(error.message, true);
     }
