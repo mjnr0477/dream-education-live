@@ -77,7 +77,7 @@
       '<label>Lesson duration (minutes)<input name="duration_minutes" type="number" min="15" max="240" value="40" required></label>' +
       '<label>Curriculum/framework<input name="curriculum" maxlength="180" placeholder="e.g. Kenya CBC/CBE"></label>' +
       '<label>School needs or teacher instructions<textarea name="instructions" maxlength="1200" rows="3" placeholder="Language needs, local examples, available materials…"></textarea></label>' +
-      '<div class="school-module-actions"><button class="school-module-action primary" type="submit" id="school-lesson-submit">Prepare lesson & assessment</button></div>' +
+      '<div class="school-module-actions"><button class="school-module-action primary" type="submit" id="school-lesson-submit">Prepare lesson & assessment</button><button class="school-module-action" type="button" data-school-module-action="show-lesson-notes">Lesson Notes</button></div>' +
       '<p id="school-lesson-feedback" class="school-module-note" aria-live="polite"></p></form></article>' +
       '<article class="school-module-card"><span class="school-module-icon" aria-hidden="true">✓</span><h4>Saved lesson plans</h4><p>Lesson plans prepared by this signed-in school account appear here after they are saved.</p><div id="school-lesson-saved" aria-live="polite"><p>Loading saved lessons…</p></div><button class="school-module-action" type="button" data-school-module-action="reload-school-lessons">Refresh saved lessons</button></article>' +
       '</div>';
@@ -208,6 +208,19 @@
         else announce("School Lesson Studio is not available in this school session yet.");
       } else if (action === "reload-school-lessons") {
         loadSchoolLessons();
+      } else if (action === "show-lesson-notes") {
+        const saved = moduleRoot.querySelector("#school-lesson-saved");
+        const firstCard = saved && saved.querySelector("[data-school-lesson-card]");
+        const details = firstCard && firstCard.querySelector("details");
+        if (details) {
+          details.open = true;
+          details.scrollIntoView({ behavior: "smooth", block: "center" });
+        } else {
+          const feedback = moduleRoot.querySelector("#school-lesson-feedback");
+          if (feedback) feedback.textContent = "Lesson Notes are prepared with each lesson. Prepare a lesson above to generate and display the notes here.";
+          const form = moduleRoot.querySelector("#school-lesson-form");
+          if (form) form.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
       } else if (action === "lab") {
         const aiLab = root.querySelector('[data-panel-action="school-ai-lab"]');
         if (aiLab) aiLab.click();
