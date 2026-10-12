@@ -2317,7 +2317,7 @@ async function openTeacherLessonStudio() {
       '<section><h4>Key vocabulary</h4><ul>' + ((lesson.lesson_plan && lesson.lesson_plan.key_vocabulary) || []).map(item => '<li><strong>' + escape(item.term) + '</strong>: ' + escape(item.meaning) + '</li>').join("") + '</ul></section>' +
       '<section><h4>Teacher preparation & materials</h4><ul>' + (((lesson.lesson_plan && lesson.lesson_plan.teacher_preparation) || []).concat((lesson.lesson_plan && lesson.lesson_plan.materials) || [])).map(item => '<li>' + escape(item) + '</li>').join("") + '</ul></section></div>' +
       '<div class="teacher-lesson-columns"><section><h4>Lesson sequence</h4><ol>' + steps.map(step => '<li><strong>' + escape(step.stage) + ' (' + escape(step.minutes) + ' min)</strong><p><b>Teacher:</b> ' + escape(step.teacher_actions) + '</p><p><b>Learners:</b> ' + escape(step.learner_actions) + '</p>' + (step.checks_for_understanding ? '<p><b>Check:</b> ' + escape(step.checks_for_understanding) + '</p>' : '') + '</li>').join("") + '</ol></section>' +
-      '<section><h4>Source-backed notes</h4><div class="teacher-lesson-notes">' + escape(lesson.notes).replace(/\n/g, "<br>") + '</div><h4>Assessment questions (' + questions.length + ')</h4><ol>' + questions.map(question => '<li>' + escape(question.question) + '<p class="teacher-lesson-answer">Answer: ' + escape(question.correct_answer) + '</p></li>').join("") + '</ol></section></div>' +
+      '<section><h4>Lesson Notes</h4><button type="button" class="panel-button" data-lesson-notes-open="' + escape(lesson.lesson_id || "") + '">Open Lesson Notes</button><details class="teacher-lesson-notes-panel" data-lesson-notes-panel="' + escape(lesson.lesson_id || "") + '"><summary>Notes from connected free sources</summary><div class="teacher-lesson-notes">' + escape(lesson.notes).replace(/\n/g, "<br>") + '</div></details><h4>Assessment questions (' + questions.length + ')</h4><ol>' + questions.map(question => '<li>' + escape(question.question) + '<p class="teacher-lesson-answer">Answer: ' + escape(question.correct_answer) + '</p></li>').join("") + '</ol></section></div>' +
       '<div class="teacher-lesson-preparation-grid">' +
       '<section><h4>Differentiation</h4><p><strong>Support:</strong></p><ul>' + ((lesson.lesson_plan && lesson.lesson_plan.differentiation && lesson.lesson_plan.differentiation.support) || []).map(item => '<li>' + escape(item) + '</li>').join("") + '</ul><p><strong>Core:</strong></p><ul>' + ((lesson.lesson_plan && lesson.lesson_plan.differentiation && lesson.lesson_plan.differentiation.core) || []).map(item => '<li>' + escape(item) + '</li>').join("") + '</ul><p><strong>Extension:</strong></p><ul>' + ((lesson.lesson_plan && lesson.lesson_plan.differentiation && lesson.lesson_plan.differentiation.extension) || []).map(item => '<li>' + escape(item) + '</li>').join("") + '</ul></section>' +
       '<section><h4>Competencies, values & inclusion</h4><ul>' + (((lesson.lesson_plan && lesson.lesson_plan.competencies_and_values) || []).concat((lesson.lesson_plan && lesson.lesson_plan.safety_and_inclusion) || [])).map(item => '<li>' + escape(item) + '</li>').join("") + '</ul></section>' +
@@ -2407,6 +2407,16 @@ async function openTeacherLessonStudio() {
   }
 
   body.addEventListener("click", async event => {
+    const notesButton = event.target.closest("[data-lesson-notes-open]");
+    if (notesButton) {
+      const lessonId = notesButton.getAttribute("data-lesson-notes-open") || "";
+      const notesPanel = body.querySelector('[data-lesson-notes-panel="' + CSS.escape(lessonId) + '"]');
+      if (notesPanel) {
+        notesPanel.open = true;
+        notesPanel.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      return;
+    }
     const sourceButton = event.target.closest("[data-lesson-source-open]");
     if (sourceButton) {
       const sourceUrl = sourceButton.getAttribute("data-lesson-source-open") || "";

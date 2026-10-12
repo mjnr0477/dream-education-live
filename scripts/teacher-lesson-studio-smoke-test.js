@@ -51,6 +51,38 @@ assert.match(engineSource, /buildTeacherLesson/);
 assert.match(learnerUI, /Lessons from My Teacher/);
 assert.match(learnerUI, /assigned-lessons/);
 assert.match(engineSource, /retrieveKnowledgeIntelligence/);
+assert.match(engineSource, /retrieveFallbackLessonEvidence/, "Lesson generation must retry through the connected free-source mesh.");
+assert.match(engineSource, /searchLibreTexts/, "Lesson fallback must query free LibreTexts content.");
+assert.match(engineSource, /searchOpenStax/, "Lesson fallback must query the free OpenStax catalog.");
+assert.match(teacherUI, /data-lesson-notes-open/, "Teacher cards must expose a dedicated Lesson Notes button.");
+assert.match(teacherUI, /data-lesson-notes-panel/, "Teacher Lesson Notes button must open the notes panel.");
+assert.match(schoolWorkspaceSource, /data-school-lesson-notes-open/, "School lesson cards must expose a Lesson Notes button.");
+
+const lessonEngine = require("../product/teacher_lesson_engine");
+const fallbackPacket = lessonEngine.buildFallbackEvidencePacket(
+  { topic: "Photosynthesis", subject: "Biology" },
+  [{
+    title: "Photosynthesis - LibreTexts",
+    source: "LibreTexts Open Textbooks",
+    provider: "libretexts",
+    source_type: "educational",
+    url: "https://bio.libretexts.org/photosynthesis",
+    extract: "Photosynthesis is the process by which green plants use light energy to make sugars from carbon dioxide and water. Chlorophyll absorbs light energy in plant cells. Oxygen is released during the process. The sugars provide chemical energy for plant growth."
+  }]
+);
+assert.equal(fallbackPacket.success, true, "Relevant free educational evidence should be accepted by the fallback.");
+const unrelatedFallback = lessonEngine.buildFallbackEvidencePacket(
+  { topic: "relativity", subject: "Physics" },
+  [{
+    title: "Actual surgery time relative to scheduled surgery time",
+    source: "Medical journal",
+    provider: "crossref",
+    source_type: "academic_research",
+    url: "https://example.org/surgery-time",
+    extract: "This study examines actual surgery time relative to scheduled surgery time in robotic-assisted thoracic surgery cases. The researchers compared planned operating times with actual operating times and scheduling records."
+  }]
+);
+assert.equal(unrelatedFallback.success, false, "Unrelated evidence must never be used for a lesson.");
 assert.doesNotMatch(engineSource, /generateStudyNotes/, "Lesson preparation should not make a second sequential AI call for notes.");
 assert.doesNotMatch(engineSource, /generateAI|ai_provider_router/, "Lesson generation must not call an AI provider.");
 assert.match(engineSource, /generation_method|buildTeacherLesson/);
