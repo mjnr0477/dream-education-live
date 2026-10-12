@@ -10340,6 +10340,73 @@ app.post("/api/v1/knowledge/ingest", async (req, res) => {
  * Reuses source-grounded notes and the configured AI router. Teacher access
  * is authenticated; assignment and learner access require an active connection.
  */
+/*
+ * School Lesson Studio uses the existing evidence-backed teacher lesson engine.
+ * Lessons are scoped to the authenticated school tenant/account; no client-supplied
+ * school identifier is trusted for access control.
+ */
+function getSchoolLessonScope(auth) {
+  return String(
+    auth && auth.account && (auth.account.tenant_id || auth.account.school_id) ||
+    auth && auth.user && auth.user.id ||
+    ""
+  ).trim();
+}
+
+app.get("/api/v1/school/lessons", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    if (String(auth.account.role || "").toLowerCase() !== "school") {
+      return res.status(403).json({ success: false, error: "Only authenticated school accounts can access School Lesson Studio." });
+    }
+    const dataEngine = require("./product/data_engine");
+    const lessonEngine = require("./product/teacher_lesson_engine");
+    const scope = getSchoolLessonScope(auth);
+    if (!scope) return res.status(403).json({ success: false, error: "A school account scope is required." });
+    const store = dataEngine.loadStore();
+    return res.json({ success: true, lessons: lessonEngine.listTeacherLessons(store, "school_workspace_" + scope) });
+  } catch (error) {
+    console.error("School lesson list error:", error);
+    return res.status(500).json({ success: false, error: "Could not load school lesson plans." });
+  }
+});
+
+app.post("/api/v1/school/lessons", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    if (String(auth.account.role || "").toLowerCase() !== "school") {
+      return res.status(403).json({ success: false, error: "Only authenticated school accounts can prepare lessons." });
+    }
+    const scope = getSchoolLessonScope(auth);
+    if (!scope) return res.status(403).json({ success: false, error: "A school account scope is required." });
+    const lessonEngine = require("./product/teacher_lesson_engine");
+    const dataEngine = require("./product/data_engine");
+    const generated = await lessonEngine.generateTeacherLesson({
+      topic: req.body && req.body.topic,
+      subject: req.body && req.body.subject,
+      level: req.body && req.body.level,
+      duration_minutes: req.body && req.body.duration_minutes,
+      instructions: req.body && req.body.instructions,
+      curriculum: req.body && req.body.curriculum
+    });
+    if (!generated.success) {
+      return res.status(generated.status || 422).json({
+        success: false, error: generated.error || "Lesson preparation failed.",
+        evidence_status: generated.evidence_status || "unavailable"
+      });
+    }
+    const store = dataEngine.loadStore();
+    const lesson = lessonEngine.createLesson(store, "school_workspace_" + scope, generated);
+    dataEngine.saveStore(store);
+    return res.status(201).json({ success: true, lesson });
+  } catch (error) {
+    console.error("School lesson creation error:", error);
+    return res.status(500).json({ success: false, error: "Dream could not prepare this school lesson right now." });
+  }
+});
+
 app.get("/api/v1/teacher/lessons", async (req, res) => {
   try {
     const auth = await getAuthenticatedAccount(req);
