@@ -72,7 +72,9 @@ function buildFallbackEvidencePacket(input = {}, rawSources = []) {
     const provider = clean(row.provider || row.global_source_id || "", 80).toLowerCase();
     const source = clean(row.source || row.name || provider || "Free educational source", 120);
     if (excerpt.length < 180 || !url || !title) continue;
-    if (["open_library", "openstax", "duckduckgo", "wikidata"].includes(provider)) continue;
+    // OpenStax is an approved free educational source; keep it eligible
+    // for lesson evidence after the relevance and adequacy checks below.
+    if (["open_library", "duckduckgo", "wikidata"].includes(provider)) continue;
 
     const combined = (title + " " + excerpt).toLowerCase();
     const matchedTerms = topicTerms.filter(term => combined.includes(term));
