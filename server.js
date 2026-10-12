@@ -10434,22 +10434,29 @@ app.get("/api/v1/teacher/lessons", async (req, res) => {
     const connectionEngine = require("./product/connection_engine");
     const lessonEngine = require("./product/teacher_lesson_engine");
     const store = dataEngine.loadStore();
+    const isOwner = auth.account.owner_account === true;
     const teacherId = connectionEngine.getAccountEntityId(auth.account);
-    const ownerLessonScope = auth.account.owner_account === true
-      ? "owner_workspace_" + String(auth.user && auth.user.id || auth.account.id || auth.account.email || "owner")
+    const ownerLessonScope = isOwner
+      ? "owner_workspace_" + String(auth.user && auth.user.id || auth.account.account_id || auth.account.email || "owner")
       : "";
     const effectiveTeacherId = ownerLessonScope || teacherId;
     const connections = connectionEngine.listConnections(store, {
       status: "active", type: "teacher_learner", role: "teacher", id: effectiveTeacherId
     }).filter(connection => connection.from_role === "teacher" && connection.from_id === effectiveTeacherId && connection.to_role === "learner");
-    const connectedLearners = connections.map(connection => {
-      const learner = store.learners && store.learners[connection.to_id];
-      return learner ? {
-        learner_id: learner.learner_id,
-        name: learner.name || learner.full_name || learner.display_name || learner.learner_id,
-        level: learner.level || learner.grade || learner.education_level || ""
-      } : null;
-    }).filter(Boolean);
+    const connectedLearners = isOwner
+      ? Object.values(store.learners || {}).map(learner => ({
+          learner_id: learner.learner_id,
+          name: learner.name || learner.full_name || learner.display_name || learner.learner_id,
+          level: learner.level || learner.grade || learner.education_level || ""
+        }))
+      : connections.map(connection => {
+          const learner = store.learners && store.learners[connection.to_id];
+          return learner ? {
+            learner_id: learner.learner_id,
+            name: learner.name || learner.full_name || learner.display_name || learner.learner_id,
+            level: learner.level || learner.grade || learner.education_level || ""
+          } : null;
+        }).filter(Boolean);
     return res.json({
       success: true,
       lessons: lessonEngine.listTeacherLessons(store, effectiveTeacherId),
@@ -10487,7 +10494,7 @@ app.post("/api/v1/teacher/lessons", async (req, res) => {
     }
     const store = dataEngine.loadStore();
     const teacherId = auth.account.owner_account === true
-      ? "owner_workspace_" + String(auth.user && auth.user.id || auth.account.id || auth.account.email || "owner")
+      ? "owner_workspace_" + String(auth.user && auth.user.id || auth.account.account_id || auth.account.email || "owner")
       : String(auth.account.teacher_id);
     const lesson = lessonEngine.createLesson(store, teacherId, generated);
     dataEngine.saveStore(store);
@@ -10502,8 +10509,9 @@ app.post("/api/v1/teacher/lessons/:lesson_id/assign", async (req, res) => {
   try {
     const auth = await getAuthenticatedAccount(req);
     if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
-    if (String(auth.account.role || "").toLowerCase() !== "teacher" || !auth.account.teacher_id) {
-      return res.status(403).json({ success: false, error: "Only a teacher can assign a lesson." });
+    const isOwner = auth.account.owner_account === true;
+    if (!isOwner && (String(auth.account.role || "").toLowerCase() !== "teacher" || !auth.account.teacher_id)) {
+      return res.status(403).json({ success: false, error: "Only a teacher or the project owner can assign a lesson." });
     }
 
     const learnerId = String(req.body && req.body.learner_id || "").trim();
@@ -10513,14 +10521,18 @@ app.post("/api/v1/teacher/lessons/:lesson_id/assign", async (req, res) => {
     const connectionEngine = require("./product/connection_engine");
     const lessonEngine = require("./product/teacher_lesson_engine");
     const store = dataEngine.loadStore();
-    const teacherId = connectionEngine.getAccountEntityId(auth.account);
-    const connected = connectionEngine.listConnections(store, {
-      status: "active", type: "teacher_learner", role: "teacher", id: teacherId
-    }).some(connection =>
-      connection.from_role === "teacher" && connection.from_id === teacherId &&
-      connection.to_role === "learner" && connection.to_id === learnerId
-    );
-    if (!connected) return res.status(403).json({ success: false, error: "You can assign lessons only to learners with an active teacher connection." });
+    const teacherId = isOwner
+      ? "owner_workspace_" + String(auth.user && auth.user.id || auth.account.account_id || auth.account.email || "owner")
+      : connectionEngine.getAccountEntityId(auth.account);
+    const connected = isOwner
+      ? Boolean((store.learners || {})[learnerId])
+      : connectionEngine.listConnections(store, {
+          status: "active", type: "teacher_learner", role: "teacher", id: teacherId
+        }).some(connection =>
+          connection.from_role === "teacher" && connection.from_id === teacherId &&
+          connection.to_role === "learner" && connection.to_id === learnerId
+        );
+    if (!connected) return res.status(403).json({ success: false, error: isOwner ? "Learner profile not found." : "You can assign lessons only to learners with an active teacher connection." });
 
     const assigned = lessonEngine.assignLesson(store, req.params.lesson_id, teacherId, learnerId);
     if (!assigned.success) return res.status(assigned.status || 400).json(assigned);
@@ -10536,13 +10548,17 @@ app.get("/api/v1/teacher/lessons/:lesson_id/submissions", async (req, res) => {
   try {
     const auth = await getAuthenticatedAccount(req);
     if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
-    if (String(auth.account.role || "").toLowerCase() !== "teacher" || !auth.account.teacher_id) {
-      return res.status(403).json({ success: false, error: "Only a teacher can review lesson submissions." });
+    const isOwner = auth.account.owner_account === true;
+    if (!isOwner && (String(auth.account.role || "").toLowerCase() !== "teacher" || !auth.account.teacher_id)) {
+      return res.status(403).json({ success: false, error: "Only a teacher or the project owner can review lesson submissions." });
     }
     const dataEngine = require("./product/data_engine");
     const lessonEngine = require("./product/teacher_lesson_engine");
     const store = dataEngine.loadStore();
-    const submissions = lessonEngine.listLessonSubmissions(store, req.params.lesson_id, auth.account.teacher_id);
+    const teacherId = isOwner
+      ? "owner_workspace_" + String(auth.user && auth.user.id || auth.account.account_id || auth.account.email || "owner")
+      : auth.account.teacher_id;
+    const submissions = lessonEngine.listLessonSubmissions(store, req.params.lesson_id, teacherId);
     if (!submissions) return res.status(404).json({ success: false, error: "Lesson not found for this teacher." });
     return res.json({ success: true, submissions });
   } catch (error) {
@@ -10555,16 +10571,20 @@ app.post("/api/v1/teacher/lessons/:lesson_id/submissions/:learner_id/review", as
   try {
     const auth = await getAuthenticatedAccount(req);
     if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
-    if (String(auth.account.role || "").toLowerCase() !== "teacher" || !auth.account.teacher_id) {
-      return res.status(403).json({ success: false, error: "Only a teacher can grade lesson submissions." });
+    const isOwner = auth.account.owner_account === true;
+    if (!isOwner && (String(auth.account.role || "").toLowerCase() !== "teacher" || !auth.account.teacher_id)) {
+      return res.status(403).json({ success: false, error: "Only a teacher or the project owner can grade lesson submissions." });
     }
     const dataEngine = require("./product/data_engine");
     const lessonEngine = require("./product/teacher_lesson_engine");
     const store = dataEngine.loadStore();
+    const teacherId = isOwner
+      ? "owner_workspace_" + String(auth.user && auth.user.id || auth.account.account_id || auth.account.email || "owner")
+      : auth.account.teacher_id;
     const result = lessonEngine.reviewLessonSubmission(
       store,
       req.params.lesson_id,
-      auth.account.teacher_id,
+      teacherId,
       req.params.learner_id,
       req.body && req.body.manual_scores
     );
