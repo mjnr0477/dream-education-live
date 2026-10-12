@@ -10309,7 +10309,7 @@ app.post("/api/v1/knowledge/ingest", async (req, res) => {
  * Reuses source-grounded notes and the configured AI router. Teacher access
  * is authenticated; assignment and learner access require an active connection.
  */
-app.get("/api/product/teacher/lessons", async (req, res) => {
+app.get("/api/v1/teacher/lessons", async (req, res) => {
   try {
     const auth = await getAuthenticatedAccount(req);
     if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
@@ -10344,7 +10344,7 @@ app.get("/api/product/teacher/lessons", async (req, res) => {
   }
 });
 
-app.post("/api/product/teacher/lessons", async (req, res) => {
+app.post("/api/v1/teacher/lessons", async (req, res) => {
   try {
     const auth = await getAuthenticatedAccount(req);
     if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
@@ -10378,7 +10378,7 @@ app.post("/api/product/teacher/lessons", async (req, res) => {
   }
 });
 
-app.post("/api/product/teacher/lessons/:lesson_id/assign", async (req, res) => {
+app.post("/api/v1/teacher/lessons/:lesson_id/assign", async (req, res) => {
   try {
     const auth = await getAuthenticatedAccount(req);
     if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
@@ -10412,7 +10412,7 @@ app.post("/api/product/teacher/lessons/:lesson_id/assign", async (req, res) => {
   }
 });
 
-app.get("/api/product/teacher/lessons/:lesson_id/submissions", async (req, res) => {
+app.get("/api/v1/teacher/lessons/:lesson_id/submissions", async (req, res) => {
   try {
     const auth = await getAuthenticatedAccount(req);
     if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
@@ -10431,7 +10431,7 @@ app.get("/api/product/teacher/lessons/:lesson_id/submissions", async (req, res) 
   }
 });
 
-app.post("/api/product/teacher/lessons/:lesson_id/submissions/:learner_id/review", async (req, res) => {
+app.post("/api/v1/teacher/lessons/:lesson_id/submissions/:learner_id/review", async (req, res) => {
   try {
     const auth = await getAuthenticatedAccount(req);
     if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
