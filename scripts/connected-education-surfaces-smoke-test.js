@@ -9,7 +9,9 @@ assert(server.includes('app.get("/api/chat/users"'));
 assert(server.includes('app.get("/api/chat/messages"'));
 assert(server.includes("hydrateChatStore(store)"));
 assert(server.includes("persistChatState(store)"));
-assert(server.includes("activeChatConnection("));
+assert(server.includes('app.get("/api/chat/users/search"'));
+assert(server.includes("chatAccountExists(store, recipientRole, recipientId)"));
+assert(!server.includes("activeChatConnection("), "Open chat must not require an active education connection.");
 
 assert(app.includes('"/api/product/meetings"'));
 assert(app.includes('"/api/product/meetings/"'));
