@@ -9,11 +9,18 @@ const server = fs.readFileSync(path.join(root, "server.js"), "utf8");
 const teacherUI = fs.readFileSync(path.join(root, "public/app.js"), "utf8");
 const learnerUI = fs.readFileSync(path.join(root, "public/frontend-workspace.js"), "utf8");
 const engineSource = fs.readFileSync(path.join(root, "product/teacher_lesson_engine.js"), "utf8");
+const index = fs.readFileSync(path.join(root, "public/index.html"), "utf8");
+const teacherStyles = fs.readFileSync(path.join(root, "public/teacher-workspace.css"), "utf8");
 
 new vm.Script(server, { filename: "server.js" });
 new vm.Script(teacherUI, { filename: "public/app.js" });
 new vm.Script(learnerUI, { filename: "public/frontend-workspace.js" });
 new vm.Script(engineSource, { filename: "product/teacher_lesson_engine.js" });
+
+assert(index.includes("teacher-workspace.css?v="), "Teacher workspace stylesheet must be loaded.");
+assert(teacherStyles.includes(".teacher-dashboard-header"), "Teacher dashboard must use the visual refresh.");
+assert(teacherStyles.includes(".teacher-lesson-preparation-grid"), "Lesson preparation cards must be styled.");
+assert(teacherStyles.includes("@media (max-width: 760px)"), "Teacher surfaces must have responsive mobile styles.");
 
 assert.match(server, /app\.get\("\/api\/v1\/teacher\/lessons"/);
 assert.match(server, /app\.post\("\/api\/v1\/teacher\/lessons"/);
