@@ -13,7 +13,9 @@ for (const provider of [
   'doaj',
   'stack_exchange',
   'zenodo',
-  'wikibooks'
+  'wikibooks',
+  'libretexts',
+  'openstax'
 ]) {
   assert.ok(sourceEngine.includes(`name: "${provider}"`), `source engine provider missing: ${provider}`);
 }
