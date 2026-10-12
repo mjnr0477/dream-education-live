@@ -9,7 +9,7 @@
   function styleOnce() {
     if (document.getElementById(STYLE_ID)) return;
     const link = document.createElement("link");
-    link.id = STYLE_ID; link.rel = "stylesheet"; link.href = "/school-workspace.css?v=20261012a";
+    link.id = STYLE_ID; link.rel = "stylesheet"; link.href = "/school-workspace.css?v=20261012b";
     document.head.appendChild(link);
   }
   function moduleButton(id,label) { return '<button type="button" data-school-module-tab="' + esc(id) + '">' + esc(label) + '</button>'; }
