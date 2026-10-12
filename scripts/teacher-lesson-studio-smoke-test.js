@@ -18,6 +18,7 @@ new vm.Script(engineSource, { filename: "product/teacher_lesson_engine.js" });
 assert.match(server, /app\.get\("\/api\/product\/teacher\/lessons"/);
 assert.match(server, /app\.post\("\/api\/product\/teacher\/lessons"/);
 assert.match(server, /app\.post\("\/api\/product\/teacher\/lessons\/:lesson_id\/assign"/);
+assert.match(server, /app\.post\("\/api\/product\/teacher\/lessons\/:lesson_id\/submissions\/:learner_id\/review"/);
 assert.match(server, /app\.get\("\/api\/v1\/learning\/assigned-lessons"/);
 assert.match(server, /app\.post\("\/api\/v1\/learning\/assigned-lessons\/:lesson_id\/submit"/);
 assert.match(server, /connection\.status === "active"|status: "active"/);
@@ -30,7 +31,8 @@ assert.match(engineSource, /generateStudyNotes/);
 assert.match(engineSource, /generateAI/);
 assert.match(engineSource, /correct_answer/);
 assert.match(engineSource, /function learnerLessonView/);
-assert.match(engineSource, /function submitLesson/);\nassert.match(engineSource, /function reviewLessonSubmission/);
+assert.match(engineSource, /function submitLesson/);
+assert.match(engineSource, /function reviewLessonSubmission/);
 
 const engine = require("../product/teacher_lesson_engine");
 const store = { learners: { learner_1: { learner_id: "learner_1", name: "Learner One" } }, teacher_lessons: {} };
@@ -57,9 +59,15 @@ assert.equal(Object.hasOwn(learnerView.assessment_questions[0], "correct_answer"
 const submitted = engine.submitLesson(store, lesson.lesson_id, "learner_1", { q_1: "1/2", q_2: "The top number" });
 assert.equal(submitted.success, true);
 assert.equal(submitted.submission.score, 1);
-assert.equal(submitted.submission.max_score, 3);\nassert.equal(submitted.submission.auto_max_score, 1);
+assert.equal(submitted.submission.max_score, 3);
+assert.equal(submitted.submission.auto_max_score, 1);
 assert.equal(submitted.submission.manual_review_required, true);
 assert.equal(engine.listLessonSubmissions(store, lesson.lesson_id, "teacher_1").length, 1);
+const reviewed = engine.reviewLessonSubmission(store, lesson.lesson_id, "teacher_1", "learner_1", { q_2: 1 });
+assert.equal(reviewed.success, true);
+assert.equal(reviewed.submission.score, 2);
+assert.equal(reviewed.submission.manual_review_required, false);
+assert.equal(reviewed.submission.status, "reviewed");
 assert.equal(engine.listLessonSubmissions(store, lesson.lesson_id, "other_teacher"), null);
 
 console.log("Teacher Lesson Studio smoke test passed.");
