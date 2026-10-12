@@ -388,9 +388,107 @@
           '<button type="button" class="de-learn-tile" data-de-action="resources"><span class="de-learn-tile-icon">▤</span><strong>Learning Feed</strong><small>Search videos, photos and experiments</small></button>' +
           '<button type="button" class="de-learn-tile" data-de-action="ask"><span class="de-learn-tile-icon">?</span><strong>Ask Dream</strong><small>Ask a question or explore an idea</small></button>' +
           '<button type="button" class="de-learn-tile" data-de-action="progress"><span class="de-learn-tile-icon">◷</span><strong>Learner Progress</strong><small>Open your progress when you need it</small></button>' +
+          '<button type="button" class="de-learn-tile" data-de-action="notes"><span class="de-learn-tile-icon">▤</span><strong>Notes &amp; Study Materials</strong><small>Get topic notes for your education level</small></button>' +
         '</div>' +
       '</div>'
     );
+  }
+
+  function openStudyNotes() {
+    const auth = getAuth();
+    const info = accountInfo(auth);
+    if (!auth || !auth.account || !info.id) {
+      const signIn = document.querySelector('[data-action="open"][data-panel="signin"]');
+      if (signIn) signIn.click();
+      return;
+    }
+
+    openPanel(
+      "NOTES & STUDY MATERIALS",
+      "Learn from your notes.",
+      "Choose a topic, your education level and the kind of notes you need. Dream uses retrieved knowledge and configured free AI providers to prepare study notes.",
+      '<div class="de-workspace de-notes-workspace">' +
+        '<form id="de-notes-form" class="de-section de-highlight">' +
+          '<label for="de-notes-topic">Topic you want to learn</label>' +
+          '<input id="de-notes-topic" name="topic" maxlength="300" required placeholder="e.g. Photosynthesis, fractions, computer networks">' +
+          '<label for="de-notes-subject">Subject</label>' +
+          '<input id="de-notes-subject" name="subject" maxlength="100" required placeholder="e.g. Science, Mathematics, History">' +
+          '<label for="de-notes-level">Education level</label>' +
+          '<input id="de-notes-level" name="level" maxlength="100" value="' + escapeHTML(info.profile.level || info.profile.grade || info.account.level || info.account.grade || "") + '" required placeholder="e.g. Grade 8, Senior secondary, University Year 2">' +
+          '<label for="de-notes-type">Type of notes</label>' +
+          '<select id="de-notes-type" name="notes_type">' +
+            '<option>Detailed notes</option>' +
+            '<option>Short revision notes</option>' +
+            '<option>Exam preparation notes</option>' +
+            '<option>Notes with examples and exercises</option>' +
+          '</select>' +
+          '<div class="de-actions"><button class="de-action primary" type="submit">Generate my notes</button><button class="de-action" type="button" data-de-action="workspace">Back to Learn</button></div>' +
+        '</form>' +
+        '<div id="de-notes-result" aria-live="polite"></div>' +
+      '</div>'
+    );
+
+    const form = document.getElementById("de-notes-form");
+    const result = document.getElementById("de-notes-result");
+    if (!form || !result) return;
+
+    form.addEventListener("submit", async function (event) {
+      event.preventDefault();
+      const payload = {
+        topic: form.elements.topic.value.trim(),
+        subject: form.elements.subject.value.trim(),
+        level: form.elements.level.value.trim(),
+        notes_type: form.elements.notes_type.value
+      };
+      if (!payload.topic || !payload.subject || !payload.level) {
+        result.innerHTML = '<div class="de-error">Enter the topic, subject and education level.</div>';
+        return;
+      }
+
+      const submit = form.querySelector('button[type="submit"]');
+      submit.disabled = true;
+      result.innerHTML = '<div class="de-loading"><span></span><p>Finding relevant evidence and preparing your notes...</p></div>';
+
+      try {
+        const response = await fetch("/api/v1/learning/notes", {
+          method: "POST",
+          headers: Object.assign({ "Content-Type": "application/json", Accept: "application/json" }, headers(auth)),
+          credentials: "same-origin",
+          body: JSON.stringify(payload)
+        });
+        const data = await response.json().catch(function () { return {}; });
+        if (!response.ok || data.success !== true) throw new Error(data.error || "Notes could not be generated.");
+
+        const notes = String(data.notes || "");
+        const safeNotes = escapeHTML(notes).replace(/^### (.*)$/gm, '<h4>$1</h4>').replace(/^## (.*)$/gm, '<h3>$1</h3>').replace(/^# (.*)$/gm, '<h2>$1</h2>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+        const sourceRows = Array.isArray(data.sources) ? data.sources : [];
+        const sourceHTML = sourceRows.length
+          ? '<section class="de-section"><h3>Evidence sources</h3><ul>' + sourceRows.map(function (source) {
+              const title = escapeHTML(source.title || "Source");
+              return '<li>' + (source.url ? '<a href="' + escapeHTML(source.url) + '" target="_blank" rel="noopener noreferrer">' + title + '</a>' : title) + '</li>';
+            }).join("") + '</ul><p class="de-muted">Sources are shown for transparency; check them for further detail.</p></section>'
+          : '<p class="de-muted">No source links were returned with this evidence packet.</p>';
+
+        result.innerHTML = '<section class="de-section de-notes-output"><div class="de-section-title"><h3>' + escapeHTML(data.topic) + '</h3><span>' + escapeHTML(data.level) + '</span></div><p class="de-muted">' + escapeHTML(data.subject) + ' · ' + escapeHTML(data.notes_type) + '</p><div class="de-notes-content">' + safeNotes + '</div><div class="de-actions"><button class="de-action" type="button" id="de-notes-copy">Copy notes</button><button class="de-action" type="button" id="de-notes-print">Print / Save PDF</button><button class="de-action" type="button" data-de-action="notes">Make another set</button></div></section>' + sourceHTML;
+        const copyButton = document.getElementById("de-notes-copy");
+        if (copyButton) copyButton.addEventListener("click", async function () {
+          try {
+            await navigator.clipboard.writeText(notes);
+            copyButton.textContent = "Copied ✓";
+          } catch (_) {
+            result.insertAdjacentHTML("beforeend", '<p class="de-muted">Copy was blocked by the browser. Select the notes text to copy it manually.</p>');
+          }
+        });
+        const printButton = document.getElementById("de-notes-print");
+        if (printButton) printButton.addEventListener("click", function () { window.print(); });
+      } catch (error) {
+        result.innerHTML = '<div class="de-error"><strong>Notes were not generated.</strong><p>' + escapeHTML(error.message) + '</p><p class="de-muted">Dream does not invent notes when it cannot retrieve suitable evidence or its free providers are unavailable.</p><button class="de-action" type="button" data-notes-retry>Try again</button></div>';
+        const retry = result.querySelector("[data-notes-retry]");
+        if (retry) retry.addEventListener("click", function () { form.requestSubmit(); });
+      } finally {
+        submit.disabled = false;
+      }
+    });
   }
 
   function roleMetricValue(intelligence, role) {
@@ -914,6 +1012,7 @@
     if (name === "workspace") return openWorkspace();
     if (name === "resources" || name === "feed") return openLearningResources();
     if (name === "progress") return loadProgress();
+    if (name === "notes") return openStudyNotes();
     if (name === "sessions") return loadSessions();
     if (name === "connections") return openConnections();
     if (name === "chat") {
