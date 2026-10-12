@@ -115,7 +115,7 @@ async function searchOpenStax(query, limit = 5) {
     const searchable = (title + " " + subjects + " " + description).toLowerCase();
     const matches = terms.filter(term => searchable.includes(term)).length;
     return { book, title, subjects, description, matches };
-  }).filter(item => item.title && item.matches > 0)
+  }).filter(item => item.title && item.matches > 0 && (!item.book.book_state || item.book.book_state === "live"))
     .sort((a, b) => b.matches - a.matches)
     .slice(0, Math.min(Math.max(limit, 1), 5))
     .map(({ book, title, subjects, description }) => {
@@ -128,8 +128,9 @@ async function searchOpenStax(query, limit = 5) {
         source: "OpenStax Free Textbooks",
         provider: "openstax",
         source_type: "educational",
-        url: slug ? "https://openstax.org/books/" + encodeURIComponent(slug) : "https://openstax.org/",
+        url: String(book.webview_rex_link || (slug ? "https://openstax.org/" + slug.replace(/^\//, "") : "https://openstax.org/")),
         license: String(book.license || "Check the individual book's license"),
+        commercial_use: false,
         has_usable_content: extract.length >= 80
       };
     });
