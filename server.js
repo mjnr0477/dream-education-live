@@ -10304,6 +10304,44 @@ app.post("/api/v1/knowledge/ingest", async (req, res) => {
   }
 });
 
+app.post("/api/v1/learning/notes", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) {
+      return res.status(auth.status).json({ success: false, error: auth.error });
+    }
+
+    if (!["learner", "teacher", "parent", "school"].includes(String(auth.account?.role || "").toLowerCase())) {
+      return res.status(403).json({ success: false, error: "Your account is not authorized to generate study notes." });
+    }
+
+    const { generateStudyNotes } = require("./product/notes_study_engine");
+    const result = await generateStudyNotes({
+      topic: req.body?.topic,
+      subject: req.body?.subject,
+      level: req.body?.level,
+      notesType: req.body?.notes_type
+    });
+
+    if (!result.success) {
+      return res.status(result.status || 422).json({
+        success: false,
+        error: result.error || "Study notes could not be generated.",
+        evidence_status: result.evidence_status || "unavailable",
+        providers: result.providers || []
+      });
+    }
+
+    return res.json({ ...result, learner_id: auth.account.learner_id || null });
+  } catch (error) {
+    console.error("Study notes generation error:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Study notes could not be generated right now. Please try again."
+    });
+  }
+});
+
 app.get("/api/v1/learning/resources", async (req, res) => {
   try {
     const auth = await getAuthenticatedAccount(req);
