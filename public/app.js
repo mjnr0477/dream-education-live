@@ -4524,6 +4524,7 @@ async function openMeetings() {
       const url = new URL(String(value || "").trim());
       return url.protocol === "https:" && (
         url.hostname === "meet.google.com" ||
+        url.hostname === "meet.jit.si" ||
         url.hostname === "teams.microsoft.com" ||
         url.hostname === "teams.live.com"
       ) ? url.href : "";
