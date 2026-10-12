@@ -1064,7 +1064,7 @@
     const sourceButton = event.target.closest("[data-lesson-source-open]");
     if (sourceButton) {
       const sourceUrl = sourceButton.getAttribute("data-lesson-source-open") || "";
-      if (/^https?:\\/\\//i.test(sourceUrl)) window.open(sourceUrl, "_blank", "noopener,noreferrer");
+      if (sourceUrl.startsWith("https://") || sourceUrl.startsWith("http://")) window.open(sourceUrl, "_blank", "noopener,noreferrer");
       return;
     }
     const completeButton = event.target.closest("[data-resource-complete]");
