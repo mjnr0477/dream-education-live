@@ -44,6 +44,7 @@ assert.match(teacherUI, /data-teacher-lesson-card/, "Teacher results must have a
 assert.match(teacherUI, /createdCard\.scrollIntoView/, "Teacher UI must scroll to the newly generated lesson.");
 assert.match(schoolWorkspaceSource, /renderSchoolLessonCard/, "School UI must render a lesson returned directly by the create request.");
 assert.match(schoolWorkspaceSource, /loadSchoolLessons\(data\.lesson\)/, "School UI must show the create response even if saved-list retrieval misses it.");
+assert.match(schoolWorkspaceSource, /resultTarget\.innerHTML = renderSchoolLessonCard\(data\.lesson, true\)/, "School UI must display the lesson response before attempting to refresh saved lessons.");
 assert.match(schoolWorkspaceSource, /createdCard\.scrollIntoView/, "School UI must scroll to the newly generated lesson.");
 assert.match(schoolWorkspaceSource, /expandDetails \? ' open' : ''/, "New school lesson results must open their details immediately.");
 assert.match(engineSource, /buildTeacherLesson/);
