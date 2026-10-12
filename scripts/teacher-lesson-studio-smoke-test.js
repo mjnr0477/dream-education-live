@@ -15,10 +15,10 @@ new vm.Script(teacherUI, { filename: "public/app.js" });
 new vm.Script(learnerUI, { filename: "public/frontend-workspace.js" });
 new vm.Script(engineSource, { filename: "product/teacher_lesson_engine.js" });
 
-assert.match(server, /app\.get\("\/api\/product\/teacher\/lessons"/);
-assert.match(server, /app\.post\("\/api\/product\/teacher\/lessons"/);
-assert.match(server, /app\.post\("\/api\/product\/teacher\/lessons\/:lesson_id\/assign"/);
-assert.match(server, /app\.post\("\/api\/product\/teacher\/lessons\/:lesson_id\/submissions\/:learner_id\/review"/);
+assert.match(server, /app\.get\("\/api\/v1\/teacher\/lessons"/);
+assert.match(server, /app\.post\("\/api\/v1\/teacher\/lessons"/);
+assert.match(server, /app\.post\("\/api\/v1\/teacher\/lessons\/:lesson_id\/assign"/);
+assert.match(server, /app\.post\("\/api\/v1\/teacher\/lessons\/:lesson_id\/submissions\/:learner_id\/review"/);
 assert.match(server, /app\.get\("\/api\/v1\/learning\/assigned-lessons"/);
 assert.match(server, /app\.post\("\/api\/v1\/learning\/assigned-lessons\/:lesson_id\/submit"/);
 assert.match(server, /connection\.status === "active"|status: "active"/);
