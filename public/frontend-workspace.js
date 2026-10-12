@@ -465,7 +465,7 @@
         const sourceHTML = sourceRows.length
           ? '<section class="de-section"><h3>Evidence sources</h3><ul>' + sourceRows.map(function (source) {
               const title = escapeHTML(source.title || "Source");
-              return '<li>' + (source.url ? '<a href="' + escapeHTML(source.url) + '" target="_blank" rel="noopener noreferrer">' + title + '</a>' : title) + '</li>';
+              return '<li>' + title + '</li>';
             }).join("") + '</ul><p class="de-muted">Sources are shown for transparency; check them for further detail.</p></section>'
           : '<p class="de-muted">No source links were returned with this evidence packet.</p>';
 
