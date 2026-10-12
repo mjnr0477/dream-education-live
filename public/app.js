@@ -2307,7 +2307,7 @@ async function openTeacherLessonStudio() {
     const options = connectedLearners.map(learner =>
       '<option value="' + escape(learner.learner_id) + '">' + escape(learner.name) + ' · ' + escape(learner.level || learner.learner_id) + '</option>'
     ).join("");
-    return '<article class="teacher-lesson-card">' +
+    return '<article class="teacher-lesson-card" data-teacher-lesson-card="' + escape(lesson.lesson_id || "") + '">' +
       '<div class="teacher-lesson-meta"><span>' + escape(lesson.subject) + '</span><span>' + escape(lesson.level) + '</span><span>' + escape(lesson.duration_minutes) + ' min</span></div>' +
       '<h3>' + escape(lesson.topic) + '</h3>' +
       '<p>' + objectives.slice(0, 2).map(escape).join(" · ") + '</p>' +
@@ -2374,7 +2374,9 @@ async function openTeacherLessonStudio() {
         activeLesson = data.lesson;
         render();
         const nextFeedback = document.getElementById("teacher-lesson-create-feedback");
-        if (nextFeedback) nextFeedback.innerHTML = '<p class="teacher-lesson-success">Lesson prepared and saved. Review the notes and answer key below, then assign it to a connected learner.</p>';
+        if (nextFeedback) nextFeedback.innerHTML = '<p class="teacher-lesson-success">Lesson prepared and saved. Your complete lesson, notes and answer key are displayed below.</p>';
+        const createdCard = body.querySelector('[data-teacher-lesson-card="' + CSS.escape(String(data.lesson.lesson_id || "")) + '"]');
+        if (createdCard) createdCard.scrollIntoView({ behavior: "smooth", block: "start" });
       } catch (error) {
         const message = error && error.name === "AbortError"
           ? "Lesson preparation took longer than expected. Please try again; Dream has not saved an incomplete lesson."
