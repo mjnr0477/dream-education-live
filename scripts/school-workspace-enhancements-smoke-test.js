@@ -20,7 +20,7 @@ assert.match(js, /\/api\/v1\/school\/lessons/);
 assert.match(js, /Open notes, teaching steps and assessment/);
 assert.match(server, /app\.get\("\/api\/v1\/school\/lessons"/);
 assert.match(server, /app\.post\("\/api\/v1\/school\/lessons"/);
-assert.match(server, /Only authenticated school accounts can prepare lessons/);
+assert.match(server, /Only authenticated school accounts or the project owner can prepare lessons/);
 assert.match(server, /lessonEngine\.generateTeacherLesson/);
 assert.match(server, /lessonEngine\.createLesson/);
 assert.match(js, /No sample records are shown as real data/);
