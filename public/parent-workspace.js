@@ -18,6 +18,7 @@
     return data;
   }
   function selectedChild() { return state.children.find(child => String(child.learner_id) === String(state.selected)) || state.children[0] || null; }
+  function safeUrl(value) { try { const url = new URL(String(value || ""), window.location.origin); return url.protocol === "https:" || url.protocol === "http:" ? url.href : ""; } catch (_) { return ""; } }
   function childOptions() {
     if (!state.children.length) return '<option value="">No connected children</option>';
     return state.children.map(child => '<option value="' + esc(child.learner_id) + '"' + (String(child.learner_id) === String(state.selected) ? " selected" : "") + '>' + esc(child.name || child.learner_id) + '</option>').join("");
@@ -37,7 +38,7 @@
     const signal = state.intelligence.family_signal || {};
     const needing = state.children.filter(child => child.assessments && child.average_score < 70);
     return '<div class="parent-hero"><div><span class="parent-kicker">FAMILY LEARNING &amp; SUPPORT CENTRE</span><h3>Be part of your child’s learning journey.</h3><p>Understand what the recorded evidence shows, find reliable practice materials, and stay connected with the people teaching your child.</p></div><div class="parent-hero-mark" aria-hidden="true">✦</div></div>' +
-      '<div class="de-metrics parent-metrics">' + metric("My children", signal.children || state.children.length, "Profiles connected to this account") + metric("Family average", state.children.some(c => c.assessments) ? (signal.average_score || 0) + "%" : "Not yet available", "From recorded assessments only") + metric("May need support", needing.length, "Below 70% in recorded assessments") + metric("Lessons assigned", state.lessons.length, "For selected child when available") + '</div>' +
+      '<div class="de-metrics parent-metrics">' + metric("My children", signal.children || state.children.length, "Profiles connected to this account") + metric("Family average", state.children.some(c => c.assessments) ? (signal.average_score || 0) + "%" : "Not yet available", "From recorded assessments only") + metric("May need support", needing.length, "Below 70% in recorded assessments") + metric("Teacher lessons", state.lessons.length ? state.lessons.length : "Open to load", "Authorised assignments for selected child") + '</div>' +
       '<section class="de-section"><div class="de-section-title"><h3>My children</h3><span>' + state.children.length + ' profiles</span></div>' +
       (state.children.length ? '<div class="parent-children-grid">' + state.children.map(childCard).join("") + '</div>' : empty("No child profile is connected yet", "Use Connections to connect with your child’s learner account. Private lesson and progress details should only appear after the relationship is authorised.")) + '</section>' +
       '<div class="parent-two-column"><section class="de-section"><div class="de-section-title"><h3>What needs attention?</h3><span>Evidence-led</span></div>' +
@@ -79,7 +80,7 @@
   }
   function sourceCards(resources) {
     if (!resources.length) return empty("No playable source matched this search", "Try a shorter topic or a different subject. The source service may be temporarily unavailable.");
-    return '<div class="parent-source-list">' + resources.map(item => '<article class="parent-source-card"><span class="parent-source-provider">' + esc(item.source || item.provider || "Connected source") + '</span><h4>' + esc(item.title || "Learning material") + '</h4><p>' + esc(item.description || "") + '</p>' + (item.creator ? '<small>Creator: ' + esc(item.creator) + '</small>' : '') + (item.url || item.source_url || item.page_url ? '<p><a href="' + esc(item.url || item.source_url || item.page_url) + '" target="_blank" rel="noopener noreferrer">Open source ↗</a></p>' : '') + '</article>').join("") + '</div>';
+    return '<div class="parent-source-list">' + resources.map(item => { const url = safeUrl(item.url || item.source_url || item.page_url); return '<article class="parent-source-card"><span class="parent-source-provider">' + esc(item.source || item.provider || "Connected source") + '</span><h4>' + esc(item.title || "Learning material") + '</h4><p>' + esc(item.description || "") + '</p>' + (item.creator ? '<small>Creator: ' + esc(item.creator) + '</small>' : '') + (url ? '<p><a href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">Open source ↗</a></p>' : '') + '</article>'; }).join("") + '</div>';
   }
   function guide() {
     const child = selectedChild();
