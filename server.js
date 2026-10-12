@@ -10431,6 +10431,32 @@ app.get("/api/product/teacher/lessons/:lesson_id/submissions", async (req, res) 
   }
 });
 
+app.post("/api/product/teacher/lessons/:lesson_id/submissions/:learner_id/review", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    if (String(auth.account.role || "").toLowerCase() !== "teacher" || !auth.account.teacher_id) {
+      return res.status(403).json({ success: false, error: "Only a teacher can grade lesson submissions." });
+    }
+    const dataEngine = require("./product/data_engine");
+    const lessonEngine = require("./product/teacher_lesson_engine");
+    const store = dataEngine.loadStore();
+    const result = lessonEngine.reviewLessonSubmission(
+      store,
+      req.params.lesson_id,
+      auth.account.teacher_id,
+      req.params.learner_id,
+      req.body && req.body.manual_scores
+    );
+    if (!result.success) return res.status(result.status || 400).json(result);
+    dataEngine.saveStore(store);
+    return res.json(result);
+  } catch (error) {
+    console.error("Teacher lesson grading error:", error);
+    return res.status(500).json({ success: false, error: "Could not save teacher grading." });
+  }
+});
+
 app.get("/api/v1/learning/assigned-lessons", async (req, res) => {
   try {
     const auth = await getAuthenticatedAccount(req);
