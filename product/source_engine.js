@@ -2,6 +2,7 @@ const https = require("https");
 const queryEngine = require("./query_engine.js");
 const globalSourceBridge = require("./global_sources/bridge.js");
 const globalSourceRouter = require("./global_sources/router.js");
+const notesSourceProviders = require("./notes_source_providers.js");
 
 const USER_AGENT = "DreamEducation/1.0 knowledge-search";
 const PROVIDER_TIMEOUT = 3500;
@@ -1082,6 +1083,8 @@ async function searchSources(query, limit = 5) {
     { name: "stack_exchange", run: () => searchStackExchange(searchQuery, limit) },
     { name: "zenodo", run: () => searchZenodo(searchQuery, limit) },
     { name: "wikibooks", run: () => searchWikibooks(searchQuery, limit) },
+    { name: "libretexts", run: () => notesSourceProviders.searchLibreTexts(searchQuery, limit) },
+    { name: "openstax", run: () => notesSourceProviders.searchOpenStax(searchQuery, limit) },
 
     // TRUSTED GLOBAL SOURCE MESH — subject-aware, network-backed providers.
     // This is blocking so connected specialist sources can contribute to the
