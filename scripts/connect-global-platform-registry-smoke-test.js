@@ -22,6 +22,8 @@ assert.ok(getPlatform('reddit'));
 assert.ok(getPlatform('matrix'));
 assert.ok(getPlatform('mastodon'));
 assert.ok(getPlatform('bluesky'));
+assert.ok(getPlatform('publora'));
+assert.strictEqual(supportsAction('publora', 'post'), true);
 assert.ok(getPlatform('discord'));
 assert.strictEqual(supportsAction('reddit', 'post'), true);
 assert.strictEqual(supportsAction('matrix', 'direct_message'), true);

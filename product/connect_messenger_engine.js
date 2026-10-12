@@ -326,15 +326,17 @@ async function broadcastMessage(message, connectors = []) {
         subject
       });
 
-      const delivered = result?.success === true;
+      const accepted = result?.success === true;
+      const scheduled = accepted && Boolean(result?.data?.scheduledTime);
+      const delivered = accepted && !scheduled;
       return {
         connector_id: target.connector.id || null,
         connector_name: target.connector.name || target.connector.id || 'Connector',
         platform: target.channel.platform || target.connector.platform || null,
         channel: target.channel.type || null,
         recipient: target.recipient,
-        success: delivered,
-        status: delivered ? 'delivered' : 'failed',
+        success: accepted,
+        status: scheduled ? 'scheduled' : delivered ? 'delivered' : 'failed',
         result: result || null
       };
     } catch (error) {
@@ -351,15 +353,20 @@ async function broadcastMessage(message, connectors = []) {
     }
   }));
 
-  const delivered = receipts.filter((receipt) => receipt.success).length;
-  const failed = receipts.length - delivered;
+  const delivered = receipts.filter((receipt) => receipt.status === 'delivered').length;
+  const scheduled = receipts.filter((receipt) => receipt.status === 'scheduled').length;
+  const failed = receipts.length - delivered - scheduled;
+  const accepted = delivered + scheduled;
 
   return {
-    success: delivered > 0,
-    status: delivered > 0 && failed === 0 ? 'delivered_everywhere_configured' : delivered > 0 ? 'partially_delivered' : 'delivery_failed',
+    success: accepted > 0,
+    status: accepted > 0 && failed === 0
+      ? scheduled > 0 && delivered === 0 ? 'scheduled_everywhere_configured' : 'delivered_everywhere_configured'
+      : accepted > 0 ? 'partially_delivered' : 'delivery_failed',
     message_id: messageId,
     attempted: receipts.length,
     delivered,
+    scheduled,
     failed,
     receipts
   };
