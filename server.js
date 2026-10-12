@@ -10458,6 +10458,45 @@ app.post("/api/v1/teacher/lessons/:lesson_id/submissions/:learner_id/review", as
   }
 });
 
+app.get("/api/v1/parent/children/:learner_id/assigned-lessons", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    if (String(auth.account.role || "").toLowerCase() !== "parent" || !auth.account.parent_id) {
+      return res.status(403).json({ success: false, error: "Only a parent account can view a child's assigned lessons." });
+    }
+
+    const dataEngine = require("./product/data_engine");
+    const connectionEngine = require("./product/connection_engine");
+    const lessonEngine = require("./product/teacher_lesson_engine");
+    const store = dataEngine.loadStore();
+    const parentId = String(connectionEngine.getAccountEntityId(auth.account) || "");
+    const learnerId = String(req.params.learner_id || "");
+    const parentProfile = (store.parents || {})[parentId];
+    if (!parentProfile || !learnerId || !(store.learners || {})[learnerId]) {
+      return res.status(404).json({ success: false, error: "Child profile not found." });
+    }
+
+    const authorised = Object.values(store.connections || {}).some(connection =>
+      connection &&
+      connection.status === "active" &&
+      (
+        (connection.from_role === "parent" && String(connection.from_id) === parentId && connection.to_role === "learner" && String(connection.to_id) === learnerId) ||
+        (connection.to_role === "parent" && String(connection.to_id) === parentId && connection.from_role === "learner" && String(connection.from_id) === learnerId)
+      )
+    );
+    if (!authorised) {
+      return res.status(403).json({ success: false, error: "parent child lesson access denied: an active parent-to-learner connection is required." });
+    }
+
+    const lessons = lessonEngine.listAssignedLessons(store, learnerId);
+    return res.json({ success: true, learner_id: learnerId, lessons });
+  } catch (error) {
+    console.error("Parent assigned lesson retrieval error:", error);
+    return res.status(500).json({ success: false, error: "Could not load the child's assigned lessons." });
+  }
+});
+
 app.get("/api/v1/learning/assigned-lessons", async (req, res) => {
   try {
     const auth = await getAuthenticatedAccount(req);

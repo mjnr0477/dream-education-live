@@ -654,6 +654,10 @@
   }
 
   async function loadRoleWorkspace(info) {
+    if (info.role === "parent" && window.DreamParentWorkspace && typeof window.DreamParentWorkspace.open === "function") {
+      await window.DreamParentWorkspace.open(info);
+      return;
+    }
     renderShell(info,
       '<div class="de-loading"><span></span><p>Loading role intelligence...</p></div>'
     );
