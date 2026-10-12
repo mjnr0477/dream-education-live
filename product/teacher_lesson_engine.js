@@ -46,6 +46,149 @@ function normalizeQuestions(value) {
   }).filter(Boolean);
 }
 
+function buildFallbackEvidencePacket(input = {}, rawSources = []) {
+  const { sourceAdequacy } = require("./knowledge_intelligence_engine");
+  const queryEngine = require("./query_engine");
+  const verifier = require("./source_verifier");
+  const topic = clean(input.topic, 300);
+  const subject = clean(input.subject || "General", 100);
+  const queryInfo = queryEngine.analyzeQuery(topic, { subject: subject.toLowerCase() });
+  const topicTerms = topic.toLowerCase().split(/[^a-z0-9]+/).filter(term =>
+    term.length > 2 && !["the", "and", "for", "with", "from", "into", "about"].includes(term)
+  );
+  const approvedTypes = new Set([
+    "educational", "official", "government", "academic", "academic_research",
+    "scientific_research", "scientific_reference", "biomedical_research",
+    "life_science_research", "technical", "library_reference", "reference"
+  ]);
+  const seen = new Set();
+  const evidence = [];
+
+  for (const row of rawSources) {
+    if (!row || typeof row !== "object") continue;
+    const title = clean(row.title || row.name || "Free educational source", 250);
+    const excerpt = clean(row.extract || row.content || row.text || row.snippet || "", 4000);
+    const url = typeof row.url === "string" && /^https?:\/\//i.test(row.url) ? row.url : "";
+    const provider = clean(row.provider || row.global_source_id || "", 80).toLowerCase();
+    const source = clean(row.source || row.name || provider || "Free educational source", 120);
+    if (excerpt.length < 180 || !url || !title) continue;
+    if (["open_library", "openstax", "duckduckgo", "wikidata"].includes(provider)) continue;
+
+    const combined = (title + " " + excerpt).toLowerCase();
+    const matchedTerms = topicTerms.filter(term => combined.includes(term));
+    const requiredMatches = Math.max(1, Math.ceil(topicTerms.length * 0.5));
+    if (topicTerms.length && matchedTerms.length < requiredMatches) continue;
+
+    const candidate = {
+      ...row,
+      title,
+      source,
+      provider,
+      source_type: row.source_type || "reference",
+      extract: excerpt,
+      snippet: excerpt.slice(0, 600),
+      url
+    };
+    const adequacy = sourceAdequacy(candidate, queryInfo, topic);
+    if (!adequacy.adequate) continue;
+    const verification = verifier.verifySource(candidate, topic);
+    if (!verification.verified && !approvedTypes.has(candidate.source_type)) continue;
+
+    const key = (title + "|" + url).toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    evidence.push({
+      title,
+      excerpt,
+      url,
+      source,
+      provider,
+      source_type: candidate.source_type,
+      verification_score: verification.score,
+      relevance_score: verification.relevance_score,
+      cross_source_status: "free-source-fallback"
+    });
+    if (evidence.length >= 5) break;
+  }
+
+  if (!evidence.length) {
+    return {
+      success: false,
+      error: "Free sources did not return enough topic-matched readable content.",
+      evidence_status: "insufficient"
+    };
+  }
+
+  const knowledge = evidence.map(item => item.excerpt).join("\n\n");
+  const primary = evidence[0];
+  return {
+    success: true,
+    query: subject + " " + topic,
+    source: {
+      title: primary.title,
+      name: primary.source,
+      url: primary.url,
+      verification_score: primary.verification_score
+    },
+    evidence: evidence.map(item => ({ ...item })),
+    knowledge,
+    evidence_packet: {
+      question: topic,
+      query: subject + " " + topic,
+      source: {
+        title: primary.title,
+        name: primary.source,
+        verification_score: primary.verification_score
+      },
+      evidence: evidence.map(item => ({ ...item })),
+      knowledge
+    }
+  };
+}
+
+async function retrieveFallbackLessonEvidence(input = {}) {
+  const sourceEngine = require("./source_engine");
+  const notesProviders = require("./notes_source_providers");
+  const subject = clean(input.subject || "General", 100);
+  const topic = clean(input.topic, 300);
+  const level = clean(input.level || "", 100);
+  const query = [subject, topic, level].filter(Boolean).join(" ");
+  const outcomes = await Promise.allSettled([
+    sourceEngine.searchSources(query, 5),
+    notesProviders.searchLibreTexts(query, 4),
+    notesProviders.searchOpenStax(query, 3)
+  ]);
+  const rows = [];
+  for (const outcome of outcomes) {
+    if (outcome.status !== "fulfilled") continue;
+    const value = outcome.value;
+    if (Array.isArray(value)) rows.push(...value);
+    else if (value && Array.isArray(value.sources)) rows.push(...value.sources);
+  }
+
+  // Search snippets from Wikipedia are not lesson notes. Fetch the full page
+  // for a small number of candidates before the evidence gate evaluates them.
+  const wikipedia = rows.filter(row =>
+    row && (row.provider === "wikipedia" || row.source === "Wikipedia") &&
+    String(row.extract || row.snippet || "").length < 1000 && row.title
+  ).slice(0, 2);
+  const pages = await Promise.allSettled(wikipedia.map(row => sourceEngine.getWikipediaPage(row.title)));
+  for (let index = 0; index < wikipedia.length; index += 1) {
+    const page = pages[index];
+    if (page.status === "fulfilled" && page.value && String(page.value.extract || "").length > 180) {
+      const row = wikipedia[index];
+      row.extract = page.value.extract;
+      row.snippet = String(page.value.extract).slice(0, 600);
+      row.url = page.value.url || row.url;
+      row.source = "Wikipedia";
+      row.provider = "wikipedia";
+      row.source_type = "reference";
+    }
+  }
+
+  return buildFallbackEvidencePacket(input, rows);
+}
+
 async function generateTeacherLesson(input = {}) {
   const topic = clean(input.topic);
   const subject = clean(input.subject || "General", 100);
@@ -58,12 +201,20 @@ async function generateTeacherLesson(input = {}) {
     return { success: false, status: 400, error: "Enter a topic, subject and education level." };
   }
 
-  // Dream's own deterministic planner is the primary generator. It uses the
-  // existing evidence engine and never calls an AI provider.
+  const plannerInput = {
+    topic,
+    subject,
+    level,
+    duration_minutes: duration,
+    curriculum,
+    instructions: teacherInstructions
+  };
   const { retrieveKnowledgeIntelligence } = require("./knowledge_intelligence_engine");
   const { buildTeacherLesson } = require("./deterministic_lesson_planner");
-  let evidence;
+  let evidence = null;
+  let retrievalError = null;
   let evidenceTimeout;
+
   try {
     evidence = await Promise.race([
       retrieveKnowledgeIntelligence(
@@ -72,38 +223,77 @@ async function generateTeacherLesson(input = {}) {
       ),
       new Promise((_, reject) => {
         evidenceTimeout = setTimeout(() => {
-          const error = new Error("Topic evidence retrieval exceeded the 20-second lesson preparation limit.");
+          const error = new Error("Primary knowledge retrieval exceeded its lesson preparation window.");
           error.code = "LESSON_EVIDENCE_TIMEOUT";
           reject(error);
-        }, 20000);
+        }, 11500);
       })
     ]);
   } catch (error) {
-    if (error && error.code === "LESSON_EVIDENCE_TIMEOUT") {
-      return { success: false, status: 504, error: "Dream's free-source retrieval took too long. Please try again with a more specific topic.", evidence_status: "timeout" };
-    }
-    return { success: false, status: 503, error: "Dream could not retrieve topic evidence. Please try again.", evidence_status: "unavailable" };
+    retrievalError = error;
   } finally {
     clearTimeout(evidenceTimeout);
   }
 
-  if (!evidence || evidence.success !== true) {
+  let planned = evidence && evidence.success === true
+    ? buildTeacherLesson(plannerInput, evidence)
+    : { success: false, error: retrievalError && retrievalError.code === "LESSON_EVIDENCE_TIMEOUT"
+        ? "Primary knowledge retrieval timed out."
+        : evidence && evidence.error || retrievalError && retrievalError.message || "Primary knowledge retrieval did not return evidence.",
+      evidence_status: "insufficient" };
+
+  // The lesson route gets a second pass through Dream's already-connected
+  // free-source mesh and the direct open-textbook providers. It does not call
+  // an AI provider and it does not change the learner adaptive pipeline.
+  if (!planned.success) {
+    let fallbackTimeout;
+    try {
+      const fallback = await Promise.race([
+        retrieveFallbackLessonEvidence(plannerInput),
+        new Promise((_, reject) => {
+          fallbackTimeout = setTimeout(() => reject(new Error("Free-source fallback timed out.")), 8000);
+        })
+      ]);
+      if (fallback && fallback.success) {
+        const combined = {
+          ...fallback,
+          evidence: [
+            ...(evidence && Array.isArray(evidence.evidence) ? evidence.evidence : []),
+            ...(fallback.evidence || [])
+          ],
+          evidence_packet: {
+            ...(fallback.evidence_packet || {}),
+            evidence: [
+              ...(evidence && evidence.evidence_packet && Array.isArray(evidence.evidence_packet.evidence)
+                ? evidence.evidence_packet.evidence : []),
+              ...(fallback.evidence_packet && Array.isArray(fallback.evidence_packet.evidence)
+                ? fallback.evidence_packet.evidence : [])
+            ]
+          }
+        };
+        planned = buildTeacherLesson(plannerInput, combined);
+      }
+    } catch (error) {
+      retrievalError = retrievalError || error;
+    } finally {
+      clearTimeout(fallbackTimeout);
+    }
+  }
+
+  if (!planned.success) {
     return {
-      success: false,
-      status: 422,
-      error: evidence && evidence.error || "Dream could not find sufficiently relevant evidence for this topic yet. Try a more specific topic.",
-      evidence_status: "insufficient"
+      ...planned,
+      status: planned.status || 422,
+      error: "Dream could not find enough relevant readable content from its connected free sources to prepare reliable notes. Try a more specific topic or check the source connection.",
+      evidence_status: "insufficient",
+      retrieval_detail: retrievalError && retrievalError.message || undefined
     };
   }
 
-  return buildTeacherLesson({
-    topic,
-    subject,
-    level,
-    duration_minutes: duration,
-    curriculum,
-    instructions: teacherInstructions
-  }, evidence);
+  return {
+    ...planned,
+    source_retrieval_method: evidence && evidence.success ? "knowledge_intelligence" : "free_source_fallback"
+  };
 }
 
 function createLesson(store, teacherId, lessonContent) {
@@ -308,6 +498,8 @@ function listLessonSubmissions(store, lessonId, teacherId) {
 }
 
 module.exports = {
+  buildFallbackEvidencePacket,
+  retrieveFallbackLessonEvidence,
   generateTeacherLesson,
   createLesson,
   listTeacherLessons,
