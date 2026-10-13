@@ -61,3 +61,9 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+
+.school-workspace :is(button,input,textarea,select,[tabindex]):focus-visible {
+  outline: 3px solid var(--accent-2, #9ee7ff);
+  outline-offset: 2px;
+}
