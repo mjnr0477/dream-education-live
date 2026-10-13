@@ -117,6 +117,22 @@ function buildBacktest(bars) {
   };
 }
 
+function normalizeMarketBars(data, symbol) {
+  const candidates = [
+    data && data.bars,
+    data && data.data && data.data.bars,
+    data && data.results && data.results.bars
+  ];
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate)) return candidate;
+    if (candidate && typeof candidate === "object") {
+      const keyed = candidate[symbol] || candidate[symbol.toLowerCase()];
+      if (Array.isArray(keyed)) return keyed;
+    }
+  }
+  return [];
+}
+
 function registerDreamInvestRoutes(app, options = {}) {
   const getAuthenticatedAccount = options.getAuthenticatedAccount;
 
@@ -244,9 +260,19 @@ function registerDreamInvestRoutes(app, options = {}) {
             : normalizeText(data.message || data.error, 250) || "Alpaca market data is unavailable for this symbol or feed."
         });
       }
-      const bars = Array.isArray(data.bars) ? data.bars.filter(bar => Number.isFinite(Number(bar.c)) && Number.isFinite(Date.parse(bar.t))) : [];
+      const bars = normalizeMarketBars(data, symbol)
+        .filter(bar => bar && Number.isFinite(Number(bar.c)) && Number.isFinite(Date.parse(bar.t)))
+        .sort((left, right) => Date.parse(left.t) - Date.parse(right.t));
       if (bars.length < 22) {
-        return res.status(422).json({ success: false, error: "Not enough market bars returned to calculate a trend. Try a liquid US-listed stock or another timeframe." });
+        return res.status(422).json({
+          success: false,
+          received_bars: bars.length,
+          symbol,
+          timeframe,
+          error: bars.length === 0
+            ? "Alpaca returned no usable price bars for " + symbol + " (" + timeframe + "). Check the ticker and your Alpaca market-data access, then try Daily."
+            : "Alpaca returned only " + bars.length + " usable bars for " + symbol + " (" + timeframe + "). At least 22 are needed. Try Daily or a longer timeframe."
+        });
       }
       const indicators = buildIndicators(bars);
       return res.json({
@@ -313,4 +339,4 @@ function registerDreamInvestRoutes(app, options = {}) {
   });
 }
 
-module.exports = { registerDreamInvestRoutes, buildIndicators, buildBacktest, isOwner };
+module.exports = { registerDreamInvestRoutes, buildIndicators, buildBacktest, normalizeMarketBars, isOwner };
