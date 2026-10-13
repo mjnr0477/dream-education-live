@@ -339,4 +339,4 @@ function registerDreamInvestRoutes(app, options = {}) {
   });
 }
 
-module.exports = { registerDreamInvestRoutes, buildIndicators, buildBacktest, isOwner };
+module.exports = { registerDreamInvestRoutes, buildIndicators, buildBacktest, normalizeMarketBars, isOwner };
