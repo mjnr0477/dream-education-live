@@ -19,7 +19,7 @@ async function main() {
     const res = () => ({ statusCode: 200, body: null, status(n) { this.statusCode=n; return this; }, json(v) { this.body=v; return this; } });
     let r=res(); await routes.get["/api/dream-invest/fxapis/status"]({headers:{}},r); assert.equal(r.statusCode,401);
     r=res(); await routes.get["/api/dream-invest/fxapis/status"]({headers:{authorization:"Bearer other"}},r); assert.equal(r.statusCode,403);
-    global.fetch = async (url, opts) => ({ ok:true, status:200, json:async()=>({accounts:[]}) });
+    global.fetch = async (url, opts) => ({ ok:true, status: opts.method === "POST" ? 201 : 200, json:async()=> opts.method === "POST" ? ({ id: "fxacct-test-1", status: "created", platform: "mt5" }) : ({ accounts: [] }) });
     r=res(); await routes.get["/api/dream-invest/fxapis/status"]({headers:{authorization:"Bearer owner"}},r);
     assert.equal(r.body.configured,true); assert.equal(r.body.trading_enabled,false);
     r=res(); await routes.post["/api/dream-invest/fxapis/connect"]({headers:{authorization:"Bearer owner"},body:{login:"12345678",server:"JustMarkets-Demo",password:"private"}},r);
