@@ -157,7 +157,7 @@
         <label class="de-media-field" id="de-media-prompt-label">Describe the image
           <textarea id="de-media-input" class="panel-input de-media-input" rows="5" maxlength="4000" placeholder="A clear, detailed description…"></textarea>
         </label>
-        <p class="de-media-note">FreeTTS creates an MP3 and synchronized SRT subtitles. The FreeTTS key stays on the server. Provider limits apply; free-tier usage and commercial-use restrictions are set by FreeTTS.</p>
+        <p class="de-media-note">FreeTTS creates an MP3 and synchronized SRT subtitles. The key stays on the server. FreeTTS says its free tier is for personal, non-commercial use; confirm commercial rights before using generated audio in paid Dream Education services.</p>
         <div class="panel-actions">
           <button class="panel-action" id="de-media-submit" type="button">Create</button>
           <button class="panel-action secondary" id="de-media-clear" type="button">Clear result</button>
