@@ -52,9 +52,9 @@
 
 
 @media (prefers-reduced-motion: reduce) {
-  .school-workspace *,
-  .school-workspace *::before,
-  .school-workspace *::after {
+  .school-space-enhanced *,
+  .school-space-enhanced *::before,
+  .school-space-enhanced *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
