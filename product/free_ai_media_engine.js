@@ -115,7 +115,7 @@ function registerFreeAiMediaRoutes(app, options = {}) {
       const voice = normalizeText(req.body?.voice, 80) || "en-US-JennyNeural";
       const rate = normalizeText(req.body?.rate, 8) || "+0%";
       const pitch = normalizeText(req.body?.pitch, 8) || "+0Hz";
-      if (!/^[+-]?(?:0|[1-9]\\d?)(?:%|Hz)$/.test(rate) || !/^[+-]?(?:0|[1-9]\\d?)(?:Hz)$/.test(pitch)) {
+      if (!/^[+-]?(?:0|[1-9]\d?)(?:%|Hz)$/.test(rate) || !/^[+-]?(?:0|[1-9]\d?)(?:Hz)$/.test(pitch)) {
         return res.status(400).json({ success: false, error: "Use a speaking rate such as +0% and pitch such as +0Hz." });
       }
       endpoint = "https://freetts.org/api/v1/tts";
