@@ -16,12 +16,23 @@ function isOwner(account) {
 }
 
 function safeAccount(account) {
+  const equity = Number(account.equity);
+  const previousEquity = Number(account.last_equity);
+  const hasEquityComparison = account.equity != null && account.last_equity != null
+    && Number.isFinite(equity) && Number.isFinite(previousEquity);
+  const dailyChange = hasEquityComparison ? equity - previousEquity : null;
+  const dailyChangePct = hasEquityComparison && previousEquity !== 0
+    ? (dailyChange / previousEquity) * 100
+    : null;
   return {
     status: account.status || "unknown",
     currency: account.currency || "USD",
     cash: account.cash == null ? null : String(account.cash),
     portfolio_value: account.portfolio_value == null ? null : String(account.portfolio_value),
     equity: account.equity == null ? null : String(account.equity),
+    last_equity: account.last_equity == null ? null : String(account.last_equity),
+    daily_equity_change: dailyChange == null ? null : String(dailyChange),
+    daily_equity_change_pct: dailyChangePct == null ? null : String(dailyChangePct),
     buying_power: account.buying_power == null ? null : String(account.buying_power),
     pattern_day_trader: Boolean(account.pattern_day_trader),
     trading_blocked: Boolean(account.trading_blocked),
