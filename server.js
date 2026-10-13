@@ -40,6 +40,7 @@ const fs = require("fs");
 const crypto = require("crypto");
 const OpenAI = require("openai");
 const { generateAI: generateFreeAI } = require("./product/ai/ai_provider_router");
+const { registerFreeAiMediaRoutes } = require("./product/free_ai_media_engine");
 const { recordAIEvaluationEvidence } = require("./product/gli/ai_evaluation_evidence");
 const { recordLearningOutcomeFeedback } = require("./product/gli/learning_outcome_evaluation");
 const { buildLearningOutcomeSummary } = require("./product/gli/outcome_intelligence");
@@ -5692,6 +5693,7 @@ const {
 } = require("./product/payment_engine");
 
 registerDreamSearchRoutes(app, { getAuthenticatedAccount, isOwnerAccount });
+registerFreeAiMediaRoutes(app, { getAuthenticatedAccount });
 
 const {
   createCheckoutOrder,
