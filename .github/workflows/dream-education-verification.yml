@@ -18,6 +18,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: node --check server.js
+      - run: node --check product/free_ai_media_engine.js
+      - run: node --check public/media-studio.js
       - run: node --check product/gli/advanced_learner_intelligence.js
       - run: node --check product/gli/learning_method_intelligence.js
       - run: node --check product/gli/curriculum_intelligence.js
