@@ -29,7 +29,7 @@ async function main() {
     requestedUrl = String(url);
     requestOptions = options;
     if (requestedUrl.endsWith("/account")) {
-      return { ok: true, status: 200, json: async () => ({ status: "ACTIVE", currency: "USD", cash: "100000", equity: "100000", buying_power: "200000", portfolio_value: "100000" }) };
+      return { ok: true, status: 200, json: async () => ({ status: "ACTIVE", currency: "USD", cash: "100000", equity: "101000", last_equity: "100000", buying_power: "200000", portfolio_value: "101000" }) };
     }
     if (requestedUrl.includes("/stocks/AAPL/bars?")) {
       return { ok: true, status: 200, json: async () => ({ bars }) };
@@ -79,6 +79,8 @@ async function main() {
   await routes.get["/api/dream-invest/account"]({ headers: { authorization: "Bearer owner" } }, res);
   assert.equal(res.body.account.paper_trading, true);
   assert.equal(res.body.account.cash, "100000");
+  assert.equal(res.body.account.daily_equity_change, "1000");
+  assert.equal(Number(res.body.account.daily_equity_change_pct).toFixed(2), "1.00");
   assert.equal(requestOptions.headers["APCA-API-KEY-ID"], "test-paper-key");
   assert.equal(JSON.stringify(res.body).includes("test-paper-secret"), false);
 

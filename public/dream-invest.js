@@ -92,11 +92,22 @@
   }
 
   function renderAccount(account) {
-    return '<section class="di-metrics">' +
-      metric("Paper account", account.status || "—", "Alpaca account status") +
-      metric("Paper equity", money(account.equity, account.currency), "Simulated account value") +
-      metric("Cash", money(account.cash, account.currency), "Available cash") +
-      metric("Buying power", money(account.buying_power, account.currency), "Broker-reported buying power") +
+    const change = account.daily_equity_change == null ? null : Number(account.daily_equity_change);
+    const changePct = account.daily_equity_change_pct == null ? null : Number(account.daily_equity_change_pct);
+    const changeKnown = Number.isFinite(change);
+    const trendClass = !changeKnown ? "unknown" : change > 0 ? "up" : change < 0 ? "down" : "flat";
+    const trendLabel = !changeKnown ? "Daily movement unavailable" : change > 0 ? "Rising today" : change < 0 ? "Falling today" : "Flat today";
+    const trendValue = !changeKnown ? "—" : (change > 0 ? "+" : "") + money(change, account.currency);
+    const trendPct = Number.isFinite(changePct) ? " (" + (changePct > 0 ? "+" : "") + changePct.toFixed(2) + "%)" : "";
+    return '<section class="di-equity-panel">' +
+      '<div class="di-section-head"><div><span class="di-eyebrow">YOUR MONEY · PAPER ACCOUNT</span><h3>Account performance</h3><p class="di-muted">Current equity compared with Alpaca’s previous closing equity.</p></div><button class="de-action" id="di-refresh-account" type="button">Refresh balance</button></div>' +
+      '<div class="di-metrics">' +
+      metric("Total account value", money(account.equity, account.currency), "Current simulated equity") +
+      '<article class="di-metric di-equity-change di-equity-' + trendClass + '"><span>Daily profit / loss</span><strong>' + esc(trendValue + trendPct) + '</strong><small>' + esc(trendLabel) + '</small></article>' +
+      metric("Previous equity", money(account.last_equity, account.currency), "Previous trading-day close") +
+      metric("Cash", money(account.cash, account.currency), "Uninvested simulated cash") +
+      metric("Buying power", money(account.buying_power, account.currency), "Broker-reported amount available to trade") +
+      '</div><p class="di-muted">This is paper-account performance, not real money. Daily change can include unrealized market movement and may not equal profit since you started trading.</p>' +
       '</section>';
   }
 
@@ -136,7 +147,23 @@
   async function loadAccount() {
     const account = await api("/api/dream-invest/account");
     const accountOutput = document.getElementById("di-account-output");
-    if (accountOutput) accountOutput.innerHTML = renderAccount(account.account);
+    if (accountOutput) {
+      accountOutput.innerHTML = renderAccount(account.account);
+      const refresh = document.getElementById("di-refresh-account");
+      if (refresh) refresh.addEventListener("click", async function () {
+        refresh.disabled = true;
+        refresh.textContent = "Refreshing…";
+        try {
+          await loadAccount();
+        } catch (error) {
+          refresh.textContent = "Retry refresh";
+          const note = document.createElement("p");
+          note.className = "di-error";
+          note.textContent = error.message;
+          accountOutput.appendChild(note);
+        }
+      });
+    }
     const connection = document.getElementById("di-connection");
     if (connection) {
       connection.textContent = "Alpaca connected · paper";
