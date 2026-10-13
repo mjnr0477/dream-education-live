@@ -109,6 +109,16 @@
       link.className = "de-media-result-link";
       host.appendChild(link);
     }
+
+    if (action === "freetts" && result?.subtitles_url) {
+      const subtitles = document.createElement("a");
+      subtitles.href = result.subtitles_url;
+      subtitles.target = "_blank";
+      subtitles.rel = "noopener noreferrer";
+      subtitles.textContent = "Download synchronized subtitles (.srt)";
+      subtitles.className = "de-media-result-link";
+      host.appendChild(subtitles);
+    }
   }
 
   function open() {
