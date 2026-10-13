@@ -5,6 +5,9 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const root = path.join(__dirname, "..");
+const schoolScript = fs.readFileSync(path.join(root, "public/school-workspace.js"), "utf8");
+assert.match(schoolScript, /school-workspace\.css\?v=20261013b/, "school workspace loader must use the current cache-busting version.");
+
 const workspaces = [
   ["chat", "public/chat-workspace.css"],
   ["parent", "public/parent-workspace.css"],
