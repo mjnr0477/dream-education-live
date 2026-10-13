@@ -45,6 +45,7 @@ function allowRequest(account) {
 
 function registerFreeAiMediaRoutes(app, options = {}) {
   const getAuthenticatedAccount = options.getAuthenticatedAccount;
+  require("./dream_invest_engine").registerDreamInvestRoutes(app, { getAuthenticatedAccount });
 
   async function requireAccount(req, res) {
     if (typeof getAuthenticatedAccount !== "function") {
