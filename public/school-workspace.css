@@ -49,3 +49,22 @@
 .school-lesson-detail ol { padding-left:22px; }
 .school-lesson-detail li { margin:10px 0; line-height:1.55; }
 .school-lesson-detail p,.school-lesson-detail div { white-space:pre-wrap; overflow-wrap:anywhere; }
+
+
+@media (prefers-reduced-motion: reduce) {
+  .school-space-enhanced *,
+  .school-space-enhanced *::before,
+  .school-space-enhanced *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+
+.school-module-panel :is(button,input,textarea,select,[tabindex]):focus-visible,
+.school-module-nav :is(button,input,textarea,select,[tabindex]):focus-visible {
+  outline: 3px solid var(--accent-2, #9ee7ff);
+  outline-offset: 2px;
+}

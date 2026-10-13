@@ -4,3 +4,23 @@
 #de-chat-create-group, #de-chat-add-member, #de-chat-leave-group { border: 1px solid var(--line, rgba(255,255,255,.14)); border-radius: 10px; padding: 7px 10px; color: inherit; background: rgba(255,255,255,.045); cursor: pointer; }
 #de-chat-add-member[hidden], #de-chat-leave-group[hidden] { display: none; }
 .de-chat-group-person .de-chat-avatar { font-weight: 800; }
+
+
+/* Keyboard visibility and reduced-motion support for direct and group chat. */
+.de-chat-workspace :is(button,input,textarea,select,[tabindex]):focus-visible,
+.de-chat-workspace button:focus-visible,
+.de-chat-workspace input:focus-visible,
+.de-chat-workspace textarea:focus-visible {
+  outline: 3px solid var(--accent-2, #9ee7ff);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .de-chat-workspace *,
+  .de-chat-workspace *::before,
+  .de-chat-workspace *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -9,7 +9,7 @@
   function styleOnce() {
     if (document.getElementById(STYLE_ID)) return;
     const link = document.createElement("link");
-    link.id = STYLE_ID; link.rel = "stylesheet"; link.href = "/school-workspace.css?v=20261012b";
+    link.id = STYLE_ID; link.rel = "stylesheet"; link.href = "/school-workspace.css?v=20261013b";
     document.head.appendChild(link);
   }
   async function fetchSchoolLessonJSON(url, options, timeoutMs = 30000) {
