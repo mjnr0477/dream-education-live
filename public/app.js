@@ -150,6 +150,11 @@ function escapeHTML(value) {
           title: "Learn coding your way",
           text: "Choose a coding-learning method, then get free text, video, image, course and practice resources.",
           action: "coding-learning"
+        },
+        {
+          title: "Media Studio",
+          text: "Generate images, turn text into speech, translate text and ask Free.ai from one place.",
+          action: "media-studio"
         }
       ],
       primary: "Explore AI Lab",
@@ -322,6 +327,7 @@ function escapeHTML(value) {
         const isUniversalMessenger = card.action === "universal-connector";
         const isCodingLab = card.action === "coding-lab";
         const isCodingLearning = card.action === "coding-learning";
+        const isMediaStudio = card.action === "media-studio";
         const isAuthorizedSearch = card.action === "authorized-search" &&
           isOwnerAccount(getAuth());
         const cardAction = isCodeCreation
@@ -340,7 +346,9 @@ function escapeHTML(value) {
                     ? 'data-panel-action="coding-lab" role="button" tabindex="0"'
                     : isCodingLearning
                       ? 'data-panel-action="coding-learning" role="button" tabindex="0"'
-                      : isAuthorizedSearch
+                      : isMediaStudio
+                        ? 'data-panel-action="media-studio" role="button" tabindex="0"'
+                        : isAuthorizedSearch
                         ? 'data-panel-action="authorized-search" role="button" tabindex="0"'
                 : "";
         const cardButton = isCodeCreation
@@ -359,7 +367,9 @@ function escapeHTML(value) {
                   ? '<button class="panel-action" type="button" data-panel-action="coding-lab">Open Coding Studio</button>'
                   : isCodingLearning
                     ? '<button class="panel-action" type="button" data-panel-action="coding-learning">Choose how to learn coding</button>'
-                    : isAuthorizedSearch
+                    : isMediaStudio
+                      ? '<button class="panel-action" type="button" data-panel-action="media-studio">Open Media Studio</button>'
+                      : isAuthorizedSearch
                       ? '<button class="panel-action" type="button" data-panel-action="authorized-search">Open Authorized Search</button>'
                 : "";
 
@@ -1640,6 +1650,15 @@ document.addEventListener("click", function (event) {
     if (action === "coding-learning") {
       if (window.openCodingLearning && typeof window.openCodingLearning === "function") {
         window.openCodingLearning();
+      }
+      return;
+    }
+
+    if (action === "media-studio") {
+      if (window.DreamMediaStudio && typeof window.DreamMediaStudio.open === "function") {
+        window.DreamMediaStudio.open();
+      } else {
+        console.error("Dream Education Media Studio module is not loaded.");
       }
       return;
     }
