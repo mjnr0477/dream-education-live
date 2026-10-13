@@ -86,7 +86,7 @@
     openPanel("DREAM INVEST · PAPER TRADING", "Dream Invest", "Market research and simulated trading connected to your Alpaca paper account.", 
       '<div class="dream-invest">' +
         '<section class="di-banner"><div><span class="di-eyebrow">PAPER MODE · NO REAL-MONEY ORDERS</span><h3>Study the market. Test the signal.</h3><p>Rule-based indicators, historical checks and manually confirmed simulated orders. Automated execution remains off while we validate the engine.</p></div><span class="di-status" id="di-connection">Checking connection…</span></section>' +
-        '<form class="di-search" id="di-market-form"><label for="di-symbol">US stock symbol</label><input id="di-symbol" name="symbol" maxlength="12" value="AAPL" required autocapitalize="characters" placeholder="AAPL"><label for="di-timeframe">Timeframe</label><select id="di-timeframe" name="timeframe"><option value="1Day">Daily</option><option value="1Hour">Hourly</option><option value="15Min">15 minutes</option><option value="5Min">5 minutes</option><option value="1Min">1 minute</option></select><button class="de-action primary" type="submit">Analyze market</button></form>' +
+        '<section class="di-section di-fxapis"><div class="di-section-head"><div><span class="di-eyebrow">BROKER CONNECTION</span><h3>Connect JustMarkets MT5 via FXAPIS</h3><p class="di-muted">Use a demo account first. The MT5 password is sent directly to FXAPIS over HTTPS and is not saved by Dream Education. Live order execution is disabled here.</p></div><span class="di-status" id="di-fxapis-status">Checking FXAPIS…</span></div><div id="di-fxapis-message" aria-live="polite"></div><form class="di-order-form" id="di-fxapis-form"><label for="di-fxapis-login">MT5 account login</label><input id="di-fxapis-login" name="login" inputmode="numeric" pattern="[0-9]{4,20}" maxlength="20" required autocomplete="off" placeholder="Numeric MT5 login"><label for="di-fxapis-server">Exact MT5 server name</label><input id="di-fxapis-server" name="server" maxlength="120" required autocomplete="off" placeholder="As shown in MetaTrader 5"><label for="di-fxapis-password">MT5 trading password</label><input id="di-fxapis-password" name="password" type="password" maxlength="256" required autocomplete="new-password" placeholder="Enter privately here"><button class="de-action primary" type="submit">Connect MT5 account</button></form><p class="di-muted">This registers the broker account only. It does not deposit or withdraw funds, start automated trading, or place orders.</p></section><form class="di-search" id="di-market-form"><label for="di-symbol">US stock symbol</label><input id="di-symbol" name="symbol" maxlength="12" value="AAPL" required autocapitalize="characters" placeholder="AAPL"><label for="di-timeframe">Timeframe</label><select id="di-timeframe" name="timeframe"><option value="1Day">Daily</option><option value="1Hour">Hourly</option><option value="15Min">15 minutes</option><option value="5Min">5 minutes</option><option value="1Min">1 minute</option></select><button class="de-action primary" type="submit">Analyze market</button></form>' +
         '<div id="di-account-output"></div><div id="di-main-output"><div class="di-loading">Connecting to Alpaca Paper Trading…</div></div>' +
       '</div>');
   }
@@ -214,6 +214,55 @@
     }
   }
 
+  async function loadFxapisStatus() {
+    const badge = document.getElementById("di-fxapis-status");
+    const message = document.getElementById("di-fxapis-message");
+    if (!badge) return;
+    try {
+      const data = await api("/api/dream-invest/fxapis/status");
+      badge.textContent = data.connected ? "MT5 account registered" : data.configured ? "API key ready" : "API key missing";
+      badge.classList.toggle("is-connected", Boolean(data.connected || data.configured));
+      if (message) {
+        const account = data.account || {};
+        message.innerHTML = '<div class="' + (data.connected ? "di-success" : "di-muted") + '"><strong>' + esc(data.connected ? "FXAPIS account registered" : data.configured ? "FXAPIS is ready to connect" : "FXAPIS setup required") + '</strong><p>' + esc(data.message || "") + (account.server ? '<br>Server: ' + esc(account.server) : "") + (account.login ? '<br>Login: ' + esc(account.login) : "") + '</p></div>';
+      }
+      const form = document.getElementById("di-fxapis-form");
+      if (form && data.connected) form.hidden = true;
+    } catch (error) {
+      badge.textContent = "FXAPIS needs setup";
+      if (message) message.innerHTML = '<div class="di-error">' + esc(error.message) + '</div>';
+    }
+  }
+
+  async function submitFxapisConnection(event) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const button = form.querySelector('button[type="submit"]');
+    const message = document.getElementById("di-fxapis-message");
+    const passwordField = form.elements.password;
+    if (button) { button.disabled = true; button.textContent = "Connecting securely…"; }
+    if (message) message.textContent = "Sending connection request to FXAPIS…";
+    try {
+      const data = await api("/api/dream-invest/fxapis/connect", {
+        method: "POST",
+        body: JSON.stringify({
+          login: form.elements.login.value.trim(),
+          server: form.elements.server.value.trim(),
+          password: passwordField.value
+        })
+      });
+      passwordField.value = "";
+      if (message) message.innerHTML = '<div class="di-success"><strong>MT5 account registered</strong><p>' + esc(data.message || "Connection request accepted.") + '</p></div>';
+      form.hidden = true;
+      await loadFxapisStatus();
+    } catch (error) {
+      passwordField.value = "";
+      if (message) message.innerHTML = '<div class="di-error"><strong>Connection not confirmed</strong><p>' + esc(error.message) + '</p></div>';
+    } finally {
+      if (button) { button.disabled = false; button.textContent = "Connect MT5 account"; }
+    }
+  }
+
   async function openDreamInvest() {
     const auth = getAuth();
     if (!auth || !auth.account || !isOwner(auth)) {
@@ -226,6 +275,9 @@
     try {
       const status = await api("/api/dream-invest/status");
       if (!status.configured) throw new Error("Alpaca credentials are missing from Render Environment.");
+      loadFxapisStatus();
+      const fxForm = document.getElementById("di-fxapis-form");
+      if (fxForm) fxForm.addEventListener("submit", submitFxapisConnection);
       await loadAccount();
       if (output) output.innerHTML = '<div class="di-loading">Loading market data…</div>';
       const form = document.getElementById("di-market-form");
