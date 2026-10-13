@@ -109,6 +109,16 @@
       link.className = "de-media-result-link";
       host.appendChild(link);
     }
+
+    if (action === "freetts" && result?.subtitles_url) {
+      const subtitles = document.createElement("a");
+      subtitles.href = result.subtitles_url;
+      subtitles.target = "_blank";
+      subtitles.rel = "noopener noreferrer";
+      subtitles.textContent = "Download synchronized subtitles (.srt)";
+      subtitles.className = "de-media-result-link";
+      host.appendChild(subtitles);
+    }
   }
 
   function open() {
@@ -119,7 +129,7 @@
     const token = getAuthToken();
     setPanelText("panel-kicker", "DREAM AI LAB · MEDIA STUDIO");
     setPanelText("panel-title", "Create and convert media.");
-    setPanelText("panel-description", "Use the Free.ai API configured on Dream Education to generate images, turn text into speech, translate text, or ask a question.");
+    setPanelText("panel-description", "Use Free.ai for image generation, translation and questions, or FreeTTS for natural spoken lesson notes and text.");
 
     if (!token) {
       body.innerHTML = '<article class="panel-card"><h3>Sign in required</h3><p>Sign in to use Media Studio through your Dream Education account.</p><button class="panel-action" type="button" data-panel-action="signin">Sign in</button></article>';
@@ -134,7 +144,8 @@
           <label class="de-media-field">Tool
             <select id="de-media-action" class="panel-input">
               <option value="image">Text → Image</option>
-              <option value="tts">Text → Speech</option>
+              <option value="tts">Free.ai · Text → Speech</option>
+              <option value="freetts">FreeTTS · Natural speech + subtitles</option>
               <option value="translate">Translate text</option>
               <option value="chat">Ask Free.ai</option>
             </select>
@@ -146,7 +157,7 @@
         <label class="de-media-field" id="de-media-prompt-label">Describe the image
           <textarea id="de-media-input" class="panel-input de-media-input" rows="5" maxlength="4000" placeholder="A clear, detailed description…"></textarea>
         </label>
-        <p class="de-media-note">Image generation uses the SDXL model shown in Free.ai's documentation. Speech uses Kokoro. Availability and free limits depend on Free.ai's account/model limits. Video generation is not enabled here because the example endpoint uses a premium model.</p>
+        <p class="de-media-note">FreeTTS creates an MP3 and synchronized SRT subtitles. The key stays on the server. FreeTTS says its free tier is for personal, non-commercial use; confirm commercial rights before using generated audio in paid Dream Education services.</p>
         <div class="panel-actions">
           <button class="panel-action" id="de-media-submit" type="button">Create</button>
           <button class="panel-action secondary" id="de-media-clear" type="button">Clear result</button>
@@ -170,13 +181,13 @@
       const mode = actionSelect.value;
       targetWrap.hidden = mode !== "translate";
       promptLabel.firstChild.textContent = mode === "image" ? "Describe the image" :
-        mode === "tts" ? "Text to speak" :
+        mode === "tts" || mode === "freetts" ? "Text to speak" :
         mode === "translate" ? "Text to translate" : "Question or instruction";
       input.placeholder = mode === "image" ? "A bright, detailed illustration of the water cycle…" :
-        mode === "tts" ? "Paste the text you want spoken aloud…" :
+        mode === "tts" || mode === "freetts" ? "Paste lesson notes or any text you want spoken aloud…" :
         mode === "translate" ? "Paste text to translate…" : "Ask a question…";
       submit.textContent = mode === "image" ? "Generate image" :
-        mode === "tts" ? "Generate speech" :
+        mode === "tts" || mode === "freetts" ? "Generate speech" :
         mode === "translate" ? "Translate" : "Ask Free.ai";
     }
 
@@ -204,7 +215,10 @@
             action,
             prompt: action === "image" ? value : undefined,
             text: action === "image" ? undefined : value,
-            target: targetInput.value.trim() || "en"
+            target: targetInput.value.trim() || "en",
+            voice: "en-US-JennyNeural",
+            rate: "+0%",
+            pitch: "+0Hz"
           })
         });
         const data = await response.json().catch(() => ({}));
@@ -212,7 +226,7 @@
           throw new Error(data.error || "Free.ai request failed.");
         }
         renderResult(result, action, data);
-        status.textContent = "Request completed by Free.ai.";
+        status.textContent = action === "freetts" ? "Speech and subtitle files are ready. Audio links expire after one hour." : "Request completed by Free.ai.";
       } catch (error) {
         status.textContent = error.message || "Media request failed.";
       } finally {

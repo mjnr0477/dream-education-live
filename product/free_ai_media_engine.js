@@ -73,7 +73,7 @@ function registerFreeAiMediaRoutes(app, options = {}) {
       success: true,
       provider: "free.ai",
       configured: Boolean(String(process.env.FREE_AI_API_KEY || "").trim()),
-      supportedActions: ["chat", "image", "tts", "translate"]
+      supportedActions: ["chat", "image", "tts", "translate", "freetts"]
     });
   });
 
@@ -91,15 +91,16 @@ function registerFreeAiMediaRoutes(app, options = {}) {
       });
     }
 
-    const apiKey = String(process.env.FREE_AI_API_KEY || "").trim();
+    const action = normalizeText(req.body?.action, 20).toLowerCase();
+    const providerKey = action === "freetts" ? "FREETTS_API_KEY" : "FREE_AI_API_KEY";
+    const apiKey = String(process.env[providerKey] || "").trim();
     if (!apiKey) {
       return res.status(503).json({
         success: false,
-        error: "Free.ai is not configured on the server. Add FREE_AI_API_KEY to Render Environment."
+        error: providerKey + " is not configured on the server. Add it to Render Environment."
       });
     }
 
-    const action = normalizeText(req.body?.action, 20).toLowerCase();
     const prompt = normalizeText(req.body?.prompt, 1200);
     const text = normalizeText(req.body?.text, 4000);
     const target = normalizeText(req.body?.target, 16) || "en";
@@ -107,7 +108,19 @@ function registerFreeAiMediaRoutes(app, options = {}) {
     let endpoint;
     let payload;
 
-    if (action === "image") {
+    if (action === "freetts") {
+      if (!text) {
+        return res.status(400).json({ success: false, error: "Enter text to turn into speech." });
+      }
+      const voice = normalizeText(req.body?.voice, 80) || "en-US-JennyNeural";
+      const rate = normalizeText(req.body?.rate, 8) || "+0%";
+      const pitch = normalizeText(req.body?.pitch, 8) || "+0Hz";
+      if (!/^[+-]?(?:0|[1-9]\d?)(?:%|Hz)$/.test(rate) || !/^[+-]?(?:0|[1-9]\d?)(?:Hz)$/.test(pitch)) {
+        return res.status(400).json({ success: false, error: "Use a speaking rate such as +0% and pitch such as +0Hz." });
+      }
+      endpoint = "https://freetts.org/api/v1/tts";
+      payload = { text: text.slice(0, 5000), voice, rate, pitch, output_format: "mp3" };
+    } else if (action === "image") {
       if (prompt.length < 3) {
         return res.status(400).json({ success: false, error: "Enter a description for the image." });
       }
@@ -142,10 +155,10 @@ function registerFreeAiMediaRoutes(app, options = {}) {
     const timeout = setTimeout(() => controller.abort(), 60000);
 
     try {
-      const upstream = await fetch(FREE_AI_BASE_URL + endpoint, {
+      const upstream = await fetch(action === "freetts" ? endpoint : FREE_AI_BASE_URL + endpoint, {
         method: "POST",
         headers: {
-          Authorization: "Bearer " + apiKey,
+          ...(action === "freetts" ? { "x-api-key": apiKey } : { Authorization: "Bearer " + apiKey }),
           "Content-Type": "application/json",
           Accept: "application/json"
         },
@@ -166,6 +179,28 @@ function registerFreeAiMediaRoutes(app, options = {}) {
           provider: "free.ai",
           error: safeMessage || "Free.ai could not complete that request. Check its model limits and API documentation.",
           upstream_status: upstream.status
+        });
+      }
+
+      if (action === "freetts") {
+        const fileId = normalizeText(result?.file_id, 80);
+        if (!fileId || !/^[a-f0-9-]{20,80}$/i.test(fileId)) {
+          return res.status(502).json({
+            success: false,
+            provider: "freetts",
+            error: "FreeTTS did not return a valid audio file ID."
+          });
+        }
+        return res.json({
+          success: true,
+          provider: "freetts",
+          action,
+          result: {
+            file_id: fileId,
+            audio_url: "https://freetts.org/api/audio/" + encodeURIComponent(fileId),
+            subtitles_url: "https://freetts.org/api/srt/" + encodeURIComponent(fileId),
+            voice: normalizeText(req.body?.voice, 80) || "en-US-JennyNeural"
+          }
         });
       }
 

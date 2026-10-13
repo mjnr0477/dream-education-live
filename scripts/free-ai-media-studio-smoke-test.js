@@ -45,7 +45,7 @@ async function main() {
   await routes.get["/api/media-studio/status"]({ headers: { authorization: "Bearer test" } }, response);
   assert.equal(response.body.success, true);
   assert.equal(response.body.configured, true);
-  assert.deepEqual(response.body.supportedActions, ["chat", "image", "tts", "translate"]);
+  assert.deepEqual(response.body.supportedActions, ["chat", "image", "tts", "translate", "freetts"]);
 
   response.statusCode = 200;
   response.body = null;
@@ -59,6 +59,26 @@ async function main() {
   assert.equal(capturedOptions.headers.Authorization, "Bearer media-studio-test-key");
   assert.equal(JSON.parse(capturedOptions.body).model, "sdxl");
   assert.equal(JSON.stringify(response.body).includes("media-studio-test-key"), false);
+
+  process.env.FREETTS_API_KEY = "freetts-test-key";
+  response.statusCode = 200;
+  response.body = null;
+  global.fetch = async (url, options) => {
+    capturedUrl = url;
+    capturedOptions = options;
+    return { ok: true, status: 200, text: async () => JSON.stringify({ file_id: "a3f7c012-58b4-4e2a-9d1c-0f83abc12345" }) };
+  };
+  await routes.post["/api/media-studio/generate"]({
+    headers: { authorization: "Bearer test" },
+    body: { action: "freetts", text: "A short lesson to read aloud.", rate: "+15%" }
+  }, response);
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.success, true);
+  assert.equal(capturedUrl, "https://freetts.org/api/v1/tts");
+  assert.equal(capturedOptions.headers["x-api-key"], "freetts-test-key");
+  assert.equal(JSON.parse(capturedOptions.body).rate, "+15%");
+  assert.equal(response.body.result.audio_url, "https://freetts.org/api/audio/a3f7c012-58b4-4e2a-9d1c-0f83abc12345");
+  assert.equal(JSON.stringify(response.body).includes("freetts-test-key"), false);
 
   response.statusCode = 200;
   response.body = null;
@@ -80,6 +100,7 @@ async function main() {
 
   if (previousKey === undefined) delete process.env.FREE_AI_API_KEY;
   else process.env.FREE_AI_API_KEY = previousKey;
+  delete process.env.FREETTS_API_KEY;
   global.fetch = previousFetch;
   console.log("Free.ai Media Studio smoke test passed");
 }
