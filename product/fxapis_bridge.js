@@ -4,6 +4,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const OWNER_EMAIL = "mathiassimiyu52@gmail.com";
 const ACCOUNT_FILE = path.join(__dirname, "..", "data", "fxapis-account.json");
+// Keep FXAPIS requests server-side; never expose the API key to browser code.
 const API_BASE = "https://api.fxapis.com/v1";
 
 function isOwner(account) {
