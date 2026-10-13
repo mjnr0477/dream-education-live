@@ -179,7 +179,7 @@
       document.getElementById("de-chat-send").disabled = false;
       document.getElementById("de-chat-block").disabled = true;
       document.getElementById("de-chat-report").disabled = true;
-      document.getElementById("de-chat-add-member").hidden = false;
+      document.getElementById("de-chat-add-member").hidden = !["owner", "admin"].includes(data.group.my_role);
       document.getElementById("de-chat-leave-group").hidden = false;
       await loadGroups();
       await loadGroupMessages();
@@ -199,7 +199,7 @@
       document.getElementById("de-chat-send").disabled = false;
       document.getElementById("de-chat-block").disabled = true;
       document.getElementById("de-chat-report").disabled = true;
-      document.getElementById("de-chat-add-member").hidden = false;
+      document.getElementById("de-chat-add-member").hidden = !["owner", "admin"].includes(selectedGroup.my_role);
       document.getElementById("de-chat-leave-group").hidden = false;
       renderGroups(data.groups || []);
       await loadGroupMessages();
@@ -213,6 +213,8 @@
     const data = await api("/api/chat/groups/" + encodeURIComponent(selectedGroup.group_id) + "/messages");
     if (seq !== requestSequence || !selectedGroup) return;
     selectedGroup = data.group || selectedGroup;
+    const addMember = document.getElementById("de-chat-add-member");
+    if (addMember) addMember.hidden = !["owner", "admin"].includes(selectedGroup.my_role);
     const role = document.getElementById("de-chat-recipient-role");
     if (role) role.textContent = "Group · " + (selectedGroup.member_count || 1) + " member(s)";
     renderGroupMessages(data.messages || []);
