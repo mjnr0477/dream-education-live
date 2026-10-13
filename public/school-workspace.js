@@ -65,6 +65,7 @@
       card("▤","Lesson plans & notes","Prepare curriculum-level lessons with objectives, source-backed teaching material, notes and assessments in the existing Dream Education lesson workflow.","Open teaching tools","teaching") +
       card("✓","Assessment & results","Review the recorded results available to this school. New results only appear when the connected learning or assessment workflow saves them.","View results","assessments") +
       card("↗","Learning analytics","Use the recorded assessment outcomes and available learner records to understand progress without inventing missing statistics.","Open analytics","analytics") +
+      card("♫","Media Studio","Create spoken lesson notes, learning images and translations using the existing shared Media Studio.","Open Media Studio","media-studio") +
       '</div>';
     const learnerContent = '<div class="school-module-card"><h4>Learner register</h4><p>Records currently returned by the school dashboard.</p><input class="school-module-search" type="search" data-school-table-filter="learners" placeholder="Search learners…" aria-label="Search learners"><div class="school-module-table-wrap"><table class="school-module-table"><thead><tr><th>Learner</th><th>Class</th></tr></thead><tbody>' + tableRows(tables.learners,2) + '</tbody></table></div><p class="school-module-note">This view displays connected records only; it does not create or alter learner accounts.</p></div>';
     const teacherContent = '<div class="school-module-card"><h4>Teacher register</h4><p>Teachers currently associated with school classes.</p><input class="school-module-search" type="search" data-school-table-filter="teachers" placeholder="Search teachers…" aria-label="Search teachers"><div class="school-module-table-wrap"><table class="school-module-table"><thead><tr><th>Teacher</th><th>Assigned classes</th></tr></thead><tbody>' + tableRows(tables.teachers,2) + '</tbody></table></div><p class="school-module-note">Teacher invitations and role assignments must be handled by the authenticated school-management backend.</p></div>';
@@ -199,7 +200,10 @@
       const button = event.target.closest("[data-school-module-action]");
       if (!button) return;
       const action = button.getAttribute("data-school-module-action");
-      if (action === "refresh") {
+      if (action === "media-studio") {
+        if (window.DreamMediaStudio && typeof window.DreamMediaStudio.open === "function") window.DreamMediaStudio.open();
+        else announce("Media Studio is still loading. Please try again.");
+      } else if (action === "refresh") {
         const refresh = root.querySelector('[data-panel-action="school-dashboard"]');
         if (refresh) refresh.click();
       } else if (action === "teaching") {
