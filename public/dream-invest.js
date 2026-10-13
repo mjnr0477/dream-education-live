@@ -87,7 +87,7 @@
       '<div class="dream-invest">' +
         '<section class="di-banner"><div><span class="di-eyebrow">PAPER MODE · NO REAL-MONEY ORDERS</span><h3>Study the market. Test the signal.</h3><p>Rule-based indicators, historical checks and manually confirmed simulated orders. Automated execution remains off while we validate the engine.</p></div><span class="di-status" id="di-connection">Checking connection…</span></section>' +
         '<form class="di-search" id="di-market-form"><label for="di-symbol">US stock symbol</label><input id="di-symbol" name="symbol" maxlength="12" value="AAPL" required autocapitalize="characters" placeholder="AAPL"><label for="di-timeframe">Timeframe</label><select id="di-timeframe" name="timeframe"><option value="1Day">Daily</option><option value="1Hour">Hourly</option><option value="15Min">15 minutes</option><option value="5Min">5 minutes</option><option value="1Min">1 minute</option></select><button class="de-action primary" type="submit">Analyze market</button></form>' +
-        '<div id="di-main-output"><div class="di-loading">Connecting to Alpaca Paper Trading…</div></div>' +
+        '<div id="di-account-output"></div><div id="di-main-output"><div class="di-loading">Connecting to Alpaca Paper Trading…</div></div>' +
       '</div>');
   }
 
@@ -135,6 +135,8 @@
 
   async function loadAccount() {
     const account = await api("/api/dream-invest/account");
+    const accountOutput = document.getElementById("di-account-output");
+    if (accountOutput) accountOutput.innerHTML = renderAccount(account.account);
     const connection = document.getElementById("di-connection");
     if (connection) {
       connection.textContent = "Alpaca connected · paper";
@@ -197,8 +199,8 @@
     try {
       const status = await api("/api/dream-invest/status");
       if (!status.configured) throw new Error("Alpaca credentials are missing from Render Environment.");
-      const account = await loadAccount();
-      if (output) output.innerHTML = renderAccount(account) + '<div class="di-loading">Loading market data…</div>';
+      await loadAccount();
+      if (output) output.innerHTML = '<div class="di-loading">Loading market data…</div>';
       const form = document.getElementById("di-market-form");
       if (form) form.addEventListener("submit", function (event) {
         event.preventDefault();
