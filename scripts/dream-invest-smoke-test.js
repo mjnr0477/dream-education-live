@@ -1,7 +1,7 @@
 "use strict";
 
 const assert = require("node:assert/strict");
-const { registerDreamInvestRoutes, buildIndicators, buildBacktest } = require("../product/dream_invest_engine");
+const { registerDreamInvestRoutes, buildIndicators, buildBacktest, normalizeMarketBars } = require("../product/dream_invest_engine");
 
 async function main() {
   const routes = { get: {}, post: {} };
@@ -103,6 +103,11 @@ async function main() {
   res = response();
   await routes.post["/api/dream-invest/orders"]({ headers: { authorization: "Bearer owner" }, body: { symbol: "AAPL", side: "buy", qty: 11 } }, res);
   assert.equal(res.statusCode, 400);
+
+  assert.equal(normalizeMarketBars({ bars }, "AAPL").length, 40);
+  assert.equal(normalizeMarketBars({ bars: { AAPL: bars } }, "AAPL").length, 40);
+  assert.equal(normalizeMarketBars({ data: { bars: { AAPL: bars } } }, "AAPL").length, 40);
+  assert.equal(normalizeMarketBars({ bars: [] }, "AAPL").length, 0);
 
   const indicators = buildIndicators(bars);
   assert.ok(Number.isFinite(indicators.heuristic_score));
