@@ -49,3 +49,15 @@
 .school-lesson-detail ol { padding-left:22px; }
 .school-lesson-detail li { margin:10px 0; line-height:1.55; }
 .school-lesson-detail p,.school-lesson-detail div { white-space:pre-wrap; overflow-wrap:anywhere; }
+
+
+@media (prefers-reduced-motion: reduce) {
+  .school-workspace *,
+  .school-workspace *::before,
+  .school-workspace *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
