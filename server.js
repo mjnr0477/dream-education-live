@@ -3080,6 +3080,214 @@ app.post("/api/chat/reports", async (req, res) => {
   }
 });
 
+
+function chatGroupMember(group, role, id) {
+  return Array.isArray(group?.members)
+    ? group.members.find(member => member.role === role && String(member.user_id) === String(id))
+    : null;
+}
+
+function chatGroupConnectionExists(store, roleA, idA, roleB, idB) {
+  return Object.values(store.connections || {}).some(connection => {
+    if (!connection || connection.status !== "active") return false;
+    return (
+      (connection.from_role === roleA && String(connection.from_id) === String(idA) && connection.to_role === roleB && String(connection.to_id) === String(idB)) ||
+      (connection.from_role === roleB && String(connection.from_id) === String(idB) && connection.to_role === roleA && String(connection.to_id) === String(idA))
+    );
+  });
+}
+
+function chatGroupPublic(group, account) {
+  const member = chatGroupMember(group, account.role, chatEntityId(account));
+  return {
+    group_id: group.group_id,
+    name: group.name,
+    description: group.description || "",
+    created_at: group.created_at,
+    member_count: Array.isArray(group.members) ? group.members.length : 0,
+    my_role: member?.group_role || "member"
+  };
+}
+
+app.get("/api/chat/groups", async (req, res) => {
+  try {
+    const account = await requireChatAccount(req, res);
+    if (!account) return;
+    const store = require("./product/data_engine").loadStore();
+    if (!store.chat_groups || typeof store.chat_groups !== "object") store.chat_groups = {};
+    const id = chatEntityId(account);
+    const groups = Object.values(store.chat_groups)
+      .filter(group => chatGroupMember(group, account.role, id))
+      .sort((a, b) => String(b.updated_at || b.created_at).localeCompare(String(a.updated_at || a.created_at)))
+      .map(group => chatGroupPublic(group, account));
+    return res.json({ success: true, groups });
+  } catch (error) {
+    console.error("Group chat list error:", error);
+    return res.status(500).json({ success: false, message: "Could not load your groups." });
+  }
+});
+
+app.post("/api/chat/groups", async (req, res) => {
+  try {
+    const account = await requireChatAccount(req, res);
+    if (!account) return;
+    const name = String(req.body?.name || "").trim().slice(0, 80);
+    const description = String(req.body?.description || "").trim().slice(0, 240);
+    const requested = Array.isArray(req.body?.members) ? req.body.members : [];
+    if (!name) return res.status(400).json({ success: false, message: "Enter a group name." });
+    if (requested.length > 49) return res.status(400).json({ success: false, message: "A group can have up to 50 members, including its creator." });
+    const store = require("./product/data_engine").loadStore();
+    if (!store.chat_groups || typeof store.chat_groups !== "object") store.chat_groups = {};
+    const myId = chatEntityId(account);
+    const members = [{
+      user_id: myId, role: account.role, group_role: "owner",
+      display_name: chatDisplayName(store, account.role, myId, account),
+      joined_at: new Date().toISOString()
+    }];
+    const seen = new Set([account.role + ":" + myId]);
+    for (const candidate of requested) {
+      const role = String(candidate?.role || "");
+      const id = String(candidate?.user_id || "").trim();
+      const key = role + ":" + id;
+      if (!id || seen.has(key)) continue;
+      if (!chatAccountExists(store, role, id)) {
+        return res.status(400).json({ success: false, message: "One selected group member is not a registered account." });
+      }
+      if (!chatGroupConnectionExists(store, account.role, myId, role, id)) {
+        return res.status(403).json({ success: false, message: "You can only invite people connected to your account." });
+      }
+      seen.add(key);
+      members.push({
+        user_id: id, role, group_role: "member",
+        display_name: chatDisplayName(store, role, id, chatFindAccount(store, role, id)),
+        joined_at: new Date().toISOString()
+      });
+    }
+    const now = new Date().toISOString();
+    const group = {
+      group_id: crypto.randomUUID(), name, description,
+      created_by_role: account.role, created_by_id: myId,
+      members, messages: [], created_at: now, updated_at: now
+    };
+    store.chat_groups[group.group_id] = group;
+    require("./product/data_engine").saveStore(store);
+    return res.status(201).json({ success: true, group: chatGroupPublic(group, account) });
+  } catch (error) {
+    console.error("Group chat create error:", error);
+    return res.status(500).json({ success: false, message: "Could not create the group." });
+  }
+});
+
+app.get("/api/chat/groups/:group_id/messages", async (req, res) => {
+  try {
+    const account = await requireChatAccount(req, res);
+    if (!account) return;
+    const store = require("./product/data_engine").loadStore();
+    const group = store.chat_groups?.[String(req.params.group_id || "")];
+    if (!group || !chatGroupMember(group, account.role, chatEntityId(account))) {
+      return res.status(404).json({ success: false, message: "Group not found or you are not a member." });
+    }
+    const messages = (Array.isArray(group.messages) ? group.messages : []).slice(-100).map(message => ({
+      id: message.id, sender_id: message.sender_id, sender_role: message.sender_role,
+      sender_name: message.sender_name, content: message.content, created_at: message.created_at
+    }));
+    return res.json({ success: true, group: chatGroupPublic(group, account), messages });
+  } catch (error) {
+    console.error("Group chat messages error:", error);
+    return res.status(500).json({ success: false, message: "Could not load group messages." });
+  }
+});
+
+app.post("/api/chat/groups/:group_id/messages", async (req, res) => {
+  try {
+    const account = await requireChatAccount(req, res);
+    if (!account) return;
+    const content = String(req.body?.content || "").trim();
+    if (!content || content.length > 4000) return res.status(400).json({ success: false, message: "Messages must contain 1–4000 characters." });
+    const store = require("./product/data_engine").loadStore();
+    const group = store.chat_groups?.[String(req.params.group_id || "")];
+    const senderId = chatEntityId(account);
+    if (!group || !chatGroupMember(group, account.role, senderId)) {
+      return res.status(404).json({ success: false, message: "Group not found or you are not a member." });
+    }
+    const limiterKey = String(account.account_id || account.role + ":" + senderId);
+    const nowMs = Date.now();
+    const attempts = (chatSendAttempts.get(limiterKey) || []).filter(at => nowMs - at < 60000);
+    if (attempts.length >= 40) {
+      chatSendAttempts.set(limiterKey, attempts);
+      return res.status(429).json({ success: false, message: "You're sending messages too quickly. Please wait a moment." });
+    }
+    attempts.push(nowMs);
+    chatSendAttempts.set(limiterKey, attempts);
+    const message = {
+      id: crypto.randomUUID(), sender_id: senderId, sender_role: account.role,
+      sender_name: chatDisplayName(store, account.role, senderId, account),
+      content, created_at: new Date().toISOString()
+    };
+    if (!Array.isArray(group.messages)) group.messages = [];
+    group.messages.push(message);
+    if (group.messages.length > 2000) group.messages.splice(0, group.messages.length - 2000);
+    group.updated_at = message.created_at;
+    require("./product/data_engine").saveStore(store);
+    return res.status(201).json({ success: true, message });
+  } catch (error) {
+    console.error("Group chat send error:", error);
+    return res.status(500).json({ success: false, message: "Could not send the group message." });
+  }
+});
+
+app.post("/api/chat/groups/:group_id/members", async (req, res) => {
+  try {
+    const account = await requireChatAccount(req, res);
+    if (!account) return;
+    const store = require("./product/data_engine").loadStore();
+    const group = store.chat_groups?.[String(req.params.group_id || "")];
+    const myId = chatEntityId(account);
+    const myMembership = group && chatGroupMember(group, account.role, myId);
+    if (!group || !myMembership) return res.status(404).json({ success: false, message: "Group not found or you are not a member." });
+    if (!["owner", "admin"].includes(myMembership.group_role)) return res.status(403).json({ success: false, message: "Only group owners and admins can add members." });
+    const role = String(req.body?.role || "");
+    const id = String(req.body?.user_id || "").trim();
+    if (!id || !chatAccountExists(store, role, id)) return res.status(400).json({ success: false, message: "Choose a valid registered user." });
+    if (!chatGroupConnectionExists(store, account.role, myId, role, id)) return res.status(403).json({ success: false, message: "You can only invite people connected to your account." });
+    if (chatGroupMember(group, role, id)) return res.status(409).json({ success: false, message: "That person is already in this group." });
+    if (group.members.length >= 50) return res.status(400).json({ success: false, message: "This group has reached the 50-member limit." });
+    group.members.push({
+      user_id: id, role, group_role: "member",
+      display_name: chatDisplayName(store, role, id, chatFindAccount(store, role, id)),
+      joined_at: new Date().toISOString()
+    });
+    group.updated_at = new Date().toISOString();
+    require("./product/data_engine").saveStore(store);
+    return res.status(201).json({ success: true, group: chatGroupPublic(group, account) });
+  } catch (error) {
+    console.error("Group chat add member error:", error);
+    return res.status(500).json({ success: false, message: "Could not add that member." });
+  }
+});
+
+app.post("/api/chat/groups/:group_id/leave", async (req, res) => {
+  try {
+    const account = await requireChatAccount(req, res);
+    if (!account) return;
+    const store = require("./product/data_engine").loadStore();
+    const group = store.chat_groups?.[String(req.params.group_id || "")];
+    const myId = chatEntityId(account);
+    const index = group?.members?.findIndex(member => member.role === account.role && String(member.user_id) === myId) ?? -1;
+    if (!group || index < 0) return res.status(404).json({ success: false, message: "Group not found or you are not a member." });
+    const leaving = group.members.splice(index, 1)[0];
+    if (leaving.group_role === "owner" && group.members.length) group.members[0].group_role = "owner";
+    if (!group.members.length) delete store.chat_groups[group.group_id];
+    else group.updated_at = new Date().toISOString();
+    require("./product/data_engine").saveStore(store);
+    return res.json({ success: true, message: "You left the group." });
+  } catch (error) {
+    console.error("Group chat leave error:", error);
+    return res.status(500).json({ success: false, message: "Could not leave the group." });
+  }
+});
+
+
 app.get("/api/chat/messages", async (req, res) => {
   try {
     const account = await requireChatAccount(req, res);
