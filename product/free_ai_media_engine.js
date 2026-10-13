@@ -21,6 +21,28 @@ function parseResponse(raw) {
   }
 }
 
+const requestWindows = new Map();
+const REQUEST_LIMIT = 12;
+const REQUEST_WINDOW_MS = 10 * 60 * 1000;
+
+function allowRequest(account) {
+  const identity = String(account?.id || account?.user_id || account?.email || "authenticated-user");
+  const now = Date.now();
+  const existing = requestWindows.get(identity);
+  if (!existing || now - existing.startedAt >= REQUEST_WINDOW_MS) {
+    requestWindows.set(identity, { startedAt: now, count: 1 });
+    return { allowed: true, retryAfterSeconds: 0 };
+  }
+  if (existing.count >= REQUEST_LIMIT) {
+    return {
+      allowed: false,
+      retryAfterSeconds: Math.max(1, Math.ceil((REQUEST_WINDOW_MS - (now - existing.startedAt)) / 1000))
+    };
+  }
+  existing.count += 1;
+  return { allowed: true, retryAfterSeconds: 0 };
+}
+
 function registerFreeAiMediaRoutes(app, options = {}) {
   const getAuthenticatedAccount = options.getAuthenticatedAccount;
 
@@ -58,6 +80,16 @@ function registerFreeAiMediaRoutes(app, options = {}) {
   app.post("/api/media-studio/generate", async (req, res) => {
     const account = await requireAccount(req, res);
     if (!account) return;
+
+    const rate = allowRequest(account);
+    if (!rate.allowed) {
+      res.set("Retry-After", String(rate.retryAfterSeconds));
+      return res.status(429).json({
+        success: false,
+        error: "Media Studio is temporarily rate limited. Please try again shortly.",
+        retry_after_seconds: rate.retryAfterSeconds
+      });
+    }
 
     const apiKey = String(process.env.FREE_AI_API_KEY || "").trim();
     if (!apiKey) {
