@@ -390,6 +390,7 @@
           '<button type="button" class="de-learn-tile" data-de-action="progress"><span class="de-learn-tile-icon">◷</span><strong>Learner Progress</strong><small>Open your progress when you need it</small></button>' +
           '<button type="button" class="de-learn-tile" data-de-action="notes"><span class="de-learn-tile-icon">▤</span><strong>Notes &amp; Study Materials</strong><small>Get topic notes for your education level</small></button>' +
           '<button type="button" class="de-learn-tile" data-de-action="assigned-lessons"><span class="de-learn-tile-icon">✓</span><strong>Lessons from My Teacher</strong><small>Open assigned notes and submit assessment answers</small></button>' +
+          '<button type="button" class="de-learn-tile" data-de-action="media-studio"><span class="de-learn-tile-icon">♫</span><strong>Media Studio</strong><small>Create spoken notes, images, translations and learning media</small></button>' +
         '</div>' +
       '</div>'
     );
@@ -685,6 +686,7 @@
               action("Refresh intelligence", "workspace", true) +
               action("Open Chat", "chat") +
               action("Open Meetings", "meetings") +
+              action("Media Studio", "media-studio") +
               action("Connections", "connections") +
             '</div>' +
           '</section>' +
@@ -1100,6 +1102,11 @@
 
     const name = target.getAttribute("data-de-action");
     if (name === "workspace") return openWorkspace();
+    if (name === "media-studio") {
+      if (window.DreamMediaStudio && typeof window.DreamMediaStudio.open === "function") window.DreamMediaStudio.open();
+      else window.alert("Media Studio is still loading. Please try again.");
+      return;
+    }
     if (name === "resources" || name === "feed") return openLearningResources();
     if (name === "progress") return loadProgress();
     if (name === "notes") return openStudyNotes();

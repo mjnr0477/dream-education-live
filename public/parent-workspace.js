@@ -119,7 +119,7 @@
     if (!root) return;
     const content = state.tab === "overview" ? overview() : state.tab === "children" ? (state.children.length ? '<div class="parent-children-grid">' + state.children.map(childCard).join("") + '</div>' : empty("No connected children yet", "Connect the learner account first.")) :
       state.tab === "progress" ? progress() : state.tab === "learning" ? learning() : state.tab === "community" ? community() : state.tab === "guide" ? guide() : achievements();
-    root.innerHTML = '<div class="de-workspace parent-workspace"><div class="parent-workspace-heading"><div><span class="parent-kicker">DREAM EDUCATION · FAMILY CENTRE</span><h3>' + esc(state.info.name || "Parent") + '</h3><p>One place to understand progress, support learning and work with teachers.</p></div><div class="parent-heading-actions">' + button("Refresh", "refresh") + button("Messages", "chat") + '</div></div>' + tabs() + (state.notice ? '<div class="parent-notice" role="status">' + esc(state.notice) + '</div>' : "") + '<div class="parent-workspace-content">' + content + '</div><div class="de-actions de-bottom-actions">' + button("Connections", "connections") + button("Account", "account") + button("Close", "close") + '</div></div>';
+    root.innerHTML = '<div class="de-workspace parent-workspace"><div class="parent-workspace-heading"><div><span class="parent-kicker">DREAM EDUCATION · FAMILY CENTRE</span><h3>' + esc(state.info.name || "Parent") + '</h3><p>One place to understand progress, support learning and work with teachers.</p></div><div class="parent-heading-actions">' + button("Refresh", "refresh") + button("Media Studio", "media-studio") + button("Messages", "chat") + '</div></div>' + tabs() + (state.notice ? '<div class="parent-notice" role="status">' + esc(state.notice) + '</div>' : "") + '<div class="parent-workspace-content">' + content + '</div><div class="de-actions de-bottom-actions">' + button("Connections", "connections") + button("Account", "account") + button("Close", "close") + '</div></div>';
   }
   async function switchTab(tab) {
     state.tab = tab;
@@ -162,6 +162,11 @@
     if (!target) return;
     const action = target.getAttribute("data-parent-action");
     if (action === "refresh") { start(state.info); return; }
+    if (action === "media-studio") {
+      if (window.DreamMediaStudio && typeof window.DreamMediaStudio.open === "function") window.DreamMediaStudio.open();
+      else { state.notice = "Media Studio is still loading. Please try again."; render(); }
+      return;
+    }
     if (action === "guide") { switchTab("guide"); return; }
     if (action === "sources") { switchTab("learning"); return; }
     if (action === "connections") { const button = document.querySelector('[data-de-action="connections"]'); if (button) button.click(); return; }
