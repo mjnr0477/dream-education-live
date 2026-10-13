@@ -94,30 +94,10 @@
     }
 
     const outputText = findOutputText(result);
+    // Render only the actual user-facing output. Never expose provider JSON,
+    // raw response objects, or separate media/subtitle navigation links.
     if (outputText) {
       appendText(host, "pre", outputText, "de-media-result-text");
-    } else {
-      appendText(host, "pre", JSON.stringify(result, null, 2), "de-media-result-text");
-    }
-
-    if (mediaUrl && /^https:\/\//i.test(mediaUrl)) {
-      const link = document.createElement("a");
-      link.href = mediaUrl;
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-      link.textContent = "Open generated media";
-      link.className = "de-media-result-link";
-      host.appendChild(link);
-    }
-
-    if (action === "freetts" && result?.subtitles_url) {
-      const subtitles = document.createElement("a");
-      subtitles.href = result.subtitles_url;
-      subtitles.target = "_blank";
-      subtitles.rel = "noopener noreferrer";
-      subtitles.textContent = "Download synchronized subtitles (.srt)";
-      subtitles.className = "de-media-result-link";
-      host.appendChild(subtitles);
     }
   }
 
@@ -226,7 +206,7 @@
           throw new Error(data.error || "Free.ai request failed.");
         }
         renderResult(result, action, data);
-        status.textContent = action === "freetts" ? "Speech and subtitle files are ready. Audio links expire after one hour." : "Request completed by Free.ai.";
+        status.textContent = "";
       } catch (error) {
         status.textContent = error.message || "Media request failed.";
       } finally {
