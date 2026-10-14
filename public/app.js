@@ -5237,6 +5237,64 @@ function teacherAnalyticsMarkup(data) {
       .replace(/'/g, "&#039;");
   };
 
+  const averageScoreLabel = results.length && analysis.average_score != null &&
+    Number.isFinite(Number(analysis.average_score))
+    ? Number(analysis.average_score).toFixed(1).replace(/\\.0$/, "") + "%"
+    : "Not yet available";
+  const weakResultsLabel = results.length && analysis.weak_results != null &&
+    Number.isFinite(Number(analysis.weak_results))
+    ? String(Number(analysis.weak_results))
+    : "Not yet available";
+  const supportLabel = results.length && analysis.learners_needing_support != null &&
+    Number.isFinite(Number(analysis.learners_needing_support))
+    ? String(Number(analysis.learners_needing_support))
+    : "Not yet available";
+
+  // Compare dated scores only within the same learner/topic. This is a
+  // descriptive trend, not proof that one lesson caused the change.
+  const progressGroups = new Map();
+  results.forEach(function (item) {
+    if (!item || item.score == null) return;
+    const score = Number(item.score);
+    const learnerId = String(item.learner_id || item.student_id || "").trim();
+    const topic = String(item.topic || item.subject || "").trim();
+    const timestamp = Date.parse(item.observed_at || item.created_at || item.date || "");
+    if (!learnerId || !topic || !Number.isFinite(score) || score < 0 || score > 100 || !Number.isFinite(timestamp)) return;
+    const key = learnerId + "|" + topic.toLowerCase();
+    if (!progressGroups.has(key)) progressGroups.set(key, []);
+    progressGroups.get(key).push({
+      learner: item.learner_name || item.student_name || learnerId,
+      topic,
+      score,
+      timestamp
+    });
+  });
+  const progressComparisons = Array.from(progressGroups.values()).map(function (items) {
+    if (items.length < 2) return null;
+    items.sort(function (a, b) { return a.timestamp - b.timestamp; });
+    const first = items[0], latest = items[items.length - 1];
+    if (latest.timestamp <= first.timestamp) return null;
+    return {
+      learner: latest.learner,
+      topic: latest.topic,
+      first_score: first.score,
+      latest_score: latest.score,
+      change: Number((latest.score - first.score).toFixed(1)),
+      observations: items.length
+    };
+  }).filter(Boolean).sort(function (a, b) {
+    return Math.abs(b.change) - Math.abs(a.change);
+  }).slice(0, 8);
+  const progressRows = progressComparisons.length
+    ? progressComparisons.map(function (item) {
+        const changeLabel = (item.change > 0 ? "+" : "") + item.change + " points";
+        const status = item.change > 0 ? "Higher" : item.change < 0 ? "Lower" : "Unchanged";
+        return '<article class="teacher-dashboard-card"><div class="teacher-dashboard-card-label">RECORDED SCORE CHANGE</div>' +
+          '<h3>' + safe(item.learner) + '</h3><p>' + safe(item.topic) + '</p><strong>' + safe(changeLabel) + '</strong>' +
+          '<p>' + safe(status) + ' · ' + item.first_score + '% → ' + item.latest_score + '% · ' + item.observations + ' dated results</p></article>';
+      }).join("")
+    : '<article class="teacher-dashboard-card empty"><p>Not enough dated repeated results for the same learner and topic to show a reliable progress comparison yet.</p></article>';
+
   const subjectRows = bySubject.length
     ? bySubject.map(function (item) {
         return `
@@ -5309,18 +5367,29 @@ function teacherAnalyticsMarkup(data) {
 
         <article class="teacher-stat-card">
           <span>Average score</span>
-          <strong>${Number(analysis.average_score) || 0}%</strong>
+          <strong>${averageScoreLabel}</strong>
         </article>
 
         <article class="teacher-stat-card">
           <span>Weak results</span>
-          <strong>${Number(analysis.weak_results) || 0}</strong>
+          <strong>${weakResultsLabel}</strong>
         </article>
 
         <article class="teacher-stat-card">
           <span>Learners needing support</span>
-          <strong>${Number(analysis.learners_needing_support) || 0}</strong>
+          <strong>${supportLabel}</strong>
         </article>
+      </div>
+
+      <div class="teacher-dashboard-section">
+        <div class="teacher-dashboard-section-heading">
+          <div>
+            <div class="teacher-dashboard-card-label">LEARNING EVIDENCE</div>
+            <h3>Observed progress over time</h3>
+            <p>Earliest and latest dated scores for the same learner and topic. These comparisons are descriptive and do not prove causation.</p>
+          </div>
+        </div>
+        <div class="teacher-dashboard-grid">${progressRows}</div>
       </div>
 
       <div class="teacher-dashboard-section">
