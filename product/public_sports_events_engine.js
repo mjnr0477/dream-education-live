@@ -250,8 +250,8 @@ async function getPublicSportsEvents({ sport, fromDate, toDate }) {
     return { events: [], history: [], providers: [], attribution_html: '<a href="https://sportscore.com/" rel="dofollow">Powered by SportScore</a>' };
   }
   const targetDates = dateRange(fromDate, toDate, 35);
-  // Keep a short history window for an independent form-based prediction model.
-  const historyDates = Array.from({ length: 10 }, (_, index) => dateAdd(fromDate, -(index + 1)));
+  // Retrieve five weeks of prior fixtures so teams can have enough recent completed matches for the form model.
+  const historyDates = Array.from({ length: 35 }, (_, index) => dateAdd(fromDate, -(index + 1)));
   const allDates = [...new Set([...targetDates, ...historyDates])];
   const sportScoreResults = await mapLimit(allDates, 12, async date => {
     const url = SPORT_SCORE_BASE + "?" + new URLSearchParams({ sport: apiSport, date, limit: "200" }).toString();
