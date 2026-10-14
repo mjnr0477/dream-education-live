@@ -44,6 +44,7 @@ function structuredMarket(fixture, options = {}) {
       market && market.marketActive !== false && market.suspended !== true && market.outcomes);
     const parsed = [];
     for (const [marketId, market] of markets) {
+      if (options.requireThreeWay && String(marketId) !== "101") continue; // OddsPapi soccer market 101 is Full Time Result (1X2).
       const outcomes = [];
       for (const [outcomeId, outcome] of Object.entries(market.outcomes)) {
         const players = outcome && outcome.players;
@@ -121,9 +122,13 @@ function buildOddsPrediction(payload, options = {}) {
     const updatedAt = latestOutcomeUpdate ? latestOutcomeUpdate.value : (text(row.updatedAt || row.updated_at, 80) || null);
     const updatedMs = updatedAt ? Date.parse(updatedAt) : NaN;
     const oddsAgeMinutes = Number.isFinite(updatedMs) ? Math.max(0, Math.round((Date.now() - updatedMs) / 60000)) : null;
+    const kickoffMs = Date.parse(row.startTime || row.start_time || row.kickoff || row.date || "");
+    const minutesToKickoff = Number.isFinite(kickoffMs) ? Math.round((kickoffMs - Date.now()) / 60000) : null;
+    const maxOddsAgeMinutes = minutesToKickoff !== null && minutesToKickoff <= 360 ? 90 :
+      minutesToKickoff !== null && minutesToKickoff <= 1440 ? 360 : 1440;
     const statusId = Number(row.statusId);
     const preMatch = !Number.isFinite(statusId) || statusId === 0 || statusId === 1;
-    const fresh = oddsAgeMinutes !== null && oddsAgeMinutes <= 180;
+    const fresh = oddsAgeMinutes !== null && oddsAgeMinutes <= maxOddsAgeMinutes;
     const validPrediction = Boolean(favourite && preMatch && fresh && (marketType !== "three_way_match_result" || normalized.length === 3));
     predictions.push({
       fixture: fixtureName,
@@ -140,7 +145,9 @@ function buildOddsPrediction(payload, options = {}) {
         structured_market_verified: hasRecognizedMarket,
         odds_last_updated: updatedAt,
         odds_age_minutes: oddsAgeMinutes,
-        odds_fresh_within_3_hours: fresh,
+        odds_fresh_for_kickoff_window: fresh,
+        max_accepted_odds_age_minutes: maxOddsAgeMinutes,
+        minutes_to_kickoff: minutesToKickoff,
         pre_match_status: preMatch
       },
       prediction_status: validPrediction ? "prediction_available" : "insufficient_verified_data",
