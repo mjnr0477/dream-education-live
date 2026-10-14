@@ -200,9 +200,12 @@ function buildRecentForm(history, sport) {
   const teams = new Map();
   const cutoff = Date.now() - 45 * 86400000;
   for (const event of history) {
-    if (event.home_score === null || event.away_score === null || !event.home_team || !event.away_team || !isFinalResult(event)) continue;
+    if (event.home_score === null || event.away_score === null || !event.home_team || !event.away_team) continue;
     const kickoffMs = Date.parse(event.kickoff || "");
     if (!Number.isFinite(kickoffMs) || kickoffMs > Date.now() || kickoffMs < cutoff) continue;
+    // Historical source queries can contain valid final scores without a normalized
+    // "finished" status. Accept scored, past, non-live rows as historical evidence.
+    if (!isFinalResult(event) && !(event.result_verified && !isLiveEvent(event))) continue;
     const add = (team, opponent, scored, conceded, isHome) => {
       const key = teamKey(team);
       if (!key) return;
@@ -218,14 +221,13 @@ function buildRecentForm(history, sport) {
 function modelPrediction(event, teams, sport) {
   const home = teams.get(teamKey(event.home_team));
   const away = teams.get(teamKey(event.away_team));
-  if (!home || !away || home.games.length < 3 || away.games.length < 3) {
-    return {
-      ...event, prediction_status: "insufficient_verified_history", market_favourite: null,
-      model_probabilities: null, confidence: "insufficient data",
-      warning: "Not enough recent scored matches for both teams. Dream will not invent a prediction."
-    };
-  }
-  const h = home.games.slice(0, 8), a = away.games.slice(0, 8);
+  // Every live/upcoming fixture gets a transparent estimate. Use recent form when
+  // available; otherwise shrink toward a conservative football scoring prior rather
+  // than silently leaving the fixture without a prediction.
+  const homeGames = home && Array.isArray(home.games) ? home.games : [];
+  const awayGames = away && Array.isArray(away.games) ? away.games : [];
+  const hasEnoughHistory = homeGames.length >= 3 && awayGames.length >= 3;
+  const h = homeGames.slice(0, 8), a = awayGames.slice(0, 8);
   let probs;
   let expectedGoals = null;
   if (/^(soccer|football)$/i.test(sport)) {
@@ -234,7 +236,7 @@ function modelPrediction(event, teams, sport) {
     const awayScored = a.filter(g => !g.isHome);
     const awayConceded = a.filter(g => !g.isHome);
     const avg = (games, key, fallback) => games.length ? games.reduce((sum, g) => sum + g[key], 0) / games.length : fallback;
-    const leagueGoals = [...h, ...a].reduce((sum, g) => sum + g.scored, 0) / Math.max(1, h.length + a.length);
+    const leagueGoals = ([...h, ...a].reduce((sum, g) => sum + g.scored, 0) / Math.max(1, h.length + a.length)) || 1.25;
     const homeExpected = Math.max(0.15, Math.min(4.5, 0.55 * avg(homeScored, "scored", leagueGoals) + 0.45 * avg(awayConceded, "conceded", leagueGoals) + 0.18));
     const awayExpected = Math.max(0.15, Math.min(4.5, 0.55 * avg(awayScored, "scored", leagueGoals) + 0.45 * avg(homeConceded, "conceded", leagueGoals)));
     expectedGoals = { home: homeExpected, away: awayExpected };
@@ -250,8 +252,10 @@ function modelPrediction(event, teams, sport) {
     .map(([key, value]) => ({ key, probability: value }));
   outcomes.sort((x, y) => y.probability - x.probability);
   const best = outcomes[0];
-  const sample = Math.min(home.games.length, away.games.length);
-  const confidence = sample >= 7 && best.probability >= 0.55 ? "moderate" : "low";
+  const sample = Math.min(homeGames.length, awayGames.length);
+  const confidence = hasEnoughHistory && sample >= 7 && best.probability >= 0.55 ? "moderate" : "low";
+  const historyQuality = hasEnoughHistory ? "recent_team_form" : "baseline_low_history";
+  const historyNote = hasEnoughHistory ? "" : " Limited or unavailable team history; a conservative baseline is used.";
   const label = best.key === "home" ? event.home_team + " win" : best.key === "away" ? event.away_team + " win" : "Draw";
   let model_markets = null;
   if (expectedGoals) {
@@ -277,14 +281,15 @@ function modelPrediction(event, teams, sport) {
     };
   }
   return {
-    ...event, prediction_status: "model_estimate", model_markets, model_probabilities: {
+    ...event, prediction_status: hasEnoughHistory ? "model_estimate" : "model_estimate_low_history",
+    prediction_quality: historyQuality, model_markets, model_probabilities: {
       home_win_pct: Math.round(probs.home * 1000) / 10,
       draw_pct: Math.round((probs.draw || 0) * 1000) / 10,
       away_win_pct: Math.round(probs.away * 1000) / 10
     },
     market_favourite: { outcome: label, model_probability_pct: Math.round(best.probability * 1000) / 10 },
     confidence, historical_matches_used: { home: h.length, away: a.length },
-    warning: "Results-based statistical estimate from recent scored matches; no odds are used. Confidence is " + confidence + ", and this is not a guarantee."
+    warning: "Results-based statistical estimate; no odds are used. Confidence is " + confidence + "." + historyNote + " This is not a guarantee."
   };
 }
 async function getPublicSportsEvents({ sport, fromDate, toDate }) {
