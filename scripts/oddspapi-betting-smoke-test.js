@@ -75,7 +75,7 @@ function res() { return { statusCode: 200, body: null, status(n) { this.statusCo
   await routes.get["/api/dream-invest/betting/events"]({ headers: { authorization: "Bearer owner" }, query: { period: "today", sport: "soccer", league: "all" } }, response);
   assert.equal(response.body.success, true);
   assert.ok(Array.isArray(response.body.predictions));
-  assert.ok(response.body.message.includes("No fixtures were returned"));
+  assert.ok(response.body.message.includes("No OddsPapi request is made"));
   mockProviderResponse = null;
   assert.equal(buildOddsPrediction({ data: [{ name: "A vs B", odds: [{ name: "A", decimalOdds: 1.8 }] }] }).length, 1);
   const structuredFixture = {
