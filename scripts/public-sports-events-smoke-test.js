@@ -27,6 +27,8 @@ const { getPublicSportsEvents, normalizeSportScore, normalizeSportsDb, isUpcomin
   assert.equal(isUpcomingOrLive({ kickoff: "2026-10-14T15:00:00Z", match_status: "in progress" }, testNow), false);
   assert.equal(isUpcomingOrLive({ kickoff: "2026-10-14T15:00:00Z", match_status: "STATUS_IN_PROGRESS" }, testNow), false);
   assert.equal(isUpcomingOrLive({ kickoff: "2026-10-14T15:00:00Z", match_status: "1H" }, testNow), false);
+  assert.equal(isUpcomingOrLive({ kickoff: "2026-10-14T15:00:00Z", match_status: "1st Half" }, testNow), false);
+  assert.equal(isUpcomingOrLive({ kickoff: "2026-10-14T15:00:00Z", match_status: "Match Started" }, testNow), false);
 
   const oldFetch = global.fetch;
   const requests = [];

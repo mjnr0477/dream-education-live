@@ -193,7 +193,7 @@ function isFinalResult(event) {
 }
 function isLiveEvent(event) {
   const status = clean(event && event.match_status, 80).toLowerCase();
-  return /live|in[_ -]?play|in[_ -]?progress|\b1h\b|\b2h\b|\bht\b|first half|second half|half.?time|extra time|penalt|overtime|quarter|period|\bset\s*\d|top of|bottom of/.test(status);
+  return /live|in[_ -]?play|in[_ -]?progress|\b1h\b|\b2h\b|\bht\b|\b1st half\b|\b2nd half\b|first half|second half|match started|playing|half.?time|extra time|penalt|overtime|quarter|period|\bset\s*\d|top of|bottom of/.test(status);
 }
 function isUpcomingOrLive(event, now = Date.now()) {
   // Keep a scheduled fixture visible at kickoff, including while a provider's
