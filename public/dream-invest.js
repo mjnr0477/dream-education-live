@@ -138,7 +138,8 @@
       : "No verified direction";
     const lastBar = bars[bars.length - 1] || {};
     const hitRate = Number(indicators.backtest_hit_rate_pct);
-    const hasHitRate = Number.isFinite(hitRate);
+    const hasHitRate = indicators.backtest_hit_rate_pct !== null &&
+      indicators.backtest_hit_rate_pct !== undefined && Number.isFinite(hitRate);
     const evidenceSummary = "Walk-forward signals: " + Number(indicators.backtest_signals_available || 0) +
       " · Directional hit rate: " + (hasHitRate ? hitRate.toFixed(1) + "%" : "not available") +
       " · Required: " + Number(indicators.backtest_signals_required || 30) + " signals and " +
