@@ -63,7 +63,8 @@ function res() { return { statusCode: 200, body: null, status(n) { this.statusCo
   assert.equal(response.body.predictions[0].market_prediction.probability_pct, null);
   response = res();
   await routes.get["/api/dream-invest/betting/events"]({ headers: { authorization: "Bearer owner" }, query: { period: "today", sport: "soccer", market: "correct_score" } }, response);
-  assert.match(response.body.predictions[0].market_prediction.label, /^\d+-\d+$/);
+  assert.equal(response.body.predictions[0].market_prediction.label, "No verified consensus prediction");
+  assert.equal(response.body.predictions[0].market_prediction.probability_pct, null);
   assert.equal(oddsPapiRequests, oddsRequestsBeforePublicEvents, "Predictions must not depend on OddsPapi.");
   response = res();
   await routes.get["/api/dream-invest/betting/events"]({ headers: { authorization: "Bearer owner" }, query: { period: "year", sport: "soccer" } }, response);
