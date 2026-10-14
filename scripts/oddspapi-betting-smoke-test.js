@@ -17,9 +17,13 @@ global.fetch = async url => {
   const today = ["year", "month", "day"].map(type => dateParts.find(part => part.type === type).value).join("-");
   if (requested.includes("sportscore.com")) {
     const date = new URL(requested).searchParams.get("date");
-    return { ok: true, status: 200, json: async () => ({ fixtures: date === today ? [
+    const fixtures = date === today ? [
       { id: "public-fx1", home: "Team A", away: "Team B", time: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(), status: "scheduled", competition: "Premier League" }
-    ] : [] }) };
+    ] : [
+      { id: "history-home-" + date, home: "Team A", away: "Other FC", time: new Date(date + "T12:00:00Z").toISOString(), status: "finished", home_score: 2, away_score: 0, competition: "Premier League" },
+      { id: "history-away-" + date, home: "Other FC", away: "Team B", time: new Date(date + "T12:00:00Z").toISOString(), status: "finished", home_score: 0, away_score: 1, competition: "Premier League" }
+    ];
+    return { ok: true, status: 200, json: async () => ({ fixtures }) };
   }
   if (requested.includes("thesportsdb.com")) return { ok: true, status: 200, json: async () => ({ events: [] }) };
   const fixtures = [{ fixtureId: "fx1", tournamentId: 17, tournamentName: "Premier League", participant1Name: "Team A", participant2Name: "Team B", startTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(), odds: [{ name: "Team A", decimalOdds: 1.8 }, { name: "Draw", decimalOdds: 3.2 }, { name: "Team B", decimalOdds: 4.1 }] }];
