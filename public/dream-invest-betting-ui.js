@@ -35,7 +35,7 @@
         fixture: item.fixture || "", league: item.league || "", kickoff: item.kickoff || "",
         source: item.source || (item.sources || []).join(", "),
         status: item.match_status || item.prediction_status || "",
-        prediction: item.prediction_status === "result_available" ? "Result available" : (fav.outcome || "Not enough verified history"),
+        prediction: item.market_prediction && item.market_prediction.label || (item.prediction_status === "result_available" ? "Result available" : (fav.outcome || "Not enough verified history")),
         estimated_probability_pct: fav.model_probability_pct ?? "", confidence: item.confidence || "",
         home_score: item.home_score ?? "", away_score: item.away_score ?? "",
         home_win_pct: p.home_win_pct ?? "", draw_pct: p.draw_pct ?? "", away_win_pct: p.away_win_pct ?? "",
@@ -105,24 +105,24 @@
 
   function renderPredictions(data) {
     const rows = Array.isArray(data.predictions) ? data.predictions : [];
+    const marketTitle = ({ h2h: "Head to Head", btts: "Both Teams to Score", over_under: "Over / Under", correct_score: "Correct Score" })[data.market] || "Prediction";
     const sportScoreCredit = (data.sources || []).includes("SportScore")
       ? '<p class="di-sportscore-credit"><a href="https://sportscore.com/" rel="dofollow" target="_blank">Powered by SportScore</a></p>' : '';
     if (!rows.length) return '<div class="di-empty"><strong>No events available for this selection.</strong><p>' + esc(data.message || "Try another period or choose all leagues.") + '</p></div>' + sportScoreCredit;
     return renderExportControls() + '<div class="di-prediction-summary"><strong>' + rows.length + ' events</strong><span>' + esc(data.sport) + ' · ' + esc(data.league) + ' · Sources: ' + esc((data.sources || []).join(", ") || "public event feeds") + '</span></div>' +
       '<div class="di-bet-list">' + rows.map(item => {
-        const outcomes = Array.isArray(item.available_outcomes) ? item.available_outcomes : [];
         const favorite = item.market_favourite;
         const source = item.source || (item.sources || []).join(", ") || "Event feed";
         return '<article class="di-bet-row di-prediction-card"><div class="di-prediction-title"><strong>' + esc(item.fixture || "Fixture") + '</strong><span class="di-league-tag">' + esc(item.league || "Competition") + '</span></div>' +
           '<span class="di-kickoff">' + esc(localTime(item.kickoff)) + ' · ' + esc(source) + '</span>' +
           (item.home_score != null && item.away_score != null ? '<div class="di-live-score"><strong>' + esc(item.home_score) + ' – ' + esc(item.away_score) + '</strong><small>' + esc(item.match_status || "Result") + '</small></div>' : '') +
-          '<div class="di-pick"><span>' + esc(item.prediction_status === "result_available" ? "Recorded result" : "Recent-results model") + '</span><strong>' +
+          '<div class="di-pick"><span>' + esc(item.prediction_status === "result_available" ? "Recorded result" : marketTitle) + '</span><strong>' +
           esc(item.market_prediction ? item.market_prediction.label :
             item.prediction_status === "result_available" ? "Result available" : favorite ? favorite.outcome : "Not enough verified history") + '</strong>' +
           (item.prediction_status === "result_available" ? '<small>Final score: ' + esc(item.home_score) + ' – ' + esc(item.away_score) + '</small>' :
             item.market_prediction && item.market_prediction.probability_pct != null ? '<small>Estimated probability: ' + esc(item.market_prediction.probability_pct) + '% · ' + esc(item.confidence || "low") + ' confidence</small>' :
             '<small>Not enough verified data for this market. Dream will not invent a pick.</small>') + '</div>' +
-          (item.model_probabilities ? '<div class="di-outcomes"><span>Home <b>' + esc(item.model_probabilities.home_win_pct) + '%</b></span>' +
+          (data.market === "h2h" && item.model_probabilities ? '<div class="di-outcomes"><span>Home <b>' + esc(item.model_probabilities.home_win_pct) + '%</b></span>' +
             (Number(item.model_probabilities.draw_pct) > 0 ? '<span>Draw <b>' + esc(item.model_probabilities.draw_pct) + '%</b></span>' : '') +
             '<span>Away <b>' + esc(item.model_probabilities.away_win_pct) + '%</b></span></div>' : '') +
           '<small class="di-prediction-note">Statistical estimates are uncertain, not guarantees or confirmed betting outcomes. ' + esc(item.warning || "") + '</small></article>';
