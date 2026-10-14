@@ -26,7 +26,9 @@ assert.match(server, /app\.get\("\/api\/v1\/school\/timetable"/);
 assert.match(server, /app\.post\("\/api\/v1\/school\/timetable"/);
 assert.match(js, /school-attendance-form/);
 assert.match(js, /school-timetable-form/);
-assert.match(js, /school-operations/);
+assert.match(js, /school-attendance-app/);
+assert.match(js, /school-timetable-app/);
+assert.match(js, /data-school-attendance-date/);
 assert.match(css, /school-attendance-row/);
 
 assert.match(server, /Only authenticated school accounts or the project owner can prepare lessons/);
