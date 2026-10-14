@@ -16,6 +16,20 @@ function rowsOf(payload) {
   }
   return [];
 }
+function providerMessage(value) {
+  if (typeof value === "string") return text(value, 180);
+  if (value == null) return "";
+  if (typeof value !== "object") return text(value, 180);
+  for (const key of ["message", "error_description", "description", "detail", "error", "details", "reason"]) {
+    const item = value[key];
+    if (typeof item === "string" && item.trim()) return text(item, 180);
+    if (item && typeof item === "object") {
+      const nested = providerMessage(item);
+      if (nested) return nested;
+    }
+  }
+  try { return text(JSON.stringify(value), 180); } catch (_) { return ""; }
+}
 function numericOdds(value) {
   const n = Number(value);
   return Number.isFinite(n) && n > 1 && n < 10000 ? n : null;
@@ -199,16 +213,16 @@ function registerOddsPapiRoutes(app, options = {}) {
       const body = await response.json().catch(() => ({}));
       if (!response.ok) {
         const providerCode = text(body && (body.code || body.errorCode), 80);
-        const providerMessage = text(body && (body.message || body.error || body.details), 180);
+        const providerDetail = providerMessage(body && (body.message || body.error || body.details || body));
         let message;
         if (response.status === 401 || response.status === 403) {
           message = "OddsPapi rejected the API key or its permissions (HTTP " + response.status + "). Check that the key is active and belongs to the expected account.";
         } else if (response.status === 429) {
-          message = "OddsPapi rate/request limit reached (HTTP 429)." + (providerMessage ? " " + providerMessage : " Check your OddsPapi request quota in the account dashboard.");
+          message = "OddsPapi rate/request limit reached (HTTP 429)." + (providerDetail ? " " + providerDetail : " Check your OddsPapi request quota in the account dashboard.");
         } else if (response.status === 400) {
-          message = "OddsPapi rejected the request (HTTP 400)." + (providerMessage ? " " + providerMessage : "");
+          message = "OddsPapi rejected the request (HTTP 400)." + (providerDetail ? " " + providerDetail : "");
         } else {
-          message = "OddsPapi request failed (HTTP " + response.status + ")." + (providerMessage ? " " + providerMessage : " Check provider status and API permissions.");
+          message = "OddsPapi request failed (HTTP " + response.status + ")." + (providerDetail ? " " + providerDetail : " Check provider status and API permissions.");
         }
         if (providerCode) message += " Provider code: " + providerCode + ".";
         throw Object.assign(new Error(message), { status: response.status === 429 ? 429 : response.status === 400 ? 400 : response.status === 401 || response.status === 403 ? response.status : 502 });
@@ -286,12 +300,31 @@ function registerOddsPapiRoutes(app, options = {}) {
           (!row.tournamentId || selectedIds.has(String(row.tournamentId)));
       });
       let bookmaker = "betika";
-      let scoped = getScopedFixtures(await requestProvider("/v4/odds-by-tournaments", { bookmakers: bookmaker, tournamentIds: ids.join(",") }));
-      let predictions = buildOddsPrediction(scoped, { bookmaker, requireThreeWay: /soccer|football/i.test(sportQuery) });
-      if (!predictions.some(item => item.available_outcomes.length)) {
-        bookmaker = "pinnacle";
-        scoped = getScopedFixtures(await requestProvider("/v4/odds-by-tournaments", { bookmaker, tournamentIds: ids.join(",") }));
+      let scoped = [];
+      let predictions = [];
+      let betikaError = null;
+      try {
+        const payload = await requestProvider("/v4/odds-by-tournaments", { bookmakers: bookmaker, tournamentIds: ids.join(",") });
+        scoped = getScopedFixtures(payload);
         predictions = buildOddsPrediction(scoped, { bookmaker, requireThreeWay: /soccer|football/i.test(sportQuery) });
+      } catch (error) {
+        // A bookmaker-specific 400 can mean the provider does not expose that bookmaker
+        // for this account/sport. Try the documented fallback, but never mask auth/quota errors.
+        if (Number(error && error.status) !== 400) throw error;
+        betikaError = text(error.message, 240);
+      }
+      if (betikaError || !predictions.some(item => item.available_outcomes.length)) {
+        bookmaker = "pinnacle";
+        try {
+          const payload = await requestProvider("/v4/odds-by-tournaments", { bookmakers: bookmaker, tournamentIds: ids.join(",") });
+          scoped = getScopedFixtures(payload);
+          predictions = buildOddsPrediction(scoped, { bookmaker, requireThreeWay: /soccer|football/i.test(sportQuery) });
+        } catch (error) {
+          if (betikaError && Number(error && error.status) === 400) {
+            error.message = "OddsPapi rejected both bookmaker requests. Betika: " + betikaError + " Pinnacle: " + text(error.message, 180);
+          }
+          throw error;
+        }
       }
       predictions = predictions.map((item, index) => ({
         ...item,
