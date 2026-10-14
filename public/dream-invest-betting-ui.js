@@ -39,6 +39,9 @@
         estimated_probability_pct: fav.model_probability_pct ?? "", confidence: item.confidence || "",
         home_score: item.home_score ?? "", away_score: item.away_score ?? "",
         home_win_pct: p.home_win_pct ?? "", draw_pct: p.draw_pct ?? "", away_win_pct: p.away_win_pct ?? "",
+        market_type: item.market_prediction && item.market_prediction.type || "",
+        market_prediction: item.market_prediction && item.market_prediction.label || "",
+        market_probability_pct: item.market_prediction && item.market_prediction.probability_pct != null ? item.market_prediction.probability_pct : "",
         warning: item.warning || ""
       };
     });
@@ -114,22 +117,23 @@
           '<span class="di-kickoff">' + esc(localTime(item.kickoff)) + ' · ' + esc(source) + '</span>' +
           (item.home_score != null && item.away_score != null ? '<div class="di-live-score"><strong>' + esc(item.home_score) + ' – ' + esc(item.away_score) + '</strong><small>' + esc(item.match_status || "Result") + '</small></div>' : '') +
           '<div class="di-pick"><span>' + esc(item.prediction_status === "result_available" ? "Recorded result" : "Recent-results model") + '</span><strong>' +
-          esc(item.prediction_status === "result_available" ? "Result available" : favorite ? favorite.outcome : "Not enough verified history") + '</strong>' +
+          esc(item.market_prediction ? item.market_prediction.label :
+            item.prediction_status === "result_available" ? "Result available" : favorite ? favorite.outcome : "Not enough verified history") + '</strong>' +
           (item.prediction_status === "result_available" ? '<small>Final score: ' + esc(item.home_score) + ' – ' + esc(item.away_score) + '</small>' :
-            favorite ? '<small>Estimated probability: ' + esc(favorite.model_probability_pct) + '% · ' + esc(item.confidence || "low") + ' confidence</small>' :
-            '<small>Dream needs recent scored matches for both teams before estimating this event.</small>') + '</div>' +
+            item.market_prediction && item.market_prediction.probability_pct != null ? '<small>Estimated probability: ' + esc(item.market_prediction.probability_pct) + '% · ' + esc(item.confidence || "low") + ' confidence</small>' :
+            '<small>Not enough verified data for this market. Dream will not invent a pick.</small>') + '</div>' +
           (item.model_probabilities ? '<div class="di-outcomes"><span>Home <b>' + esc(item.model_probabilities.home_win_pct) + '%</b></span>' +
             (Number(item.model_probabilities.draw_pct) > 0 ? '<span>Draw <b>' + esc(item.model_probabilities.draw_pct) + '%</b></span>' : '') +
             '<span>Away <b>' + esc(item.model_probabilities.away_win_pct) + '%</b></span></div>' : '') +
           '<small class="di-prediction-note">Statistical estimates are uncertain, not guarantees or confirmed betting outcomes. ' + esc(item.warning || "") + '</small></article>';
       }).join("") + '</div>' + sportScoreCredit;
   }
-  async function loadLeagues(root, sport, keepValue) {
+  async function loadLeagues(root, sport, period, keepValue) {
     const league = root.querySelector("#di-simple-league");
     if (!league) return;
     league.innerHTML = '<option value="all">All leagues</option>';
     try {
-      const data = await api({ period: "today", sport, league: "all", optionsOnly: "1" });
+      const data = await api({ period: period || "today", sport, league: "all", optionsOnly: "1" });
       (data.leagues || []).forEach(item => {
         const option = document.createElement("option");
         option.value = item.name;
@@ -148,10 +152,13 @@
     const period = root.querySelector("#di-simple-period").value;
     const sport = root.querySelector("#di-simple-sport").value;
     const league = root.querySelector("#di-simple-league").value || "all";
+    const market = root.querySelector("#di-simple-market").value || "h2h";
+    const direction = root.querySelector("#di-simple-direction").value || "over";
+    const goalLine = root.querySelector("#di-simple-goal-line").value || "2.5";
     if (button) { button.disabled = true; button.textContent = "Finding events…"; }
     if (output) output.innerHTML = '<div class="di-loading">Finding public fixtures, recent results and team form…</div>';
     try {
-      const data = await api({ period, sport, league });
+      const data = await api({ period, sport, league, market, direction, goalLine });
       lastResults = data;
       if (output) output.innerHTML = renderPredictions(data);
       const status = root.querySelector("#di-betting-status");
@@ -170,13 +177,30 @@
       '<label>Period<select id="di-simple-period"><option value="today">Today</option><option value="tomorrow">Tomorrow</option><option value="week">This week</option><option value="month">This month</option></select></label>' +
       '<label>Sport<select id="di-simple-sport"><option value="soccer">Soccer</option><option value="basketball">Basketball</option><option value="tennis">Tennis</option><option value="cricket">Cricket</option></select></label>' +
       '<label>League<select id="di-simple-league"><option value="all">All leagues</option></select></label>' +
+      '<label>Prediction type<select id="di-simple-market"><option value="h2h">Head to Head (1X2)</option><option value="btts">Both Teams to Score</option><option value="over_under">Over / Under</option><option value="correct_score">Correct Score</option></select></label>' +
+      '<label id="di-market-direction-wrap">Goals<select id="di-simple-direction"><option value="over">Over</option><option value="under">Under</option></select></label>' +
+      '<label id="di-market-line-wrap">Goal line<select id="di-simple-goal-line"><option value="1.5">1.5</option><option value="2.5" selected>2.5</option><option value="3.5">3.5</option></select></label>' +
       '<button type="button" class="de-action primary" id="di-simple-predict">Show predictions</button>';
     const old = root.querySelector("#di-betting-results");
     if (old) old.innerHTML = '<p class="di-muted">Choose a period, sport and optionally a league. Dream uses public fixtures and recent results; no OddsPapi key is required.</p>';
     const sport = root.querySelector("#di-simple-sport");
-    sport.addEventListener("change", () => loadLeagues(root, sport.value));
+    const period = root.querySelector("#di-simple-period");
+    const market = root.querySelector("#di-simple-market");
+    const directionWrap = root.querySelector("#di-market-direction-wrap");
+    const lineWrap = root.querySelector("#di-market-line-wrap");
+    const refreshMarketControls = () => {
+      const isSoccer = sport.value === "soccer";
+      Array.from(market.options).forEach(option => { option.disabled = !isSoccer && option.value !== "h2h"; });
+      if (!isSoccer) market.value = "h2h";
+      directionWrap.hidden = market.value !== "over_under";
+      lineWrap.hidden = market.value !== "over_under";
+    };
+    sport.addEventListener("change", () => { refreshMarketControls(); loadLeagues(root, sport.value, period.value); });
+    period.addEventListener("change", () => loadLeagues(root, sport.value, period.value, root.querySelector("#di-simple-league").value));
+    market.addEventListener("change", refreshMarketControls);
     root.querySelector("#di-simple-predict").addEventListener("click", () => showPredictions(root));
-    loadLeagues(root, sport.value);
+    refreshMarketControls();
+    loadLeagues(root, sport.value, period.value);
   }
 
   document.addEventListener("click", event => {
