@@ -2,7 +2,6 @@
 (function () {
   "use strict";
 
-  const OWNER_EMAIL = "mathiassimiyu52@gmail.com";
   const PANEL_ID = "experience-panel";
 
   function esc(value) {
@@ -14,14 +13,6 @@
   function getAuth() {
     try { return JSON.parse(localStorage.getItem("dream_education_auth") || "null"); }
     catch (_) { return null; }
-  }
-
-  function isOwner(auth) {
-    const account = auth && auth.account || {};
-    return Boolean(auth && auth.success && (
-      account.owner_account === true ||
-      String(account.email || auth.email || "").trim().toLowerCase() === OWNER_EMAIL
-    ));
   }
 
   function authHeaders(json) {
@@ -224,9 +215,9 @@
 
   async function openDreamInvest() {
     const auth = getAuth();
-    if (!auth || !auth.account || !isOwner(auth)) {
-      openPanel("DREAM INVEST", "Owner access required", "Dream Invest is currently restricted to the Dream Education owner account.",
-        '<div class="di-error"><p>Sign in with the owner account to access market predictions.</p><button class="de-action primary" type="button" data-action="open" data-panel="signin">Sign in</button></div>');
+    if (!auth || !auth.success || !auth.account) {
+      openPanel("DREAM INVEST", "Sign in to continue", "Dream Invest is available to all Dream Education account holders.",
+        '<div class="di-error"><p>Sign in to your Dream Education account to use market analysis and upcoming match predictions.</p><button class="de-action primary" type="button" data-action="open" data-panel="signin">Sign in</button></div>');
       return;
     }
     renderBase();
