@@ -5,6 +5,8 @@ const router = require("../product/global_sources/router");
 const catalog = require("../product/global_sources/catalog");
 const arxiv = require("../product/global_sources/providers/arxiv");
 const googleBooks = require("../product/global_sources/providers/google_books");
+const fs = require("fs");
+const sourceEngine = fs.readFileSync(require.resolve("../product/source_engine"), "utf8");
 
 async function main() {
   for (const id of ["crossref", "arxiv", "google_books"]) {
@@ -17,6 +19,8 @@ async function main() {
   assert.ok(router.providerIds({domain:"research"}).includes("arxiv"));
   assert.ok(router.providerIds({domain:"education"}).includes("google_books"));
   assert.ok(router.providerIds({domain:"general"}).includes("google_books"));
+  assert.ok(sourceEngine.includes("return Array.isArray(result?.sources) ? result.sources : [];"),
+    "trusted global mesh must pass provider results into Dream Search");
 
   const record = arxiv.normalizeRecord(`<entry>
     <id>https://arxiv.org/abs/2601.12345</id>
