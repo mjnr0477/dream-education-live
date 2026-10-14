@@ -370,6 +370,14 @@
         if (tab) tab.click();
       }
     });
+    moduleRoot.addEventListener("change", event => {
+      const dateInput = event.target.closest("[data-school-attendance-date]");
+      if (dateInput) {
+        const target = moduleRoot.querySelector("#school-attendance-app");
+        const schoolId = target && target.dataset.schoolId;
+        if (schoolId && dateInput.value) loadSchoolAttendance(schoolId, dateInput.value);
+      }
+    });
     moduleRoot.addEventListener("input", event => {
       const input = event.target.closest("[data-school-table-filter]");
       if (!input) return;
