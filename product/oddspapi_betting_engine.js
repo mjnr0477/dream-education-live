@@ -385,7 +385,9 @@ function registerOddsPapiRoutes(app, options = {}) {
         return { ...event, market_prediction: { type: market, label, probability_pct: marketProbability,
           direction: market === "over_under" ? direction : null, goal_line: market === "over_under" ? goalLine : null } };
       }).filter(event => event.prediction_status === "result_available" ||
-        (event.market_prediction && Number.isFinite(Number(event.market_prediction.probability_pct))));
+        (event.market_prediction && event.market_prediction.probability_pct !== null &&
+          event.market_prediction.probability_pct !== undefined &&
+          Number.isFinite(Number(event.market_prediction.probability_pct))));
     return res.json({
       success: true, period, from: fromDate, to: toDate, sport: sportQuery,
       league: leagueQuery === "all" ? "All leagues" : leagueQuery, market, direction, goalLine,
