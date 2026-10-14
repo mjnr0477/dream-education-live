@@ -2,7 +2,7 @@
 
 // Optional free external football analyst. BSD requires a free account token;
 // when it is absent or unavailable, Dream's own statistical estimate still shows.
-const BASE = "https://sports.bzzoiro.com/api/predictions/";
+const BASE = "https://sports.bzzoiro.com/api/v2/predictions/";
 const cache = new Map();
 function norm(value) { return String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, ""); }
 function pickRows(payload) {
@@ -26,19 +26,28 @@ function normalizeRow(row) {
   const home = field(event, ["home_team", "homeTeam", "home", "home_name", "homeTeamName"]);
   const away = field(event, ["away_team", "awayTeam", "away", "away_name", "awayTeamName"]);
   if (!home || !away) return null;
-  const rawPick = field(row, ["prediction", "pick", "selection", "outcome", "tip", "recommended_pick", "label", "market_prediction"]);
-  const market = String(field(row, ["market", "market_name", "prediction_type", "bet_type", "type"]) || "").toLowerCase();
-  const confidenceRaw = Number(field(row, ["confidence", "confidence_pct", "probability", "probability_pct", "confidence_percent"]));
+  const markets = row && row.markets || {};
+  const matchResult = markets.match_result || {};
+  const rawPick = field(row, ["prediction", "pick", "selection", "outcome", "tip", "recommended_pick", "label", "market_prediction"]) ??
+    field(matchResult, ["predicted", "prediction", "pick"]) ??
+    field(row && row.recommendations, ["favorite", "predicted", "pick"]);
+  const pick = rawPick == null ? null :
+    /^home$/i.test(String(rawPick)) ? String(home) + " win" :
+    /^away$/i.test(String(rawPick)) ? String(away) + " win" :
+    /^draw$/i.test(String(rawPick)) ? "Draw" : String(rawPick);
+  const market = String(field(row, ["market", "market_name", "prediction_type", "bet_type", "type"]) || "match_result").toLowerCase();
+  const confidenceRaw = Number(field(row, ["confidence", "confidence_pct", "probability", "probability_pct", "confidence_percent"]) ??
+    field(row && row.model, ["confidence"]));
   const confidence = Number.isFinite(confidenceRaw) ? Math.max(0, Math.min(100, confidenceRaw <= 1 ? confidenceRaw * 100 : confidenceRaw)) : null;
-  const p = row && (row.probabilities || row.probability || row.prediction_probabilities) || {};
-  const homeP = Number(field(p, ["home", "home_win", "home_win_probability", "home_win_pct"]) ?? field(row, ["home_win_probability", "home_win_pct", "prob_home"]));
-  const drawP = Number(field(p, ["draw", "draw_probability", "draw_pct"]) ?? field(row, ["draw_probability", "draw_pct", "prob_draw"]));
-  const awayP = Number(field(p, ["away", "away_win", "away_win_probability", "away_win_pct"]) ?? field(row, ["away_win_probability", "away_win_pct", "prob_away"]));
+  const p = row && (row.probabilities || row.probability || row.prediction_probabilities) || matchResult;
+  const homeP = Number(field(p, ["home", "home_win", "home_win_probability", "home_win_pct", "prob_home"]) ?? field(row, ["home_win_probability", "home_win_pct", "prob_home"]));
+  const drawP = Number(field(p, ["draw", "draw_probability", "draw_pct", "prob_draw"]) ?? field(row, ["draw_probability", "draw_pct", "prob_draw"]));
+  const awayP = Number(field(p, ["away", "away_win", "away_win_probability", "away_win_pct", "prob_away"]) ?? field(row, ["away_win_probability", "away_win_pct", "prob_away"]));
   const hasProbabilities = [homeP, drawP, awayP].every(Number.isFinite) && homeP >= 0 && drawP >= 0 && awayP >= 0;
   return {
     home_team: String(home), away_team: String(away),
     home_key: norm(home), away_key: norm(away),
-    pick: rawPick == null ? null : String(rawPick).slice(0, 180),
+    pick: pick == null ? null : String(pick).slice(0, 180),
     market, confidence_pct: confidence,
     probabilities: hasProbabilities ? { home: homeP > 1 ? homeP : homeP * 100, draw: drawP > 1 ? drawP : drawP * 100, away: awayP > 1 ? awayP : awayP * 100 } : null,
     source: "BSD free prediction model", source_url: "https://sports.bzzoiro.com/predictions/"
@@ -68,8 +77,8 @@ function classifyPick(pick, event) {
   if (value.includes(home) && !value.includes(away)) return doubleChance ? "home_or_draw" : "home";
   if (value.includes(away) && !value.includes(home)) return doubleChance ? "away_or_draw" : "away";
   if (/^draw$|^tie$|drawprediction|matchdraw/.test(value)) return "draw";
-  if (/homewin|hometeamwin|1x$|hometoavoiddefeat/.test(value)) return "home";
-  if (/awaywin|awayteamwin|x2$|awaytoavoiddefeat/.test(value)) return "away";
+  if (/^(home|1)$|homewin|hometeamwin|1x$|hometoavoiddefeat/.test(value)) return "home";
+  if (/^(away|2)$|awaywin|awayteamwin|x2$|awaytoavoiddefeat/.test(value)) return "away";
   if (/over15|over25|over35|under15|under25|under35|btts|bothteamstoscore/.test(value)) return "other_market";
   return null;
 }
@@ -79,7 +88,7 @@ async function getBSDPredictions(fromDate, toDate) {
   const key = fromDate + "|" + toDate;
   const cached = cache.get(key);
   if (cached && cached.expiresAt > Date.now()) return cached.value;
-  const url = BASE + "?" + new URLSearchParams({ date_from: fromDate, date_to: toDate, tz: "Africa/Nairobi" }).toString();
+  const url = BASE + "?" + new URLSearchParams({ date_from: fromDate, date_to: toDate, limit: "200" }).toString();
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 6500);
   try {
