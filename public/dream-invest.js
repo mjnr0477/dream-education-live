@@ -113,19 +113,52 @@
 
   function renderAnalysis(data) {
     const bars = Array.isArray(data.bars) ? data.bars : [];
-    const forecast = forecastForBars(bars);
-    if (!forecast) return '<section class="di-section"><p class="di-muted">Not enough recent data to estimate this market. Try another symbol or period.</p></section>';
-    const directionClass = forecast.direction.toLowerCase();
-    const label = forecast.direction === "UP" ? "Expected to rise" : forecast.direction === "DOWN" ? "Expected to fall" : "No clear direction";
-    const changeText = (forecast.changePct > 0 ? "+" : "") + forecast.changePct.toFixed(2) + "%";
+    if (bars.length < 2) {
+      return '<section class="di-section"><p class="di-muted">Not enough market history to draw a graph. Try another symbol or period.</p></section>';
+    }
+
+    // The API's walk-forward evidence gate is authoritative. A client-side
+    // trend line must never turn a backend HOLD into a directional prediction.
+    const indicators = data.indicators || {};
+    const trendForecast = forecastForBars(bars);
+    const signal = String(indicators.signal || "HOLD").toUpperCase();
+    const released = indicators.directional_signal_released === true &&
+      (signal === "BUY" || signal === "SELL");
+    const expectedDirection = signal === "BUY" ? "UP" : signal === "SELL" ? "DOWN" : null;
+    const agreement = Boolean(released && trendForecast && trendForecast.direction === expectedDirection);
+    const forecast = agreement ? trendForecast : null;
+    const label = forecast
+      ? (forecast.direction === "UP" ? "Evidence-screened rise signal" : "Evidence-screened fall signal")
+      : !released
+        ? "Prediction withheld"
+        : "Signals disagree";
+    const directionClass = forecast ? forecast.direction.toLowerCase() : "uncertain";
+    const changeText = forecast
+      ? (forecast.changePct > 0 ? "+" : "") + forecast.changePct.toFixed(2) + "%"
+      : "No verified direction";
     const lastBar = bars[bars.length - 1] || {};
+    const hitRate = Number(indicators.backtest_hit_rate_pct);
+    const hasHitRate = Number.isFinite(hitRate);
+    const evidenceSummary = "Walk-forward signals: " + Number(indicators.backtest_signals_available || 0) +
+      " · Directional hit rate: " + (hasHitRate ? hitRate.toFixed(1) + "%" : "not available") +
+      " · Required: " + Number(indicators.backtest_signals_required || 30) + " signals and " +
+      Number(indicators.backtest_hit_rate_required_pct || 55) + "% hit rate";
+    const statusMessage = forecast
+      ? "The backend evidence gate passed and the recent trend projection agrees with the research signal. This remains uncertain, not financial advice."
+      : !released
+        ? String(indicators.warning || "The available history did not pass Dream's minimum evidence checks. No rising/falling prediction is being made.")
+        : "The backend research signal and recent trend projection disagree. Dream is withholding a directional prediction rather than choosing one.";
+
     return '<section class="di-signal di-signal-' + esc(directionClass) + '">' +
-      '<div><span class="di-eyebrow">MARKET PREDICTION · ESTIMATE</span><h3>' + esc(label) + '</h3><p>Estimated move over the next 5 selected periods</p></div>' +
+      '<div><span class="di-eyebrow">MARKET ANALYSIS · EVIDENCE GATED</span><h3>' + esc(label) + '</h3><p>' + esc(statusMessage) + '</p></div>' +
       '<strong>' + esc(changeText) + '</strong></section>' +
       '<section class="di-section"><div class="di-section-head"><h3>' + esc(data.symbol) + ' price graph</h3><span>' + esc(data.timeframe) + '</span></div>' +
       renderPredictionChart(bars, forecast) +
-      '<p class="di-muted">Last price: ' + esc(money(forecast.last)) + ' · Estimated price: ' + esc(money(forecast.predicted)) + '</p></section>' +
-      '<p class="di-disclaimer">Estimate based on recent prices, not a guarantee. Markets can move unexpectedly.</p>';
+      '<p class="di-muted">Last price: ' + esc(money(Number(lastBar.c))) +
+      (forecast ? ' · Trend projection: ' + esc(money(forecast.predicted)) : ' · No future price projection released') +
+      '</p><p class="di-muted">' + esc(evidenceSummary) + '</p>' +
+      '<p class="di-muted">Latest bar: ' + esc(data.updated_at || lastBar.t || "timestamp unavailable") + '</p></section>' +
+      '<p class="di-disclaimer">Historical results and short-term price trends cannot guarantee future direction or profitability. Dream withholds directional calls when evidence is insufficient or signals disagree.</p>';
   }
 
   async function loadMarket(symbol, timeframe) {
