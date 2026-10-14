@@ -16,7 +16,7 @@ const SOURCES = [
   {id:"openaire",name:"OpenAIRE",family:"research",access:"rest",license:"mixed",status:"connected"},
   {id:"doaj",name:"DOAJ",family:"research",access:"rest",license:"open-access-index",status:"connected"},
   {id:"unpaywall",name:"Unpaywall",family:"research",access:"rest",license:"open-access-metadata",status:"ready"},
-  {id:"core",name:"CORE",family:"research",access:"rest",license:"mixed/open",status:"planned"},
+  {id:"core",name:"CORE",family:"research",access:"rest",license:"record-specific; verify before reuse",commercial_use:false,status:"connected"},
   {id:"base",name:"BASE",family:"research",access:"oai/web",license:"mixed",status:"planned"},
 
   // OPEN EDUCATION
