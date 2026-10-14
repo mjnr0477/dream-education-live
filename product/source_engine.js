@@ -3,6 +3,7 @@ const queryEngine = require("./query_engine.js");
 const globalSourceBridge = require("./global_sources/bridge.js");
 const globalSourceRouter = require("./global_sources/router.js");
 const notesSourceProviders = require("./notes_source_providers.js");
+const youtubeProvider = require("./global_sources/providers/youtube.js");
 
 const USER_AGENT = "DreamEducation/1.0 knowledge-search";
 const PROVIDER_TIMEOUT = 3500;
@@ -215,7 +216,8 @@ function rankSources(sources, query = "") {
     datacite: 2,
     semantic_scholar: 5,
     duckduckgo: 0,
-    searxng: 0
+    searxng: 0,
+    youtube: 2
   };
 
   const analyzed = query
@@ -1085,6 +1087,7 @@ async function searchSources(query, limit = 5) {
     { name: "wikibooks", run: () => searchWikibooks(searchQuery, limit) },
     { name: "libretexts", run: () => notesSourceProviders.searchLibreTexts(searchQuery, limit) },
     { name: "openstax", run: () => notesSourceProviders.searchOpenStax(searchQuery, limit) },
+    { name: "youtube", run: () => youtubeProvider.search(searchQuery, limit) },
 
     // TRUSTED GLOBAL SOURCE MESH — subject-aware, network-backed providers.
     // This is blocking so connected specialist sources can contribute to the
