@@ -79,8 +79,13 @@ function buildIndicators(bars) {
 
   const rawSignal = score >= 25 ? "BUY" : score <= -25 ? "SELL" : "HOLD";
   const historicalCheck = buildBacktest(bars);
-  const enoughBacktestEvidence = historicalCheck.evaluated_signals >= 30;
+  const enoughBacktestSample = historicalCheck.evaluated_signals >= 30;
+  const hitRateClearsThreshold = historicalCheck.directional_hit_rate_pct !== null &&
+    historicalCheck.directional_hit_rate_pct >= 55;
+  const enoughBacktestEvidence = enoughBacktestSample && hitRateClearsThreshold;
   const signal = enoughBacktestEvidence ? rawSignal : "HOLD";
+  const signalStatus = !enoughBacktestSample ? "insufficient_backtest_evidence" :
+    !hitRateClearsThreshold ? "historical_hit_rate_below_threshold" : "historically_promising"; 
   return {
     latest_close: latest,
     sma_5: sma5,
@@ -91,14 +96,18 @@ function buildIndicators(bars) {
     heuristic_score: score,
     signal,
     raw_signal: rawSignal,
-    signal_status: enoughBacktestEvidence ? "historically_testable" : "insufficient_backtest_evidence",
+    signal_status: signalStatus,
     directional_signal_released: enoughBacktestEvidence,
     backtest_signals_required: 30,
+    backtest_hit_rate_required_pct: 55,
+    backtest_hit_rate_pct: historicalCheck.directional_hit_rate_pct,
     backtest_signals_available: historicalCheck.evaluated_signals,
-    method: "SMA trend + 10-bar momentum + distance from SMA20; directional signals are withheld until at least 30 walk-forward historical signals are available.",
+    method: "SMA trend + 10-bar momentum + distance from SMA20; directional signals require at least 30 walk-forward historical signals and a directional hit rate of at least 55% on those bars.",
     warning: enoughBacktestEvidence
-      ? "Rule-based research signal with a limited historical check; not a calibrated probability or a guarantee of future price direction."
-      : "Directional signal withheld: fewer than 30 historical walk-forward signals are available to evaluate this method. HOLD means insufficient evidence, not a forecast that price will stay flat."
+      ? "Rule-based research signal passed a minimum historical sample and hit-rate screen. Historical performance is not a guarantee of future price direction or profitability."
+      : !enoughBacktestSample
+        ? "Directional signal withheld: fewer than 30 historical walk-forward signals are available to evaluate this method. HOLD means insufficient evidence, not a forecast that price will stay flat."
+        : "Directional signal withheld: the walk-forward directional hit rate is below 55%. HOLD means this method did not pass the historical screen, not a forecast that price will stay flat."
   };
 }
 
