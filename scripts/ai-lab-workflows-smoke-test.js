@@ -16,5 +16,5 @@ assert.match(app, /data-panel-action="ai-problem-solving">Open Problem Solving/)
 assert.match(app, /data-panel-action="ai-knowledge-discovery">Open Knowledge Discovery/);
 assert.match(app, /if \(action === "ai-problem-solving"\)[\s\S]*?openPanel\("learn"\)/);
 assert.match(app, /if \(action === "ai-knowledge-discovery"\)[\s\S]*?getElementById\("dream-search"\)/);
-assert.match(index, /app\\.js\\?v=\\d{8}[a-z]*/);
+assert.match(index, /app\.js\?v=\d{8}[a-z]*/);
 console.log("AI Lab workflows smoke test passed.");
