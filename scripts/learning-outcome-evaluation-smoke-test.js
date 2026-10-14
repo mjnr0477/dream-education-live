@@ -69,5 +69,45 @@ const normalizedOutcome = normalizeOutcomeAssessment({
 });
 assert.strictEqual(normalizedOutcome.score, 0.8);
 
+// A shared session must not attribute an assessment that predates teaching.
+const preTeaching = correlateTeachingOutcome({
+  evaluation: { session_id: "s-2", concept_key: "fractions", observed_at: "2026-10-03T10:10:00Z" },
+  assessment: { session_id: "s-2", concept_key: "fractions", observed_at: "2026-10-03T10:00:00Z", correct: true }
+});
+assert.strictEqual(preTeaching.matched, false);
+
+// A same-session assessment beyond the correlation window is not causal either.
+const staleSession = correlateTeachingOutcome({
+  evaluation: { session_id: "s-3", concept_key: "fractions", observed_at: "2026-10-01T10:00:00Z" },
+  assessment: { session_id: "s-3", concept_key: "fractions", observed_at: "2026-10-03T10:00:00Z", correct: true }
+});
+assert.strictEqual(staleSession.matched, false);
+
+// A session match is still useful when a legacy record lacks timestamps.
+const legacySession = correlateTeachingOutcome({
+  evaluation: { session_id: "s-4", concept_key: null },
+  assessment: { session_id: "s-4", concept_key: null, correct: true }
+});
+assert.strictEqual(legacySession.matched, true);
+assert.strictEqual(legacySession.match_basis, "session");
+
+// Evaluation selection supports session-only records and prefers the same session.
+const sessionEvaluation = {
+  evidence_id: "session-eval",
+  session_id: "s-5",
+  observed_at: "2026-10-03T10:00:00Z",
+  evidence: { evaluation: { metrics: {} } }
+};
+const selectedBySession = selectTeachingEvaluation({
+  evaluations: [sessionEvaluation],
+  assessment: { session_id: "s-5", observed_at: "2026-10-03T10:05:00Z" }
+});
+assert.strictEqual(selectedBySession, sessionEvaluation);
+
+// Even when session IDs match, a future evaluation cannot be selected.
+assert.strictEqual(selectTeachingEvaluation({
+  evaluations: [sessionEvaluation],
+  assessment: { session_id: "s-5", observed_at: "2026-10-03T09:55:00Z" }
+}), null);
 
 console.log("Learning outcome evaluation correlation smoke test passed.");
