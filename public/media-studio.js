@@ -100,6 +100,28 @@
       appendText(host, "pre", JSON.stringify(result, null, 2), "de-media-result-text");
     }
 
+    if (action === "chat" && Array.isArray(responseData?.knowledge_sources) && responseData.knowledge_sources.length) {
+      const sourcesHost = document.createElement("section");
+      sourcesHost.className = "de-media-sources";
+      appendText(sourcesHost, "h4", "Sources used", "de-media-sources-title");
+      const list = document.createElement("ul");
+      for (const source of responseData.knowledge_sources.slice(0, 6)) {
+        if (!source || !/^https?:\/\//i.test(String(source.url || ""))) continue;
+        const item = document.createElement("li");
+        const link = document.createElement("a");
+        link.href = source.url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = (source.title || "Source") + (source.source ? " — " + source.source : "");
+        item.appendChild(link);
+        list.appendChild(item);
+      }
+      if (list.children.length) {
+        sourcesHost.appendChild(list);
+        host.appendChild(sourcesHost);
+      }
+    }
+
     if (mediaUrl && /^https:\/\//i.test(mediaUrl)) {
       const link = document.createElement("a");
       link.href = mediaUrl;
