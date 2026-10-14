@@ -14,3 +14,5 @@
 .di-outcomes span{font-size:11px;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:7px 9px}
 .di-outcomes b{margin-left:5px}
 .di-prediction-note{line-height:1.5;color:var(--muted,#aab4c4)}
+
+.di-bet-controls label[hidden]{display:none!important}.di-bet-controls #di-simple-predict{align-self:end;min-height:42px}.di-export-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:10px 0}.di-export-actions span{font-size:12px;color:var(--muted,#aab4c4)}.di-pick strong{overflow-wrap:anywhere}
