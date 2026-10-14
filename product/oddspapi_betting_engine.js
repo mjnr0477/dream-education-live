@@ -174,23 +174,30 @@ function registerOddsPapiRoutes(app, options = {}) {
       const start = new Date(fromDate + "T00:00:00+03:00").getTime();
       const end = new Date(toDate + "T23:59:59+03:00").getTime();
       const ids = selected.map(item => item.id);
-      const providerData = await requestProvider("/v4/odds-by-tournaments", { bookmaker: "pinnacle", tournamentIds: ids.join(",") });
-      const fixtures = rowsOf(providerData).filter(row => {
-        const time = Date.parse(row.startTime || row.start_time || row.kickoff || row.date || "");
-        return Number.isFinite(time) && time >= start && time <= end;
-      });
       const selectedIds = new Set(ids.map(String));
-      const scoped = fixtures.filter(row => !row.tournamentId || selectedIds.has(String(row.tournamentId)));
-      const predictions = buildOddsPrediction(scoped).map((item, index) => ({
+      const getScopedFixtures = payload => rowsOf(payload).filter(row => {
+        const time = Date.parse(row.startTime || row.start_time || row.kickoff || row.date || "");
+        return Number.isFinite(time) && time >= start && time <= end &&
+          (!row.tournamentId || selectedIds.has(String(row.tournamentId)));
+      });
+      let bookmaker = "betika";
+      let scoped = getScopedFixtures(await requestProvider("/v4/odds-by-tournaments", { bookmaker, tournamentIds: ids.join(",") }));
+      let predictions = buildOddsPrediction(scoped);
+      if (!predictions.some(item => item.available_outcomes.length)) {
+        bookmaker = "pinnacle";
+        scoped = getScopedFixtures(await requestProvider("/v4/odds-by-tournaments", { bookmaker, tournamentIds: ids.join(",") }));
+        predictions = buildOddsPrediction(scoped);
+      }
+      predictions = predictions.map((item, index) => ({
         ...item,
         league: text(scoped[index] && (scoped[index].tournamentName || scoped[index].tournamentSlug) ||
           selected.find(entry => String(entry.id) === String(scoped[index] && scoped[index].tournamentId))?.name, 120) || "Competition",
-        bookmaker: "Pinnacle"
+        bookmaker: bookmaker === "betika" ? "Betika" : "Pinnacle"
       }));
       return res.json({ success: true, period, from: fromDate, to: toDate,
         sport: text(sport.sportName || sport.name || sportQuery, 80),
         league: leagueQuery === "all" ? "All leagues" : text(selected[0].name, 120),
-        bookmaker: "Pinnacle", count: predictions.length, predictions,
+        bookmaker: bookmaker === "betika" ? "Betika" : "Pinnacle", count: predictions.length, predictions,
         message: predictions.length ? "" : "No fixtures with odds were returned for this period and selection." });
     } catch (error) {
       const status = error && error.name === "AbortError" ? 504 : Number(error && error.status) || 502;
