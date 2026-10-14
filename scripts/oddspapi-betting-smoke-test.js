@@ -13,7 +13,8 @@ global.fetch = async url => {
   requested = String(url);
   if (requested.includes("api.oddspapi.io")) oddsPapiRequests++;
   if (mockProviderResponse) return mockProviderResponse;
-  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Nairobi", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  const dateParts = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Nairobi", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date());
+  const today = ["year", "month", "day"].map(type => dateParts.find(part => part.type === type).value).join("-");
   if (requested.includes("sportscore.com")) {
     const date = new URL(requested).searchParams.get("date");
     return { ok: true, status: 200, json: async () => ({ fixtures: date === today ? [
