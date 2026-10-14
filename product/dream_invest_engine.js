@@ -178,6 +178,16 @@ function registerDreamInvestRoutes(app, options = {}) {
     }
   }
 
+  async function requireOwner(req, res) {
+    const account = await requireAccount(req, res);
+    if (!account) return null;
+    if (!isOwner(account)) {
+      res.status(403).json({ success: false, error: "Paper account details and order submission remain restricted to the owner account." });
+      return null;
+    }
+    return account;
+  }
+
   function getCredentials(res) {
     const key = String(process.env.ALPACA_API_KEY || "").trim();
     const secret = String(process.env.ALPACA_API_SECRET || "").trim();
