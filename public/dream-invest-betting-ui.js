@@ -38,10 +38,15 @@
         return '<article class="di-bet-row di-prediction-card"><div class="di-prediction-title"><strong>' + esc(item.fixture || "Fixture") + '</strong><span class="di-league-tag">' + esc(item.league || "Competition") + '</span></div>' +
           '<span class="di-kickoff">' + esc(localTime(item.kickoff)) + ' · ' + esc(source) + '</span>' +
           (item.home_score != null && item.away_score != null ? '<div class="di-live-score"><strong>' + esc(item.home_score) + ' – ' + esc(item.away_score) + '</strong><small>' + esc(item.match_status || "Result") + '</small></div>' : '') +
-          '<div class="di-pick"><span>Prediction status</span><strong>' + esc(favorite ? favorite.outcome : "Not enough verified data") + '</strong>' +
-          (favorite ? '<b>' + esc(favorite.decimal_odds) + ' odds</b><small>' + esc(favorite.model_probability_pct) + '% normalized market probability</small>' : '<small>This event is listed, but Dream will not invent a prediction without fresh, verified market data.</small>') + '</div>' +
-          (outcomes.length ? '<div class="di-outcomes">' + outcomes.map(outcome => '<span>' + esc(outcome.outcome) + ' <b>' + esc(outcome.decimal_odds) + '</b></span>').join("") + '</div>' : '') +
-          '<small class="di-prediction-note">Probabilities are estimates, not guarantees. ' + esc(item.warning || "") + '</small></article>';
+          '<div class="di-pick"><span>' + esc(item.prediction_status === "result_available" ? "Recorded result" : "Recent-results model") + '</span><strong>' +
+          esc(item.prediction_status === "result_available" ? "Result available" : favorite ? favorite.outcome : "Not enough verified history") + '</strong>' +
+          (item.prediction_status === "result_available" ? '<small>Final score: ' + esc(item.home_score) + ' – ' + esc(item.away_score) + '</small>' :
+            favorite ? '<small>Estimated probability: ' + esc(favorite.model_probability_pct) + '% · ' + esc(item.confidence || "low") + ' confidence</small>' :
+            '<small>Dream needs recent scored matches for both teams before estimating this event.</small>') + '</div>' +
+          (item.model_probabilities ? '<div class="di-outcomes"><span>Home <b>' + esc(item.model_probabilities.home_win_pct) + '%</b></span>' +
+            (Number(item.model_probabilities.draw_pct) > 0 ? '<span>Draw <b>' + esc(item.model_probabilities.draw_pct) + '%</b></span>' : '') +
+            '<span>Away <b>' + esc(item.model_probabilities.away_win_pct) + '%</b></span></div>' : '') +
+          '<small class="di-prediction-note">Statistical estimates are uncertain, not guarantees or confirmed betting outcomes. ' + esc(item.warning || "") + '</small></article>';
       }).join("") + '</div>' + sportScoreCredit;
   }
   async function loadLeagues(root, sport, keepValue) {
@@ -69,7 +74,7 @@
     const sport = root.querySelector("#di-simple-sport").value;
     const league = root.querySelector("#di-simple-league").value || "all";
     if (button) { button.disabled = true; button.textContent = "Finding events…"; }
-    if (output) output.innerHTML = '<div class="di-loading">Finding events and available odds automatically…</div>';
+    if (output) output.innerHTML = '<div class="di-loading">Finding public fixtures, recent results and team form…</div>';
     try {
       const data = await api({ period, sport, league });
       if (output) output.innerHTML = renderPredictions(data);
@@ -87,11 +92,11 @@
     controls.dataset.simplePredictions = "1";
     controls.innerHTML =
       '<label>Period<select id="di-simple-period"><option value="today">Today</option><option value="tomorrow">Tomorrow</option><option value="week">This week</option><option value="month">This month</option></select></label>' +
-      '<label>Sport<select id="di-simple-sport"><option value="soccer">Soccer</option><option value="basketball">Basketball</option><option value="tennis">Tennis</option><option value="cricket">Cricket</option><option value="rugby">Rugby</option><option value="volleyball">Volleyball</option><option value="ice hockey">Ice hockey</option></select></label>' +
+      '<label>Sport<select id="di-simple-sport"><option value="soccer">Soccer</option><option value="basketball">Basketball</option><option value="tennis">Tennis</option><option value="cricket">Cricket</option></select></label>' +
       '<label>League<select id="di-simple-league"><option value="all">All leagues</option></select></label>' +
       '<button type="button" class="de-action primary" id="di-simple-predict">Show predictions</button>';
     const old = root.querySelector("#di-betting-results");
-    if (old) old.innerHTML = '<p class="di-muted">Choose a period, sport and optionally a league. Dream will find the events and odds for you.</p>';
+    if (old) old.innerHTML = '<p class="di-muted">Choose a period, sport and optionally a league. Dream uses public fixtures and recent results; no OddsPapi key is required.</p>';
     const sport = root.querySelector("#di-simple-sport");
     sport.addEventListener("change", () => loadLeagues(root, sport.value));
     root.querySelector("#di-simple-predict").addEventListener("click", () => showPredictions(root));
