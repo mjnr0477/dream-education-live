@@ -63,10 +63,11 @@ function internalPick(event) {
 function classifyPick(pick, event) {
   const value = norm(pick);
   if (!value) return null;
-  if (/draw|tie/.test(value) && !/double|no.?draw/.test(value)) return "draw";
   const home = norm(event.home_team), away = norm(event.away_team);
-  if (value.includes(home) && !value.includes(away)) return /draw|avoiddefeat|doublechance|ordraw/.test(value) ? "home_or_draw" : "home";
-  if (value.includes(away) && !value.includes(home)) return /draw|avoiddefeat|doublechance|ordraw/.test(value) ? "away_or_draw" : "away";
+  const doubleChance = /avoiddefeat|doublechance|winordraw|ordraw|todraw/.test(value);
+  if (value.includes(home) && !value.includes(away)) return doubleChance ? "home_or_draw" : "home";
+  if (value.includes(away) && !value.includes(home)) return doubleChance ? "away_or_draw" : "away";
+  if (/^draw$|^tie$|drawprediction|matchdraw/.test(value)) return "draw";
   if (/homewin|hometeamwin|1x$|hometoavoiddefeat/.test(value)) return "home";
   if (/awaywin|awayteamwin|x2$|awaytoavoiddefeat/.test(value)) return "away";
   if (/over15|over25|over35|under15|under25|under35|btts|bothteamstoscore/.test(value)) return "other_market";
@@ -112,6 +113,9 @@ async function enrichWithAnalystConsensus(events, fromDate, toDate) {
       ].sort((a, b) => b.value - a.value);
       event.market_favourite = { outcome: candidates[0].label, model_probability_pct: candidates[0].value };
       event.prediction_probability_method = "Average of Dream model and BSD model probabilities";
+      if (event.market_prediction && event.market_prediction.type === "h2h") {
+        event.market_prediction = { ...event.market_prediction, label: candidates[0].label, probability_pct: candidates[0].value };
+      }
     }
     const externalClass = row ? classifyPick(row.pick, event) : null;
     const dreamClass = dream ? classifyPick(dream.name, event) : null;
