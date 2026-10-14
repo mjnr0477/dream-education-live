@@ -58,6 +58,7 @@ const { getPublicSportsEvents, normalizeSportScore, normalizeSportsDb } = requir
     assert.equal(result.providers.includes("SportScore"), true);
     assert.match(result.attribution_html, /Powered by SportScore/);
     assert.ok(requests.some(url => url.includes("/api/v1/fixtures/") && url.includes("date=2026-10-14")));
+    assert.ok(requests.some(url => url.includes("thesportsdb.com") && new URL(url).searchParams.get("d") < "2026-10-14"), "TheSportsDB should contribute historical results, not just upcoming fixtures.");
     assert.ok(requests.every(url => !url.includes("oddspapi.io")));
   } finally {
     global.fetch = oldFetch;
