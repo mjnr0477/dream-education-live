@@ -174,6 +174,25 @@ async function mapLimit(items, limit, worker) {
   return results;
 }
 function teamKey(value) { return clean(value, 100).toLowerCase().replace(/[^a-z0-9]/g, ""); }
+  // Merge duplicate fixtures across providers without letting an unscored
+  // fixture from the first provider hide a verified result from another source.
+  // This matters because history is used to calculate every downstream estimate.
+  function dedupeEvents(rows) {
+    const byFixture = new Map();
+    const quality = event =>
+      (event && event.result_verified ? 8 : 0) +
+      (isFinalResult(event) ? 4 : 0) +
+      (event && event.home_score !== null && event.home_score !== undefined &&
+       event.away_score !== null && event.away_score !== undefined ? 2 : 0) +
+      (event && event.kickoff && Number.isFinite(Date.parse(event.kickoff)) ? 1 : 0);
+    for (const event of rows) {
+      const key = teamKey(event.home_team) + "|" + teamKey(event.away_team) + "|" + String(event.kickoff || "").slice(0, 10);
+      if (!key || key.startsWith("|") || key.endsWith("|")) continue;
+      const existing = byFixture.get(key);
+      if (!existing || quality(event) > quality(existing)) byFixture.set(key, event);
+    }
+    return Array.from(byFixture.values());
+  }
 function poisson(lambda, goals) {
   let p = Math.exp(-lambda);
   for (let i = 1; i <= goals; i++) p *= lambda / i;
@@ -406,20 +425,11 @@ async function getPublicSportsEvents({ sport, fromDate, toDate }) {
   ]);
   const events = [...sportScoreResult.events, ...sportsDbResult.events, ...espnResult.events];
   const history = [...sportScoreResult.history, ...sportsDbResult.history, ...espnResult.history];
-  const dedupe = rows => {
-    const seen = new Set();
-    return rows.filter(event => {
-      const key = teamKey(event.home_team) + "|" + teamKey(event.away_team) + "|" + String(event.kickoff || "").slice(0, 10);
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-  };
-  const uniqueHistory = dedupe(history);
+  const uniqueHistory = dedupeEvents(history);
   const teams = buildRecentForm(uniqueHistory, sport);
   // A fixture must have a future kickoff and a pre-match status. Results and live
   // events are historical evidence only; they never enter the upcoming list.
-  const uniqueEvents = dedupe(events).filter(event => isUpcomingOrLive(event)).map(event => {
+  const uniqueEvents = dedupeEvents(events).filter(event => isUpcomingOrLive(event)).map(event => {
     const predicted = modelPrediction(event, teams, sport);
     return { ...predicted, event_state: "upcoming" };
   }).sort((a, b) => Date.parse(a.kickoff || "") - Date.parse(b.kickoff || ""));
@@ -434,4 +444,4 @@ async function getPublicSportsEvents({ sport, fromDate, toDate }) {
     model: "recent-results-form-v1"
   };
 }
-module.exports = { getPublicSportsEvents, normalizeSportScore, normalizeSportsDb, normalizeESPN, modelPrediction, buildRecentForm, isFinalResult, isLiveEvent, isUpcomingOrLive };
+module.exports = { getPublicSportsEvents, normalizeSportScore, normalizeSportsDb, normalizeESPN, modelPrediction, buildRecentForm, isFinalResult, isLiveEvent, isUpcomingOrLive, dedupeEvents };

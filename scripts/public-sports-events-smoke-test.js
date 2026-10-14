@@ -1,6 +1,6 @@
 "use strict";
 const assert = require("node:assert/strict");
-const { getPublicSportsEvents, normalizeSportScore, normalizeSportsDb, isUpcomingOrLive } = require("../product/public_sports_events_engine");
+const { getPublicSportsEvents, normalizeSportScore, normalizeSportsDb, isUpcomingOrLive, dedupeEvents } = require("../product/public_sports_events_engine");
 
 (async () => {
   const sportScore = normalizeSportScore({
@@ -16,7 +16,22 @@ const { getPublicSportsEvents, normalizeSportScore, normalizeSportsDb, isUpcomin
     dateEvent: "2026-10-14", strTime: "18:00:00", intHomeScore: null, intAwayScore: null
   });
   assert.equal(sportsDb.fixture, "Gamma vs Delta");
+
   assert.equal(sportsDb.source, "TheSportsDB");
+  const unscoredDuplicate = {
+    home_team: "Evidence FC", away_team: "History United",
+    kickoff: "2026-10-01T15:00:00Z", home_score: null, away_score: null,
+    result_verified: false, match_status: "unknown", source: "SportScore"
+  };
+  const scoredDuplicate = {
+    ...unscoredDuplicate, home_score: 2, away_score: 1,
+    result_verified: true, match_status: "final", source: "ESPN"
+  };
+  const mergedDuplicates = dedupeEvents([unscoredDuplicate, scoredDuplicate]);
+  assert.equal(mergedDuplicates.length, 1, "Cross-provider duplicate fixtures should collapse to one row.");
+  assert.equal(mergedDuplicates[0].result_verified, true,
+    "An unscored first-source row must not mask a verified historical score from another provider.");
+  assert.equal(mergedDuplicates[0].home_score, 2);
   const testNow = Date.parse("2026-10-14T12:00:00Z");
   assert.equal(isUpcomingOrLive({ kickoff: "2026-10-14T15:00:00Z", match_status: "scheduled" }, testNow), true);
   assert.equal(isUpcomingOrLive({ kickoff: "2026-10-14T12:00:00Z", match_status: "scheduled" }, testNow), true,
