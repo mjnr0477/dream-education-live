@@ -47,7 +47,7 @@ function buildOddsPrediction(payload) {
     const likely = odds.slice().sort((a, b) => b.implied_probability_pct - a.implied_probability_pct)[0] || null;
     predictions.push({
       fixture: text(row.name || row.fixtureName || row.eventName || row.match || row.title ||
-        [row.homeTeam || row.home || row.home_team, row.awayTeam || row.away || row.away_team].filter(Boolean).join(" vs ") || "Fixture", 180),
+        [row.participant1Name || row.homeTeam || row.home || row.home_team, row.participant2Name || row.awayTeam || row.away || row.away_team].filter(Boolean).join(" vs ") || "Fixture", 180),
       fixture_id: text(row.id || row.fixtureId || row.fixture_id, 100) || null,
       kickoff: text(row.startTime || row.start_time || row.kickoff || row.date, 80) || null,
       available_outcomes: odds,
@@ -121,6 +121,88 @@ function registerOddsPapiRoutes(app, options = {}) {
   app.get("/api/dream-invest/betting/status", async (req, res) => {
     if (!await requireOwner(req, res)) return;
     return res.json({ success: true, configured: Boolean(text(process.env.ODDSPAPI_API_KEY, 500)), provider: "OddsPapi", bet_placement_enabled: false, message: text(process.env.ODDSPAPI_API_KEY, 500) ? "OddsPapi key is configured. Bet placement is not connected." : "Add ODDSPAPI_API_KEY in Render Environment." });
+  });
+  app.get("/api/dream-invest/betting/events", async (req, res) => {
+    if (!await requireOwner(req, res)) return;
+    try {
+      const period = text(req.query && req.query.period, 20).toLowerCase() || "today";
+      const sportQuery = text(req.query && req.query.sport, 80).toLowerCase() || "soccer";
+      const leagueQuery = text(req.query && req.query.league, 120).toLowerCase() || "all";
+      const optionsOnly = String(req.query && req.query.optionsOnly || "") === "1";
+      if (!["today", "tomorrow", "week", "month"].includes(period)) {
+        return res.status(400).json({ success: false, error: "Choose Today, Tomorrow, This Week, or This Month." });
+      }
+      const sports = rowsOf(await requestProvider("/v4/sports"));
+      const sportLabels = sports.map(item => ({
+        item,
+        label: text(item.sportName || item.name || item.slug || item.sportSlug, 100).toLowerCase()
+      }));
+      const sport = (sportQuery === "soccer" || sportQuery === "football"
+        ? sportLabels.find(entry => /soccer/.test(entry.label)) || sportLabels.find(entry => /football/.test(entry.label))
+        : sportLabels.find(entry => entry.label === sportQuery) || sportLabels.find(entry => entry.label.includes(sportQuery)))?.item;
+      if (!sport) {
+        return res.status(404).json({ success: false, error: "That sport is not available from OddsPapi. Choose a sport supported by your account." });
+      }
+      const sportId = sport.sportId || sport.id || sport.sport_id;
+      const tournaments = rowsOf(await requestProvider("/v4/tournaments", { sportId }));
+      const leagueRows = tournaments.map(item => ({
+        id: item.tournamentId || item.id,
+        name: text(item.tournamentName || item.name || item.tournamentSlug, 120)
+      })).filter(item => item.id != null && item.name);
+      if (optionsOnly) {
+        return res.json({ success: true, sport: text(sport.sportName || sport.name || sportQuery, 80), leagues: leagueRows });
+      }
+      const selected = leagueQuery === "all" ? leagueRows : leagueRows.filter(item =>
+        item.name.toLowerCase() === leagueQuery || item.name.toLowerCase().includes(leagueQuery));
+      if (!selected.length) {
+        return res.json({ success: true, period, sport: text(sport.sportName || sport.name || sportQuery, 80),
+          league: leagueQuery, bookmaker: "pinnacle", count: 0, predictions: [],
+          message: "No matching league is available from OddsPapi." });
+      }
+      const now = new Date();
+      const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Nairobi", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(now);
+      const part = key => parts.find(item => item.type === key).value;
+      const today = part("year") + "-" + part("month") + "-" + part("day");
+      const addDays = (date, days) => {
+        const value = new Date(date + "T12:00:00Z");
+        value.setUTCDate(value.getUTCDate() + days);
+        return value.toISOString().slice(0, 10);
+      };
+      let fromDate = period === "tomorrow" ? addDays(today, 1) : today;
+      let toDate = period === "tomorrow" ? fromDate : period === "week" ? addDays(today, 6) :
+        period === "month" ? today.slice(0, 8) + new Date(Date.UTC(Number(today.slice(0,4)), Number(today.slice(5,7)), 0)).getUTCDate().toString().padStart(2, "0") : today;
+      const start = new Date(fromDate + "T00:00:00+03:00").getTime();
+      const end = new Date(toDate + "T23:59:59+03:00").getTime();
+      const ids = selected.map(item => item.id);
+      const selectedIds = new Set(ids.map(String));
+      const getScopedFixtures = payload => rowsOf(payload).filter(row => {
+        const time = Date.parse(row.startTime || row.start_time || row.kickoff || row.date || "");
+        return Number.isFinite(time) && time >= start && time <= end &&
+          (!row.tournamentId || selectedIds.has(String(row.tournamentId)));
+      });
+      let bookmaker = "betika";
+      let scoped = getScopedFixtures(await requestProvider("/v4/odds-by-tournaments", { bookmaker, tournamentIds: ids.join(",") }));
+      let predictions = buildOddsPrediction(scoped);
+      if (!predictions.some(item => item.available_outcomes.length)) {
+        bookmaker = "pinnacle";
+        scoped = getScopedFixtures(await requestProvider("/v4/odds-by-tournaments", { bookmaker, tournamentIds: ids.join(",") }));
+        predictions = buildOddsPrediction(scoped);
+      }
+      predictions = predictions.map((item, index) => ({
+        ...item,
+        league: text(scoped[index] && (scoped[index].tournamentName || scoped[index].tournamentSlug) ||
+          selected.find(entry => String(entry.id) === String(scoped[index] && scoped[index].tournamentId))?.name, 120) || "Competition",
+        bookmaker: bookmaker === "betika" ? "Betika" : "Pinnacle"
+      }));
+      return res.json({ success: true, period, from: fromDate, to: toDate,
+        sport: text(sport.sportName || sport.name || sportQuery, 80),
+        league: leagueQuery === "all" ? "All leagues" : text(selected[0].name, 120),
+        bookmaker: bookmaker === "betika" ? "Betika" : "Pinnacle", count: predictions.length, predictions,
+        message: predictions.length ? "" : "No fixtures with odds were returned for this period and selection." });
+    } catch (error) {
+      const status = error && error.name === "AbortError" ? 504 : Number(error && error.status) || 502;
+      return res.status(status).json({ success: false, error: error && error.name === "AbortError" ? "OddsPapi request timed out. Try again." : text(error && error.message, 240) || "OddsPapi request failed." });
+    }
   });
   app.get("/api/dream-invest/betting/sports", async (req, res) => {
     if (!await requireOwner(req, res)) return;
