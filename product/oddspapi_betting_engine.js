@@ -385,7 +385,9 @@ function registerOddsPapiRoutes(app, options = {}) {
         return { ...event, market_prediction: { type: market, label, probability_pct: marketProbability,
           direction: market === "over_under" ? direction : null, goal_line: market === "over_under" ? goalLine : null } };
       });
-    const analystResult = await enrichWithAnalystConsensus(selectedEvents, fromDate, toDate);
+    const analystResult = /^(soccer|football)$/i.test(sportQuery)
+      ? await enrichWithAnalystConsensus(selectedEvents, fromDate, toDate)
+      : { events: selectedEvents, source: null, status: "The BSD independent prediction model is currently connected for soccer only.", configured: false };
     const finalEvents = analystResult.events;
     const eventSources = [...new Set([...(publicResult.providers || []), ...(analystResult.source ? [analystResult.source] : [])])];
     return res.json({
