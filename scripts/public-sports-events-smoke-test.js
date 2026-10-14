@@ -9,8 +9,7 @@ const { getPublicSportsEvents, normalizeSportScore, normalizeSportsDb } = requir
   });
   assert.equal(sportScore.fixture, "Alpha FC vs Beta FC");
   assert.equal(sportScore.source, "SportScore");
-  assert.equal(sportScore.prediction_status, "insufficient_verified_data");
-  assert.equal(sportScore.market_favourite, null);
+  assert.equal(sportScore.result_verified, false);
 
   const sportsDb = normalizeSportsDb({
     idEvent: "tsdb-1", strHomeTeam: "Gamma", strAwayTeam: "Delta",
@@ -25,30 +24,39 @@ const { getPublicSportsEvents, normalizeSportScore, normalizeSportsDb } = requir
     const value = String(url);
     requests.push(value);
     if (value.includes("sportscore.com")) {
+      const date = new URL(value).searchParams.get("date");
+      if (date === "2026-10-14") {
+        return { ok: true, status: 200, json: async () => ({
+          fixtures: [{ id: "ss-target", home: "Alpha FC", away: "Beta FC",
+            time: "2026-10-14T15:00:00Z", status: "scheduled", competition: "Test League" }]
+        }) };
+      }
+      const earlier = new Date(date + "T12:00:00Z");
+      const iso = earlier.toISOString();
       return { ok: true, status: 200, json: async () => ({
-        sport: "football", matches: [
-          { id: "ss-2", home: "Alpha FC", away: "Beta FC", time: "2026-10-14T15:00:00Z", status: "scheduled" }
+        fixtures: [
+          { id: "h-" + date, home: "Alpha FC", away: "Other FC", time: iso, status: "finished", home_score: 2, away_score: 0 },
+          { id: "a-" + date, home: "Other FC", away: "Beta FC", time: iso, status: "finished", home_score: 0, away_score: 1 }
         ]
       }) };
     }
     if (value.includes("thesportsdb.com")) {
-      const date = new URL(value).searchParams.get("d");
-      return { ok: true, status: 200, json: async () => ({
-        events: date === "2026-10-14" ? [
-          { idEvent: "tsdb-2", strHomeTeam: "Gamma", strAwayTeam: "Delta", dateEvent: date, strTime: "18:00:00" }
-        ] : []
-      }) };
+      return { ok: true, status: 200, json: async () => ({ events: [] }) };
     }
     throw new Error("Unexpected URL " + value);
   };
   try {
     const result = await getPublicSportsEvents({ sport: "soccer", fromDate: "2026-10-14", toDate: "2026-10-14" });
-    assert.equal(result.events.length, 2);
-    assert.deepEqual(result.providers.sort(), ["SportScore", "TheSportsDB"]);
+    assert.equal(result.events.length, 1);
+    assert.equal(result.events[0].fixture, "Alpha FC vs Beta FC");
+    assert.equal(result.events[0].prediction_status, "model_estimate");
+    assert.ok(result.events[0].model_probabilities);
+    assert.equal(result.providers.includes("SportScore"), true);
     assert.match(result.attribution_html, /Powered by SportScore/);
-    assert.ok(requests.some(url => url.includes("src=dream-education-live")));
+    assert.ok(requests.some(url => url.includes("/api/v1/fixtures/") && url.includes("date=2026-10-14")));
+    assert.ok(requests.every(url => !url.includes("oddspapi.io")));
   } finally {
     global.fetch = oldFetch;
   }
-  console.log("Public sports event source smoke test passed.");
+  console.log("Public sports event source and results-model smoke test passed.");
 })().catch(error => { console.error(error); process.exitCode = 1; });

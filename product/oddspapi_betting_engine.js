@@ -311,8 +311,6 @@ function registerOddsPapiRoutes(app, options = {}) {
     if (!["today", "tomorrow", "week", "month"].includes(period)) {
       return res.status(400).json({ success: false, error: "Choose Today, Tomorrow, This Week, or This Month." });
     }
-    let fromDate;
-    let toDate;
     const now = new Date();
     const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Nairobi", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(now);
     const part = key => parts.find(item => item.type === key).value;
@@ -322,113 +320,36 @@ function registerOddsPapiRoutes(app, options = {}) {
       value.setUTCDate(value.getUTCDate() + days);
       return value.toISOString().slice(0, 10);
     };
-    fromDate = period === "tomorrow" ? addDays(today, 1) : today;
-    toDate = period === "tomorrow" ? fromDate : period === "week" ? addDays(today, 6) :
+    const fromDate = period === "tomorrow" ? addDays(today, 1) : today;
+    const toDate = period === "tomorrow" ? fromDate : period === "week" ? addDays(today, 6) :
       period === "month" ? today.slice(0, 8) + new Date(Date.UTC(Number(today.slice(0, 4)), Number(today.slice(5, 7)), 0)).getUTCDate().toString().padStart(2, "0") : today;
-    let publicResult = { events: [], providers: [], attribution_html: '<a href="https://sportscore.com/" rel="dofollow">Powered by SportScore</a>' };
+    let publicResult = { events: [], history_matches: 0, providers: [], model: "recent-results-form-v1",
+      attribution_html: '<a href="https://sportscore.com/" rel="dofollow">Powered by SportScore</a>' };
+    let sourceError = "";
     try {
       publicResult = await getPublicSportsEvents({ sport: sportQuery, fromDate, toDate });
-    } catch (_) {
-      // Public sources are supplemental. A failure must not break OddsPapi.
-    }
-    if (optionsOnly) {
-      try {
-        const sports = rowsOf(await requestProvider("/v4/sports"));
-        const sportLabels = sports.map(item => ({ item, label: text(item.sportName || item.name || item.slug || item.sportSlug, 100).toLowerCase() }));
-        const sport = (sportQuery === "soccer" || sportQuery === "football"
-          ? sportLabels.find(entry => /soccer/.test(entry.label)) || sportLabels.find(entry => /football/.test(entry.label))
-          : sportLabels.find(entry => entry.label === sportQuery) || sportLabels.find(entry => entry.label.includes(sportQuery)))?.item;
-        if (!sport) return res.json({ success: true, sport: sportQuery, leagues: [], sources: publicResult.providers });
-        const tournaments = rowsOf(await requestProvider("/v4/tournaments", { sportId: sport.sportId || sport.id || sport.sport_id }));
-        const leagues = tournaments.map(item => ({ id: item.tournamentId || item.id, name: text(item.tournamentName || item.name || item.tournamentSlug, 120) }))
-          .filter(item => item.id != null && item.name);
-        return res.json({ success: true, sport: text(sport.sportName || sport.name || sportQuery, 80), leagues, sources: publicResult.providers });
-      } catch (_) {
-        return res.json({ success: true, sport: sportQuery, leagues: [], sources: publicResult.providers });
-      }
-    }
-    const sportIsSoccer = /soccer|football/i.test(sportQuery);
-    let predictions = [];
-    let bookmaker = null;
-    let oddsUnavailable = "";
-    let selectedLeagueName = leagueQuery === "all" ? "All leagues" : leagueQuery;
-    try {
-      const sports = rowsOf(await requestProvider("/v4/sports"));
-      const sportLabels = sports.map(item => ({ item, label: text(item.sportName || item.name || item.slug || item.sportSlug, 100).toLowerCase() }));
-      const sport = (sportQuery === "soccer" || sportQuery === "football"
-        ? sportLabels.find(entry => /soccer/.test(entry.label)) || sportLabels.find(entry => /football/.test(entry.label))
-        : sportLabels.find(entry => entry.label === sportQuery) || sportLabels.find(entry => entry.label.includes(sportQuery)))?.item;
-      if (sport) {
-        const tournaments = rowsOf(await requestProvider("/v4/tournaments", { sportId: sport.sportId || sport.id || sport.sport_id }));
-        const leagueRows = tournaments.map(item => ({ id: item.tournamentId || item.id, name: text(item.tournamentName || item.name || item.tournamentSlug, 120) }))
-          .filter(item => item.id != null && item.name);
-        const selected = leagueQuery === "all" ? leagueRows : leagueRows.filter(item =>
-          item.name.toLowerCase() === leagueQuery || item.name.toLowerCase().includes(leagueQuery));
-        selectedLeagueName = leagueQuery === "all" ? "All leagues" : (selected[0] && selected[0].name) || leagueQuery;
-        if (selected.length) {
-          const start = new Date(fromDate + "T00:00:00+03:00").getTime();
-          const end = new Date(toDate + "T23:59:59+03:00").getTime();
-          const ids = selected.map(item => item.id);
-          const selectedIds = new Set(ids.map(String));
-          const getScopedFixtures = payload => rowsOf(payload).filter(row => {
-            const time = Date.parse(row.startTime || row.start_time || row.kickoff || row.date || "");
-            return Number.isFinite(time) && time >= start && time <= end &&
-              (!row.tournamentId || selectedIds.has(String(row.tournamentId)));
-          });
-          let scoped = [];
-          let betikaError = null;
-          bookmaker = "betika";
-          try {
-            scoped = getScopedFixtures(await requestProvider("/v4/odds-by-tournaments", { bookmakers: bookmaker, tournamentIds: ids.join(",") }));
-            predictions = buildOddsPrediction(scoped, { bookmaker, requireThreeWay: sportIsSoccer });
-          } catch (error) {
-            if (Number(error && error.status) !== 400) throw error;
-            betikaError = text(error.message, 240);
-          }
-          if (betikaError || !predictions.some(item => item.available_outcomes.length)) {
-            bookmaker = "pinnacle";
-            try {
-              scoped = getScopedFixtures(await requestProvider("/v4/odds-by-tournaments", { bookmakers: bookmaker, tournamentIds: ids.join(",") }));
-              predictions = buildOddsPrediction(scoped, { bookmaker, requireThreeWay: sportIsSoccer });
-            } catch (error) {
-              if (betikaError && Number(error && error.status) === 400) {
-                error.message = "OddsPapi rejected both bookmaker requests. Betika: " + betikaError + " Pinnacle: " + text(error.message, 180);
-              }
-              throw error;
-            }
-          }
-          predictions = predictions.map((item, index) => ({
-            ...item,
-            league: text(scoped[index] && (scoped[index].tournamentName || scoped[index].tournamentSlug) ||
-              selected.find(entry => String(entry.id) === String(scoped[index] && scoped[index].tournamentId))?.name, 120) || "Competition",
-            bookmaker: bookmaker === "betika" ? "Betika" : "Pinnacle",
-            source: "OddsPapi",
-            sources: ["OddsPapi"]
-          }));
-        }
-      }
     } catch (error) {
-      oddsUnavailable = text(error && error.message, 240) || "OddsPapi is temporarily unavailable.";
+      sourceError = text(error && error.message, 200) || "Public sports sources are temporarily unavailable.";
     }
-    const normalized = value => String(value || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-    const existingKeys = new Set(predictions.map(item => {
-      const match = String(item.fixture || "").split(/\s+vs\s+/i);
-      return match.length === 2 ? normalized(match[0]) + "|" + normalized(match[1]) + "|" + String(item.kickoff || "").slice(0, 10) : "";
-    }).filter(Boolean));
-    const extraEvents = publicResult.events.filter(event => {
-      if (leagueQuery !== "all" && !String(event.league || "").toLowerCase().includes(leagueQuery)) return false;
-      const key = normalized(event.home_team) + "|" + normalized(event.away_team) + "|" + String(event.kickoff || "").slice(0, 10);
-      return !existingKeys.has(key);
-    });
-    predictions.push(...extraEvents);
+    const allEvents = Array.isArray(publicResult.events) ? publicResult.events : [];
+    const leagues = [...new Set(allEvents.map(event => text(event.league, 120)).filter(Boolean))]
+      .sort((a, b) => a.localeCompare(b)).map((name, index) => ({ id: String(index + 1), name }));
+    if (optionsOnly) {
+      return res.json({ success: true, sport: sportQuery, leagues, sources: publicResult.providers || [],
+        message: sourceError || (leagues.length ? "Leagues discovered from public event sources." : "No leagues were returned for this sport and date.") });
+    }
+    const selectedEvents = allEvents.filter(event => leagueQuery === "all" ||
+      text(event.league, 120).toLowerCase().includes(leagueQuery));
     return res.json({
       success: true, period, from: fromDate, to: toDate, sport: sportQuery,
-      league: selectedLeagueName, bookmaker: bookmaker === "betika" ? "Betika" : bookmaker === "pinnacle" ? "Pinnacle" : "Odds unavailable",
-      count: predictions.length, predictions, sources: [...new Set([...(bookmaker ? ["OddsPapi"] : []), ...publicResult.providers])],
-      attribution_html: publicResult.attribution_html,
-      message: predictions.length
-        ? (oddsUnavailable ? "Showing public fixtures/results where available. OddsPapi is temporarily unavailable; events without fresh odds are not assigned a prediction." : "Events are combined from available sources. Events without fresh, verified odds are listed without a prediction.")
-        : (oddsUnavailable ? oddsUnavailable + " No public fixtures were returned for this period." : "No fixtures were returned by the available sources for this period and selection."),
+      league: leagueQuery === "all" ? "All leagues" : leagueQuery,
+      bookmaker: "Not required", count: selectedEvents.length, predictions: selectedEvents,
+      sources: publicResult.providers || [], model: publicResult.model || "recent-results-form-v1",
+      history_matches_used: Number(publicResult.history_matches) || 0,
+      attribution_html: publicResult.attribution_html || '<a href="https://sportscore.com/" rel="dofollow">Powered by SportScore</a>',
+      message: selectedEvents.length
+        ? "Events and results come from public sports feeds. Predictions use recent scored matches where enough history exists; events without enough history are shown without a pick. No OddsPapi request is made."
+        : (sourceError ? sourceError + " " : "") + "No fixtures were returned by the available public sources for this sport and period. No OddsPapi request is made.",
       bet_placement_enabled: false
     });
   });
