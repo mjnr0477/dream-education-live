@@ -71,19 +71,13 @@
   }
   async function copyResults(root) {
     const rows = exportRows(lastResults);
-    const outputText = rows.map(row => [
-      row.fixture + " (" + row.league + ")",
-      "Kickoff: " + (row.kickoff || "unavailable"),
-      "Prediction/result: " + row.prediction,
-      "Estimated probability: " + (row.estimated_probability_pct === "" ? "unavailable" : row.estimated_probability_pct + "%"),
-      "Probabilities: home " + (row.home_win_pct === "" ? "n/a" : row.home_win_pct + "%") +
-        ", draw " + (row.draw_pct === "" ? "n/a" : row.draw_pct + "%") +
-        ", away " + (row.away_win_pct === "" ? "n/a" : row.away_win_pct + "%"),
-      "Score: " + (row.home_score === "" ? "—" : row.home_score) + " – " + (row.away_score === "" ? "—" : row.away_score),
-      "Confidence: " + (row.confidence || "unavailable"),
-      "Source: " + (row.source || "public event feed"),
-      "Note: " + (row.warning || "Estimates are uncertain, not guarantees.")
-    ].join("\n")).join("\n\n");
+    const outputText = (Array.isArray(lastResults && lastResults.predictions) ? lastResults.predictions : []).map(item => {
+      const prediction = item.market_prediction || {};
+      const probability = prediction.probability_pct == null ? "" : " (" + prediction.probability_pct + "%)";
+      return (item.fixture || "Fixture") + " · " + (item.league || "League") + "\n" +
+        (item.event_state === "live" ? "LIVE" : "UPCOMING") + " · " + localTime(item.kickoff) + "\n" +
+        "Prediction: " + (prediction.label || "Unavailable") + probability;
+    }).join("\n\n");
     let copied = false;
     try {
       await navigator.clipboard.writeText(outputText);
