@@ -28,7 +28,9 @@ async function main() {
       home_team: "Arsenal",
       away_team: "Chelsea",
       model_probabilities: { home_win_pct: 55, draw_pct: 25, away_win_pct: 20 },
-      market_favourite: { outcome: "Arsenal win", model_probability_pct: 55 }
+      market_favourite: { outcome: "Arsenal win", model_probability_pct: 55 },
+      prediction_quality: "recent_team_form",
+      confidence: "moderate"
     }];
     const result = await enrichWithAnalystConsensus(input, "2026-10-14", "2026-10-15");
     assert.equal(result.events.length, 1);
