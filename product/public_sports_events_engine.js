@@ -85,9 +85,14 @@ function normalizeSportScore(row) {
   };
 }
 const ESPN_LEAGUES = [
-  ["eng.1", "Premier League"], ["esp.1", "LaLiga"], ["uefa.champions", "UEFA Champions League"],
-  ["ger.1", "Bundesliga"], ["ita.1", "Serie A"], ["fra.1", "Ligue 1"],
-  ["uefa.europa", "UEFA Europa League"], ["usa.1", "MLS"]
+  ["eng.1", "Premier League"], ["eng.2", "English Championship"], ["eng.3", "English League One"],
+  ["esp.1", "LaLiga"], ["esp.2", "LaLiga 2"], ["ger.1", "Bundesliga"], ["ger.2", "2. Bundesliga"],
+  ["ita.1", "Serie A"], ["ita.2", "Serie B"], ["fra.1", "Ligue 1"], ["fra.2", "Ligue 2"],
+  ["ned.1", "Eredivisie"], ["por.1", "Primeira Liga"], ["sco.1", "Scottish Premiership"],
+  ["uefa.champions", "UEFA Champions League"], ["uefa.europa", "UEFA Europa League"],
+  ["uefa.europa.conf", "UEFA Conference League"], ["usa.1", "MLS"], ["usa.nwsl", "NWSL"],
+  ["mex.1", "Liga MX"], ["bra.1", "Brazil Serie A"], ["arg.1", "Argentina Primera División"],
+  ["saudi.1", "Saudi Pro League"], ["aus.1", "A-League"], ["jpn.1", "J.League"], ["kor.1", "K League 1"]
 ];
 function normalizeESPN(row, leagueName) {
   const competition = Array.isArray(row.competitions) ? row.competitions[0] : null;
