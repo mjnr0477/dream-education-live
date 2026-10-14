@@ -92,7 +92,22 @@ function registerOddsPapiRoutes(app, options = {}) {
     try {
       const response = await fetch(API_BASE + path + "?" + params.toString(), { headers: { Accept: "application/json" }, signal: controller.signal });
       const body = await response.json().catch(() => ({}));
-      if (!response.ok) throw Object.assign(new Error(response.status === 401 || response.status === 403 ? "OddsPapi rejected the API key or its permissions." : "OddsPapi could not return the requested sports data."), { status: response.status === 429 ? 429 : 502 });
+      if (!response.ok) {
+        const providerCode = text(body && (body.code || body.errorCode), 80);
+        const providerMessage = text(body && (body.message || body.error || body.details), 180);
+        let message;
+        if (response.status === 401 || response.status === 403) {
+          message = "OddsPapi rejected the API key or its permissions (HTTP " + response.status + "). Check that the key is active and belongs to the expected account.";
+        } else if (response.status === 429) {
+          message = "OddsPapi rate/request limit reached (HTTP 429)." + (providerMessage ? " " + providerMessage : " Check your OddsPapi request quota in the account dashboard.");
+        } else if (response.status === 400) {
+          message = "OddsPapi rejected the request (HTTP 400)." + (providerMessage ? " " + providerMessage : "");
+        } else {
+          message = "OddsPapi request failed (HTTP " + response.status + ")." + (providerMessage ? " " + providerMessage : " Check provider status and API permissions.");
+        }
+        if (providerCode) message += " Provider code: " + providerCode + ".";
+        throw Object.assign(new Error(message), { status: response.status === 429 ? 429 : response.status === 400 ? 400 : response.status === 401 || response.status === 403 ? response.status : 502 });
+      }
       return body;
     } finally { clearTimeout(timer); }
   }
