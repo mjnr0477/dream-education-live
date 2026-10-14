@@ -64,7 +64,7 @@
     openPanel("DREAM INVEST", "Dream Invest", "Choose a market and period to get a simple model-based prediction and price graph.",
       '<div class="dream-invest">' +
         '<nav class="di-mode-switch" aria-label="Dream Invest mode"><button type="button" class="de-action primary" data-di-mode="trading">Trading</button><button type="button" class="de-action" data-di-mode="betting">Betting</button></nav>' +
-        '<section class="di-section" id="di-betting-view" hidden><div class="di-section-head"><div><span class="di-eyebrow">SPORTS DATA · ODDSPAPI</span><h3>Betika predictions</h3><p class="di-muted">Predictions are estimates from available odds, not guarantees. Betting is not automated.</p></div><span class="di-status" id="di-betting-status">Checking OddsPapi…</span></div><div class="di-bet-controls"><button type="button" class="de-action" id="di-load-sports">Load sports</button><label>Sport ID<input id="di-sport-id" maxlength="60" placeholder="Choose from sports list"></label><button type="button" class="de-action" id="di-load-tournaments">Load tournaments</button><label>Tournament IDs<input id="di-tournament-ids" maxlength="500" placeholder="IDs separated by commas"></label><label>Bookmaker<input id="di-bookmaker" maxlength="80" value="betika" placeholder="betika"></label><button type="button" class="de-action primary" id="di-load-odds">Get odds & predictions</button></div><div id="di-betting-results" aria-live="polite"></div><p class="di-warning">OddsPapi supplies sports data; this integration does not place bets on Betika. Verify fixtures, bookmaker availability and odds before making any independent decision.</p></section>' +
+        '<section class="di-section" id="di-betting-view" hidden><div class="di-section-head"><div><span class="di-eyebrow">UPCOMING EVENTS · EVIDENCE CHECKED</span><h3>Upcoming match predictions</h3><p class="di-muted">Dream withholds predictions when verified form and independent model agreement are missing.</p></div></div><div class="di-bet-controls"><label>Period<select id="di-bet-period"><option value="today">Today</option><option value="tomorrow">Tomorrow</option><option value="week">Next 7 days</option><option value="month">This month</option></select></label><label>Market<select id="di-bet-market"><option value="h2h">Match result</option><option value="btts">Both teams to score</option><option value="over_under">Over/under 2.5 goals</option><option value="correct_score">Correct score</option></select></label><button type="button" class="de-action primary" id="di-load-upcoming">Upcoming predictions</button></div><div id="di-betting-results" aria-live="polite"><p class="di-muted">Only upcoming matches are shown. Predictions appear only when verified form and independent model agreement are available.</p></div></section>' +
         '<div id="di-trading-view">' +
           '<form class="di-search" id="di-market-form">' +
             '<label for="di-symbol">Market symbol</label><input id="di-symbol" name="symbol" maxlength="12" value="AAPL" required autocapitalize="characters" placeholder="e.g. AAPL">' +
@@ -152,56 +152,35 @@
     }
   }
 
-  function unwrapRows(payload) {
-    if (Array.isArray(payload)) return payload;
-    for (const key of ["data", "results", "items", "sports", "tournaments", "fixtures", "odds"]) {
-      if (Array.isArray(payload && payload[key])) return payload[key];
-    }
-    if (payload && payload.data && typeof payload.data === "object") return unwrapRows(payload.data);
-    return [];
-  }
-
-  function renderRows(rows, kind) {
-    if (!rows.length) return '<p class="di-muted">No rows returned. Check the IDs, provider response and API permissions.</p>';
-    return '<div class="di-bet-list">' + rows.slice(0, 50).map(function (row) {
-      const id = row.id || row.sportId || row.sport_id || row.tournamentId || row.tournament_id || row.fixtureId || row.fixture_id || "—";
-      const name = row.name || row.title || row.label || row.fixtureName || row.eventName ||
-        [row.homeTeam || row.home || row.home_team, row.awayTeam || row.away || row.away_team].filter(Boolean).join(" vs ") || "Sports item";
-      const odds = row.decimalOdds || row.decimal_odds || row.odds || row.price;
-      return '<article class="di-bet-row"><strong>' + esc(name) + '</strong><span>ID: ' + esc(id) + '</span>' +
-        (odds && typeof odds !== "object" ? '<span>Odds: ' + esc(odds) + '</span>' : '') +
-        (kind === "odds" ? '<span class="di-muted">Check bookmaker and kickoff before using.</span>' : '') + '</article>';
-    }).join("") + '</div>';
-  }
-
-  async function loadBettingData(path, params) {
+  async function loadUpcomingPredictions() {
     const output = document.getElementById("di-betting-results");
-    if (output) output.innerHTML = '<div class="di-loading">Loading sports data…</div>';
+    if (!output) return;
+    output.innerHTML = '<div class="di-loading">Loading upcoming fixtures and checking prediction evidence…</div>';
+    const period = document.getElementById("di-bet-period").value;
+    const market = document.getElementById("di-bet-market").value;
+    const params = new URLSearchParams({ period: period, sport: "soccer", league: "all", market: market });
     try {
-      const query = new URLSearchParams(params || {});
-      const data = await api(path + (query.toString() ? "?" + query.toString() : ""));
-      if (output) {
-        if (path.endsWith("/odds")) {
-          const predictions = Array.isArray(data.predictions) ? data.predictions : [];
-          output.innerHTML = predictions.length
-            ? '<div class="di-bet-list">' + predictions.map(function (item) {
-                const favourite = item.market_favourite;
-                return '<article class="di-bet-row"><strong>' + esc(item.fixture) + '</strong>' +
-                  '<span>' + esc(item.kickoff || "Kickoff not supplied") + '</span>' +
-                  '<span>Market favourite: ' + esc(favourite ? favourite.outcome : "Unavailable") + '</span>' +
-                  '<span>Implied probability: ' + esc(favourite ? favourite.implied_probability_pct + "%" : "Unavailable") + '</span>' +
-                  '<span>Odds: ' + esc(favourite ? favourite.decimal_odds : "Unavailable") + '</span>' +
-                  '<small>' + esc(item.warning || "") + '</small></article>';
-              }).join("") + '</div>'
-            : renderRows(unwrapRows(data.data), "odds");
-        } else {
-          output.innerHTML = renderRows(unwrapRows(data.data), path.endsWith("/sports") ? "sports" : "tournaments");
-        }
+      const data = await api("/api/dream-invest/betting/events?" + params.toString());
+      const predictions = Array.isArray(data.predictions) ? data.predictions : [];
+      if (!predictions.length) {
+        output.innerHTML = '<p class="di-muted">No upcoming fixtures found for this period. Try another period.</p>';
+        return;
       }
-      return data;
+      output.innerHTML = '<div class="di-bet-list">' + predictions.map(function (item) {
+        const pick = item.market_prediction || {};
+        const available = pick.probability_pct != null && Number.isFinite(Number(pick.probability_pct));
+        const status = item.prediction_status === "no_verified_consensus" ? "No verified consensus" :
+          item.prediction_status === "insufficient_verified_history" ? "Insufficient verified history" :
+          available ? "Evidence available" : "Prediction withheld";
+        return '<article class="di-bet-row"><strong>' + esc(item.fixture || (item.home_team + " vs " + item.away_team)) + '</strong>' +
+          '<span>' + esc(item.league || "Competition") + ' · ' + esc(item.kickoff || "Kickoff unavailable") + '</span>' +
+          '<span>Prediction: ' + esc(available ? pick.label : "No reliable prediction") + '</span>' +
+          '<span>Status: ' + esc(status) + '</span>' +
+          (available ? '<span>Model estimate: ' + esc(Number(pick.probability_pct).toFixed(1)) + '%</span>' : '') +
+          '<small>' + esc(item.warning || "Predictions are uncertain and not guaranteed.") + '</small></article>';
+      }).join("") + '</div>';
     } catch (error) {
-      if (output) output.innerHTML = '<div class="di-error"><strong>Sports data unavailable</strong><p>' + esc(error.message) + '</p></div>';
-      return null;
+      output.innerHTML = '<div class="di-error"><strong>Upcoming predictions unavailable</strong><p>' + esc(error.message) + '</p></div>';
     }
   }
 
@@ -217,43 +196,8 @@
         modeButtons.forEach(function (item) { item.classList.toggle("primary", item === button); });
       });
     });
-    const sportsButton = document.getElementById("di-load-sports");
-    if (sportsButton) sportsButton.addEventListener("click", async function () {
-      const data = await loadBettingData("/api/dream-invest/betting/sports");
-      if (data) {
-        const rows = unwrapRows(data.data);
-        const status = document.getElementById("di-betting-status");
-        if (status) status.textContent = "OddsPapi connected · " + rows.length + " sports";
-      }
-    });
-    const tournamentsButton = document.getElementById("di-load-tournaments");
-    if (tournamentsButton) tournamentsButton.addEventListener("click", function () {
-      const sportId = document.getElementById("di-sport-id").value.trim();
-      if (!sportId) {
-        const output = document.getElementById("di-betting-results");
-        if (output) output.innerHTML = '<p class="di-error">Load sports first, then enter a sport ID.</p>';
-        return;
-      }
-      loadBettingData("/api/dream-invest/betting/tournaments", { sportId: sportId });
-    });
-    const oddsButton = document.getElementById("di-load-odds");
-    if (oddsButton) oddsButton.addEventListener("click", function () {
-      const tournamentIds = document.getElementById("di-tournament-ids").value.trim();
-      const bookmaker = document.getElementById("di-bookmaker").value.trim() || "betika";
-      if (!tournamentIds) {
-        const output = document.getElementById("di-betting-results");
-        if (output) output.innerHTML = '<p class="di-error">Enter one or more tournament IDs first.</p>';
-        return;
-      }
-      loadBettingData("/api/dream-invest/betting/odds", { tournamentIds: tournamentIds, bookmaker: bookmaker });
-    });
-    api("/api/dream-invest/betting/status").then(function (data) {
-      const status = document.getElementById("di-betting-status");
-      if (status) status.textContent = data.configured ? "OddsPapi key ready" : "API key missing";
-    }).catch(function (error) {
-      const status = document.getElementById("di-betting-status");
-      if (status) status.textContent = error.message || "Sign in required";
-    });
+    const loadButton = document.getElementById("di-load-upcoming");
+    if (loadButton) loadButton.addEventListener("click", loadUpcomingPredictions);
   }
 
   async function openDreamInvest() {

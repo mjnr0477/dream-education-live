@@ -5,7 +5,7 @@ const { getPublicSportsEvents, normalizeSportScore, normalizeSportsDb, isUpcomin
 (async () => {
   const sportScore = normalizeSportScore({
     id: "ss-1", home: "Alpha FC", away: "Beta FC",
-    time: "2026-10-14T15:00:00Z", status: "scheduled"
+    time: "2026-10-14T18:00:00Z", status: "scheduled"
   });
   assert.equal(sportScore.fixture, "Alpha FC vs Beta FC");
   assert.equal(sportScore.source, "SportScore");
@@ -20,9 +20,9 @@ const { getPublicSportsEvents, normalizeSportScore, normalizeSportsDb, isUpcomin
   const testNow = Date.parse("2026-10-14T12:00:00Z");
   assert.equal(isUpcomingOrLive({ kickoff: "2026-10-14T15:00:00Z", match_status: "scheduled" }, testNow), true);
   assert.equal(isUpcomingOrLive({ kickoff: "2026-10-14T11:00:00Z", match_status: "finished", result_verified: true }, testNow), false);
-  assert.equal(isUpcomingOrLive({ kickoff: "2026-10-14T11:00:00Z", match_status: "in progress" }, testNow), true);
-  assert.equal(isUpcomingOrLive({ kickoff: "2026-10-14T11:00:00Z", match_status: "STATUS_IN_PROGRESS" }, testNow), true);
-  assert.equal(isUpcomingOrLive({ kickoff: "2026-10-14T11:00:00Z", match_status: "1H" }, testNow), true);
+  assert.equal(isUpcomingOrLive({ kickoff: "2026-10-14T15:00:00Z", match_status: "in progress" }, testNow), false);
+  assert.equal(isUpcomingOrLive({ kickoff: "2026-10-14T15:00:00Z", match_status: "STATUS_IN_PROGRESS" }, testNow), false);
+  assert.equal(isUpcomingOrLive({ kickoff: "2026-10-14T15:00:00Z", match_status: "1H" }, testNow), false);
 
   const oldFetch = global.fetch;
   const requests = [];
@@ -35,11 +35,11 @@ const { getPublicSportsEvents, normalizeSportScore, normalizeSportsDb, isUpcomin
         return { ok: true, status: 200, json: async () => ({
           fixtures: [
             { id: "ss-target", home: "Alpha FC", away: "Beta FC",
-              time: "2026-10-14T15:00:00Z", status: "scheduled", competition: "Test League" },
+              time: "2026-10-14T18:00:00Z", status: "scheduled", competition: "Test League" },
             { id: "ss-finished", home: "Old FC", away: "Past FC",
               time: "2026-10-14T10:00:00Z", status: "finished", home_score: 1, away_score: 0, competition: "Test League" },
             { id: "ss-no-history", home: "Unknown FC", away: "Mystery FC",
-              time: "2026-10-14T16:00:00Z", status: "scheduled", competition: "Test League" }
+              time: "2026-10-14T19:00:00Z", status: "scheduled", competition: "Test League" }
           ]
         }) };
       }
@@ -67,12 +67,10 @@ const { getPublicSportsEvents, normalizeSportScore, normalizeSportsDb, isUpcomin
     assert.equal(predicted.prediction_status, "model_estimate");
     assert.ok(predicted.model_probabilities);
     assert.ok(predicted.model_markets);
-    assert.ok(baseline, "Fixture without recent history must still be returned.");
-    assert.equal(baseline.prediction_status, "model_estimate_low_history");
-    assert.equal(baseline.prediction_quality, "baseline_low_history");
-    assert.ok(baseline.market_favourite && Number.isFinite(baseline.market_favourite.model_probability_pct),
-      "Every upcoming soccer fixture must have a low-confidence baseline prediction when form data is missing.");
-    assert.ok(baseline.model_markets && Number.isFinite(baseline.model_markets.btts.yes_pct));
+    assert.ok(baseline, "Upcoming fixture without recent history must remain visible.");
+    assert.equal(baseline.prediction_status, "insufficient_verified_history");
+    assert.equal(baseline.market_favourite, null, "Dream must not invent a pick when recent verified history is missing.");
+    assert.equal(baseline.model_markets, null, "Derived markets must also be withheld without sufficient evidence.");
     assert.ok(Number.isFinite(result.events[0].model_markets.btts.yes_pct));
     assert.ok(Number.isFinite(result.events[0].model_markets.totals["2.5"].over_pct));
     assert.match(result.events[0].model_markets.correct_score.score, /^\d+-\d+$/);

@@ -398,8 +398,8 @@ function registerOddsPapiRoutes(app, options = {}) {
       history_matches_used: Number(publicResult.history_matches) || 0,
       attribution_html: publicResult.attribution_html || '<a href="https://sportscore.com/" rel="dofollow">Powered by SportScore</a>',
       message: finalEvents.length
-        ? "Live and upcoming fixtures only. Completed matches are used only for analysis. Available independent predictions are compared with Dream’s statistical model. No OddsPapi request is made."
-        : (sourceError ? sourceError + " " : "") + "No live or upcoming fixtures were found for this selection. Try another league or period. No OddsPapi request is made.",
+        ? "Upcoming fixtures only. Live and completed matches are excluded. Predictions are shown only when verified team history and independent model agreement are available. No OddsPapi request is made."
+        : (sourceError ? sourceError + " " : "") + "No upcoming fixtures were found for this selection. Try another period. No OddsPapi request is made.",
       bet_placement_enabled: false
     });
   });
