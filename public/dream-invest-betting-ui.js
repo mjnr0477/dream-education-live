@@ -114,7 +114,7 @@
         const favorite = item.market_favourite;
         const source = item.source || (item.sources || []).join(", ") || "Event feed";
         return '<article class="di-bet-row di-prediction-card"><div class="di-prediction-title"><strong>' + esc(item.fixture || "Fixture") + '</strong><span class="di-league-tag">' + esc(item.league || "Competition") + '</span></div>' +
-          '<span class="di-kickoff">' + esc(localTime(item.kickoff)) + ' · ' + esc(source) + '</span>' +
+          '<span class="di-kickoff"><strong>' + (item.event_state === "live" ? 'LIVE · ' : 'UPCOMING · ') + '</strong>' + esc(localTime(item.kickoff)) + ' · ' + esc(source) + '</span>' +
           (item.home_score != null && item.away_score != null ? '<div class="di-live-score"><strong>' + esc(item.home_score) + ' – ' + esc(item.away_score) + '</strong><small>' + esc(item.match_status || "Result") + '</small></div>' : '') +
           '<div class="di-pick"><span>' + esc(item.prediction_status === "result_available" ? "Recorded result" : marketTitle) + '</span><strong>' +
           esc(item.market_prediction ? item.market_prediction.label :
@@ -181,7 +181,7 @@
       '<label id="di-market-line-wrap">Goal line<select id="di-simple-goal-line"><option value="1.5">1.5</option><option value="2.5" selected>2.5</option><option value="3.5">3.5</option></select></label>' +
       '<button type="button" class="de-action primary" id="di-simple-predict">Show predictions</button>';
     const old = root.querySelector("#di-betting-results");
-    if (old) old.innerHTML = '<p class="di-muted">Choose a period, sport and optionally a league. Dream uses public fixtures and recent results; no OddsPapi key is required.</p>';
+    if (old) old.innerHTML = '<p class="di-muted">Only live and upcoming fixtures are shown. Kickoff times are displayed in Kenya time; recent completed results are used only to analyse team form.</p>';
     const sport = root.querySelector("#di-simple-sport");
     const period = root.querySelector("#di-simple-period");
     const market = root.querySelector("#di-simple-market");
