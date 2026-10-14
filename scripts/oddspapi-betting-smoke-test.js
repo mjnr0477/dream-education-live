@@ -10,7 +10,12 @@ let requested = "";
 let mockProviderResponse = null;
 global.fetch = async url => {
   requested = String(url);
-  return mockProviderResponse || { ok: true, status: 200, json: async () => ({ data: [{ id: "fx1", name: "Team A vs Team B", odds: [{ name: "Team A", decimalOdds: 1.8 }, { name: "Draw", decimalOdds: 3.2 }, { name: "Team B", decimalOdds: 4.1 }] }] }) };
+  if (mockProviderResponse) return mockProviderResponse;
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Nairobi", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  const fixtures = [{ fixtureId: "fx1", tournamentId: 17, tournamentName: "Premier League", participant1Name: "Team A", participant2Name: "Team B", startTime: today + "T12:00:00+03:00", odds: [{ name: "Team A", decimalOdds: 1.8 }, { name: "Draw", decimalOdds: 3.2 }, { name: "Team B", decimalOdds: 4.1 }] }];
+  if (requested.includes("/v4/sports")) return { ok: true, status: 200, json: async () => [{ sportId: 10, sportName: "Soccer" }] };
+  if (requested.includes("/v4/tournaments")) return { ok: true, status: 200, json: async () => [{ tournamentId: 17, tournamentName: "Premier League" }] };
+  return { ok: true, status: 200, json: async () => fixtures };
 };
 registerOddsPapiRoutes(app, { getAuthenticatedAccount: async req => req.headers.authorization === "Bearer owner" ? { success: true, account: { owner_account: true } } : { success: false, status: 401, error: "Sign in first." } });
 function res() { return { statusCode: 200, body: null, status(n) { this.statusCode = n; return this; }, json(v) { this.body = v; return this; } }; }
@@ -25,6 +30,18 @@ function res() { return { statusCode: 200, body: null, status(n) { this.statusCo
   assert.ok(requested.includes("apiKey=test-key"));
   response = res();
   await routes.get["/api/dream-invest/betting/odds"]({ headers: { authorization: "Bearer owner" }, query: {} }, response);
+  assert.equal(response.statusCode, 400);
+  response = res();
+  await routes.get["/api/dream-invest/betting/events"]({ headers: { authorization: "Bearer owner" }, query: { period: "today", sport: "soccer", league: "all", optionsOnly: "1" } }, response);
+  assert.equal(response.body.success, true);
+  assert.equal(response.body.leagues[0].name, "Premier League");
+  response = res();
+  await routes.get["/api/dream-invest/betting/events"]({ headers: { authorization: "Bearer owner" }, query: { period: "today", sport: "soccer", league: "all" } }, response);
+  assert.equal(response.body.success, true);
+  assert.equal(response.body.count, 1);
+  assert.equal(response.body.predictions[0].fixture, "Team A vs Team B");
+  response = res();
+  await routes.get["/api/dream-invest/betting/events"]({ headers: { authorization: "Bearer owner" }, query: { period: "year", sport: "soccer" } }, response);
   assert.equal(response.statusCode, 400);
   assert.equal(routes.get["/api/dream-invest/betting/sports"] instanceof Function, true);
   assert.equal(routes.get["/api/dream-invest/betting/tournaments"] instanceof Function, true);
