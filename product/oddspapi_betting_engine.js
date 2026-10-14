@@ -212,6 +212,23 @@ function buildOddsPrediction(payload, options = {}) {
 }
 function registerOddsPapiRoutes(app, options = {}) {
   const getAuthenticatedAccount = options.getAuthenticatedAccount;
+  async function requireAccount(req, res) {
+    if (typeof getAuthenticatedAccount !== "function") {
+      res.status(503).json({ success: false, error: "Dream Education authentication is unavailable." });
+      return false;
+    }
+    try {
+      const auth = await getAuthenticatedAccount(req);
+      if (!auth || !auth.success || !auth.account) {
+        res.status(Number(auth && auth.status) || 401).json({ success: false, error: auth && auth.error || "Sign in first." });
+        return false;
+      }
+      return true;
+    } catch (_) {
+      res.status(503).json({ success: false, error: "Could not verify your account." });
+      return false;
+    }
+  }
   async function requireOwner(req, res) {
     if (typeof getAuthenticatedAccount !== "function") {
       res.status(503).json({ success: false, error: "Dream Education authentication is unavailable." });
@@ -304,7 +321,7 @@ function registerOddsPapiRoutes(app, options = {}) {
     return res.json({ success: true, configured: Boolean(text(process.env.ODDSPAPI_API_KEY, 500)), provider: "OddsPapi", bet_placement_enabled: false, message: text(process.env.ODDSPAPI_API_KEY, 500) ? "OddsPapi key is configured. Bet placement is not connected." : "Add ODDSPAPI_API_KEY in Render Environment." });
   });
   app.get("/api/dream-invest/betting/events", async (req, res) => {
-    if (!await requireOwner(req, res)) return;
+    if (!await requireAccount(req, res)) return;
     const period = text(req.query && req.query.period, 20).toLowerCase() || "today";
     const sportQuery = text(req.query && req.query.sport, 80).toLowerCase() || "soccer";
     const leagueQuery = text(req.query && req.query.league, 120).toLowerCase() || "all";

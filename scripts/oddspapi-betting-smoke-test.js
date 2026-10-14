@@ -27,7 +27,11 @@ global.fetch = async url => {
   if (requested.includes("/v4/tournaments")) return { ok: true, status: 200, json: async () => [{ tournamentId: 17, tournamentName: "Premier League" }] };
   return { ok: true, status: 200, json: async () => fixtures };
 }
-registerOddsPapiRoutes(app, { getAuthenticatedAccount: async req => req.headers.authorization === "Bearer owner" ? { success: true, account: { owner_account: true } } : { success: false, status: 401, error: "Sign in first." } });
+registerOddsPapiRoutes(app, { getAuthenticatedAccount: async req => {
+  if (req.headers.authorization === "Bearer owner") return { success: true, account: { owner_account: true } };
+  if (req.headers.authorization === "Bearer user") return { success: true, account: { email: "learner@example.com", role: "learner" } };
+  return { success: false, status: 401, error: "Sign in first." };
+} });
 function res() { return { statusCode: 200, body: null, status(n) { this.statusCode = n; return this; }, json(v) { this.body = v; return this; } }; }
 (async () => {
   let response = res();
@@ -42,6 +46,15 @@ function res() { return { statusCode: 200, body: null, status(n) { this.statusCo
   await routes.get["/api/dream-invest/betting/odds"]({ headers: { authorization: "Bearer owner" }, query: {} }, response);
   assert.equal(response.statusCode, 400);
   const oddsRequestsBeforePublicEvents = oddsPapiRequests;
+  response = res();
+  await routes.get["/api/dream-invest/betting/events"]({ headers: { authorization: "Bearer user" }, query: { period: "today", sport: "soccer", league: "all", optionsOnly: "1" } }, response);
+  assert.equal(response.body.success, true, "Any authenticated Dream Education user can access public event discovery.");
+  response = res();
+  await routes.get["/api/dream-invest/betting/status"]({ headers: { authorization: "Bearer user" } }, response);
+  assert.equal(response.statusCode, 403, "Provider configuration remains owner-only.");
+  response = res();
+  await routes.get["/api/dream-invest/betting/events"]({ headers: {}, query: { period: "today", sport: "soccer" } }, response);
+  assert.equal(response.statusCode, 401, "Betting events still require a signed-in account.");
   response = res();
   await routes.get["/api/dream-invest/betting/events"]({ headers: { authorization: "Bearer owner" }, query: { period: "today", sport: "soccer", league: "all", optionsOnly: "1" } }, response);
   assert.equal(response.body.success, true);
