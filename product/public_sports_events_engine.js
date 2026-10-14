@@ -325,52 +325,59 @@ function modelPrediction(event, teams, sport) {
 async function getPublicSportsEvents({ sport, fromDate, toDate }) {
   const apiSport = sportScoreSport(sport);
   if (!apiSport || !fromDate || !toDate) {
-    return { events: [], history: [], providers: [], attribution_html: '<a href="https://sportscore.com/" rel="dofollow">Powered by SportScore</a>' };
+    return { events: [], history_matches: 0, providers: [], source_errors: ["Unsupported sport or date range."], attribution_html: '<a href="https://sportscore.com/" rel="dofollow">Powered by SportScore</a>' };
   }
   const targetDates = dateRange(fromDate, toDate, 35);
-  // Retrieve five weeks of prior fixtures so teams can have enough recent completed matches for the form model.
+  if (!targetDates.length) {
+    return { events: [], history_matches: 0, providers: [], source_errors: ["Invalid date range."], attribution_html: '<a href="https://sportscore.com/" rel="dofollow">Powered by SportScore</a>' };
+  }
+  // Fetch sources concurrently. Sequentially waiting on every provider made the
+  // old endpoint take too long, especially for a one-day request with 35 history days.
   const historyDates = Array.from({ length: 35 }, (_, index) => dateAdd(fromDate, -(index + 1)));
   const allDates = [...new Set([...targetDates, ...historyDates])];
-  const sportScoreResults = await mapLimit(allDates, 12, async date => {
-    const url = SPORT_SCORE_BASE + "?" + new URLSearchParams({ sport: apiSport, date, limit: "200" }).toString();
-    const payload = await fetchCache(url);
-    return listOf(payload, ["fixtures", "matches", "events", "results", "data"]).map(normalizeSportScore).filter(Boolean);
-  });
-  const events = [];
-  const history = [];
-  let sportScoreOk = false;
-  sportScoreResults.forEach((result, index) => {
-    if (result.status !== "fulfilled") return;
-    sportScoreOk = true;
-    const date = allDates[index];
-    const rows = result.value;
-    if (targetDates.includes(date)) events.push(...rows.filter(event => inWindow(event, fromDate, toDate)));
-    else history.push(...rows);
-  });
-  const dbSport = sportsDbSport(sport);
-  let sportsDbOk = false;
-  // Query every requested day so this source can supplement the full upcoming schedule,
-  // plus sampled prior days for recent-form evidence.
-  const dbHistoryDates = historyDates.filter((_, index) => index % 3 === 0);
-  const dbDates = [...new Set([...targetDates, ...dbHistoryDates].filter(Boolean))];
-  const dbResults = await mapLimit(dbDates, 5, async date => {
-    const url = SPORTS_DB_BASE + "?" + new URLSearchParams({ d: date, s: dbSport }).toString();
-    const payload = await fetchCache(url);
-    return listOf(payload, ["events", "results", "data"]).map(normalizeSportsDb).filter(Boolean);
-  });
-  dbResults.forEach((result, index) => {
-    if (result.status !== "fulfilled") return;
-    sportsDbOk = true;
-    const date = dbDates[index];
-    events.push(...result.value.filter(event => inWindow(event, fromDate, toDate)));
-    if (date < fromDate) history.push(...result.value.filter(event => event.result_verified));
-  });
-  // ESPN's public scoreboard supplements fixtures and recent results for major soccer competitions.
-  let espnOk = false;
-  if (/^(soccer|football)$/i.test(clean(sport, 50))) {
+  const sourceErrors = [];
+  const loadSportScore = async () => {
+    const results = await mapLimit(allDates, 20, async date => {
+      const url = SPORT_SCORE_BASE + "?" + new URLSearchParams({ sport: apiSport, date, limit: "200" }).toString();
+      const payload = await fetchCache(url);
+      return { date, rows: listOf(payload, ["fixtures", "matches", "events", "results", "data"]).map(normalizeSportScore).filter(Boolean) };
+    });
+    const events = [], history = [];
+    let ok = false;
+    results.forEach(result => {
+      if (result.status !== "fulfilled") return;
+      ok = true;
+      if (targetDates.includes(result.value.date)) events.push(...result.value.rows.filter(event => inWindow(event, fromDate, toDate)));
+      else history.push(...result.value.rows);
+    });
+    if (!ok) sourceErrors.push("SportScore could not return fixture data.");
+    return { events, history, ok };
+  };
+  const loadSportsDb = async () => {
+    const dbSport = sportsDbSport(sport);
+    const dbHistoryDates = historyDates.filter((_, index) => index % 3 === 0);
+    const dbDates = [...new Set([...targetDates, ...dbHistoryDates])];
+    const results = await mapLimit(dbDates, 15, async date => {
+      const url = SPORTS_DB_BASE + "?" + new URLSearchParams({ d: date, s: dbSport }).toString();
+      const payload = await fetchCache(url);
+      return { date, rows: listOf(payload, ["events", "results", "data"]).map(normalizeSportsDb).filter(Boolean) };
+    });
+    const events = [], history = [];
+    let ok = false;
+    results.forEach(result => {
+      if (result.status !== "fulfilled") return;
+      ok = true;
+      events.push(...result.value.rows.filter(event => inWindow(event, fromDate, toDate)));
+      if (result.value.date < fromDate) history.push(...result.value.rows.filter(event => event.result_verified));
+    });
+    if (!ok) sourceErrors.push("TheSportsDB could not return fixture data.");
+    return { events, history, ok };
+  };
+  const loadESPN = async () => {
+    if (!/^(soccer|football)$/i.test(clean(sport, 50))) return { events: [], history: [], ok: false };
     const historyFrom = dateAdd(fromDate, -35);
     const historyTo = dateAdd(fromDate, -1);
-    const espnResults = await mapLimit(ESPN_LEAGUES, 4, async ([slug, leagueName]) => {
+    const results = await mapLimit(ESPN_LEAGUES, 12, async ([slug, leagueName]) => {
       const targetUrl = "https://site.api.espn.com/apis/site/v2/sports/soccer/" + slug +
         "/scoreboard?dates=" + espnDateRange(fromDate, toDate) + "&limit=100";
       const historyUrl = "https://site.api.espn.com/apis/site/v2/sports/soccer/" + slug +
@@ -381,13 +388,24 @@ async function getPublicSportsEvents({ sport, fromDate, toDate }) {
         history: listOf(historyPayload, ["events"]).map(row => normalizeESPN(row, leagueName)).filter(event => event && event.result_verified)
       };
     });
-    espnResults.forEach(result => {
+    const events = [], history = [];
+    let ok = false;
+    results.forEach(result => {
       if (result.status !== "fulfilled") return;
-      espnOk = true;
+      ok = true;
       events.push(...result.value.events.filter(event => inWindow(event, fromDate, toDate)));
       history.push(...result.value.history);
     });
-  }
+    if (!ok) sourceErrors.push("ESPN could not return fixture data.");
+    return { events, history, ok };
+  };
+  const [sportScoreResult, sportsDbResult, espnResult] = await Promise.all([
+    loadSportScore().catch(error => { sourceErrors.push("SportScore: " + clean(error.message, 120)); return { events: [], history: [], ok: false }; }),
+    loadSportsDb().catch(error => { sourceErrors.push("TheSportsDB: " + clean(error.message, 120)); return { events: [], history: [], ok: false }; }),
+    loadESPN().catch(error => { sourceErrors.push("ESPN: " + clean(error.message, 120)); return { events: [], history: [], ok: false }; })
+  ]);
+  const events = [...sportScoreResult.events, ...sportsDbResult.events, ...espnResult.events];
+  const history = [...sportScoreResult.history, ...sportsDbResult.history, ...espnResult.history];
   const dedupe = rows => {
     const seen = new Set();
     return rows.filter(event => {
@@ -399,18 +417,19 @@ async function getPublicSportsEvents({ sport, fromDate, toDate }) {
   };
   const uniqueHistory = dedupe(history);
   const teams = buildRecentForm(uniqueHistory, sport);
-  // Only future, not-yet-started fixtures are shown. Completed results are used
-  // exclusively as historical evidence for the model.
+  // A fixture must have a future kickoff and a pre-match status. Results and live
+  // events are historical evidence only; they never enter the upcoming list.
   const uniqueEvents = dedupe(events).filter(event => isUpcomingOrLive(event)).map(event => {
     const predicted = modelPrediction(event, teams, sport);
     return { ...predicted, event_state: "upcoming" };
   }).sort((a, b) => Date.parse(a.kickoff || "") - Date.parse(b.kickoff || ""));
   const providers = [];
-  if (sportScoreOk) providers.push("SportScore");
-  if (sportsDbOk) providers.push("TheSportsDB");
-  if (espnOk) providers.push("ESPN");
+  if (sportScoreResult.ok) providers.push("SportScore");
+  if (sportsDbResult.ok) providers.push("TheSportsDB");
+  if (espnResult.ok) providers.push("ESPN");
   return {
-    events: uniqueEvents, history_matches: uniqueHistory.length, providers,
+    events: uniqueEvents, history_matches: uniqueHistory.length, providers, source_errors: sourceErrors,
+    source_status: providers.length ? "available" : "unavailable",
     attribution_html: '<a href="https://sportscore.com/" rel="dofollow">Powered by SportScore</a>',
     model: "recent-results-form-v1"
   };

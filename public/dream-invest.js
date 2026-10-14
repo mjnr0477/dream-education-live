@@ -64,7 +64,7 @@
     openPanel("DREAM INVEST", "Dream Invest", "Choose a market and period to get a simple model-based prediction and price graph.",
       '<div class="dream-invest">' +
         '<nav class="di-mode-switch" aria-label="Dream Invest mode"><button type="button" class="de-action primary" data-di-mode="trading">Trading</button><button type="button" class="de-action" data-di-mode="betting">Betting</button></nav>' +
-        '<section class="di-section" id="di-betting-view" hidden><div class="di-section-head"><div><span class="di-eyebrow">UPCOMING EVENTS · EVIDENCE CHECKED</span><h3>Upcoming match predictions</h3><p class="di-muted">Dream withholds predictions when verified form and independent model agreement are missing.</p></div></div><div class="di-bet-controls"><label>Period<select id="di-bet-period"><option value="today">Today</option><option value="tomorrow">Tomorrow</option><option value="week">Next 7 days</option><option value="month">This month</option></select></label><label>Market<select id="di-bet-market"><option value="h2h">Match result</option><option value="btts">Both teams to score</option><option value="over_under">Over/under 2.5 goals</option><option value="correct_score">Correct score</option></select></label><button type="button" class="de-action primary" id="di-load-upcoming">Upcoming predictions</button></div><div id="di-betting-results" aria-live="polite"><p class="di-muted">Only upcoming matches are shown. Predictions appear only when verified form and independent model agreement are available.</p></div></section>' +
+        '<section class="di-section" id="di-betting-view" hidden><div class="di-section-head"><div><span class="di-eyebrow">UPCOMING EVENTS · EVIDENCE CHECKED</span><h3>Upcoming match predictions</h3><p class="di-muted">Dream withholds predictions when verified form and independent model agreement are missing.</p></div></div><div class="di-bet-controls"><label>Period<select id="di-bet-period"><option value="today">Today</option><option value="tomorrow">Tomorrow</option><option value="day_after_tomorrow">Day after tomorrow</option><option value="custom">Choose another date</option><option value="this_week">This week</option><option value="next_week">Next week</option><option value="this_month">This month</option></select></label><label id="di-bet-date-wrap" hidden>Choose date<input type="date" id="di-bet-date" min="2026-10-14"></label><label>Market<select id="di-bet-market"><option value="h2h">Match result</option><option value="btts">Both teams to score</option><option value="over_under">Over/under 2.5 goals</option><option value="correct_score">Correct score</option></select></label><button type="button" class="de-action primary" id="di-load-upcoming">Upcoming predictions</button></div><div id="di-betting-results" aria-live="polite"><p class="di-muted">Only upcoming matches are shown. Predictions appear only when verified form and independent model agreement are available.</p></div></section>' +
         '<div id="di-trading-view">' +
           '<form class="di-search" id="di-market-form">' +
             '<label for="di-symbol">Market symbol</label><input id="di-symbol" name="symbol" maxlength="12" value="AAPL" required autocapitalize="characters" placeholder="e.g. AAPL">' +
@@ -159,11 +159,21 @@
     const period = document.getElementById("di-bet-period").value;
     const market = document.getElementById("di-bet-market").value;
     const params = new URLSearchParams({ period: period, sport: "soccer", league: "all", market: market });
+    if (period === "custom") {
+      const chosenDate = document.getElementById("di-bet-date").value;
+      if (!chosenDate) {
+        output.innerHTML = '<p class="di-muted">Choose a date first.</p>';
+        return;
+      }
+      params.set("date", chosenDate);
+    }
     try {
       const data = await api("/api/dream-invest/betting/events?" + params.toString());
       const predictions = Array.isArray(data.predictions) ? data.predictions : [];
       if (!predictions.length) {
-        output.innerHTML = '<p class="di-muted">No upcoming fixtures found for this period. Try another period.</p>';
+        output.innerHTML = '<p class="di-muted">' + esc(data.message || "No upcoming fixtures were returned for this period.") + '</p>' +
+          (Array.isArray(data.source_errors) && data.source_errors.length
+            ? '<p class="di-muted">' + esc(data.source_errors.join(" · ")) + '</p>' : '');
         return;
       }
       output.innerHTML = '<div class="di-bet-list">' + predictions.map(function (item) {
@@ -173,7 +183,7 @@
           item.prediction_status === "insufficient_verified_history" ? "Insufficient verified history" :
           available ? "Evidence available" : "Prediction withheld";
         return '<article class="di-bet-row"><strong>' + esc(item.fixture || (item.home_team + " vs " + item.away_team)) + '</strong>' +
-          '<span>' + esc(item.league || "Competition") + ' · ' + esc(item.kickoff || "Kickoff unavailable") + '</span>' +
+          '<span>' + esc(item.league || "Competition") + ' · ' + esc(item.kickoff && Number.isFinite(Date.parse(item.kickoff)) ? new Date(item.kickoff).toLocaleString("en-KE", { timeZone: "Africa/Nairobi", dateStyle: "medium", timeStyle: "short" }) : "Kickoff unavailable") + '</span>' +
           '<span>Prediction: ' + esc(available ? pick.label : "No reliable prediction") + '</span>' +
           '<span>Status: ' + esc(status) + '</span>' +
           (available ? '<span>Model estimate: ' + esc(Number(pick.probability_pct).toFixed(1)) + '%</span>' : '') +
@@ -195,6 +205,18 @@
         if (betting) betting.hidden = !isBetting;
         modeButtons.forEach(function (item) { item.classList.toggle("primary", item === button); });
       });
+    });
+    const periodSelect = document.getElementById("di-bet-period");
+    const dateWrap = document.getElementById("di-bet-date-wrap");
+    const dateInput = document.getElementById("di-bet-date");
+    if (dateInput) {
+      const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Nairobi", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date());
+      const part = function (key) { return parts.find(function (item) { return item.type === key; }).value; };
+      dateInput.min = part("year") + "-" + part("month") + "-" + part("day");
+      dateInput.value = dateInput.min;
+    }
+    if (periodSelect) periodSelect.addEventListener("change", function () {
+      if (dateWrap) dateWrap.hidden = periodSelect.value !== "custom";
     });
     const loadButton = document.getElementById("di-load-upcoming");
     if (loadButton) loadButton.addEventListener("click", loadUpcomingPredictions);
