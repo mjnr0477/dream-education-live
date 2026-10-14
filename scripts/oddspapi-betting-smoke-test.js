@@ -73,7 +73,13 @@ function res() { return { statusCode: 200, body: null, status(n) { this.statusCo
   assert.ok(calibrated.market_favourite.model_probability_pct > 0);
   assert.ok(Math.abs(calibrated.available_outcomes.reduce((sum, item) => sum + item.model_probability_pct, 0) - 100) < 0.1);
   assert.equal(calibrated.data_quality.structured_market_verified, true);
-  const stale = buildOddsPrediction([{ ...structuredFixture, updatedAt: new Date(Date.now() - 8 * 3600000).toISOString() }], { bookmaker: "pinnacle" })[0];
+  const incompleteSoccer = JSON.parse(JSON.stringify(structuredFixture));
+  delete incompleteSoccer.bookmakerOdds.pinnacle.markets["101"].outcomes.X;
+  assert.equal(buildOddsPrediction([incompleteSoccer], { bookmaker: "pinnacle", requireThreeWay: true })[0].prediction_status, "insufficient_verified_data");
+  const staleFixture = JSON.parse(JSON.stringify(structuredFixture));
+  staleFixture.updatedAt = new Date(Date.now() - 8 * 3600000).toISOString();
+  for (const outcome of Object.values(staleFixture.bookmakerOdds.pinnacle.markets["101"].outcomes)) outcome.players["0"].changedAt = new Date(Date.now() - 8 * 3600000).toISOString();
+  const stale = buildOddsPrediction([staleFixture], { bookmaker: "pinnacle" })[0];
   assert.equal(stale.prediction_status, "insufficient_verified_data");
   assert.equal(stale.market_favourite, null);
 
