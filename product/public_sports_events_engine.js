@@ -148,11 +148,14 @@ function soccerProbabilities(homeLambda, awayLambda) {
   const total = home + draw + away || 1;
   return { home: home / total, draw: draw / total, away: away / total };
 }
+function isFinalResult(event) {
+  return /finished|final|completed|ended|full time|full-time|\\bft\\b|result_available/i.test(clean(event && event.match_status, 80));
+}
 function buildRecentForm(history, sport) {
   const teams = new Map();
   const cutoff = Date.now() - 45 * 86400000;
   for (const event of history) {
-    if (event.home_score === null || event.away_score === null || !event.home_team || !event.away_team) continue;
+    if (event.home_score === null || event.away_score === null || !event.home_team || !event.away_team || !isFinalResult(event)) continue;
     const kickoffMs = Date.parse(event.kickoff || "");
     if (!Number.isFinite(kickoffMs) || kickoffMs > Date.now() || kickoffMs < cutoff) continue;
     const add = (team, opponent, scored, conceded, isHome) => {
@@ -267,7 +270,7 @@ async function getPublicSportsEvents({ sport, fromDate, toDate }) {
   const uniqueHistory = dedupe(history);
   const teams = buildRecentForm(uniqueHistory, sport);
   const uniqueEvents = dedupe(events).map(event => {
-    if (event.result_verified) return { ...event, prediction_status: "result_available", market_favourite: null };
+    if (event.result_verified && isFinalResult(event)) return { ...event, prediction_status: "result_available", market_favourite: null };
     return modelPrediction(event, teams, sport);
   }).sort((a, b) => Date.parse(a.kickoff || "") - Date.parse(b.kickoff || ""));
   const providers = [];
@@ -279,4 +282,4 @@ async function getPublicSportsEvents({ sport, fromDate, toDate }) {
     model: "recent-results-form-v1"
   };
 }
-module.exports = { getPublicSportsEvents, normalizeSportScore, normalizeSportsDb, modelPrediction, buildRecentForm };
+module.exports = { getPublicSportsEvents, normalizeSportScore, normalizeSportsDb, modelPrediction, buildRecentForm, isFinalResult };
