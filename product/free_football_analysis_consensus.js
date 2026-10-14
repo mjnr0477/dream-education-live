@@ -133,20 +133,31 @@ async function enrichWithAnalystConsensus(events, fromDate, toDate) {
       (externalClass === "away_or_draw" && dreamClass === "away")));
     const enoughVerifiedHistory = event.prediction_quality === "recent_team_form" &&
       event.confidence === "moderate";
-    const verifiedAgreement = Boolean(enoughVerifiedHistory && agrees);
-    const guardedEvent = verifiedAgreement ? event : {
+    // Do not hide a transparent, evidence-backed Dream estimate merely because
+    // the optional third-party analyst is unconfigured or has no matching call.
+    // Consensus is a separate quality signal, not a hard dependency for showing
+    // a model estimate. Never manufacture a pick when Dream has no model output.
+    const guardedEvent = dream && event.market_favourite ? {
+      ...event,
+      prediction_status: "model_estimate",
+      warning: !enoughVerifiedHistory
+        ? "Model estimate based on limited recent history; confidence is low and independent agreement is not verified."
+        : row && !agrees
+          ? "Dream's statistical estimate is shown, but the independent analyst differs. Treat this as low-confidence, not a verified consensus."
+          : !row
+            ? "Dream's statistical estimate is shown without an independent prediction to confirm it. This is not a guarantee."
+            : "Dream and the independent analyst agree, but the estimate is not a guarantee."
+    } : {
       ...event,
       market_favourite: null,
       prediction_status: "no_verified_consensus",
       market_prediction: {
         ...(event.market_prediction || {}),
         type: event.market_prediction && event.market_prediction.type || "h2h",
-        label: "No verified consensus prediction",
+        label: "No evidence-backed prediction available",
         probability_pct: null
       },
-      warning: !enoughVerifiedHistory
-        ? "Prediction withheld: recent verified team history is insufficient for a stronger estimate."
-        : "Prediction withheld: Dream's model and the independent analyst do not agree on the outcome."
+      warning: "Prediction withheld because there is not enough verified recent match history to calculate a defensible estimate."
     };
     return {
       ...guardedEvent,
@@ -156,7 +167,7 @@ async function enrichWithAnalystConsensus(events, fromDate, toDate) {
         available_count: analysts.length,
         agreement_count: agrees ? 2 : 0,
         agreement_pct: analysts.length > 1 ? (agrees ? 100 : 0) : null,
-        label: analysts.length < 2 ? "No independent agreement" : agrees ? "Models agree" : "Models differ",
+        label: analysts.length < 2 ? "Independent confirmation unavailable" : agrees ? "Models agree" : "Models differ",
         external_source_status: external.message
       }
     };

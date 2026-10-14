@@ -77,7 +77,15 @@ function buildIndicators(bars) {
   }
   score = Math.round(Math.max(-100, Math.min(100, score)));
 
-  const signal = score >= 25 ? "BUY" : score <= -25 ? "SELL" : "HOLD";
+  const rawSignal = score >= 25 ? "BUY" : score <= -25 ? "SELL" : "HOLD";
+  const historicalCheck = buildBacktest(bars);
+  const enoughBacktestSample = historicalCheck.evaluated_signals >= 30;
+  const hitRateClearsThreshold = historicalCheck.directional_hit_rate_pct !== null &&
+    historicalCheck.directional_hit_rate_pct >= 55;
+  const enoughBacktestEvidence = enoughBacktestSample && hitRateClearsThreshold;
+  const signal = enoughBacktestEvidence ? rawSignal : "HOLD";
+  const signalStatus = !enoughBacktestSample ? "insufficient_backtest_evidence" :
+    !hitRateClearsThreshold ? "historical_hit_rate_below_threshold" : "historically_promising"; 
   return {
     latest_close: latest,
     sma_5: sma5,
@@ -87,8 +95,19 @@ function buildIndicators(bars) {
     volatility_20_pct: volatility20Pct,
     heuristic_score: score,
     signal,
-    method: "SMA trend + 10-bar momentum + distance from SMA20",
-    warning: "This is a rule-based research signal, not a calibrated probability or a guarantee of future price direction."
+    raw_signal: rawSignal,
+    signal_status: signalStatus,
+    directional_signal_released: enoughBacktestEvidence,
+    backtest_signals_required: 30,
+    backtest_hit_rate_required_pct: 55,
+    backtest_hit_rate_pct: historicalCheck.directional_hit_rate_pct,
+    backtest_signals_available: historicalCheck.evaluated_signals,
+    method: "SMA trend + 10-bar momentum + distance from SMA20; directional signals require at least 30 walk-forward historical signals and a directional hit rate of at least 55% on those bars.",
+    warning: enoughBacktestEvidence
+      ? "Rule-based research signal passed a minimum historical sample and hit-rate screen. Historical performance is not a guarantee of future price direction or profitability."
+      : !enoughBacktestSample
+        ? "Directional signal withheld: fewer than 30 historical walk-forward signals are available to evaluate this method. HOLD means insufficient evidence, not a forecast that price will stay flat."
+        : "Directional signal withheld: the walk-forward directional hit rate is below 55%. HOLD means this method did not pass the historical screen, not a forecast that price will stay flat."
   };
 }
 
@@ -147,7 +166,7 @@ function normalizeMarketBars(data, symbol) {
 function registerDreamInvestRoutes(app, options = {}) {
   const getAuthenticatedAccount = options.getAuthenticatedAccount;
 
-  async function requireOwner(req, res) {
+  async function requireAccount(req, res) {
     if (typeof getAuthenticatedAccount !== "function") {
       res.status(503).json({ success: false, error: "Dream Education authentication is unavailable." });
       return null;
@@ -161,15 +180,21 @@ function registerDreamInvestRoutes(app, options = {}) {
         });
         return null;
       }
-      if (!isOwner(auth.account)) {
-        res.status(403).json({ success: false, error: "Dream Invest is currently restricted to the Dream Education owner account." });
-        return null;
-      }
       return auth.account;
     } catch (_) {
       res.status(503).json({ success: false, error: "Could not verify your Dream Education account." });
       return null;
     }
+  }
+
+  async function requireOwner(req, res) {
+    const account = await requireAccount(req, res);
+    if (!account) return null;
+    if (!isOwner(account)) {
+      res.status(403).json({ success: false, error: "Paper account details and order submission remain restricted to the owner account." });
+      return null;
+    }
+    return account;
   }
 
   function getCredentials(res) {
@@ -208,7 +233,7 @@ function registerDreamInvestRoutes(app, options = {}) {
   }
 
   app.get("/api/dream-invest/status", async (req, res) => {
-    const account = await requireOwner(req, res);
+    const account = await requireAccount(req, res);
     if (!account) return;
     return res.json({
       success: true,
@@ -246,7 +271,7 @@ function registerDreamInvestRoutes(app, options = {}) {
   });
 
   app.get("/api/dream-invest/bars", async (req, res) => {
-    const account = await requireOwner(req, res);
+    const account = await requireAccount(req, res);
     if (!account) return;
     const credentials = getCredentials(res);
     if (!credentials) return;

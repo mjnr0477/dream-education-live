@@ -67,7 +67,8 @@ async function main() {
 
   res = response();
   await routes.get["/api/dream-invest/status"]({ headers: { authorization: "Bearer other" } }, res);
-  assert.equal(res.statusCode, 403);
+  assert.equal(res.body.success, true, "Signed-in users can access the prediction service status.");
+  assert.equal(res.body.paper_only, true);
 
   res = response();
   await routes.get["/api/dream-invest/status"]({ headers: { authorization: "Bearer owner" } }, res);
@@ -85,10 +86,18 @@ async function main() {
   assert.equal(JSON.stringify(res.body).includes("test-paper-secret"), false);
 
   res = response();
+  await routes.get["/api/dream-invest/bars"]({ headers: { authorization: "Bearer other" }, query: { symbol: "AAPL", timeframe: "1Day", limit: "100" } }, res);
+  assert.equal(res.body.success, true, "Signed-in users can access market predictions.");
+  assert.equal(res.body.paper_only, true);
+  res = response();
   await routes.get["/api/dream-invest/bars"]({ headers: { authorization: "Bearer owner" }, query: { symbol: "AAPL", timeframe: "1Day", limit: "100" } }, res);
   assert.equal(res.body.success, true);
   assert.equal(res.body.bars.length, 40);
   assert.ok(["BUY", "SELL", "HOLD"].includes(res.body.indicators.signal));
+  assert.equal(res.body.indicators.directional_signal_released, false,
+    "A directional trading call must be withheld when the historical walk-forward sample is too small.");
+  assert.equal(res.body.indicators.signal, "HOLD");
+  assert.equal(res.body.indicators.signal_status, "insufficient_backtest_evidence");
   assert.ok(requestedUrl.startsWith("https://data.alpaca.markets/v2/stocks/AAPL/bars?"));
 
   res = response();

@@ -17,9 +17,13 @@ global.fetch = async url => {
   const today = ["year", "month", "day"].map(type => dateParts.find(part => part.type === type).value).join("-");
   if (requested.includes("sportscore.com")) {
     const date = new URL(requested).searchParams.get("date");
-    return { ok: true, status: 200, json: async () => ({ fixtures: date === today ? [
+    const fixtures = date === today ? [
       { id: "public-fx1", home: "Team A", away: "Team B", time: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(), status: "scheduled", competition: "Premier League" }
-    ] : [] }) };
+    ] : [
+      { id: "history-home-" + date, home: "Team A", away: "Other FC", time: new Date(date + "T12:00:00Z").toISOString(), status: "finished", home_score: 2, away_score: 0, competition: "Premier League" },
+      { id: "history-away-" + date, home: "Other FC", away: "Team B", time: new Date(date + "T12:00:00Z").toISOString(), status: "finished", home_score: 0, away_score: 1, competition: "Premier League" }
+    ];
+    return { ok: true, status: 200, json: async () => ({ fixtures }) };
   }
   if (requested.includes("thesportsdb.com")) return { ok: true, status: 200, json: async () => ({ events: [] }) };
   const fixtures = [{ fixtureId: "fx1", tournamentId: 17, tournamentName: "Premier League", participant1Name: "Team A", participant2Name: "Team B", startTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(), odds: [{ name: "Team A", decimalOdds: 1.8 }, { name: "Draw", decimalOdds: 3.2 }, { name: "Team B", decimalOdds: 4.1 }] }];
@@ -66,18 +70,19 @@ function res() { return { statusCode: 200, body: null, status(n) { this.statusCo
   assert.equal(response.body.count, 1);
   assert.equal(response.body.predictions[0].fixture, "Team A vs Team B");
   assert.equal(response.body.predictions[0].market_prediction.type, "h2h");
-  assert.equal(response.body.predictions[0].prediction_status, "no_verified_consensus");
-  assert.equal(response.body.predictions[0].market_prediction.probability_pct, null);
+  assert.equal(response.body.predictions[0].prediction_status, "model_estimate");
+  assert.ok(response.body.predictions[0].market_prediction.probability_pct > 0);
   response = res();
   await routes.get["/api/dream-invest/betting/events"]({ headers: { authorization: "Bearer owner" }, query: { period: "today", sport: "soccer", league: "all", market: "btts" } }, response);
   assert.equal(response.body.success, true);
   assert.equal(response.body.predictions[0].market_prediction.type, "btts");
-  assert.equal(response.body.predictions[0].prediction_status, "no_verified_consensus");
-  assert.equal(response.body.predictions[0].market_prediction.probability_pct, null);
+  assert.equal(response.body.predictions[0].prediction_status, "model_estimate");
+  assert.ok(response.body.predictions[0].market_prediction.probability_pct > 0,
+    "A history-backed model estimate should be visible without an optional external consensus provider.");
   response = res();
   await routes.get["/api/dream-invest/betting/events"]({ headers: { authorization: "Bearer owner" }, query: { period: "today", sport: "soccer", market: "correct_score" } }, response);
-  assert.equal(response.body.predictions[0].market_prediction.label, "No verified consensus prediction");
-  assert.equal(response.body.predictions[0].market_prediction.probability_pct, null);
+  assert.equal(response.body.predictions[0].prediction_status, "model_estimate");
+  assert.ok(response.body.predictions[0].market_prediction.probability_pct > 0);
   assert.equal(oddsPapiRequests, oddsRequestsBeforePublicEvents, "Predictions must not depend on OddsPapi.");
   const todayParts = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Nairobi", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date());
   const todayInNairobi = ["year", "month", "day"].map(type => todayParts.find(part => part.type === type).value).join("-");
