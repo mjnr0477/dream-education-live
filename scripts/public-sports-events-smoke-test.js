@@ -5,7 +5,7 @@ const { getPublicSportsEvents, normalizeSportScore, normalizeSportsDb, isUpcomin
 (async () => {
   const sportScore = normalizeSportScore({
     id: "ss-1", home: "Alpha FC", away: "Beta FC",
-    time: "2026-10-14T15:00:00Z", status: "scheduled"
+    time: "2026-10-14T18:00:00Z", status: "scheduled"
   });
   assert.equal(sportScore.fixture, "Alpha FC vs Beta FC");
   assert.equal(sportScore.source, "SportScore");
@@ -39,7 +39,7 @@ const { getPublicSportsEvents, normalizeSportScore, normalizeSportsDb, isUpcomin
             { id: "ss-finished", home: "Old FC", away: "Past FC",
               time: "2026-10-14T10:00:00Z", status: "finished", home_score: 1, away_score: 0, competition: "Test League" },
             { id: "ss-no-history", home: "Unknown FC", away: "Mystery FC",
-              time: "2026-10-14T16:00:00Z", status: "scheduled", competition: "Test League" }
+              time: "2026-10-14T19:00:00Z", status: "scheduled", competition: "Test League" }
           ]
         }) };
       }
