@@ -27,7 +27,17 @@ async function main() {
   };
 
   registerFreeAiMediaRoutes(app, {
-    getAuthenticatedAccount: async () => ({ success: true, account: { id: "media-test-user" } })
+    getAuthenticatedAccount: async () => ({ success: true, account: { id: "media-test-user" } }),
+    searchSources: async query => ({
+      success: true,
+      sources: [{
+        title: "Water cycle overview",
+        source: "Open educational source",
+        provider: "openstax",
+        url: "https://example.org/water-cycle",
+        extract: "Evaporation changes liquid water into water vapour; condensation forms droplets and precipitation returns water to Earth's surface."
+      }]
+    })
   });
 
   assert.equal(typeof routes.get["/api/media-studio/status"], "function");
@@ -59,6 +69,21 @@ async function main() {
   assert.equal(capturedOptions.headers.Authorization, "Bearer media-studio-test-key");
   assert.equal(JSON.parse(capturedOptions.body).model, "sdxl");
   assert.equal(JSON.stringify(response.body).includes("media-studio-test-key"), false);
+
+  response.statusCode = 200;
+  response.body = null;
+  await routes.post["/api/media-studio/generate"]({
+    headers: { authorization: "Bearer test" },
+    body: { action: "chat", text: "Explain the water cycle using evidence." }
+  }, response);
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.success, true);
+  assert.equal(response.body.retrieval_count, 1);
+  assert.equal(response.body.knowledge_sources[0].url, "https://example.org/water-cycle");
+  const chatPayload = JSON.parse(capturedOptions.body);
+  assert.match(chatPayload.messages[0].content, /Retrieved evidence/);
+  assert.match(chatPayload.messages[0].content, /\[Source 1\]/);
+  assert.match(chatPayload.messages[0].content, /water vapour/);
 
   process.env.FREETTS_API_KEY = "freetts-test-key";
   response.statusCode = 200;
