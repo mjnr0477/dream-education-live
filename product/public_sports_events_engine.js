@@ -241,7 +241,6 @@ function modelPrediction(event, teams, sport) {
   const homeGames = home && Array.isArray(home.games) ? home.games : [];
   const awayGames = away && Array.isArray(away.games) ? away.games : [];
   const h = homeGames.slice(0, 8), a = awayGames.slice(0, 8);
-  const isSoccer = /^(soccer|football)$/i.test(sport);
   const homeVenueGames = h.filter(game => game.isHome);
   const awayVenueGames = a.filter(game => !game.isHome);
   const hasEnoughHistory = h.length >= 5 && a.length >= 5 &&
