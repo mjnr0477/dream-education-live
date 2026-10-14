@@ -9,6 +9,7 @@ const SOURCES = [
   {id:"wikimedia_commons",name:"Wikimedia Commons",family:"general",access:"api",license:"mixed-open",status:"connected"},
   {id:"open_library",name:"Open Library",family:"general",access:"api",license:"mixed",status:"ready"},
   {id:"google_books",name:"Google Books",family:"general",access:"REST API; free quota with API key",license:"Google Books API terms; descriptions and book content may be copyrighted",commercial_use:false,status:"connected"},
+  {id:"youtube",name:"YouTube educational videos",family:"media",access:"YouTube Data API v3; API key and quota required for metadata",license:"YouTube Terms; link/embed and metadata only; video/transcript rights remain with owners",status:"ready"},
 
   // RESEARCH
   {id:"openalex",name:"OpenAlex",family:"research",access:"rest",license:"CC0",status:"connected"},
