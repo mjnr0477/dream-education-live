@@ -182,6 +182,16 @@ function soccerProbabilities(homeLambda, awayLambda) {
 function isFinalResult(event) {
   return /finished|final|completed|ended|full time|full-time|\bft\b|result_available/i.test(clean(event && event.match_status, 80));
 }
+function isLiveEvent(event) {
+  const status = clean(event && event.match_status, 80).toLowerCase();
+  return /live|in.?play|in progress|first half|second half|half.?time|extra time|penalt|overtime|quarter|period|\bset\s*\d|top of|bottom of/.test(status);
+}
+function isUpcomingOrLive(event, now = Date.now()) {
+  if (!event || !event.kickoff || !Number.isFinite(Date.parse(event.kickoff))) return false;
+  if (isFinalResult(event) || (event.result_verified && !isLiveEvent(event))) return false;
+  const kickoffMs = Date.parse(event.kickoff);
+  return isLiveEvent(event) || kickoffMs >= now;
+}
 function buildRecentForm(history, sport) {
   const teams = new Map();
   const cutoff = Date.now() - 45 * 86400000;
@@ -300,9 +310,10 @@ async function getPublicSportsEvents({ sport, fromDate, toDate }) {
   });
   const dbSport = sportsDbSport(sport);
   let sportsDbOk = false;
-  // Supplement the first, middle and final day to avoid overwhelming the free feed.
+  // Query every requested day so this source can supplement the full upcoming schedule,
+  // plus sampled prior days for recent-form evidence.
   const dbHistoryDates = historyDates.filter((_, index) => index % 3 === 0);
-  const dbDates = [...new Set([fromDate, toDate, dateRange(fromDate, toDate, 35)[Math.floor((targetDates.length - 1) / 2)], ...dbHistoryDates].filter(Boolean))];
+  const dbDates = [...new Set([...targetDates, ...dbHistoryDates].filter(Boolean))];
   const dbResults = await mapLimit(dbDates, 5, async date => {
     const url = SPORTS_DB_BASE + "?" + new URLSearchParams({ d: date, s: dbSport }).toString();
     const payload = await fetchCache(url);
@@ -349,9 +360,11 @@ async function getPublicSportsEvents({ sport, fromDate, toDate }) {
   };
   const uniqueHistory = dedupe(history);
   const teams = buildRecentForm(uniqueHistory, sport);
-  const uniqueEvents = dedupe(events).map(event => {
-    if (event.result_verified && isFinalResult(event)) return { ...event, prediction_status: "result_available", market_favourite: null };
-    return modelPrediction(event, teams, sport);
+  // Only return fixtures that are genuinely upcoming or currently live. Finished matches
+  // are historical evidence for the model, never betting/event results in this feed.
+  const uniqueEvents = dedupe(events).filter(event => isUpcomingOrLive(event)).map(event => {
+    const predicted = modelPrediction(event, teams, sport);
+    return { ...predicted, event_state: isLiveEvent(event) ? "live" : "upcoming" };
   }).sort((a, b) => Date.parse(a.kickoff || "") - Date.parse(b.kickoff || ""));
   const providers = [];
   if (sportScoreOk) providers.push("SportScore");
@@ -363,4 +376,4 @@ async function getPublicSportsEvents({ sport, fromDate, toDate }) {
     model: "recent-results-form-v1"
   };
 }
-module.exports = { getPublicSportsEvents, normalizeSportScore, normalizeSportsDb, normalizeESPN, modelPrediction, buildRecentForm, isFinalResult };
+module.exports = { getPublicSportsEvents, normalizeSportScore, normalizeSportsDb, normalizeESPN, modelPrediction, buildRecentForm, isFinalResult, isLiveEvent, isUpcomingOrLive };
