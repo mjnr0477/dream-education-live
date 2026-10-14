@@ -25,8 +25,8 @@ assert.equal(saveAttendanceRegister(store, { schoolId: "s1", date: "2026-10-15",
 
 assert.equal(saveTimetableEntry(store, { schoolId: "s1", day: "monday", start_time: "09:00", end_time: "10:00", subject: "Math", class_name: "Grade 6", teacher: "Ms A", room: "R1" }).success, true);
 assert.equal(saveTimetableEntry(store, { schoolId: "s1", day: "monday", start_time: "09:30", end_time: "10:30", subject: "Science", class_name: "Grade 6", teacher: "Mr B", room: "R2" }).success, false);
-assert.equal(saveTimetableEntry(store, { schoolId: "s1", day: "monday", start_time: "10:00", end_time: "11:00", subject: "Science", class_name: "Grade 7", teacher: "Ms A", room: "R2" }).success, false);
-assert.equal(saveTimetableEntry(store, { schoolId: "s1", day: "monday", start_time: "10:00", end_time: "11:00", subject: "Science", class_name: "Grade 7", teacher: "Mr B", room: "R1" }).success, false);
+assert.equal(saveTimetableEntry(store, { schoolId: "s1", day: "monday", start_time: "09:45", end_time: "10:30", subject: "Science", class_name: "Grade 7", teacher: "Ms A", room: "R2" }).success, false);
+assert.equal(saveTimetableEntry(store, { schoolId: "s1", day: "monday", start_time: "09:30", end_time: "09:50", subject: "Science", class_name: "Grade 7", teacher: "Mr B", room: "R1" }).success, false);
 assert.equal(saveTimetableEntry(store, { schoolId: "s1", day: "monday", start_time: "09:30", end_time: "09:00", subject: "Math", class_name: "Grade 6" }).success, false);
 assert.equal(listTimetable(store, "s1").length, 1);
 assert.equal(saveTimetableEntry(store, { schoolId: "s1", day: "tuesday", start_time: "09:00", end_time: "10:00", subject: "Science", class_name: "Grade 7" }).success, true);
