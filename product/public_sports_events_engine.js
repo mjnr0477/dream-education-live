@@ -90,7 +90,7 @@ const ESPN_LEAGUES = [
   ["ita.1", "Serie A"], ["ita.2", "Serie B"], ["fra.1", "Ligue 1"], ["fra.2", "Ligue 2"],
   ["ned.1", "Eredivisie"], ["por.1", "Primeira Liga"], ["sco.1", "Scottish Premiership"],
   ["uefa.champions", "UEFA Champions League"], ["uefa.europa", "UEFA Europa League"],
-  ["uefa.europa.conf", "UEFA Conference League"], ["usa.1", "MLS"], ["usa.nwsl", "NWSL"],
+  ["uefa.europa.conf", "UEFA Conference League"], ["usa.1", "MLS"], ["usa.usl.1", "USL Championship"], ["usa.nwsl", "NWSL"],
   ["mex.1", "Liga MX"], ["bra.1", "Brazil Serie A"], ["arg.1", "Argentina Primera División"],
   ["saudi.1", "Saudi Pro League"], ["aus.1", "A-League"], ["jpn.1", "J.League"], ["kor.1", "K League 1"]
 ];
@@ -196,12 +196,12 @@ function isLiveEvent(event) {
   return /live|in[_ -]?play|in[_ -]?progress|\b1h\b|\b2h\b|\bht\b|first half|second half|half.?time|extra time|penalt|overtime|quarter|period|\bset\s*\d|top of|bottom of/.test(status);
 }
 function isUpcomingOrLive(event, now = Date.now()) {
-  // Betting feed is strictly pre-match: live, started, and completed fixtures
-  // must never appear as upcoming prediction opportunities.
+  // Keep a scheduled fixture visible at kickoff, including while a provider's
+  // status is catching up. Remove it only when a source explicitly marks it
+  // live/in-play or final, or verified scores are present.
   if (!event || !event.kickoff || !Number.isFinite(Date.parse(event.kickoff))) return false;
-  if (isFinalResult(event) || isLiveEvent(event)) return false;
-  if (event.result_verified) return false;
-  return Date.parse(event.kickoff) > now;
+  if (isFinalResult(event) || isLiveEvent(event) || event.result_verified) return false;
+  return true;
 }
 function buildRecentForm(history, sport) {
   const teams = new Map();
