@@ -15,12 +15,13 @@ for (const provider of [
   'zenodo',
   'wikibooks',
   'libretexts',
-  'openstax'
+  'openstax',
+  'youtube'
 ]) {
   assert.ok(sourceEngine.includes(`name: "${provider}"`), `source engine provider missing: ${provider}`);
 }
 
-for (const id of ['wikimedia_commons', 'openaire', 'doaj', 'stack_exchange', 'zenodo', 'wikibooks', 'libretexts', 'openstax']) {
+for (const id of ['wikimedia_commons', 'openaire', 'doaj', 'stack_exchange', 'zenodo', 'wikibooks', 'libretexts', 'openstax', 'youtube']) {
   const source = catalog.getSource(id);
   assert.ok(source, `catalog source missing: ${id}`);
   assert.strictEqual(source.status, 'connected', `source not connected: ${id}`);
@@ -30,4 +31,7 @@ assert.ok(sourceEngine.includes('notesSourceProviders.searchLibreTexts'), 'Libre
 assert.ok(sourceEngine.includes('notesSourceProviders.searchOpenStax'), 'OpenStax adapter not wired into source engine');
 assert.strictEqual(typeof notesProviders.searchLibreTexts, 'function', 'LibreTexts adapter missing');
 assert.strictEqual(typeof notesProviders.searchOpenStax, 'function', 'OpenStax adapter missing');
+assert.ok(sourceEngine.includes('name: "youtube"'), 'YouTube adapter not wired into source engine');
+assert.strictEqual(typeof require('../product/global_sources/providers/youtube').search, 'function', 'YouTube adapter missing');
+assert.ok(globalSources.router.providerIds({domain:'media'}).includes('youtube'), 'YouTube provider missing from media route');
 console.log('GLOBAL SOURCE EXPANSION SMOKE TEST: PASS');
