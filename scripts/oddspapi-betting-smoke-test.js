@@ -66,8 +66,8 @@ function res() { return { statusCode: 200, body: null, status(n) { this.statusCo
   assert.equal(response.body.count, 1);
   assert.equal(response.body.predictions[0].fixture, "Team A vs Team B");
   assert.equal(response.body.predictions[0].market_prediction.type, "h2h");
-  assert.equal(response.body.predictions[0].prediction_status, "no_verified_consensus");
-  assert.equal(response.body.predictions[0].market_prediction.probability_pct, null);
+  assert.equal(response.body.predictions[0].prediction_status, "model_estimate");
+  assert.ok(response.body.predictions[0].market_prediction.probability_pct > 0);
   response = res();
   await routes.get["/api/dream-invest/betting/events"]({ headers: { authorization: "Bearer owner" }, query: { period: "today", sport: "soccer", league: "all", market: "btts" } }, response);
   assert.equal(response.body.success, true);
