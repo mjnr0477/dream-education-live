@@ -318,8 +318,9 @@ function registerOddsPapiRoutes(app, options = {}) {
     if (!["over", "under"].includes(direction) || ![1.5, 2.5, 3.5].includes(goalLine)) {
       return res.status(400).json({ success: false, error: "Choose Over or Under and a goal line of 1.5, 2.5, or 3.5." });
     }
-    if (!["today", "tomorrow", "week", "month"].includes(period)) {
-      return res.status(400).json({ success: false, error: "Choose Today, Tomorrow, This Week, or This Month." });
+    const supportedPeriods = ["today", "tomorrow", "day_after_tomorrow", "custom", "this_week", "next_week", "this_month"];
+    if (!supportedPeriods.includes(period)) {
+      return res.status(400).json({ success: false, error: "Choose today, tomorrow, day after tomorrow, a date, this week, next week, or this month." });
     }
     const now = new Date();
     const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Nairobi", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(now);
@@ -330,9 +331,29 @@ function registerOddsPapiRoutes(app, options = {}) {
       value.setUTCDate(value.getUTCDate() + days);
       return value.toISOString().slice(0, 10);
     };
-    const fromDate = period === "tomorrow" ? addDays(today, 1) : today;
-    const toDate = period === "tomorrow" ? fromDate : period === "week" ? addDays(today, 6) :
-      period === "month" ? today.slice(0, 8) + new Date(Date.UTC(Number(today.slice(0, 4)), Number(today.slice(5, 7)), 0)).getUTCDate().toString().padStart(2, "0") : today;
+    const currentWeekday = new Date(today + "T12:00:00Z").getUTCDay();
+    const mondayOffset = (currentWeekday + 6) % 7;
+    const thisMonday = addDays(today, -mondayOffset);
+    const nextMonday = addDays(thisMonday, 7);
+    let fromDate = today;
+    let toDate = today;
+    if (period === "tomorrow") fromDate = toDate = addDays(today, 1);
+    if (period === "day_after_tomorrow") fromDate = toDate = addDays(today, 2);
+    if (period === "custom") {
+      const requestedDate = text(req.query && req.query.date, 10);
+      const parsedDate = new Date(requestedDate + "T12:00:00Z");
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(requestedDate) || !Number.isFinite(parsedDate.getTime()) ||
+          parsedDate.toISOString().slice(0, 10) !== requestedDate || requestedDate < today) {
+        return res.status(400).json({ success: false, error: "Choose a valid date today or in the future." });
+      }
+      fromDate = toDate = requestedDate;
+    }
+    if (period === "this_week") toDate = addDays(thisMonday, 6);
+    if (period === "next_week") { fromDate = nextMonday; toDate = addDays(nextMonday, 6); }
+    if (period === "this_month") {
+      const monthEnd = new Date(Date.UTC(Number(today.slice(0, 4)), Number(today.slice(5, 7)), 0)).getUTCDate();
+      toDate = today.slice(0, 8) + String(monthEnd).padStart(2, "0");
+    }
     let publicResult = { events: [], history_matches: 0, providers: [], model: "recent-results-form-v1",
       attribution_html: '<a href="https://sportscore.com/" rel="dofollow">Powered by SportScore</a>' };
     let sourceError = "";
@@ -397,9 +418,13 @@ function registerOddsPapiRoutes(app, options = {}) {
       sources: eventSources, analyst_source_status: analystResult.status, model: publicResult.model || "recent-results-form-v1",
       history_matches_used: Number(publicResult.history_matches) || 0,
       attribution_html: publicResult.attribution_html || '<a href="https://sportscore.com/" rel="dofollow">Powered by SportScore</a>',
+      source_status: publicResult.source_status || ((publicResult.providers || []).length ? "available" : "unavailable"),
+      source_errors: Array.isArray(publicResult.source_errors) ? publicResult.source_errors : [],
       message: finalEvents.length
-        ? "Upcoming fixtures only. Live and completed matches are excluded. Predictions are shown only when verified team history and independent model agreement are available. No OddsPapi request is made."
-        : (sourceError ? sourceError + " " : "") + "No upcoming fixtures were found for this selection. Try another period. No OddsPapi request is made.",
+        ? "Upcoming fixtures only. Live and completed matches are excluded. Predictions are estimates and are withheld when evidence is insufficient or independent agreement is missing. No OddsPapi request is made."
+        : (publicResult.source_status === "unavailable" || !(publicResult.providers || []).length
+          ? "Fixture sources are unavailable right now, so Dream cannot confirm today's event list. Try again shortly."
+          : "No upcoming fixtures were returned by the connected sources for this selection. Live and finished events are excluded."),
       bet_placement_enabled: false
     });
   });
