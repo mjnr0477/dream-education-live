@@ -221,9 +221,16 @@ function buildRecentForm(history, sport) {
 function modelPrediction(event, teams, sport) {
   const home = teams.get(teamKey(event.home_team));
   const away = teams.get(teamKey(event.away_team));
-  // Every live/upcoming fixture gets a transparent estimate. Use recent form when
-  // available; otherwise shrink toward a conservative football scoring prior rather
-  // than silently leaving the fixture without a prediction.
+  const isSoccer = /^(soccer|football)$/i.test(sport);
+  if (!isSoccer && (!home || !away || home.games.length < 3 || away.games.length < 3)) {
+    return {
+      ...event, prediction_status: "insufficient_verified_history", market_favourite: null,
+      model_probabilities: null, confidence: "insufficient data",
+      warning: "Not enough recent scored matches for both teams. Dream will not invent a prediction."
+    };
+  }
+  // Every soccer live/upcoming fixture gets a transparent estimate. Use recent form
+  // when available; otherwise use a conservative scoring prior and mark low confidence.
   const homeGames = home && Array.isArray(home.games) ? home.games : [];
   const awayGames = away && Array.isArray(away.games) ? away.games : [];
   const hasEnoughHistory = homeGames.length >= 3 && awayGames.length >= 3;
