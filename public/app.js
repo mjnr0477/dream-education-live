@@ -5239,7 +5239,7 @@ function teacherAnalyticsMarkup(data) {
 
   const averageScoreLabel = results.length && analysis.average_score != null &&
     Number.isFinite(Number(analysis.average_score))
-    ? Number(analysis.average_score).toFixed(1).replace(/\\.0$/, "") + "%"
+    ? Number(analysis.average_score).toFixed(1) + "%"
     : "Not yet available";
   const weakResultsLabel = results.length && analysis.weak_results != null &&
     Number.isFinite(Number(analysis.weak_results))
