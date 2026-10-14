@@ -35,21 +35,23 @@ function buildValueEvidence(data = {}, now = new Date()) {
   const positive = measured.filter(o => o.improvement > 0);
   const mastered = measured.filter(o => o.mastered === true);
 
+  // Only count activity inside a completed look-back window. Future-dated
+  // events must not inflate adoption or retention metrics.
+  const activityWithin = (activity, days) => {
+    const t = dateMs(activity && activity.created_at);
+    const age = t === null ? null : nowMs - t;
+    return age !== null && age >= 0 && age < days * day;
+  };
+
   const active30 = unique(
     activities
-      .filter(a => {
-        const t = dateMs(a.created_at);
-        return t !== null && nowMs - t < 30 * day;
-      })
+      .filter(a => activityWithin(a, 30))
       .map(a => a.account_id || a.learner_id)
   );
 
   const returning7 = unique(
     activities
-      .filter(a => {
-        const t = dateMs(a.created_at);
-        return t !== null && nowMs - t < 7 * day;
-      })
+      .filter(a => activityWithin(a, 7))
       .map(a => a.account_id || a.learner_id)
   );
 
@@ -95,7 +97,12 @@ function buildValueEvidence(data = {}, now = new Date()) {
     },
     commercial_signal: {
       paying_customers: paying.length,
-      revenue_evidence: payments.filter(p => p.status === "successful" && Number(p.amount) > 0).length
+      revenue_evidence: payments.filter(p =>
+        p.status === "successful" &&
+        !p.owner_exempt &&
+        Number.isFinite(Number(p.amount)) &&
+        Number(p.amount) > 0
+      ).length
     },
     value_proof_status:
       measured.length === 0
