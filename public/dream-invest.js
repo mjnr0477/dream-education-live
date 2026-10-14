@@ -83,12 +83,15 @@
   }
 
   function renderBase() {
-    openPanel("DREAM INVEST · PAPER TRADING", "Dream Invest", "Market research and simulated trading connected to your Alpaca paper account.", 
+    openPanel("DREAM INVEST", "Dream Invest", "Choose Trading or Betting. Betting predictions use available OddsPapi data; no automatic real-money bets are placed.", 
       '<div class="dream-invest">' +
         '<section class="di-banner"><div><span class="di-eyebrow">PAPER MODE · NO REAL-MONEY ORDERS</span><h3>Study the market. Test the signal.</h3><p>Rule-based indicators, historical checks and manually confirmed simulated orders. Automated execution remains off while we validate the engine.</p></div><span class="di-status" id="di-connection">Checking connection…</span></section>' +
+        '<nav class="di-mode-switch" aria-label="Dream Invest mode"><button type="button" class="de-action primary" data-di-mode="trading">Trading</button><button type="button" class="de-action" data-di-mode="betting">Betting</button></nav>' +
+        '<section class="di-section" id="di-betting-view" hidden><div class="di-section-head"><div><span class="di-eyebrow">SPORTS DATA · ODDSPAPI</span><h3>Betika predictions</h3><p class="di-muted">Predictions are estimates from available odds, not guarantees. Betting is not automated.</p></div><span class="di-status" id="di-betting-status">Checking OddsPapi…</span></div><div class="di-bet-controls"><button type="button" class="de-action" id="di-load-sports">Load sports</button><label>Sport ID<input id="di-sport-id" maxlength="60" placeholder="Choose from sports list"></label><button type="button" class="de-action" id="di-load-tournaments">Load tournaments</button><label>Tournament IDs<input id="di-tournament-ids" maxlength="500" placeholder="IDs separated by commas"></label><label>Bookmaker<input id="di-bookmaker" maxlength="80" value="betika" placeholder="betika"></label><button type="button" class="de-action primary" id="di-load-odds">Get odds & predictions</button></div><div id="di-betting-results" aria-live="polite"></div><p class="di-warning">OddsPapi supplies sports data; this integration does not place bets on Betika. Verify fixtures, bookmaker availability and odds before making any independent decision.</p></section>' +
+        '<div id="di-trading-view">' +
         '<section class="di-section di-fxapis"><div class="di-section-head"><div><span class="di-eyebrow">BROKER CONNECTION</span><h3>Connect JustMarkets MT5 via FXAPIS</h3><p class="di-muted">Use a demo account first. The MT5 password is sent directly to FXAPIS over HTTPS and is not saved by Dream Education. Live order execution is disabled here.</p></div><span class="di-status" id="di-fxapis-status">Checking FXAPIS…</span></div><div id="di-fxapis-message" aria-live="polite"></div><form class="di-order-form" id="di-fxapis-form"><label for="di-fxapis-login">MT5 account login</label><input id="di-fxapis-login" name="login" inputmode="numeric" pattern="[0-9]{4,20}" maxlength="20" required autocomplete="off" placeholder="Numeric MT5 login"><label for="di-fxapis-server">Exact MT5 server name</label><input id="di-fxapis-server" name="server" maxlength="120" required autocomplete="off" placeholder="As shown in MetaTrader 5"><label for="di-fxapis-password">MT5 trading password</label><input id="di-fxapis-password" name="password" type="password" maxlength="256" required autocomplete="new-password" placeholder="Enter privately here"><button class="de-action primary" type="submit">Connect MT5 account</button></form><p class="di-muted">This registers the broker account only. It does not deposit or withdraw funds, start automated trading, or place orders.</p></section><form class="di-search" id="di-market-form"><label for="di-symbol">US stock symbol</label><input id="di-symbol" name="symbol" maxlength="12" value="AAPL" required autocapitalize="characters" placeholder="AAPL"><label for="di-timeframe">Timeframe</label><select id="di-timeframe" name="timeframe"><option value="1Day">Daily</option><option value="1Hour">Hourly</option><option value="15Min">15 minutes</option><option value="5Min">5 minutes</option><option value="1Min">1 minute</option></select><button class="de-action primary" type="submit">Analyze market</button></form>' +
         '<div id="di-account-output"></div><div id="di-main-output"><div class="di-loading">Connecting to Alpaca Paper Trading…</div></div>' +
-      '</div>');
+      '</div></div>');
   }
 
   function renderAccount(account) {
@@ -263,6 +266,110 @@
     }
   }
 
+  function unwrapRows(payload) {
+    if (Array.isArray(payload)) return payload;
+    for (const key of ["data", "results", "items", "sports", "tournaments", "fixtures", "odds"]) {
+      if (Array.isArray(payload && payload[key])) return payload[key];
+    }
+    if (payload && payload.data && typeof payload.data === "object") return unwrapRows(payload.data);
+    return [];
+  }
+
+  function renderRows(rows, kind) {
+    if (!rows.length) return '<p class="di-muted">No rows returned. Check the IDs, provider response and API permissions.</p>';
+    return '<div class="di-bet-list">' + rows.slice(0, 50).map(function (row) {
+      const id = row.id || row.sportId || row.sport_id || row.tournamentId || row.tournament_id || row.fixtureId || row.fixture_id || "—";
+      const name = row.name || row.title || row.label || row.fixtureName || row.eventName ||
+        [row.homeTeam || row.home || row.home_team, row.awayTeam || row.away || row.away_team].filter(Boolean).join(" vs ") || "Sports item";
+      const odds = row.decimalOdds || row.decimal_odds || row.odds || row.price;
+      return '<article class="di-bet-row"><strong>' + esc(name) + '</strong><span>ID: ' + esc(id) + '</span>' +
+        (odds && typeof odds !== "object" ? '<span>Odds: ' + esc(odds) + '</span>' : '') +
+        (kind === "odds" ? '<span class="di-muted">Check bookmaker and kickoff before using.</span>' : '') + '</article>';
+    }).join("") + '</div>';
+  }
+
+  async function loadBettingData(path, params) {
+    const output = document.getElementById("di-betting-results");
+    if (output) output.innerHTML = '<div class="di-loading">Loading sports data…</div>';
+    try {
+      const query = new URLSearchParams(params || {});
+      const data = await api(path + (query.toString() ? "?" + query.toString() : ""));
+      if (output) {
+        if (path.endsWith("/odds")) {
+          const predictions = Array.isArray(data.predictions) ? data.predictions : [];
+          output.innerHTML = predictions.length
+            ? '<div class="di-bet-list">' + predictions.map(function (item) {
+                const favourite = item.market_favourite;
+                return '<article class="di-bet-row"><strong>' + esc(item.fixture) + '</strong>' +
+                  '<span>' + esc(item.kickoff || "Kickoff not supplied") + '</span>' +
+                  '<span>Market favourite: ' + esc(favourite ? favourite.outcome : "Unavailable") + '</span>' +
+                  '<span>Implied probability: ' + esc(favourite ? favourite.implied_probability_pct + "%" : "Unavailable") + '</span>' +
+                  '<span>Odds: ' + esc(favourite ? favourite.decimal_odds : "Unavailable") + '</span>' +
+                  '<small>' + esc(item.warning || "") + '</small></article>';
+              }).join("") + '</div>'
+            : renderRows(unwrapRows(data.data), "odds");
+        } else {
+          output.innerHTML = renderRows(unwrapRows(data.data), path.endsWith("/sports") ? "sports" : "tournaments");
+        }
+      }
+      return data;
+    } catch (error) {
+      if (output) output.innerHTML = '<div class="di-error"><strong>Sports data unavailable</strong><p>' + esc(error.message) + '</p></div>';
+      return null;
+    }
+  }
+
+  function setupBettingMode() {
+    const modeButtons = Array.from(document.querySelectorAll("[data-di-mode]"));
+    const trading = document.getElementById("di-trading-view");
+    const betting = document.getElementById("di-betting-view");
+    modeButtons.forEach(function (button) {
+      button.addEventListener("click", function () {
+        const isBetting = button.getAttribute("data-di-mode") === "betting";
+        if (trading) trading.hidden = isBetting;
+        if (betting) betting.hidden = !isBetting;
+        modeButtons.forEach(function (item) { item.classList.toggle("primary", item === button); });
+      });
+    });
+    const sportsButton = document.getElementById("di-load-sports");
+    if (sportsButton) sportsButton.addEventListener("click", async function () {
+      const data = await loadBettingData("/api/dream-invest/betting/sports");
+      if (data) {
+        const rows = unwrapRows(data.data);
+        const status = document.getElementById("di-betting-status");
+        if (status) status.textContent = "OddsPapi connected · " + rows.length + " sports";
+      }
+    });
+    const tournamentsButton = document.getElementById("di-load-tournaments");
+    if (tournamentsButton) tournamentsButton.addEventListener("click", function () {
+      const sportId = document.getElementById("di-sport-id").value.trim();
+      if (!sportId) {
+        const output = document.getElementById("di-betting-results");
+        if (output) output.innerHTML = '<p class="di-error">Load sports first, then enter a sport ID.</p>';
+        return;
+      }
+      loadBettingData("/api/dream-invest/betting/tournaments", { sportId: sportId });
+    });
+    const oddsButton = document.getElementById("di-load-odds");
+    if (oddsButton) oddsButton.addEventListener("click", function () {
+      const tournamentIds = document.getElementById("di-tournament-ids").value.trim();
+      const bookmaker = document.getElementById("di-bookmaker").value.trim() || "betika";
+      if (!tournamentIds) {
+        const output = document.getElementById("di-betting-results");
+        if (output) output.innerHTML = '<p class="di-error">Enter one or more tournament IDs first.</p>';
+        return;
+      }
+      loadBettingData("/api/dream-invest/betting/odds", { tournamentIds: tournamentIds, bookmaker: bookmaker });
+    });
+    api("/api/dream-invest/betting/status").then(function (data) {
+      const status = document.getElementById("di-betting-status");
+      if (status) status.textContent = data.configured ? "OddsPapi key ready" : "API key missing";
+    }).catch(function (error) {
+      const status = document.getElementById("di-betting-status");
+      if (status) status.textContent = error.message || "Sign in required";
+    });
+  }
+
   async function openDreamInvest() {
     const auth = getAuth();
     if (!auth || !auth.account || !isOwner(auth)) {
@@ -271,6 +378,7 @@
       return;
     }
     renderBase();
+    setupBettingMode();
     const output = document.getElementById("di-main-output");
     try {
       const status = await api("/api/dream-invest/status");
