@@ -236,12 +236,29 @@ function modelPrediction(event, teams, sport) {
       warning: "Not enough recent scored matches for both teams. Dream will not invent a prediction."
     };
   }
-  // Every soccer live/upcoming fixture gets a transparent estimate. Use recent form
-  // when available; otherwise use a conservative scoring prior and mark low confidence.
+  // Never manufacture a pick from a generic baseline. Soccer predictions require
+  // enough verified recent matches for both teams and home/away-specific evidence.
   const homeGames = home && Array.isArray(home.games) ? home.games : [];
   const awayGames = away && Array.isArray(away.games) ? away.games : [];
-  const hasEnoughHistory = homeGames.length >= 3 && awayGames.length >= 3;
   const h = homeGames.slice(0, 8), a = awayGames.slice(0, 8);
+  const isSoccer = /^(soccer|football)$/i.test(sport);
+  const homeVenueGames = h.filter(game => game.isHome);
+  const awayVenueGames = a.filter(game => !game.isHome);
+  const hasEnoughHistory = h.length >= 5 && a.length >= 5 &&
+    (!isSoccer || (homeVenueGames.length >= 2 && awayVenueGames.length >= 2));
+  if (!hasEnoughHistory) {
+    return {
+      ...event,
+      prediction_status: "insufficient_verified_history",
+      prediction_quality: "insufficient_data",
+      market_favourite: null,
+      model_probabilities: null,
+      model_markets: null,
+      confidence: "insufficient data",
+      historical_matches_used: { home: h.length, away: a.length },
+      warning: "No prediction issued: Dream requires at least five recent verified results for each team and home/away evidence before generating a pick."
+    };
+  }
   let probs;
   let expectedGoals = null;
   if (/^(soccer|football)$/i.test(sport)) {
@@ -268,8 +285,8 @@ function modelPrediction(event, teams, sport) {
   const best = outcomes[0];
   const sample = Math.min(homeGames.length, awayGames.length);
   const confidence = hasEnoughHistory && sample >= 7 && best.probability >= 0.55 ? "moderate" : "low";
-  const historyQuality = hasEnoughHistory ? "recent_team_form" : "baseline_low_history";
-  const historyNote = hasEnoughHistory ? "" : " Limited or unavailable team history; a conservative baseline is used.";
+  const historyQuality = "recent_team_form";
+  const historyNote = "";
   const label = best.key === "home" ? event.home_team + " win" : best.key === "away" ? event.away_team + " win" : "Draw";
   let model_markets = null;
   if (expectedGoals) {
@@ -295,7 +312,7 @@ function modelPrediction(event, teams, sport) {
     };
   }
   return {
-    ...event, prediction_status: hasEnoughHistory ? "model_estimate" : "model_estimate_low_history",
+    ...event, prediction_status: "model_estimate",
     prediction_quality: historyQuality, model_markets, model_probabilities: {
       home_win_pct: Math.round(probs.home * 1000) / 10,
       draw_pct: Math.round((probs.draw || 0) * 1000) / 10,
