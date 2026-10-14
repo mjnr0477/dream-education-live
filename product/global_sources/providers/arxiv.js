@@ -11,13 +11,13 @@ function decodeXml(value) {
     .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
     .replace(/&apos;/g, "'")
-    .replace(/&#(\\d+);/g, (_, n) => String.fromCharCode(Number(n)))
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
     .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCharCode(parseInt(n, 16)));
 }
 
 function tag(block, name) {
   const match = String(block || "").match(new RegExp(`<${name}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${name}>`, "i"));
-  return match ? decodeXml(match[1].replace(/<[^>]+>/g, " ").replace(/\\s+/g, " ").trim()) : "";
+  return match ? decodeXml(match[1].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()) : "";
 }
 
 function normalizeRecord(block) {
@@ -26,7 +26,7 @@ function normalizeRecord(block) {
   const id = tag(block, "id");
   const summary = tag(block, "summary");
   const published = tag(block, "published");
-  const authors = [...String(block).matchAll(/<author>\\s*<name>([\\s\\S]*?)<\\/name>\\s*<\\/author>/gi)]
+  const authors = [...String(block).matchAll(/<author>\s*<name>([\s\S]*?)<\/name>\s*<\/author>/gi)]
     .map(match => decodeXml(match[1].trim())).slice(0, 6);
   return {
     provider: "arxiv",
@@ -57,7 +57,7 @@ async function search(query, limit = 5) {
     timeout: 3500,
     headers: {Accept: "application/atom+xml"}
   });
-  const blocks = [...response.body.matchAll(/<entry>([\\s\\S]*?)<\\/entry>/gi)].map(match => match[1]);
+  const blocks = [...response.body.matchAll(/<entry>([\s\S]*?)<\/entry>/gi)].map(match => match[1]);
   const results = blocks.map(normalizeRecord).filter(Boolean);
   cache.write(cacheKey, results);
   return results;
