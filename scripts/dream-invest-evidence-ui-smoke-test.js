@@ -17,16 +17,16 @@ assert.ok(end > start, "Trading analysis renderer must have a closing boundary."
 const renderSource = source.slice(start, end);
 
 function render(data, trend) {
+  let capturedForecast = "not-called";
   const sandbox = {
     __data: data,
-    __trend: trend,
-    __forecast: "not-called",
-    forecastForBars() { return this.__trend; },
-    money(value) { return Number.isFinite(Number(value)) ? "$" + Number(value).toFixed(2) : "—"; },
-    esc(value) { return String(value == null ? "" : value); },
-    renderPredictionChart(bars, forecast) { this.__forecast = forecast; return "<chart>"; }
+    forecastForBars: () => trend,
+    money: value => Number.isFinite(Number(value)) ? "$" + Number(value).toFixed(2) : "—",
+    esc: value => String(value == null ? "" : value),
+    renderPredictionChart: (bars, forecast) => { capturedForecast = forecast; return "<chart>"; }
   };
   vm.runInNewContext(renderSource + "\nthis.__html = renderAnalysis(this.__data);", sandbox);
+  sandbox.__forecast = capturedForecast;
   return sandbox;
 }
 
