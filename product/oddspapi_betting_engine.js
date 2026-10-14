@@ -384,7 +384,8 @@ function registerOddsPapiRoutes(app, options = {}) {
         }
         return { ...event, market_prediction: { type: market, label, probability_pct: marketProbability,
           direction: market === "over_under" ? direction : null, goal_line: market === "over_under" ? goalLine : null } };
-      });
+      }).filter(event => event.prediction_status === "result_available" ||
+        (event.market_prediction && Number.isFinite(Number(event.market_prediction.probability_pct))));
     return res.json({
       success: true, period, from: fromDate, to: toDate, sport: sportQuery,
       league: leagueQuery === "all" ? "All leagues" : leagueQuery, market, direction, goalLine,
@@ -393,8 +394,8 @@ function registerOddsPapiRoutes(app, options = {}) {
       history_matches_used: Number(publicResult.history_matches) || 0,
       attribution_html: publicResult.attribution_html || '<a href="https://sportscore.com/" rel="dofollow">Powered by SportScore</a>',
       message: selectedEvents.length
-        ? "Events and results come from public sports feeds. Predictions use recent scored matches where enough history exists; events without enough history are shown without a pick. No OddsPapi request is made."
-        : (sourceError ? sourceError + " " : "") + "No fixtures were returned by the available public sources for this sport and period. No OddsPapi request is made.",
+        ? "Showing events with a result or a usable prediction. No OddsPapi request is made."
+        : (sourceError ? sourceError + " " : "") + "No usable predictions were found for this selection. Try another league, period, or prediction type. No OddsPapi request is made.",
       bet_placement_enabled: false
     });
   });
