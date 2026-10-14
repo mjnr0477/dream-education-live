@@ -131,15 +131,32 @@ async function enrichWithAnalystConsensus(events, fromDate, toDate) {
     const agrees = Boolean(externalClass && dreamClass && (externalClass === dreamClass ||
       (externalClass === "home_or_draw" && dreamClass === "home") ||
       (externalClass === "away_or_draw" && dreamClass === "away")));
-    return {
+    const enoughVerifiedHistory = event.prediction_quality === "recent_team_form" &&
+      event.confidence === "moderate";
+    const verifiedAgreement = Boolean(enoughVerifiedHistory && agrees);
+    const guardedEvent = verifiedAgreement ? event : {
       ...event,
+      market_favourite: null,
+      prediction_status: "no_verified_consensus",
+      market_prediction: {
+        ...(event.market_prediction || {}),
+        type: event.market_prediction && event.market_prediction.type || "h2h",
+        label: "No verified consensus prediction",
+        probability_pct: null
+      },
+      warning: !enoughVerifiedHistory
+        ? "Prediction withheld: recent verified team history is insufficient for a stronger estimate."
+        : "Prediction withheld: Dream's model and the independent analyst do not agree on the outcome."
+    };
+    return {
+      ...guardedEvent,
       external_analysis: row ? { source: row.source, pick: row.pick, confidence_pct: row.confidence_pct, market: row.market, source_url: row.source_url, probabilities: row.probabilities } : null,
       analyst_consensus: {
         analysts,
         available_count: analysts.length,
         agreement_count: agrees ? 2 : 0,
         agreement_pct: analysts.length > 1 ? (agrees ? 100 : 0) : null,
-        label: analysts.length < 2 ? "One model available" : agrees ? "Models agree" : "Models differ",
+        label: analysts.length < 2 ? "No independent agreement" : agrees ? "Models agree" : "Models differ",
         external_source_status: external.message
       }
     };
