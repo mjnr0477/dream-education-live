@@ -84,6 +84,35 @@ function normalizeSportScore(row) {
     warning: "Prediction uses recent published match results, not bookmaker odds. Estimates are uncertain and not guaranteed."
   };
 }
+const ESPN_LEAGUES = [
+  ["eng.1", "Premier League"], ["esp.1", "LaLiga"], ["uefa.champions", "UEFA Champions League"],
+  ["ger.1", "Bundesliga"], ["ita.1", "Serie A"], ["fra.1", "Ligue 1"],
+  ["uefa.europa", "UEFA Europa League"], ["usa.1", "MLS"]
+];
+function normalizeESPN(row, leagueName) {
+  const competition = Array.isArray(row.competitions) ? row.competitions[0] : null;
+  const competitors = competition && Array.isArray(competition.competitors) ? competition.competitors : [];
+  const homeRow = competitors.find(item => item.homeAway === "home") || competitors[0];
+  const awayRow = competitors.find(item => item.homeAway === "away") || competitors[1];
+  const home = clean(homeRow && homeRow.team && (homeRow.team.displayName || homeRow.team.name));
+  const away = clean(awayRow && awayRow.team && (awayRow.team.displayName || awayRow.team.name));
+  if (!home || !away) return null;
+  const status = clean(row.status && row.status.type && (row.status.type.name || row.status.type.state), 60) || "unknown";
+  const homeScore = scoreValue({ value: homeRow && homeRow.score }, ["value"]);
+  const awayScore = scoreValue({ value: awayRow && awayRow.score }, ["value"]);
+  return {
+    fixture: home + " vs " + away, fixture_id: clean(row.id, 100) || null,
+    kickoff: clean(row.date, 80) || null, league: clean(competition && competition.name, 120) || leagueName,
+    home_team: home, away_team: away, home_score: homeScore, away_score: awayScore,
+    match_status: status, source: "ESPN", source_url: "https://www.espn.com/soccer/",
+    result_verified: homeScore !== null && awayScore !== null,
+    available_outcomes: [], market_favourite: null, prediction_status: "awaiting_form_data",
+    warning: "Results-based statistical estimate from public match data."
+  };
+}
+function espnDateRange(fromDate, toDate) {
+  return fromDate.replace(/-/g, "") + "-" + toDate.replace(/-/g, "");
+}
 function normalizeSportsDb(row) {
   const home = clean(row.strHomeTeam || row.homeTeam || row.home);
   const away = clean(row.strAwayTeam || row.awayTeam || row.away);
@@ -286,6 +315,29 @@ async function getPublicSportsEvents({ sport, fromDate, toDate }) {
     events.push(...result.value.filter(event => inWindow(event, fromDate, toDate)));
     if (date < fromDate) history.push(...result.value.filter(event => event.result_verified));
   });
+  // ESPN's public scoreboard supplements fixtures and recent results for major soccer competitions.
+  let espnOk = false;
+  if (/^(soccer|football)$/i.test(clean(sport, 50))) {
+    const historyFrom = dateAdd(fromDate, -35);
+    const historyTo = dateAdd(fromDate, -1);
+    const espnResults = await mapLimit(ESPN_LEAGUES, 4, async ([slug, leagueName]) => {
+      const targetUrl = "https://site.api.espn.com/apis/site/v2/sports/soccer/" + slug +
+        "/scoreboard?dates=" + espnDateRange(fromDate, toDate) + "&limit=100";
+      const historyUrl = "https://site.api.espn.com/apis/site/v2/sports/soccer/" + slug +
+        "/scoreboard?dates=" + espnDateRange(historyFrom, historyTo) + "&limit=100";
+      const [targetPayload, historyPayload] = await Promise.all([fetchCache(targetUrl), fetchCache(historyUrl)]);
+      return {
+        events: listOf(targetPayload, ["events"]).map(row => normalizeESPN(row, leagueName)).filter(Boolean),
+        history: listOf(historyPayload, ["events"]).map(row => normalizeESPN(row, leagueName)).filter(event => event && event.result_verified)
+      };
+    });
+    espnResults.forEach(result => {
+      if (result.status !== "fulfilled") return;
+      espnOk = true;
+      events.push(...result.value.events.filter(event => inWindow(event, fromDate, toDate)));
+      history.push(...result.value.history);
+    });
+  }
   const dedupe = rows => {
     const seen = new Set();
     return rows.filter(event => {
@@ -304,10 +356,11 @@ async function getPublicSportsEvents({ sport, fromDate, toDate }) {
   const providers = [];
   if (sportScoreOk) providers.push("SportScore");
   if (sportsDbOk) providers.push("TheSportsDB");
+  if (espnOk) providers.push("ESPN");
   return {
     events: uniqueEvents, history_matches: uniqueHistory.length, providers,
     attribution_html: '<a href="https://sportscore.com/" rel="dofollow">Powered by SportScore</a>',
     model: "recent-results-form-v1"
   };
 }
-module.exports = { getPublicSportsEvents, normalizeSportScore, normalizeSportsDb, modelPrediction, buildRecentForm, isFinalResult };
+module.exports = { getPublicSportsEvents, normalizeSportScore, normalizeSportsDb, normalizeESPN, modelPrediction, buildRecentForm, isFinalResult };
