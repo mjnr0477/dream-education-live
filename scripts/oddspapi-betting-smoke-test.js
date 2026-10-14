@@ -7,9 +7,11 @@ const oldKey = process.env.ODDSPAPI_API_KEY;
 const oldFetch = global.fetch;
 process.env.ODDSPAPI_API_KEY = "test-key";
 let requested = "";
+let oddsPapiRequests = 0;
 let mockProviderResponse = null;
 global.fetch = async url => {
   requested = String(url);
+  if (requested.includes("api.oddspapi.io")) oddsPapiRequests++;
   if (mockProviderResponse) return mockProviderResponse;
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Nairobi", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
   if (requested.includes("sportscore.com")) {
@@ -38,15 +40,18 @@ function res() { return { statusCode: 200, body: null, status(n) { this.statusCo
   response = res();
   await routes.get["/api/dream-invest/betting/odds"]({ headers: { authorization: "Bearer owner" }, query: {} }, response);
   assert.equal(response.statusCode, 400);
+  const oddsRequestsBeforePublicEvents = oddsPapiRequests;
   response = res();
   await routes.get["/api/dream-invest/betting/events"]({ headers: { authorization: "Bearer owner" }, query: { period: "today", sport: "soccer", league: "all", optionsOnly: "1" } }, response);
   assert.equal(response.body.success, true);
   assert.equal(response.body.leagues[0].name, "Premier League");
+  assert.equal(oddsPapiRequests, oddsRequestsBeforePublicEvents, "Public event discovery must not call OddsPapi.");
   response = res();
   await routes.get["/api/dream-invest/betting/events"]({ headers: { authorization: "Bearer owner" }, query: { period: "today", sport: "soccer", league: "all" } }, response);
   assert.equal(response.body.success, true);
   assert.equal(response.body.count, 1);
   assert.equal(response.body.predictions[0].fixture, "Team A vs Team B");
+  assert.equal(oddsPapiRequests, oddsRequestsBeforePublicEvents, "Predictions must not depend on OddsPapi.");
   response = res();
   await routes.get["/api/dream-invest/betting/events"]({ headers: { authorization: "Bearer owner" }, query: { period: "year", sport: "soccer" } }, response);
   assert.equal(response.statusCode, 400);
