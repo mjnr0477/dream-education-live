@@ -59,6 +59,11 @@ function res() { return { statusCode: 200, body: null, status(n) { this.statusCo
   assert.equal(response.statusCode, 429);
   assert.match(response.body.error, /paused provider calls/);
   assert.equal(requested, lastRequestAfter429);
+  response = res();
+  await routes.get["/api/dream-invest/betting/events"]({ headers: { authorization: "Bearer owner" }, query: { period: "today", sport: "soccer", league: "all" } }, response);
+  assert.equal(response.body.success, true);
+  assert.ok(Array.isArray(response.body.predictions));
+  assert.ok(response.body.message.includes("No public fixtures") || response.body.message.includes("Events are combined"));
   mockProviderResponse = null;
   assert.equal(buildOddsPrediction({ data: [{ name: "A vs B", odds: [{ name: "A", decimalOdds: 1.8 }] }] }).length, 1);
   const structuredFixture = {
