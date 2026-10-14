@@ -20,40 +20,131 @@ function numericOdds(value) {
   const n = Number(value);
   return Number.isFinite(n) && n > 1 && n < 10000 ? n : null;
 }
-function buildOddsPrediction(payload) {
+function outcomeLabel(raw, fixture) {
+  const value = text(raw, 100).toLowerCase().replace(/[_-]+/g, " ").trim();
+  if (/^(1|home|home win|team 1|participant 1)$/.test(value)) return "home";
+  if (/^(x|draw|tie)$/.test(value)) return "draw";
+  if (/^(2|away|away win|team 2|participant 2)$/.test(value)) return "away";
+  const home = text(fixture.participant1Name || fixture.homeTeam || fixture.home || fixture.home_team, 100).toLowerCase();
+  const away = text(fixture.participant2Name || fixture.awayTeam || fixture.away || fixture.away_team, 100).toLowerCase();
+  if (home && value === home) return "home";
+  if (away && value === away) return "away";
+  return null;
+}
+function structuredMarket(fixture, preferredBookmaker) {
+  const bookmakerOdds = fixture && fixture.bookmakerOdds;
+  if (!bookmakerOdds || typeof bookmakerOdds !== "object") return null;
+  const entries = Object.entries(bookmakerOdds).filter(([name, book]) =>
+    (!preferredBookmaker || name.toLowerCase() === preferredBookmaker.toLowerCase()) &&
+    book && book.bookmakerIsActive !== false && book.suspended !== true &&
+    book.markets && typeof book.markets === "object");
+  for (const [bookmaker, book] of entries) {
+    const markets = Object.entries(book.markets).filter(([, market]) =>
+      market && market.marketActive !== false && market.suspended !== true && market.outcomes);
+    const parsed = [];
+    for (const [marketId, market] of markets) {
+      const outcomes = [];
+      for (const [outcomeId, outcome] of Object.entries(market.outcomes)) {
+        const players = outcome && outcome.players;
+        if (!players || typeof players !== "object") continue;
+        for (const player of Object.values(players)) {
+          if (!player || player.active === false) continue;
+          const price = numericOdds(player.price);
+          if (price === null) continue;
+          const rawLabel = player.bookmakerOutcomeId || player.name || outcome.name || outcome.label || outcomeId;
+          const label = outcomeLabel(rawLabel, fixture);
+          if (!label || outcomes.some(item => item.outcome === label)) continue;
+          outcomes.push({ outcome: label, decimal_odds: price, changed_at: text(player.changedAt || player.bookmakerChangedAt, 80) || null });
+        }
+      }
+      const labels = new Set(outcomes.map(item => item.outcome));
+      if (labels.has("home") && labels.has("away")) {
+        const hasDraw = labels.has("draw");
+        // A football 1X2 market must contain all three outcomes. Never mistake a two-way
+        // market (e.g. draw-no-bet or winner) for a full-time result market.
+        if (hasDraw) parsed.push({ bookmaker, market_id: marketId, market, outcomes, threeWay: true });
+        else parsed.push({ bookmaker, market_id: marketId, market, outcomes, threeWay: false });
+      }
+    }
+    const best = parsed.find(item => item.threeWay) || parsed.find(item => item.outcomes.length === 2);
+    if (best) return best;
+  }
+  return null;
+}
+function buildOddsPrediction(payload, options = {}) {
   const rows = rowsOf(payload);
   const predictions = [];
   for (const row of rows) {
-    const odds = [];
-    const seen = new Set();
-    function walk(value, path, depth) {
-      if (!value || typeof value !== "object" || depth > 5) return;
-      if (Array.isArray(value)) {
-        value.slice(0, 40).forEach((item, index) => walk(item, path + "[" + index + "]", depth + 1));
-        return;
-      }
-      for (const [key, item] of Object.entries(value)) {
-        const odd = numericOdds(item);
-        if (odd !== null && /odd|price|decimal/i.test(key)) {
-          const label = text(value.name || value.label || value.outcome || key, 80);
-          const identity = label + "|" + odd;
-          if (!seen.has(identity)) { seen.add(identity); odds.push({ outcome: label, decimal_odds: odd, implied_probability_pct: Number((100 / odd).toFixed(2)) }); }
-        } else if (item && typeof item === "object") {
-          walk(item, path ? path + "." + key : key, depth + 1);
+    const fixtureName = text(row.name || row.fixtureName || row.eventName || row.match || row.title ||
+      [row.participant1Name || row.homeTeam || row.home || row.home_team, row.participant2Name || row.awayTeam || row.away || row.away_team].filter(Boolean).join(" vs ") || "Fixture", 180);
+    const structured = structuredMarket(row, options.bookmaker);
+    let odds = [];
+    let marketType = "unknown";
+    let bookmaker = options.bookmaker || null;
+    let marketId = null;
+    if (structured) {
+      odds = structured.outcomes.map(item => ({ ...item, outcome: item.outcome === "home" ? text(row.participant1Name || row.homeTeam || row.home || "Home", 80) :
+        item.outcome === "away" ? text(row.participant2Name || row.awayTeam || row.away || "Away", 80) : "Draw",
+        implied_probability_pct: Number((100 / item.decimal_odds).toFixed(2)) }));
+      marketType = structured.threeWay ? "three_way_match_result" : "two_way_winner";
+      bookmaker = structured.bookmaker;
+      marketId = structured.market_id;
+    } else {
+      // Legacy provider payloads are displayed as odds only. Do not promote unclassified
+      // prices to a reliable prediction because different markets can be mixed together.
+      const seen = new Set();
+      function walk(value, depth) {
+        if (!value || typeof value !== "object" || depth > 5) return;
+        if (Array.isArray(value)) {
+          value.slice(0, 40).forEach(item => walk(item, depth + 1));
+          return;
+        }
+        for (const [key, item] of Object.entries(value)) {
+          const odd = numericOdds(item);
+          if (odd !== null && /odd|price|decimal/i.test(key)) {
+            const label = text(value.name || value.label || value.outcome || key, 80);
+            const identity = label + "|" + odd;
+            if (!seen.has(identity)) { seen.add(identity); odds.push({ outcome: label, decimal_odds: odd, implied_probability_pct: Number((100 / odd).toFixed(2)) }); }
+          } else if (item && typeof item === "object") walk(item, depth + 1);
         }
       }
+      if (!row.bookmakerOdds) walk(row, 0);
     }
-    walk(row, "", 0);
-    const likely = odds.slice().sort((a, b) => b.implied_probability_pct - a.implied_probability_pct)[0] || null;
+    const impliedSum = odds.reduce((sum, item) => sum + 1 / item.decimal_odds, 0);
+    const hasRecognizedMarket = Boolean(structured);
+    const normalized = hasRecognizedMarket && impliedSum > 0
+      ? odds.map(item => ({ ...item, model_probability_pct: Number(((1 / item.decimal_odds) / impliedSum * 100).toFixed(2)) }))
+      : [];
+    const favourite = normalized.slice().sort((a, b) => b.model_probability_pct - a.model_probability_pct)[0] || null;
+    const updatedAt = text(row.updatedAt || row.updated_at, 80) || null;
+    const updatedMs = updatedAt ? Date.parse(updatedAt) : NaN;
+    const oddsAgeMinutes = Number.isFinite(updatedMs) ? Math.max(0, Math.round((Date.now() - updatedMs) / 60000)) : null;
+    const statusId = Number(row.statusId);
+    const preMatch = !Number.isFinite(statusId) || statusId === 0 || statusId === 1;
+    const fresh = oddsAgeMinutes !== null && oddsAgeMinutes <= 180;
+    const validPrediction = Boolean(favourite && preMatch && fresh && (marketType !== "three_way_match_result" || normalized.length === 3));
     predictions.push({
-      fixture: text(row.name || row.fixtureName || row.eventName || row.match || row.title ||
-        [row.participant1Name || row.homeTeam || row.home || row.home_team, row.participant2Name || row.awayTeam || row.away || row.away_team].filter(Boolean).join(" vs ") || "Fixture", 180),
-      fixture_id: text(row.id || row.fixtureId || row.fixture_id, 100) || null,
+      fixture: fixtureName,
+      fixture_id: text(row.fixtureId || row.id || row.fixture_id, 100) || null,
       kickoff: text(row.startTime || row.start_time || row.kickoff || row.date, 80) || null,
+      league: text(row.tournamentName || row.tournamentSlug, 120) || null,
+      bookmaker,
+      market_id: marketId,
+      market_type: marketType,
       available_outcomes: odds,
-      market_favourite: likely,
-      method: "Highest bookmaker-implied probability among odds fields returned by the provider",
-      warning: "This is an odds-based heuristic, not a calibrated model or guarantee. Missing or differently shaped odds may prevent a prediction."
+      market_favourite: validPrediction ? favourite : null,
+      probability_method: hasRecognizedMarket ? "Bookmaker implied probabilities normalized to remove the market overround" : "Unclassified odds; no prediction issued",
+      data_quality: {
+        structured_market_verified: hasRecognizedMarket,
+        odds_last_updated: updatedAt,
+        odds_age_minutes: oddsAgeMinutes,
+        odds_fresh_within_3_hours: fresh,
+        pre_match_status: preMatch
+      },
+      prediction_status: validPrediction ? "prediction_available" : "insufficient_verified_data",
+      warning: validPrediction
+        ? "Probability is a market-derived estimate, not a guarantee or an independently validated team-performance model."
+        : "No prediction issued: verified market structure, fresh odds, or a pre-match fixture status was missing."
     });
   }
   return predictions;
@@ -181,12 +272,12 @@ function registerOddsPapiRoutes(app, options = {}) {
           (!row.tournamentId || selectedIds.has(String(row.tournamentId)));
       });
       let bookmaker = "betika";
-      let scoped = getScopedFixtures(await requestProvider("/v4/odds-by-tournaments", { bookmaker, tournamentIds: ids.join(",") }));
-      let predictions = buildOddsPrediction(scoped);
+      let scoped = getScopedFixtures(await requestProvider("/v4/odds-by-tournaments", { bookmakers: bookmaker, tournamentIds: ids.join(",") }));
+      let predictions = buildOddsPrediction(scoped, { bookmaker });
       if (!predictions.some(item => item.available_outcomes.length)) {
         bookmaker = "pinnacle";
         scoped = getScopedFixtures(await requestProvider("/v4/odds-by-tournaments", { bookmaker, tournamentIds: ids.join(",") }));
-        predictions = buildOddsPrediction(scoped);
+        predictions = buildOddsPrediction(scoped, { bookmaker });
       }
       predictions = predictions.map((item, index) => ({
         ...item,
@@ -221,8 +312,8 @@ function registerOddsPapiRoutes(app, options = {}) {
     if (!tournamentIds || !/^[A-Za-z0-9,_-]+$/.test(tournamentIds)) return res.status(400).json({ success: false, error: "Enter valid tournament IDs separated by commas." });
     if (!/^[A-Za-z0-9 _.-]+$/.test(bookmaker)) return res.status(400).json({ success: false, error: "Enter a valid bookmaker name." });
     try {
-      const data = await requestProvider("/v4/odds-by-tournaments", { bookmaker, tournamentIds });
-      return res.json({ success: true, bookmaker, data, predictions: buildOddsPrediction(data), bet_placement_enabled: false });
+      const data = await requestProvider("/v4/odds-by-tournaments", { bookmakers: bookmaker, tournamentIds });
+      return res.json({ success: true, bookmaker, data, predictions: buildOddsPrediction(data, { bookmaker }), bet_placement_enabled: false });
     } catch (error) {
       const status = error && error.name === "AbortError" ? 504 : Number(error && error.status) || 502;
       return res.status(status).json({ success: false, error: error && error.name === "AbortError" ? "OddsPapi request timed out. Try again." : text(error && error.message, 240) || "OddsPapi request failed." });
