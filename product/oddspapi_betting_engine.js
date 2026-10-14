@@ -116,7 +116,8 @@ function buildOddsPrediction(payload, options = {}) {
       ? odds.map(item => ({ ...item, model_probability_pct: Number(((1 / item.decimal_odds) / impliedSum * 100).toFixed(2)) }))
       : [];
     const favourite = normalized.slice().sort((a, b) => b.model_probability_pct - a.model_probability_pct)[0] || null;
-    const updatedAt = text(row.updatedAt || row.updated_at, 80) || null;
+    const latestOutcomeUpdate = odds.map(item => item.changed_at).filter(Boolean).map(value => ({ value, time: Date.parse(value) })).filter(item => Number.isFinite(item.time)).sort((a, b) => b.time - a.time)[0];
+    const updatedAt = latestOutcomeUpdate ? latestOutcomeUpdate.value : (text(row.updatedAt || row.updated_at, 80) || null);
     const updatedMs = updatedAt ? Date.parse(updatedAt) : NaN;
     const oddsAgeMinutes = Number.isFinite(updatedMs) ? Math.max(0, Math.round((Date.now() - updatedMs) / 60000)) : null;
     const statusId = Number(row.statusId);
