@@ -54,14 +54,20 @@ function correlateTeachingOutcome({
     assessedAt >= evaluatedAt &&
     assessedAt - evaluatedAt <= maxGapMs;
 
+  // A matching session may bridge missing timestamps, but must never make a
+  // pre-teaching assessment or an assessment outside the time window causal.
+  const sessionTemporalMatch =
+    sessionMatch &&
+    (evaluatedAt === null || assessedAt === null || chronologicalMatch);
+
   const matched =
-    sessionMatch ||
+    sessionTemporalMatch ||
     (questionMatch && chronologicalMatch) ||
     (conceptMatch && chronologicalMatch);
 
   return {
     matched,
-    match_basis: sessionMatch
+    match_basis: sessionTemporalMatch
       ? "session"
       : questionMatch && chronologicalMatch
         ? "question_and_time"
@@ -149,7 +155,7 @@ function selectTeachingEvaluation({
   assessment = {},
   maxGapMs = DEFAULT_MAX_GAP_MS
 } = {}) {
-  const assessmentTime = normalizeTimestamp(assessment.observed_at);
+  const assessmentTime = normalizeTimestamp(assessment.observed_at || assessment.created_at);
   const assessmentConcept = normalizeKey(assessment.concept_key);
   const assessmentQuestionHash = assessment.question_hash || null;
 
@@ -163,25 +169,46 @@ function selectTeachingEvaluation({
       const questionMatch =
         Boolean(assessmentQuestionHash && item.metadata?.question_hash) &&
         assessmentQuestionHash === item.metadata.question_hash;
+      const sessionMatch =
+        Boolean(assessment.session_id && item.session_id) &&
+        normalizeKey(assessment.session_id) === normalizeKey(item.session_id);
       const chronologicalMatch =
         assessmentTime !== null &&
         evaluatedAt !== null &&
         evaluatedAt <= assessmentTime &&
         assessmentTime - evaluatedAt <= maxGapMs;
+      const temporalEligible =
+        chronologicalMatch ||
+        (sessionMatch && (assessmentTime === null || evaluatedAt === null));
 
-      return { item, evaluatedAt, conceptMatch, questionMatch, chronologicalMatch };
+      return {
+        item,
+        evaluatedAt,
+        sessionMatch,
+        conceptMatch,
+        questionMatch,
+        chronologicalMatch,
+        temporalEligible
+      };
     })
-    .filter(candidate => candidate.chronologicalMatch)
+    .filter(candidate =>
+      candidate.temporalEligible &&
+      (candidate.sessionMatch || candidate.questionMatch || candidate.conceptMatch)
+    )
     .sort((a, b) => {
-      const aPriority = (a.questionMatch ? 4 : 0) + (a.conceptMatch ? 2 : 0);
-      const bPriority = (b.questionMatch ? 4 : 0) + (b.conceptMatch ? 2 : 0);
+      const aPriority =
+        (a.sessionMatch ? 8 : 0) +
+        (a.questionMatch ? 4 : 0) +
+        (a.conceptMatch ? 2 : 0);
+      const bPriority =
+        (b.sessionMatch ? 8 : 0) +
+        (b.questionMatch ? 4 : 0) +
+        (b.conceptMatch ? 2 : 0);
       if (aPriority !== bPriority) return bPriority - aPriority;
       return (b.evaluatedAt || 0) - (a.evaluatedAt || 0);
     });
 
-  const best = candidates.find(candidate =>
-    candidate.questionMatch || candidate.conceptMatch
-  );
+  const best = candidates[0] || null;
 
   return best ? best.item : null;
 }
