@@ -53,11 +53,14 @@ function res() { return { statusCode: 200, body: null, status(n) { this.statusCo
   assert.equal(response.body.count, 1);
   assert.equal(response.body.predictions[0].fixture, "Team A vs Team B");
   assert.equal(response.body.predictions[0].market_prediction.type, "h2h");
+  assert.equal(response.body.predictions[0].prediction_status, "no_verified_consensus");
+  assert.equal(response.body.predictions[0].market_prediction.probability_pct, null);
   response = res();
   await routes.get["/api/dream-invest/betting/events"]({ headers: { authorization: "Bearer owner" }, query: { period: "today", sport: "soccer", league: "all", market: "btts" } }, response);
   assert.equal(response.body.success, true);
   assert.equal(response.body.predictions[0].market_prediction.type, "btts");
-  assert.ok(Number.isFinite(response.body.predictions[0].market_prediction.probability_pct));
+  assert.equal(response.body.predictions[0].prediction_status, "no_verified_consensus");
+  assert.equal(response.body.predictions[0].market_prediction.probability_pct, null);
   response = res();
   await routes.get["/api/dream-invest/betting/events"]({ headers: { authorization: "Bearer owner" }, query: { period: "today", sport: "soccer", market: "correct_score" } }, response);
   assert.match(response.body.predictions[0].market_prediction.label, /^\d+-\d+$/);
