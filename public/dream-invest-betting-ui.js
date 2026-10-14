@@ -27,18 +27,22 @@
   }
   function renderPredictions(data) {
     const rows = Array.isArray(data.predictions) ? data.predictions : [];
-    if (!rows.length) return '<div class="di-empty"><strong>No predictions available for this selection.</strong><p>' + esc(data.message || "Try another period or choose all leagues.") + '</p></div>';
-    return '<div class="di-prediction-summary"><strong>' + rows.length + ' events</strong><span>' + esc(data.sport) + ' · ' + esc(data.league) + ' · Odds from ' + esc(data.bookmaker || "available provider") + '</span></div>' +
+    const sportScoreCredit = (data.sources || []).includes("SportScore")
+      ? '<p class="di-sportscore-credit"><a href="https://sportscore.com/" rel="dofollow" target="_blank">Powered by SportScore</a></p>' : '';
+    if (!rows.length) return '<div class="di-empty"><strong>No events available for this selection.</strong><p>' + esc(data.message || "Try another period or choose all leagues.") + '</p></div>' + sportScoreCredit;
+    return '<div class="di-prediction-summary"><strong>' + rows.length + ' events</strong><span>' + esc(data.sport) + ' · ' + esc(data.league) + ' · Sources: ' + esc((data.sources || []).join(", ") || "public event feeds") + '</span></div>' +
       '<div class="di-bet-list">' + rows.map(item => {
         const outcomes = Array.isArray(item.available_outcomes) ? item.available_outcomes : [];
         const favorite = item.market_favourite;
+        const source = item.source || (item.sources || []).join(", ") || "Event feed";
         return '<article class="di-bet-row di-prediction-card"><div class="di-prediction-title"><strong>' + esc(item.fixture || "Fixture") + '</strong><span class="di-league-tag">' + esc(item.league || "Competition") + '</span></div>' +
-          '<span class="di-kickoff">' + esc(localTime(item.kickoff)) + '</span>' +
-          '<div class="di-pick"><span>Market-based prediction</span><strong>' + esc(favorite ? favorite.outcome : "No clear pick") + '</strong>' +
-          (favorite ? '<b>' + esc(favorite.decimal_odds) + ' odds</b><small>' + esc(favorite.model_probability_pct) + '% implied probability</small>' : '<small>Odds did not provide a usable prediction for this event.</small>') + '</div>' +
+          '<span class="di-kickoff">' + esc(localTime(item.kickoff)) + ' · ' + esc(source) + '</span>' +
+          (item.home_score != null && item.away_score != null ? '<div class="di-live-score"><strong>' + esc(item.home_score) + ' – ' + esc(item.away_score) + '</strong><small>' + esc(item.match_status || "Result") + '</small></div>' : '') +
+          '<div class="di-pick"><span>Prediction status</span><strong>' + esc(favorite ? favorite.outcome : "Not enough verified data") + '</strong>' +
+          (favorite ? '<b>' + esc(favorite.decimal_odds) + ' odds</b><small>' + esc(favorite.model_probability_pct) + '% normalized market probability</small>' : '<small>This event is listed, but Dream will not invent a prediction without fresh, verified market data.</small>') + '</div>' +
           (outcomes.length ? '<div class="di-outcomes">' + outcomes.map(outcome => '<span>' + esc(outcome.outcome) + ' <b>' + esc(outcome.decimal_odds) + '</b></span>').join("") + '</div>' : '') +
-          '<small class="di-prediction-note">Market odds indicate implied probability, not a guarantee. ' + esc(item.warning || "") + '</small></article>';
-      }).join("") + '</div>';
+          '<small class="di-prediction-note">Probabilities are estimates, not guarantees. ' + esc(item.warning || "") + '</small></article>';
+      }).join("") + '</div>' + sportScoreCredit;
   }
   async function loadLeagues(root, sport, keepValue) {
     const league = root.querySelector("#di-simple-league");
