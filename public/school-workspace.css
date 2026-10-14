@@ -68,3 +68,35 @@
   outline: 3px solid var(--accent-2, #9ee7ff);
   outline-offset: 2px;
 }
+
+
+/* School operations: daily attendance and timetable forms. */
+.school-module-form-row,
+.school-attendance-row,
+.school-timetable-form-grid {
+  display: grid;
+  gap: 10px;
+}
+.school-module-form-row { grid-template-columns: minmax(0,1fr) auto; align-items: end; }
+.school-attendance-list { display: grid; gap: 10px; margin: 14px 0; }
+.school-attendance-row {
+  grid-template-columns: minmax(120px,1fr) minmax(130px,.6fr) minmax(150px,1fr);
+  align-items: end;
+  border: 1px solid var(--line,rgba(255,255,255,.1));
+  border-radius: 12px;
+  padding: 12px;
+}
+.school-attendance-row > div { display:grid; gap:4px; }
+.school-attendance-row small { color: var(--muted,#a6b0c4); overflow-wrap:anywhere; }
+.school-timetable-form-grid { grid-template-columns: repeat(3,minmax(0,1fr)); margin-bottom:12px; }
+.school-space-enhanced :is(.school-attendance-row,.school-timetable-form-grid,.school-module-form-row) label {
+  display:grid; gap:6px; font-size:.82rem; font-weight:650;
+}
+.school-space-enhanced :is(.school-attendance-row,.school-timetable-form-grid,.school-module-form-row) input,
+.school-space-enhanced :is(.school-attendance-row,.school-timetable-form-grid,.school-module-form-row) select {
+  box-sizing:border-box; width:100%; min-width:0; border:1px solid var(--line,rgba(255,255,255,.15));
+  border-radius:9px; padding:9px 10px; background:var(--surface-2,#101522); color:inherit;
+}
+@media (max-width:760px) {
+  .school-attendance-row,.school-timetable-form-grid,.school-module-form-row { grid-template-columns:minmax(0,1fr); }
+}
