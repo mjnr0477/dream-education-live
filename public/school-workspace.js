@@ -94,8 +94,9 @@
       '<div class="school-module-nav-placeholder"></div>' +
       section("overview",overview,true) + section("learners",learnerContent,false) + section("teachers",teacherContent,false) +
       section("classes",classContent,false) + section("lessons",lessons,false) + section("assessments",assessments,false) +
-      section("analytics",analytics,false) + section("attendance",unavailable("Attendance","Daily registers, present/absent records and absence follow-up require a persistent school attendance API."),false) +
-      section("timetable",unavailable("Timetable & school calendar","Class schedules, teacher timetables, rooms and events require a saved school timetable API."),false) +
+      section("analytics",analytics,false) +
+      section("attendance",'<div class="school-module-card"><h4>Daily attendance register</h4><p>Record attendance only for learners in the connected school roster. Registers are saved by date.</p><div id="school-attendance-app" aria-live="polite"><p>Open Attendance to load the authorised school roster.</p></div></div>',false) +
+      section("timetable",'<div class="school-module-card"><h4>School timetable</h4><p>Save lesson times and check for overlapping class, teacher or room bookings.</p><div id="school-timetable-app" aria-live="polite"><p>Open Timetable to load saved entries.</p></div></div>',false) +
       section("community",community,false) + section("records",unavailable("Reports & records","Downloadable report cards and school reports must be generated from authorised, persisted school data."),false) +
       section("settings",unavailable("School settings & permissions","School profile, academic terms, curriculum, roles and audit settings require server-side school-admin permission checks."),false);
     moduleRoot.querySelector(".school-module-nav-placeholder").replaceWith(nav);
@@ -107,9 +108,88 @@
       nav.querySelectorAll("button").forEach(item => item.classList.toggle("active", item === button));
       moduleRoot.querySelectorAll("[data-school-module-panel]").forEach(item => item.classList.toggle("active", item.getAttribute("data-school-module-panel") === selected));
       if (selected === "lessons") loadSchoolLessons();
+      if (selected === "attendance") loadSchoolAttendance();
+      if (selected === "timetable") loadSchoolTimetable();
     }));
     nav.querySelector('[data-school-module-tab="overview"]').classList.add("active");
     let schoolLessonsLoading = false;
+    function schoolOpsToken() {
+      const auth = window.DreamEducationUI && typeof window.DreamEducationUI.getAuth === "function"
+        ? window.DreamEducationUI.getAuth() : null;
+      return auth && auth.session && auth.session.access_token;
+    }
+    function localDateValue() {
+      const now = new Date();
+      return now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
+    }
+    function schoolPicker(type, schools) {
+      const options = (Array.isArray(schools) ? schools : []).map(school =>
+        '<option value="' + esc(school.school_id) + '">' + esc(school.name || school.school_id) + '</option>'
+      ).join("");
+      if (!options) return '<p class="school-module-note">No registered school is available for this owner account yet. Onboard a school first, then return here.</p>';
+      return '<div class="school-module-form-row"><label for="school-ops-school-' + type + '">School<select id="school-ops-school-' + type + '">' + options + '</select></label><button class="school-module-action primary" type="button" data-school-ops-load="' + type + '">Open school records</button></div>';
+    }
+    async function loadSchoolAttendance(schoolId) {
+      const target = moduleRoot.querySelector("#school-attendance-app");
+      if (!target) return;
+      const token = schoolOpsToken();
+      if (!token) { target.innerHTML = '<p class="school-module-note">Please sign in again to manage attendance.</p>'; return; }
+      target.innerHTML = "<p>Loading the connected school roster…</p>";
+      try {
+        const query = new URLSearchParams();
+        if (schoolId) query.set("school_id", schoolId);
+        query.set("date", localDateValue());
+        const data = await fetchSchoolLessonJSON("/api/v1/school/attendance?" + query.toString(), {
+          headers: { "Accept": "application/json", "Authorization": "Bearer " + token }
+        });
+        if (!data.school_id) { target.innerHTML = schoolPicker("attendance", data.schools); return; }
+        target.dataset.schoolId = data.school_id;
+        const register = (data.registers || []).find(item => item.date === localDateValue());
+        const existing = new Map(((register && register.records) || []).map(item => [String(item.learner_id), item]));
+        const roster = Array.isArray(data.roster) ? data.roster : [];
+        const rows = roster.map(learner => {
+          const prior = existing.get(String(learner.learner_id)) || {};
+          return '<div class="school-attendance-row"><div><strong>' + esc(learner.name || learner.learner_id) + '</strong><small>' + esc(learner.level || learner.learner_id) + '</small></div><label>Status<select required data-learner-status="' + esc(learner.learner_id) + '"><option value="">Choose status</option>' +
+            ["present","absent","late","excused"].map(status => '<option value="' + status + '"' + (prior.status === status ? " selected" : "") + '>' + status.charAt(0).toUpperCase() + status.slice(1) + '</option>').join("") +
+            '</select></label><label>Note<input type="text" maxlength="250" data-learner-note="' + esc(learner.learner_id) + '" value="' + esc(prior.note || "") + '" placeholder="Optional note"></label></div>';
+        }).join("");
+        target.innerHTML = '<form id="school-attendance-form"><input type="hidden" name="school_id" value="' + esc(data.school_id) + '"><label>Register date<input type="date" name="date" value="' + esc(localDateValue()) + '" required></label>' +
+          (roster.length ? '<div class="school-attendance-list">' + rows + '</div><button class="school-module-action primary" type="submit">Save daily register</button>' :
+            '<p class="school-module-note">No connected learners are attached to this school yet. Link learners to school classes before recording attendance.</p>') +
+          '<p class="school-module-note" id="school-attendance-feedback" aria-live="polite"></p>' +
+          (register ? '<p class="school-module-note">Saved register: ' + esc(register.counts.present) + ' present · ' + esc(register.counts.absent) + ' absent · ' + esc(register.counts.late) + ' late · ' + esc(register.counts.excused) + ' excused.</p>' : '') + '</form>';
+      } catch (error) {
+        target.innerHTML = '<p class="school-module-note">' + esc(error.message || "Could not load attendance.") + '</p><button class="school-module-action" type="button" data-school-ops-load="attendance">Try again</button>';
+      }
+    }
+    async function loadSchoolTimetable(schoolId) {
+      const target = moduleRoot.querySelector("#school-timetable-app");
+      if (!target) return;
+      const token = schoolOpsToken();
+      if (!token) { target.innerHTML = '<p class="school-module-note">Please sign in again to manage the timetable.</p>'; return; }
+      target.innerHTML = "<p>Loading saved timetable…</p>";
+      try {
+        const query = new URLSearchParams();
+        if (schoolId) query.set("school_id", schoolId);
+        const data = await fetchSchoolLessonJSON("/api/v1/school/timetable" + (query.toString() ? "?" + query.toString() : ""), {
+          headers: { "Accept": "application/json", "Authorization": "Bearer " + token }
+        });
+        if (!data.school_id) { target.innerHTML = schoolPicker("timetable", data.schools); return; }
+        target.dataset.schoolId = data.school_id;
+        const entries = Array.isArray(data.timetable) ? data.timetable : [];
+        const rows = entries.map(item => '<tr><td>' + esc(item.day) + '</td><td>' + esc(item.start_time) + '–' + esc(item.end_time) + '</td><td>' + esc(item.subject) + '</td><td>' + esc(item.class_name) + '</td><td>' + esc(item.teacher || "—") + '</td><td>' + esc(item.room || "—") + '</td></tr>').join("");
+        target.innerHTML = '<form id="school-timetable-form"><input type="hidden" name="school_id" value="' + esc(data.school_id) + '"><div class="school-timetable-form-grid">' +
+          '<label>Day<select name="day" required>' + ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"].map(day => '<option value="' + day + '">' + day.charAt(0).toUpperCase() + day.slice(1) + '</option>').join("") + '</select></label>' +
+          '<label>Start<input type="time" name="start_time" required value="08:00"></label><label>End<input type="time" name="end_time" required value="08:40"></label>' +
+          '<label>Subject<input name="subject" required maxlength="120" placeholder="Mathematics"></label><label>Class<input name="class_name" required maxlength="120" placeholder="Grade 6"></label>' +
+          '<label>Teacher (optional)<input name="teacher" maxlength="120"></label><label>Room (optional)<input name="room" maxlength="80"></label></div>' +
+          '<button class="school-module-action primary" type="submit">Add timetable entry</button><p id="school-timetable-feedback" class="school-module-note" aria-live="polite"></p></form>' +
+          '<div class="school-module-table-wrap"><table class="school-module-table"><thead><tr><th>Day</th><th>Time</th><th>Subject</th><th>Class</th><th>Teacher</th><th>Room</th></tr></thead><tbody>' +
+          (rows || '<tr><td colspan="6">No timetable entries saved yet.</td></tr>') + '</tbody></table></div>';
+      } catch (error) {
+        target.innerHTML = '<p class="school-module-note">' + esc(error.message || "Could not load the timetable.") + '</p><button class="school-module-action" type="button" data-school-ops-load="timetable">Try again</button>';
+      }
+    }
     function renderSchoolLessonCard(lesson, expandDetails = false) {
       const steps = lesson.lesson_plan && Array.isArray(lesson.lesson_plan.lesson_steps) ? lesson.lesson_plan.lesson_steps : [];
       const questions = Array.isArray(lesson.assessment_questions) ? lesson.assessment_questions : [];
@@ -186,6 +266,49 @@
         if (submit) { submit.disabled = false; submit.textContent = "Prepare lesson & assessment"; }
       }
     });
+    moduleRoot.addEventListener("submit", async event => {
+      const form = event.target;
+      if (form.id !== "school-attendance-form" && form.id !== "school-timetable-form") return;
+      event.preventDefault();
+      const type = form.id === "school-attendance-form" ? "attendance" : "timetable";
+      const feedback = form.querySelector("#school-" + type + "-feedback");
+      const token = schoolOpsToken();
+      if (!token) { if (feedback) feedback.textContent = "Please sign in again before saving."; return; }
+      const values = new FormData(form);
+      const payload = Object.fromEntries(values.entries());
+      if (type === "attendance") {
+        const app = moduleRoot.querySelector("#school-attendance-app");
+        payload.records = Array.from(form.querySelectorAll("[data-learner-status]")).map(select => {
+          const learnerId = select.getAttribute("data-learner-status");
+          const note = form.querySelector('[data-learner-note="' + CSS.escape(learnerId) + '"]');
+          return { learner_id: learnerId, status: select.value, note: note ? note.value : "" };
+        });
+        if (payload.records.some(record => !record.status)) {
+          if (feedback) feedback.textContent = "Choose a status for every learner before saving.";
+          return;
+        }
+        if (feedback) feedback.textContent = "Saving attendance register…";
+        try {
+          const data = await fetchSchoolLessonJSON("/api/v1/school/attendance", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Accept": "application/json", "Authorization": "Bearer " + token },
+            body: JSON.stringify(payload)
+          });
+          if (feedback) feedback.textContent = "Register saved: " + data.register.counts.present + " present, " + data.register.counts.absent + " absent, " + data.register.counts.late + " late, " + data.register.counts.excused + " excused.";
+          await loadSchoolAttendance(payload.school_id);
+        } catch (error) { if (feedback) feedback.textContent = error.message || "Attendance could not be saved."; }
+      } else {
+        if (feedback) feedback.textContent = "Saving timetable entry…";
+        try {
+          await fetchSchoolLessonJSON("/api/v1/school/timetable", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Accept": "application/json", "Authorization": "Bearer " + token },
+            body: JSON.stringify(payload)
+          });
+          await loadSchoolTimetable(payload.school_id);
+        } catch (error) { if (feedback) feedback.textContent = error.message || "Timetable entry could not be saved."; }
+      }
+    });
     moduleRoot.addEventListener("click", event => {
       const notesButton = event.target.closest("[data-school-lesson-notes-open]");
       if (notesButton) {
@@ -195,6 +318,15 @@
           details.open = true;
           details.scrollIntoView({ behavior: "smooth", block: "center" });
         }
+        return;
+      }
+      const opsLoad = event.target.closest("[data-school-ops-load]");
+      if (opsLoad) {
+        const type = opsLoad.getAttribute("data-school-ops-load");
+        const select = moduleRoot.querySelector("#school-ops-school-" + type);
+        const selectedSchool = select && select.value;
+        if (type === "attendance") loadSchoolAttendance(selectedSchool);
+        if (type === "timetable") loadSchoolTimetable(selectedSchool);
         return;
       }
       const button = event.target.closest("[data-school-module-action]");
