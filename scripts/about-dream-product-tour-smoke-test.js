@@ -25,6 +25,6 @@ assert.match(app, /openSchoolDashboard\(\)/);
 assert.match(app, /openPanel\("tools"\)/);
 assert.match(app, /getElementById\("dream-search-input"\)/);
 assert.match(app, /querySelector\("\[data-dream-invest-open\]"\)/);
-assert.match(index, /app\\.js\\?v=\\d{8}[a-z]*/);
+assert.match(index, /app\.js\?v=\d{8}[a-z]*/);
 
 console.log("About Dream product tour smoke test passed.");
