@@ -2,6 +2,36 @@
 
 const API_BASE = "https://api.oddspapi.io";
 
+// Provider-wide response cache and 429 cooldown. These are process-local so they
+// protect a running instance without introducing a new database dependency.
+const providerCache = new Map();
+const providerInflight = new Map();
+let rateLimitedUntil = 0;
+const CACHE_TTL_MS = {
+  "/v4/sports": 6 * 60 * 60 * 1000,
+  "/v4/tournaments": 60 * 60 * 1000,
+  "/v4/odds-by-tournaments": 2 * 60 * 1000
+};
+function providerCacheKey(path, query) {
+  return path + "?" + Object.entries(query || {}).filter(([, value]) =>
+    value !== undefined && value !== null && String(value).trim())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, value]) => key + "=" + String(value).trim()).join("&");
+}
+function retryDelayMs(response, body) {
+  let header = "";
+  try { header = response && response.headers && response.headers.get ? response.headers.get("Retry-After") || "" : ""; } catch (_) {}
+  if (header) {
+    const seconds = Number(header);
+    if (Number.isFinite(seconds) && seconds >= 0) return Math.min(seconds * 1000, 15 * 60 * 1000);
+    const date = Date.parse(header);
+    if (Number.isFinite(date)) return Math.max(1000, Math.min(date - Date.now(), 15 * 60 * 1000));
+  }
+  const providerText = providerMessage(body).match(/(?:retry|wait|reset)(?: in| after|[: ]+)\s*(\d+)\s*(seconds?|secs?|s\b)/i);
+  if (providerText) return Math.min(Number(providerText[1]) * 1000, 15 * 60 * 1000);
+  return 60 * 1000;
+}
+
 function text(value, max = 160) {
   return String(value == null ? "" : value).trim().slice(0, max);
 }
@@ -206,29 +236,58 @@ function registerOddsPapiRoutes(app, options = {}) {
     const params = new URLSearchParams();
     params.set("apiKey", key);
     for (const [name, value] of Object.entries(query)) if (value !== undefined && value !== null && String(value).trim()) params.set(name, String(value).trim());
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 12000);
-    try {
-      const response = await fetch(API_BASE + path + "?" + params.toString(), { headers: { Accept: "application/json" }, signal: controller.signal });
-      const body = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        const providerCode = text(body && (body.code || body.errorCode), 80);
-        const providerDetail = providerMessage(body && (body.message || body.error || body.details || body));
-        let message;
-        if (response.status === 401 || response.status === 403) {
-          message = "OddsPapi rejected the API key or its permissions (HTTP " + response.status + "). Check that the key is active and belongs to the expected account.";
-        } else if (response.status === 429) {
-          message = "OddsPapi rate/request limit reached (HTTP 429)." + (providerDetail ? " " + providerDetail : " Check your OddsPapi request quota in the account dashboard.");
-        } else if (response.status === 400) {
-          message = "OddsPapi rejected the request (HTTP 400)." + (providerDetail ? " " + providerDetail : "");
-        } else {
-          message = "OddsPapi request failed (HTTP " + response.status + ")." + (providerDetail ? " " + providerDetail : " Check provider status and API permissions.");
+
+    const cacheKey = providerCacheKey(path, { ...query, apiKey: key });
+    const ttl = CACHE_TTL_MS[path] || 0;
+    const cached = providerCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) return cached.body;
+    if (cached) providerCache.delete(cacheKey);
+    if (providerInflight.has(cacheKey)) return providerInflight.get(cacheKey);
+    if (Date.now() < rateLimitedUntil) {
+      const waitSeconds = Math.max(1, Math.ceil((rateLimitedUntil - Date.now()) / 1000));
+      throw Object.assign(new Error("OddsPapi is rate limiting requests. Dream Invest paused provider calls; try again in about " + waitSeconds + " seconds. Cached results may be available after the page reload."), { status: 429, retryAfterSeconds: waitSeconds });
+    }
+
+    const request = (async () => {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 12000);
+      try {
+        const response = await fetch(API_BASE + path + "?" + params.toString(), { headers: { Accept: "application/json" }, signal: controller.signal });
+        const body = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const providerCode = text(body && (body.code || body.errorCode), 80);
+          const providerDetail = providerMessage(body && (body.message || body.error || body.details || body));
+          let message;
+          if (response.status === 401 || response.status === 403) {
+            message = "OddsPapi rejected the API key or its permissions (HTTP " + response.status + "). Check that the key is active and belongs to the expected account.";
+          } else if (response.status === 429) {
+            const delay = retryDelayMs(response, body);
+            rateLimitedUntil = Math.max(rateLimitedUntil, Date.now() + delay);
+            message = "OddsPapi rate/request limit reached (HTTP 429)." + (providerDetail ? " " + providerDetail : " Check your OddsPapi request quota in the account dashboard.") + " Dream Invest will pause new provider requests for about " + Math.ceil(delay / 1000) + " seconds.";
+          } else if (response.status === 400) {
+            message = "OddsPapi rejected the request (HTTP 400)." + (providerDetail ? " " + providerDetail : "");
+          } else {
+            message = "OddsPapi request failed (HTTP " + response.status + ")." + (providerDetail ? " " + providerDetail : " Check provider status and API permissions.");
+          }
+          if (providerCode) message += " Provider code: " + providerCode + ".";
+          throw Object.assign(new Error(message), { status: response.status === 429 ? 429 : response.status === 400 ? 400 : response.status === 401 || response.status === 403 ? response.status : 502 });
         }
-        if (providerCode) message += " Provider code: " + providerCode + ".";
-        throw Object.assign(new Error(message), { status: response.status === 429 ? 429 : response.status === 400 ? 400 : response.status === 401 || response.status === 403 ? response.status : 502 });
+        if (ttl > 0) {
+          providerCache.set(cacheKey, { body, expiresAt: Date.now() + ttl });
+          // Keep the in-memory cache bounded for long-running instances.
+          if (providerCache.size > 150) {
+            const oldestKey = providerCache.keys().next().value;
+            if (oldestKey !== undefined) providerCache.delete(oldestKey);
+          }
+        }
+        return body;
+      } finally {
+        clearTimeout(timer);
       }
-      return body;
-    } finally { clearTimeout(timer); }
+    })();
+    providerInflight.set(cacheKey, request);
+    try { return await request; }
+    finally { providerInflight.delete(cacheKey); }
   }
   async function respond(res, path, query) {
     try { return res.json({ success: true, data: await requestProvider(path, query) }); }

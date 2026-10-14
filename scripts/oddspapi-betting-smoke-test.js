@@ -47,11 +47,18 @@ function res() { return { statusCode: 200, body: null, status(n) { this.statusCo
   assert.equal(routes.get["/api/dream-invest/betting/tournaments"] instanceof Function, true);
   mockProviderResponse = { ok: false, status: 429, json: async () => ({ message: "Request limit exceeded", code: "REQUEST_LIMIT_EXCEEDED" }) };
   response = res();
-  await routes.get["/api/dream-invest/betting/sports"]({ headers: { authorization: "Bearer owner" } }, response);
+  await routes.get["/api/dream-invest/betting/odds"]({ headers: { authorization: "Bearer owner" }, query: { tournamentIds: "429-test", bookmaker: "betika" } }, response);
   assert.equal(response.statusCode, 429);
   assert.match(response.body.error, /HTTP 429/);
   assert.match(response.body.error, /REQUEST_LIMIT_EXCEEDED/);
   assert.match(response.body.error, /Request limit exceeded/);
+  assert.match(response.body.error, /60 seconds/);
+  const lastRequestAfter429 = requested;
+  response = res();
+  await routes.get["/api/dream-invest/betting/odds"]({ headers: { authorization: "Bearer owner" }, query: { tournamentIds: "cooldown-test", bookmaker: "betika" } }, response);
+  assert.equal(response.statusCode, 429);
+  assert.match(response.body.error, /paused provider calls/);
+  assert.equal(requested, lastRequestAfter429);
   mockProviderResponse = null;
   assert.equal(buildOddsPrediction({ data: [{ name: "A vs B", odds: [{ name: "A", decimalOdds: 1.8 }] }] }).length, 1);
   const structuredFixture = {
