@@ -16,6 +16,8 @@ function clean(value, max = 160) {
 function listOf(payload, keys) {
   if (Array.isArray(payload)) return payload;
   for (const key of keys) if (Array.isArray(payload && payload[key])) return payload[key];
+  if (payload && payload.data && typeof payload.data === "object") return listOf(payload.data, keys);
+  if (payload && payload.result && typeof payload.result === "object") return listOf(payload.result, keys);
   return [];
 }
 function fetchCache(url) {
@@ -56,7 +58,7 @@ function sportsDbSport(sport) {
 }
 function scoreValue(row, keys) {
   for (const key of keys) {
-    const value = row && row[key];
+    const value = row && row[key] !== undefined ? row[key] : row && row.score && row.score[key];
     if (value !== undefined && value !== null && value !== "") {
       const number = Number(value);
       if (Number.isFinite(number) && number >= 0) return number;
@@ -65,16 +67,16 @@ function scoreValue(row, keys) {
   return null;
 }
 function normalizeSportScore(row) {
-  const home = clean(row.home || row.homeTeam || row.home_team || row.home_team_name || row.homeTeamName || row.team1 || row.participant1);
-  const away = clean(row.away || row.awayTeam || row.away_team || row.away_team_name || row.awayTeamName || row.team2 || row.participant2);
+  const home = clean(row.home || row.homeTeam || row.home_team || row.home_team_name || row.homeTeamName || row.homeTeam && row.homeTeam.name || row.team1 || row.participant1);
+  const away = clean(row.away || row.awayTeam || row.away_team || row.away_team_name || row.awayTeamName || row.awayTeam && row.awayTeam.name || row.team2 || row.participant2);
   if (!home || !away) return null;
   const kickoff = clean(row.time || row.startTime || row.start_time || row.kickoff || row.utcDate || row.date || row.dateTime, 80);
   const status = clean(row.status || row.status_text || row.statusText || row.match_status, 60) || "unknown";
-  const homeScore = scoreValue(row, ["home_score", "homeScore", "score_home", "homeGoals", "home_goals"]);
-  const awayScore = scoreValue(row, ["away_score", "awayScore", "score_away", "awayGoals", "away_goals"]);
+  const homeScore = scoreValue(row, ["home_score", "homeScore", "score_home", "homeGoals", "home_goals", "home"]);
+  const awayScore = scoreValue(row, ["away_score", "awayScore", "score_away", "awayGoals", "away_goals", "away"]);
   return {
     fixture: home + " vs " + away, fixture_id: clean(row.id || row.fixture_id || row.match_id || row.slug, 100) || null,
-    kickoff: kickoff || null, league: clean(row.competition || row.league || row.tournament || row.competition_name, 120) || "Competition",
+    kickoff: kickoff || null, league: clean(row.competition || row.league || row.tournament || row.competition_name || row.competitionName || row.leagueName, 120) || "Competition",
     home_team: home, away_team: away, home_score: homeScore, away_score: awayScore,
     match_status: status, source: "SportScore", source_url: "https://sportscore.com/",
     result_verified: homeScore !== null && awayScore !== null,
