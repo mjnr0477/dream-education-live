@@ -114,7 +114,9 @@
           esc(item.market_prediction ? item.market_prediction.label :
             item.prediction_status === "result_available" ? "Result available" : favorite ? favorite.outcome : "Not enough verified history") + '</strong>' +
           (item.prediction_status === "result_available" ? '<small>Final score: ' + esc(item.home_score) + ' – ' + esc(item.away_score) + '</small>' :
-            item.market_prediction && item.market_prediction.probability_pct != null ? '<small>' + esc(item.market_prediction.probability_pct) + '% estimated probability</small>' : '') + '</div>' +
+            item.market_prediction && item.market_prediction.probability_pct != null ? '<small>' + esc(item.market_prediction.probability_pct) + '% estimated probability</small>' : '') +
+          (item.prediction_quality === "baseline_low_history" ? '<small>Low data · baseline estimate</small>' :
+            item.confidence ? '<small>Confidence: ' + esc(item.confidence) + '</small>' : '') + '</div>' +
           (data.market === "h2h" && item.model_probabilities ? '<div class="di-outcomes"><span>Home <b>' + esc(item.model_probabilities.home_win_pct) + '%</b></span>' +
             (Number(item.model_probabilities.draw_pct) > 0 ? '<span>Draw <b>' + esc(item.model_probabilities.draw_pct) + '%</b></span>' : '') +
             '<span>Away <b>' + esc(item.model_probabilities.away_win_pct) + '%</b></span></div>' : '') +
