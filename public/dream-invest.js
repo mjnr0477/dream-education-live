@@ -1,4 +1,4 @@
-/* Dream Invest — owner-only Alpaca paper trading UI. No API secrets enter the browser. */
+/* Dream Invest — simple market prediction and graph; betting remains a separate mode. */
 (function () {
   "use strict";
 
@@ -137,34 +137,6 @@
       '<p class="di-disclaimer">Estimate based on recent prices, not a guarantee. Markets can move unexpectedly.</p>';
   }
 
-  async function loadAccount() {
-    const account = await api("/api/dream-invest/account");
-    const accountOutput = document.getElementById("di-account-output");
-    if (accountOutput) {
-      accountOutput.innerHTML = renderAccount(account.account);
-      const refresh = document.getElementById("di-refresh-account");
-      if (refresh) refresh.addEventListener("click", async function () {
-        refresh.disabled = true;
-        refresh.textContent = "Refreshing…";
-        try {
-          await loadAccount();
-        } catch (error) {
-          refresh.textContent = "Retry refresh";
-          const note = document.createElement("p");
-          note.className = "di-error";
-          note.textContent = error.message;
-          accountOutput.appendChild(note);
-        }
-      });
-    }
-    const connection = document.getElementById("di-connection");
-    if (connection) {
-      connection.textContent = "Alpaca connected · paper";
-      connection.classList.add("is-connected");
-    }
-    return account.account;
-  }
-
   async function loadMarket(symbol, timeframe) {
     const output = document.getElementById("di-main-output");
     if (!output) return;
@@ -173,8 +145,6 @@
       const params = new URLSearchParams({ symbol: symbol, timeframe: timeframe, limit: "200" });
       const data = await api("/api/dream-invest/bars?" + params.toString());
       output.innerHTML = renderAnalysis(data);
-      const form = document.getElementById("di-order-form");
-      if (form) form.addEventListener("submit", submitPaperOrder);
     } catch (error) {
       output.innerHTML = '<div class="di-error"><strong>Market analysis unavailable</strong><p>' + esc(error.message) + '</p><button type="button" class="de-action" id="di-retry">Try again</button></div>';
       const retry = document.getElementById("di-retry");
