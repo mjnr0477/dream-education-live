@@ -34,8 +34,8 @@
         const favorite = item.market_favourite;
         return '<article class="di-bet-row di-prediction-card"><div class="di-prediction-title"><strong>' + esc(item.fixture || "Fixture") + '</strong><span class="di-league-tag">' + esc(item.league || "Competition") + '</span></div>' +
           '<span class="di-kickoff">' + esc(localTime(item.kickoff)) + '</span>' +
-          '<div class="di-pick"><span>Odds-based pick</span><strong>' + esc(favorite ? favorite.outcome : "No clear pick") + '</strong>' +
-          (favorite ? '<b>' + esc(favorite.decimal_odds) + ' odds</b><small>' + esc(favorite.implied_probability_pct) + '% implied probability</small>' : '<small>Odds did not provide a usable prediction for this event.</small>') + '</div>' +
+          '<div class="di-pick"><span>Market-based prediction</span><strong>' + esc(favorite ? favorite.outcome : "No clear pick") + '</strong>' +
+          (favorite ? '<b>' + esc(favorite.decimal_odds) + ' odds</b><small>' + esc(favorite.model_probability_pct) + '% implied probability</small>' : '<small>Odds did not provide a usable prediction for this event.</small>') + '</div>' +
           (outcomes.length ? '<div class="di-outcomes">' + outcomes.map(outcome => '<span>' + esc(outcome.outcome) + ' <b>' + esc(outcome.decimal_odds) + '</b></span>').join("") + '</div>' : '') +
           '<small class="di-prediction-note">Market odds indicate implied probability, not a guarantee. ' + esc(item.warning || "") + '</small></article>';
       }).join("") + '</div>';
