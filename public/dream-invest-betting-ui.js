@@ -75,7 +75,7 @@
       const prediction = item.market_prediction || {};
       const probability = prediction.probability_pct == null ? "" : " (" + prediction.probability_pct + "%)";
       return (item.fixture || "Fixture") + " · " + (item.league || "League") + "\n" +
-        (item.event_state === "live" ? "LIVE" : "UPCOMING") + " · " + localTime(item.kickoff) + "\n" +
+        "UPCOMING · " + localTime(item.kickoff) + "\n" +
         "Prediction: " + (prediction.label || "Unavailable") + probability;
     }).join("\n\n");
     let copied = false;
@@ -109,7 +109,7 @@
         const source = item.source || (item.sources || []).join(", ") || "Event feed";
         return '<article class="di-bet-row di-prediction-card"><div class="di-prediction-title"><strong>' + esc(item.fixture || "Fixture") + '</strong><span class="di-league-tag">' + esc(item.league || "Competition") + '</span></div>' +
           '<span class="di-kickoff"><strong>' + (item.event_state === "live" ? 'LIVE · ' : 'UPCOMING · ') + '</strong>' + esc(localTime(item.kickoff)) + ' · ' + esc(source) + '</span>' +
-          (item.home_score != null && item.away_score != null ? '<div class="di-live-score"><strong>' + esc(item.home_score) + ' – ' + esc(item.away_score) + '</strong><small>' + esc(item.match_status || "Result") + '</small></div>' : '') +
+          
           '<div class="di-pick"><span>' + esc(item.prediction_status === "result_available" ? "Recorded result" : marketTitle) + '</span><strong>' +
           esc(item.market_prediction ? item.market_prediction.label :
             item.prediction_status === "result_available" ? "Result available" : favorite ? favorite.outcome : "Not enough verified history") + '</strong>' +
@@ -179,7 +179,7 @@
       '<label id="di-market-line-wrap">Goal line<select id="di-simple-goal-line"><option value="1.5">1.5</option><option value="2.5" selected>2.5</option><option value="3.5">3.5</option></select></label>' +
       '<button type="button" class="de-action primary" id="di-simple-predict">Show predictions</button>';
     const old = root.querySelector("#di-betting-results");
-    if (old) old.innerHTML = '<p class="di-muted">Only live and upcoming fixtures are shown. Kickoff times are displayed in Kenya time; recent completed results are used only to analyse team form.</p>';
+    if (old) old.innerHTML = '<p class="di-muted">Only future, not-yet-started fixtures are shown. Kickoff times are displayed in Kenya time. Completed results are used only to analyse team form. Predictions are shown only when recent verified history is strong enough and Dream agrees with the independent analyst; no outcome is guaranteed.</p>';
     const sport = root.querySelector("#di-simple-sport");
     const period = root.querySelector("#di-simple-period");
     const market = root.querySelector("#di-simple-market");
