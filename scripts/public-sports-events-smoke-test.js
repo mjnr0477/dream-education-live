@@ -35,7 +35,7 @@ const { getPublicSportsEvents, normalizeSportScore, normalizeSportsDb, isUpcomin
         return { ok: true, status: 200, json: async () => ({
           fixtures: [
             { id: "ss-target", home: "Alpha FC", away: "Beta FC",
-              time: "2026-10-14T15:00:00Z", status: "scheduled", competition: "Test League" },
+              time: "2026-10-14T18:00:00Z", status: "scheduled", competition: "Test League" },
             { id: "ss-finished", home: "Old FC", away: "Past FC",
               time: "2026-10-14T10:00:00Z", status: "finished", home_score: 1, away_score: 0, competition: "Test League" },
             { id: "ss-no-history", home: "Unknown FC", away: "Mystery FC",
