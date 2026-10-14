@@ -8,10 +8,11 @@ const SOURCES = [
   {id:"library_of_congress",name:"Library of Congress",family:"general",access:"api",license:"mixed",status:"connected"},
   {id:"wikimedia_commons",name:"Wikimedia Commons",family:"general",access:"api",license:"mixed-open",status:"connected"},
   {id:"open_library",name:"Open Library",family:"general",access:"api",license:"mixed",status:"ready"},
+  {id:"google_books",name:"Google Books",family:"general",access:"REST API; free quota with API key",license:"Google Books API terms; descriptions and book content may be copyrighted",commercial_use:false,status:"connected"},
 
   // RESEARCH
   {id:"openalex",name:"OpenAlex",family:"research",access:"rest",license:"CC0",status:"connected"},
-  {id:"crossref",name:"Crossref",family:"research",access:"rest",license:"metadata/open",status:"connected"},
+  {id:"crossref",name:"Crossref",family:"research",access:"rest",license:"open metadata; abstracts may be copyrighted",commercial_use:false,status:"connected"},
   {id:"datacite",name:"DataCite",family:"research",access:"rest",license:"metadata/open",status:"connected"},
   {id:"openaire",name:"OpenAIRE",family:"research",access:"rest",license:"mixed",status:"connected"},
   {id:"doaj",name:"DOAJ",family:"research",access:"rest",license:"open-access-index",status:"connected"},
@@ -38,7 +39,7 @@ const SOURCES = [
   // CHEMISTRY / PHYSICS
   {id:"pubchem",name:"PubChem",family:"chemistry",access:"rest",license:"public-domain/open",status:"connected"},
   {id:"nist",name:"NIST",family:"science",access:"web/api",license:"mixed",status:"ready"},
-  {id:"arxiv",name:"arXiv",family:"research",access:"api",license:"mixed",status:"connected"},
+  {id:"arxiv",name:"arXiv",family:"research",access:"api",license:"mixed; verify each record",commercial_use:false,status:"connected"},
   {id:"rcsb_pdb",name:"RCSB Protein Data Bank",family:"biology",access:"api",license:"CC0/data-open",status:"connected"},
   {id:"uniprot",name:"UniProt",family:"biology",access:"rest",license:"CC BY 4.0",status:"connected"},
 
