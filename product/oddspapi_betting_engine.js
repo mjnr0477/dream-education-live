@@ -307,7 +307,16 @@ function registerOddsPapiRoutes(app, options = {}) {
     const period = text(req.query && req.query.period, 20).toLowerCase() || "today";
     const sportQuery = text(req.query && req.query.sport, 80).toLowerCase() || "soccer";
     const leagueQuery = text(req.query && req.query.league, 120).toLowerCase() || "all";
+    const market = text(req.query && req.query.market, 40).toLowerCase() || "h2h";
+    const direction = text(req.query && req.query.direction, 10).toLowerCase() || "over";
+    const goalLine = Number(req.query && req.query.goalLine) || 2.5;
     const optionsOnly = String(req.query && req.query.optionsOnly || "") === "1";
+    if (!["h2h", "btts", "over_under", "correct_score"].includes(market)) {
+      return res.status(400).json({ success: false, error: "Choose Head to Head, Both Teams to Score, Over/Under, or Correct Score." });
+    }
+    if (!["over", "under"].includes(direction) || ![1.5, 2.5, 3.5].includes(goalLine)) {
+      return res.status(400).json({ success: false, error: "Choose Over or Under and a goal line of 1.5, 2.5, or 3.5." });
+    }
     if (!["today", "tomorrow", "week", "month"].includes(period)) {
       return res.status(400).json({ success: false, error: "Choose Today, Tomorrow, This Week, or This Month." });
     }
@@ -335,14 +344,50 @@ function registerOddsPapiRoutes(app, options = {}) {
     const leagues = [...new Set(allEvents.map(event => text(event.league, 120)).filter(Boolean))]
       .sort((a, b) => a.localeCompare(b)).map((name, index) => ({ id: String(index + 1), name }));
     if (optionsOnly) {
-      return res.json({ success: true, sport: sportQuery, leagues, sources: publicResult.providers || [],
-        message: sourceError || (leagues.length ? "Leagues discovered from public event sources." : "No leagues were returned for this sport and date.") });
+      return res.json({ success: true, period, sport: sportQuery, leagues, sources: publicResult.providers || [],
+        message: sourceError || (leagues.length ? "Leagues discovered from public event sources for this period." : "No leagues were returned for this sport and period.") });
     }
     const selectedEvents = allEvents.filter(event => leagueQuery === "all" ||
-      text(event.league, 120).toLowerCase().includes(leagueQuery));
+      text(event.league, 120).toLowerCase().includes(leagueQuery)).map(event => {
+        let marketProbability = null;
+        let label = "Not enough verified history";
+        const model = event.model_markets || {};
+        if (market === "h2h") {
+          if (event.market_favourite) {
+            label = event.market_favourite.outcome;
+            marketProbability = event.market_favourite.model_probability_pct;
+          } else if (event.prediction_status === "result_available") {
+            label = Number(event.home_score) > Number(event.away_score) ? event.home_team + " win" :
+              Number(event.home_score) < Number(event.away_score) ? event.away_team + " win" : "Draw";
+          }
+        } else if (market === "btts" && model.btts) {
+          const yes = Number(model.btts.yes_pct);
+          label = yes >= 50 ? "Yes" : "No";
+          marketProbability = Math.max(yes, Number(model.btts.no_pct));
+        } else if (market === "over_under" && model.totals && model.totals[String(goalLine)]) {
+          const total = model.totals[String(goalLine)];
+          label = direction === "over" ? "Over " + goalLine : "Under " + goalLine;
+          marketProbability = Number(direction === "over" ? total.over_pct : total.under_pct);
+        } else if (market === "correct_score" && model.correct_score) {
+          label = model.correct_score.score;
+          marketProbability = model.correct_score.probability_pct;
+        }
+        if (event.prediction_status === "result_available" && event.home_score != null && event.away_score != null && market !== "h2h") {
+          const h = Number(event.home_score), a = Number(event.away_score);
+          if (market === "btts") label = h > 0 && a > 0 ? "Yes (recorded)" : "No (recorded)";
+          if (market === "over_under") label = h + a > goalLine ? "Over " + goalLine + " (recorded)" : "Under " + goalLine + " (recorded)";
+          if (market === "correct_score") label = h + "-" + a + " (recorded)";
+        }
+        if (marketProbability == null && event.prediction_status !== "result_available") {
+          return { ...event, market_prediction: { type: market, label: "Insufficient data", probability_pct: null },
+            warning: "No suitable verified recent results for this prediction type. Dream will not invent a pick." };
+        }
+        return { ...event, market_prediction: { type: market, label, probability_pct: marketProbability,
+          direction: market === "over_under" ? direction : null, goal_line: market === "over_under" ? goalLine : null } };
+      });
     return res.json({
       success: true, period, from: fromDate, to: toDate, sport: sportQuery,
-      league: leagueQuery === "all" ? "All leagues" : leagueQuery,
+      league: leagueQuery === "all" ? "All leagues" : leagueQuery, market, direction, goalLine,
       bookmaker: "Not required", count: selectedEvents.length, predictions: selectedEvents,
       sources: publicResult.providers || [], model: publicResult.model || "recent-results-form-v1",
       history_matches_used: Number(publicResult.history_matches) || 0,

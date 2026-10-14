@@ -51,6 +51,10 @@ const { getPublicSportsEvents, normalizeSportScore, normalizeSportsDb } = requir
     assert.equal(result.events[0].fixture, "Alpha FC vs Beta FC");
     assert.equal(result.events[0].prediction_status, "model_estimate");
     assert.ok(result.events[0].model_probabilities);
+    assert.ok(result.events[0].model_markets);
+    assert.ok(Number.isFinite(result.events[0].model_markets.btts.yes_pct));
+    assert.ok(Number.isFinite(result.events[0].model_markets.totals["2.5"].over_pct));
+    assert.match(result.events[0].model_markets.correct_score.score, /^\d+-\d+$/);
     assert.equal(result.providers.includes("SportScore"), true);
     assert.match(result.attribution_html, /Powered by SportScore/);
     assert.ok(requests.some(url => url.includes("/api/v1/fixtures/") && url.includes("date=2026-10-14")));

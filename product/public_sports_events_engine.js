@@ -184,6 +184,7 @@ function modelPrediction(event, teams, sport) {
   }
   const h = home.games.slice(0, 8), a = away.games.slice(0, 8);
   let probs;
+  let expectedGoals = null;
   if (/^(soccer|football)$/i.test(sport)) {
     const homeScored = h.filter(g => g.isHome);
     const homeConceded = h.filter(g => g.isHome);
@@ -193,6 +194,7 @@ function modelPrediction(event, teams, sport) {
     const leagueGoals = [...h, ...a].reduce((sum, g) => sum + g.scored, 0) / Math.max(1, h.length + a.length);
     const homeExpected = Math.max(0.15, Math.min(4.5, 0.55 * avg(homeScored, "scored", leagueGoals) + 0.45 * avg(awayConceded, "conceded", leagueGoals) + 0.18));
     const awayExpected = Math.max(0.15, Math.min(4.5, 0.55 * avg(awayScored, "scored", leagueGoals) + 0.45 * avg(homeConceded, "conceded", leagueGoals)));
+    expectedGoals = { home: homeExpected, away: awayExpected };
     probs = soccerProbabilities(homeExpected, awayExpected);
   } else {
     const rate = games => games.reduce((sum, g) => sum + (g.scored > g.conceded ? 1 : g.scored === g.conceded ? 0.5 : 0), 0) / games.length;
@@ -208,8 +210,31 @@ function modelPrediction(event, teams, sport) {
   const sample = Math.min(home.games.length, away.games.length);
   const confidence = sample >= 7 && best.probability >= 0.55 ? "moderate" : "low";
   const label = best.key === "home" ? event.home_team + " win" : best.key === "away" ? event.away_team + " win" : "Draw";
+  let model_markets = null;
+  if (expectedGoals) {
+    const scores = [];
+    let totalMass = 0;
+    for (let hg = 0; hg <= 8; hg++) for (let ag = 0; ag <= 8; ag++) {
+      const probability = poisson(expectedGoals.home, hg) * poisson(expectedGoals.away, ag);
+      scores.push({ home: hg, away: ag, probability });
+      totalMass += probability;
+    }
+    const pct = value => Math.round((value / (totalMass || 1)) * 1000) / 10;
+    const btts = scores.filter(row => row.home > 0 && row.away > 0).reduce((sum, row) => sum + row.probability, 0);
+    const totals = {};
+    for (const line of [1.5, 2.5, 3.5]) {
+      const over = scores.filter(row => row.home + row.away > line).reduce((sum, row) => sum + row.probability, 0);
+      totals[String(line)] = { over_pct: pct(over), under_pct: pct(totalMass - over) };
+    }
+    const correct = scores.slice().sort((x, y) => y.probability - x.probability)[0];
+    model_markets = {
+      btts: { yes_pct: pct(btts), no_pct: pct(totalMass - btts) },
+      totals,
+      correct_score: { score: correct.home + "-" + correct.away, probability_pct: pct(correct.probability) }
+    };
+  }
   return {
-    ...event, prediction_status: "model_estimate", model_probabilities: {
+    ...event, prediction_status: "model_estimate", model_markets, model_probabilities: {
       home_win_pct: Math.round(probs.home * 1000) / 10,
       draw_pct: Math.round((probs.draw || 0) * 1000) / 10,
       away_win_pct: Math.round(probs.away * 1000) / 10
