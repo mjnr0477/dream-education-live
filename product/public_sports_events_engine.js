@@ -196,10 +196,12 @@ function isLiveEvent(event) {
   return /live|in[_ -]?play|in[_ -]?progress|\b1h\b|\b2h\b|\bht\b|first half|second half|half.?time|extra time|penalt|overtime|quarter|period|\bset\s*\d|top of|bottom of/.test(status);
 }
 function isUpcomingOrLive(event, now = Date.now()) {
+  // Betting feed is strictly pre-match: live, started, and completed fixtures
+  // must never appear as upcoming prediction opportunities.
   if (!event || !event.kickoff || !Number.isFinite(Date.parse(event.kickoff))) return false;
-  if (isFinalResult(event) || (event.result_verified && !isLiveEvent(event))) return false;
-  const kickoffMs = Date.parse(event.kickoff);
-  return isLiveEvent(event) || kickoffMs >= now;
+  if (isFinalResult(event) || isLiveEvent(event)) return false;
+  if (event.result_verified) return false;
+  return Date.parse(event.kickoff) > now;
 }
 function buildRecentForm(history, sport) {
   const teams = new Map();
@@ -381,11 +383,11 @@ async function getPublicSportsEvents({ sport, fromDate, toDate }) {
   };
   const uniqueHistory = dedupe(history);
   const teams = buildRecentForm(uniqueHistory, sport);
-  // Only return fixtures that are genuinely upcoming or currently live. Finished matches
-  // are historical evidence for the model, never betting/event results in this feed.
+  // Only future, not-yet-started fixtures are shown. Completed results are used
+  // exclusively as historical evidence for the model.
   const uniqueEvents = dedupe(events).filter(event => isUpcomingOrLive(event)).map(event => {
     const predicted = modelPrediction(event, teams, sport);
-    return { ...predicted, event_state: isLiveEvent(event) ? "live" : "upcoming" };
+    return { ...predicted, event_state: "upcoming" };
   }).sort((a, b) => Date.parse(a.kickoff || "") - Date.parse(b.kickoff || ""));
   const providers = [];
   if (sportScoreOk) providers.push("SportScore");
