@@ -42,6 +42,7 @@ const OpenAI = require("openai");
 const { generateAI: generateFreeAI } = require("./product/ai/ai_provider_router");
 const { registerFreeAiMediaRoutes } = require("./product/free_ai_media_engine");
 const { registerFxapisRoutes } = require("./product/fxapis_bridge");
+const { registerOddsPapiRoutes } = require("./product/oddspapi_betting_engine");
 const { recordAIEvaluationEvidence } = require("./product/gli/ai_evaluation_evidence");
 const { recordLearningOutcomeFeedback } = require("./product/gli/learning_outcome_evaluation");
 const { buildLearningOutcomeSummary } = require("./product/gli/outcome_intelligence");
@@ -5696,6 +5697,7 @@ const {
 registerDreamSearchRoutes(app, { getAuthenticatedAccount, isOwnerAccount });
 registerFreeAiMediaRoutes(app, { getAuthenticatedAccount });
 registerFxapisRoutes(app, { getAuthenticatedAccount });
+registerOddsPapiRoutes(app, { getAuthenticatedAccount });
 
 const {
   createCheckoutOrder,
