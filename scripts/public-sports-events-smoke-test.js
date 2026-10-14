@@ -37,7 +37,9 @@ const { getPublicSportsEvents, normalizeSportScore, normalizeSportsDb, isUpcomin
             { id: "ss-target", home: "Alpha FC", away: "Beta FC",
               time: "2026-10-14T15:00:00Z", status: "scheduled", competition: "Test League" },
             { id: "ss-finished", home: "Old FC", away: "Past FC",
-              time: "2026-10-14T10:00:00Z", status: "finished", home_score: 1, away_score: 0, competition: "Test League" }
+              time: "2026-10-14T10:00:00Z", status: "finished", home_score: 1, away_score: 0, competition: "Test League" },
+            { id: "ss-no-history", home: "Unknown FC", away: "Mystery FC",
+              time: "2026-10-14T16:00:00Z", status: "scheduled", competition: "Test League" }
           ]
         }) };
       }
@@ -58,11 +60,19 @@ const { getPublicSportsEvents, normalizeSportScore, normalizeSportsDb, isUpcomin
   };
   try {
     const result = await getPublicSportsEvents({ sport: "soccer", fromDate: "2026-10-14", toDate: "2026-10-14" });
-    assert.equal(result.events.length, 1, "Finished fixtures must not appear in upcoming/live events.");
-    assert.equal(result.events[0].fixture, "Alpha FC vs Beta FC");
-    assert.equal(result.events[0].prediction_status, "model_estimate");
-    assert.ok(result.events[0].model_probabilities);
-    assert.ok(result.events[0].model_markets);
+    assert.equal(result.events.length, 2, "Finished fixtures must be excluded while all upcoming fixtures remain visible.");
+    const predicted = result.events.find(event => event.fixture === "Alpha FC vs Beta FC");
+    const baseline = result.events.find(event => event.fixture === "Unknown FC vs Mystery FC");
+    assert.ok(predicted, "Fixture with verified history must be returned.");
+    assert.equal(predicted.prediction_status, "model_estimate");
+    assert.ok(predicted.model_probabilities);
+    assert.ok(predicted.model_markets);
+    assert.ok(baseline, "Fixture without recent history must still be returned.");
+    assert.equal(baseline.prediction_status, "model_estimate_low_history");
+    assert.equal(baseline.prediction_quality, "baseline_low_history");
+    assert.ok(baseline.market_favourite && Number.isFinite(baseline.market_favourite.model_probability_pct),
+      "Every upcoming soccer fixture must have a low-confidence baseline prediction when form data is missing.");
+    assert.ok(baseline.model_markets && Number.isFinite(baseline.model_markets.btts.yes_pct));
     assert.ok(Number.isFinite(result.events[0].model_markets.btts.yes_pct));
     assert.ok(Number.isFinite(result.events[0].model_markets.totals["2.5"].over_pct));
     assert.match(result.events[0].model_markets.correct_score.score, /^\d+-\d+$/);
