@@ -178,6 +178,12 @@
           '<span>Prediction: ' + esc(available ? pick.label : "No reliable prediction") + '</span>' +
           '<span>Status: ' + esc(status) + '</span>' +
           (available ? '<span>Model estimate: ' + esc(Number(pick.probability_pct).toFixed(1)) + '%</span>' : '') +
+          (item.historical_matches_used && typeof item.historical_matches_used === "object"
+            ? '<span>Verified recent matches used · ' + esc(item.home_team || "Home") + ': ' +
+              esc(Number(item.historical_matches_used.home) || 0) + ' · ' + esc(item.away_team || "Away") + ': ' +
+              esc(Number(item.historical_matches_used.away) || 0) + '</span>' : '') +
+          (item.prediction_status === "insufficient_verified_history"
+            ? '<small>Why no pick? Dream requires at least five recent verified results per team, plus home-team home-match and away-team away-match evidence. Missing data is not a prediction.</small>' : '') +
           '<small>' + esc(item.warning || "Predictions are uncertain and not guaranteed.") + '</small></article>';
       }).join("") + '</div>';
     } catch (error) {
