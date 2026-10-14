@@ -1178,6 +1178,21 @@ function escapeHTML(value) {
           </div>
         </section>
 
+        <section class="de-section de-about-section" id="de-about-platform-tour">
+          <span class="de-eyebrow">06 / EXPLORE DREAM EDUCATION</span>
+          <h3>See the platform in action.</h3>
+          <p>Move from the idea to the actual workspace. Each button opens an existing Dream Education experience; it does not claim that every workflow is perfect or that outcomes are guaranteed.</p>
+          <div class="de-actions">
+            <button type="button" class="de-action primary" data-about-workspace="learn">Open Learn</button>
+            <button type="button" class="de-action" data-about-workspace="teacher">Open Teach</button>
+            <button type="button" class="de-action" data-about-workspace="school">Open School</button>
+            <button type="button" class="de-action" data-about-workspace="tools">Open AI Lab</button>
+            <button type="button" class="de-action" data-about-workspace="search">Try Dream Search</button>
+            <button type="button" class="de-action" data-about-workspace="invest">Explore Dream Invest</button>
+            <button type="button" class="de-action" data-panel-action="subscription">View plans</button>
+          </div>
+        </section>
+
         <section class="de-section de-highlight de-about-cta">
           <h3>Ready to explore?</h3>
           <p>Discover the learning, teaching and connection spaces available in Dream Education.</p>
@@ -1251,6 +1266,27 @@ function escapeHTML(value) {
       const sectionName = jump.getAttribute("data-about-jump");
       const target = document.getElementById("de-about-" + sectionName);
       if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+
+    const workspace = event.target.closest("[data-about-workspace]");
+    if (workspace) {
+      const destination = workspace.getAttribute("data-about-workspace");
+      if (destination === "learn") openPanel("learn");
+      else if (destination === "teacher" && typeof openTeacherLessonStudio === "function") openTeacherLessonStudio();
+      else if (destination === "school" && typeof openSchoolDashboard === "function") openSchoolDashboard();
+      else if (destination === "tools") openPanel("tools");
+      else if (destination === "search") {
+        closePanel();
+        const searchSection = document.getElementById("dream-search");
+        const searchInput = document.getElementById("dream-search-input");
+        if (searchSection) searchSection.scrollIntoView({ behavior: "smooth", block: "start" });
+        if (searchInput) searchInput.focus({ preventScroll: true });
+      } else if (destination === "invest") {
+        closePanel();
+        const investButton = document.querySelector("[data-dream-invest-open]");
+        if (investButton) investButton.click();
+      }
       return;
     }
 

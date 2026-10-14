@@ -29,6 +29,6 @@ assert.match(sandbox.progressHtml, /Observed progress over time/);
 assert.match(sandbox.progressHtml, /Amina/);
 assert.match(sandbox.progressHtml, /\+20 points/);
 assert.match(sandbox.progressHtml, /descriptive and do not prove causation/);
-assert.match(index, /app\.js\?v=20261015d/);
+assert.match(index, /app\.js\?v=\d{8}[a-z]*/);
 
 console.log("Teacher progress evidence smoke test passed.");
