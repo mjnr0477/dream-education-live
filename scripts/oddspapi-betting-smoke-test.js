@@ -13,15 +13,16 @@ global.fetch = async url => {
   requested = String(url);
   if (requested.includes("api.oddspapi.io")) oddsPapiRequests++;
   if (mockProviderResponse) return mockProviderResponse;
-  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Nairobi", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  const dateParts = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Nairobi", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date());
+  const today = ["year", "month", "day"].map(type => dateParts.find(part => part.type === type).value).join("-");
   if (requested.includes("sportscore.com")) {
     const date = new URL(requested).searchParams.get("date");
     return { ok: true, status: 200, json: async () => ({ fixtures: date === today ? [
-      { id: "public-fx1", home: "Team A", away: "Team B", time: today + "T12:00:00+03:00", status: "scheduled", competition: "Premier League" }
+      { id: "public-fx1", home: "Team A", away: "Team B", time: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(), status: "scheduled", competition: "Premier League" }
     ] : [] }) };
   }
   if (requested.includes("thesportsdb.com")) return { ok: true, status: 200, json: async () => ({ events: [] }) };
-  const fixtures = [{ fixtureId: "fx1", tournamentId: 17, tournamentName: "Premier League", participant1Name: "Team A", participant2Name: "Team B", startTime: today + "T12:00:00+03:00", odds: [{ name: "Team A", decimalOdds: 1.8 }, { name: "Draw", decimalOdds: 3.2 }, { name: "Team B", decimalOdds: 4.1 }] }];
+  const fixtures = [{ fixtureId: "fx1", tournamentId: 17, tournamentName: "Premier League", participant1Name: "Team A", participant2Name: "Team B", startTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(), odds: [{ name: "Team A", decimalOdds: 1.8 }, { name: "Draw", decimalOdds: 3.2 }, { name: "Team B", decimalOdds: 4.1 }] }];
   if (requested.includes("/v4/sports")) return { ok: true, status: 200, json: async () => [{ sportId: 10, sportName: "Soccer" }] };
   if (requested.includes("/v4/tournaments")) return { ok: true, status: 200, json: async () => [{ tournamentId: 17, tournamentName: "Premier League" }] };
   return { ok: true, status: 200, json: async () => fixtures };

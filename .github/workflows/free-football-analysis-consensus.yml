@@ -1,0 +1,29 @@
+name: Free Football Analysis Consensus
+on:
+  pull_request:
+    paths:
+      - "product/free_football_analysis_consensus.js"
+      - "product/oddspapi_betting_engine.js"
+      - "public/dream-invest-betting-ui.js"
+      - "scripts/free-football-analysis-consensus-smoke-test.js"
+      - ".github/workflows/free-football-analysis-consensus.yml"
+  push:
+    branches: [main]
+    paths:
+      - "product/free_football_analysis_consensus.js"
+      - "product/oddspapi_betting_engine.js"
+      - "public/dream-invest-betting-ui.js"
+      - "scripts/free-football-analysis-consensus-smoke-test.js"
+      - ".github/workflows/free-football-analysis-consensus.yml"
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: node --check product/free_football_analysis_consensus.js
+      - run: node --check product/oddspapi_betting_engine.js
+      - run: node --check public/dream-invest-betting-ui.js
+      - run: node scripts/free-football-analysis-consensus-smoke-test.js

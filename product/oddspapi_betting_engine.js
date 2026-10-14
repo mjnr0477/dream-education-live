@@ -1,6 +1,7 @@
 "use strict";
 
 const { getPublicSportsEvents } = require("./public_sports_events_engine");
+const { enrichWithAnalystConsensus } = require("./free_football_analysis_consensus");
 
 const API_BASE = "https://api.oddspapi.io";
 
@@ -189,7 +190,7 @@ function buildOddsPrediction(payload, options = {}) {
       bookmaker,
       market_id: marketId,
       market_type: marketType,
-      available_outcomes: odds,
+      available_outcomes: hasRecognizedMarket ? normalized : odds,
       market_favourite: validPrediction ? favourite : null,
       probability_method: hasRecognizedMarket ? "Bookmaker implied probabilities normalized to remove the market overround" : "Unclassified odds; no prediction issued",
       data_quality: {
@@ -384,15 +385,20 @@ function registerOddsPapiRoutes(app, options = {}) {
         return { ...event, market_prediction: { type: market, label, probability_pct: marketProbability,
           direction: market === "over_under" ? direction : null, goal_line: market === "over_under" ? goalLine : null } };
       });
+    const analystResult = /^(soccer|football)$/i.test(sportQuery)
+      ? await enrichWithAnalystConsensus(selectedEvents, fromDate, toDate)
+      : { events: selectedEvents, source: null, status: "The BSD independent prediction model is currently connected for soccer only.", configured: false };
+    const finalEvents = analystResult.events;
+    const eventSources = [...new Set([...(publicResult.providers || []), ...(analystResult.source ? [analystResult.source] : [])])];
     return res.json({
       success: true, period, from: fromDate, to: toDate, sport: sportQuery,
       league: leagueQuery === "all" ? "All leagues" : leagueQuery, market, direction, goalLine,
-      bookmaker: "Not required", count: selectedEvents.length, predictions: selectedEvents,
-      sources: publicResult.providers || [], model: publicResult.model || "recent-results-form-v1",
+      bookmaker: "Not required", count: finalEvents.length, predictions: finalEvents,
+      sources: eventSources, analyst_source_status: analystResult.status, model: publicResult.model || "recent-results-form-v1",
       history_matches_used: Number(publicResult.history_matches) || 0,
       attribution_html: publicResult.attribution_html || '<a href="https://sportscore.com/" rel="dofollow">Powered by SportScore</a>',
-      message: selectedEvents.length
-        ? "Live and upcoming fixtures only. Completed matches are used only for analysis. No OddsPapi request is made."
+      message: finalEvents.length
+        ? "Live and upcoming fixtures only. Completed matches are used only for analysis. Available independent predictions are compared with Dream’s statistical model. No OddsPapi request is made."
         : (sourceError ? sourceError + " " : "") + "No live or upcoming fixtures were found for this selection. Try another league or period. No OddsPapi request is made.",
       bet_placement_enabled: false
     });

@@ -103,7 +103,7 @@
     const sportScoreCredit = (data.sources || []).includes("SportScore")
       ? '<p class="di-sportscore-credit"><a href="https://sportscore.com/" rel="dofollow" target="_blank">Powered by SportScore</a></p>' : '';
     if (!rows.length) return '<div class="di-empty"><strong>No events available for this selection.</strong><p>' + esc(data.message || "Try another period or choose all leagues.") + '</p></div>' + sportScoreCredit;
-    return renderExportControls() + '<div class="di-prediction-summary"><strong>' + rows.length + ' events</strong><span>' + esc(data.sport) + ' · ' + esc(data.league) + ' · Sources: ' + esc((data.sources || []).join(", ") || "public event feeds") + '</span></div>' +
+    return renderExportControls() + '<div class="di-prediction-summary"><strong>' + rows.length + ' events</strong><span>' + esc(data.sport) + ' · ' + esc(data.league) + ' · Sources: ' + esc((data.sources || []).join(", ") || "public event feeds") + '</span>' + (data.analyst_source_status ? '<small>' + esc(data.analyst_source_status) + '</small>' : '') + '</div>' +
       '<div class="di-bet-list">' + rows.map(item => {
         const favorite = item.market_favourite;
         const source = item.source || (item.sources || []).join(", ") || "Event feed";
@@ -117,6 +117,8 @@
             item.market_prediction && item.market_prediction.probability_pct != null ? '<small>' + esc(item.market_prediction.probability_pct) + '% estimated probability</small>' : '') +
           (item.prediction_quality === "baseline_low_history" ? '<small>Low data · baseline estimate</small>' :
             item.confidence ? '<small>Confidence: ' + esc(item.confidence) + '</small>' : '') + '</div>' +
+          (item.external_analysis ? '<div class="di-analysis-consensus"><strong>Independent analysis · ' + esc(item.external_analysis.source) + '</strong><span>' + esc(item.external_analysis.pick || "Probability estimate available") + (item.external_analysis.confidence_pct != null ? ' · ' + esc(item.external_analysis.confidence_pct) + '% confidence' : '') + '</span><small><a href="' + esc(item.external_analysis.source_url || "https://sports.bzzoiro.com/predictions/") + '" target="_blank" rel="noopener noreferrer">View source analysis</a></small></div>' : '') +
+          (item.analyst_consensus ? '<div class="di-analysis-consensus"><strong>' + esc(item.analyst_consensus.label) + '</strong><span>' + esc(item.analyst_consensus.available_count) + ' model(s) available' + (item.analyst_consensus.agreement_pct != null ? ' · ' + esc(item.analyst_consensus.agreement_pct) + '% agreement' : '') + '</span></div>' : '') +
           (data.market === "h2h" && item.model_probabilities ? '<div class="di-outcomes"><span>Home <b>' + esc(item.model_probabilities.home_win_pct) + '%</b></span>' +
             (Number(item.model_probabilities.draw_pct) > 0 ? '<span>Draw <b>' + esc(item.model_probabilities.draw_pct) + '%</b></span>' : '') +
             '<span>Away <b>' + esc(item.model_probabilities.away_win_pct) + '%</b></span></div>' : '') +
