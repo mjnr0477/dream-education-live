@@ -40,6 +40,7 @@ const { getPublicSportsEvents, normalizeSportScore, normalizeSportsDb } = requir
         ]
       }) };
     }
+    if (value.includes("site.api.espn.com")) return { ok: true, status: 200, json: async () => ({ events: [] }) };
     if (value.includes("thesportsdb.com")) {
       return { ok: true, status: 200, json: async () => ({ events: [] }) };
     }
