@@ -66,6 +66,38 @@ function res() { return { statusCode: 200, body: null, status(n) { this.statusCo
   assert.equal(response.body.predictions[0].market_prediction.label, "No verified consensus prediction");
   assert.equal(response.body.predictions[0].market_prediction.probability_pct, null);
   assert.equal(oddsPapiRequests, oddsRequestsBeforePublicEvents, "Predictions must not depend on OddsPapi.");
+  const todayParts = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Nairobi", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date());
+  const todayInNairobi = ["year", "month", "day"].map(type => todayParts.find(part => part.type === type).value).join("-");
+  const addDateDays = (date, days) => {
+    const value = new Date(date + "T12:00:00Z");
+    value.setUTCDate(value.getUTCDate() + days);
+    return value.toISOString().slice(0, 10);
+  };
+  const expectedDateRanges = [
+    ["today", {}, todayInNairobi, todayInNairobi],
+    ["tomorrow", {}, addDateDays(todayInNairobi, 1), addDateDays(todayInNairobi, 1)],
+    ["day_after_tomorrow", {}, addDateDays(todayInNairobi, 2), addDateDays(todayInNairobi, 2)],
+    ["custom", { date: addDateDays(todayInNairobi, 5) }, addDateDays(todayInNairobi, 5), addDateDays(todayInNairobi, 5)],
+    ["this_week", {}, todayInNairobi, addDateDays(todayInNairobi, 6 - ((new Date(todayInNairobi + "T12:00:00Z").getUTCDay() + 6) % 7))],
+    ["next_week", {}, addDateDays(todayInNairobi, 7 - ((new Date(todayInNairobi + "T12:00:00Z").getUTCDay() + 6) % 7)), addDateDays(todayInNairobi, 13 - ((new Date(todayInNairobi + "T12:00:00Z").getUTCDay() + 6) % 7))]
+  ];
+  for (const [period, extra, from, to] of expectedDateRanges) {
+    response = res();
+    await routes.get["/api/dream-invest/betting/events"]({
+      headers: { authorization: "Bearer owner" }, query: { period, sport: "soccer", ...extra }
+    }, response);
+    assert.equal(response.body.success, true, period + " should be supported.");
+    assert.equal(response.body.from, from, period + " should use the correct start date.");
+    assert.equal(response.body.to, to, period + " should use the correct end date.");
+  }
+  response = res();
+  await routes.get["/api/dream-invest/betting/events"]({ headers: { authorization: "Bearer owner" }, query: { period: "this_month", sport: "soccer" } }, response);
+  assert.equal(response.body.success, true);
+  assert.equal(response.body.from, todayInNairobi);
+  assert.equal(response.body.to, todayInNairobi.slice(0, 8) + String(new Date(Date.UTC(Number(todayInNairobi.slice(0, 4)), Number(todayInNairobi.slice(5, 7)), 0)).getUTCDate()).padStart(2, "0"));
+  response = res();
+  await routes.get["/api/dream-invest/betting/events"]({ headers: { authorization: "Bearer owner" }, query: { period: "custom", date: addDateDays(todayInNairobi, -1), sport: "soccer" } }, response);
+  assert.equal(response.statusCode, 400, "Past custom dates must be rejected.");
   response = res();
   await routes.get["/api/dream-invest/betting/events"]({ headers: { authorization: "Bearer owner" }, query: { period: "year", sport: "soccer" } }, response);
   assert.equal(response.statusCode, 400);
