@@ -1,6 +1,6 @@
 "use strict";
 const assert = require("node:assert/strict");
-const { getPublicSportsEvents, normalizeSportScore, normalizeSportsDb } = require("../product/public_sports_events_engine");
+const { getPublicSportsEvents, normalizeSportScore, normalizeSportsDb, isUpcomingOrLive } = require("../product/public_sports_events_engine");
 
 (async () => {
   const sportScore = normalizeSportScore({
@@ -17,6 +17,12 @@ const { getPublicSportsEvents, normalizeSportScore, normalizeSportsDb } = requir
   });
   assert.equal(sportsDb.fixture, "Gamma vs Delta");
   assert.equal(sportsDb.source, "TheSportsDB");
+  const testNow = Date.parse("2026-10-14T12:00:00Z");
+  assert.equal(isUpcomingOrLive({ kickoff: "2026-10-14T15:00:00Z", match_status: "scheduled" }, testNow), true);
+  assert.equal(isUpcomingOrLive({ kickoff: "2026-10-14T11:00:00Z", match_status: "finished", result_verified: true }, testNow), false);
+  assert.equal(isUpcomingOrLive({ kickoff: "2026-10-14T11:00:00Z", match_status: "in progress" }, testNow), true);
+  assert.equal(isUpcomingOrLive({ kickoff: "2026-10-14T11:00:00Z", match_status: "STATUS_IN_PROGRESS" }, testNow), true);
+  assert.equal(isUpcomingOrLive({ kickoff: "2026-10-14T11:00:00Z", match_status: "1H" }, testNow), true);
 
   const oldFetch = global.fetch;
   const requests = [];
@@ -27,8 +33,12 @@ const { getPublicSportsEvents, normalizeSportScore, normalizeSportsDb } = requir
       const date = new URL(value).searchParams.get("date");
       if (date === "2026-10-14") {
         return { ok: true, status: 200, json: async () => ({
-          fixtures: [{ id: "ss-target", home: "Alpha FC", away: "Beta FC",
-            time: "2026-10-14T15:00:00Z", status: "scheduled", competition: "Test League" }]
+          fixtures: [
+            { id: "ss-target", home: "Alpha FC", away: "Beta FC",
+              time: "2026-10-14T15:00:00Z", status: "scheduled", competition: "Test League" },
+            { id: "ss-finished", home: "Old FC", away: "Past FC",
+              time: "2026-10-14T10:00:00Z", status: "finished", home_score: 1, away_score: 0, competition: "Test League" }
+          ]
         }) };
       }
       const earlier = new Date(date + "T12:00:00Z");
@@ -48,7 +58,7 @@ const { getPublicSportsEvents, normalizeSportScore, normalizeSportsDb } = requir
   };
   try {
     const result = await getPublicSportsEvents({ sport: "soccer", fromDate: "2026-10-14", toDate: "2026-10-14" });
-    assert.equal(result.events.length, 1);
+    assert.equal(result.events.length, 1, "Finished fixtures must not appear in upcoming/live events.");
     assert.equal(result.events[0].fixture, "Alpha FC vs Beta FC");
     assert.equal(result.events[0].prediction_status, "model_estimate");
     assert.ok(result.events[0].model_probabilities);

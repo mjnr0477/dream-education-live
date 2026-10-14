@@ -379,15 +379,11 @@ function registerOddsPapiRoutes(app, options = {}) {
           if (market === "correct_score") label = h + "-" + a + " (recorded)";
         }
         if (marketProbability == null && event.prediction_status !== "result_available") {
-          return { ...event, market_prediction: { type: market, label: "Insufficient data", probability_pct: null },
-            warning: "No suitable verified recent results for this prediction type. Dream will not invent a pick." };
+          return { ...event, market_prediction: { type: market, label: "No reliable pick", probability_pct: null } };
         }
         return { ...event, market_prediction: { type: market, label, probability_pct: marketProbability,
           direction: market === "over_under" ? direction : null, goal_line: market === "over_under" ? goalLine : null } };
-      }).filter(event => event.prediction_status === "result_available" ||
-        (event.market_prediction && event.market_prediction.probability_pct !== null &&
-          event.market_prediction.probability_pct !== undefined &&
-          Number.isFinite(Number(event.market_prediction.probability_pct))));
+      });
     return res.json({
       success: true, period, from: fromDate, to: toDate, sport: sportQuery,
       league: leagueQuery === "all" ? "All leagues" : leagueQuery, market, direction, goalLine,
@@ -396,8 +392,8 @@ function registerOddsPapiRoutes(app, options = {}) {
       history_matches_used: Number(publicResult.history_matches) || 0,
       attribution_html: publicResult.attribution_html || '<a href="https://sportscore.com/" rel="dofollow">Powered by SportScore</a>',
       message: selectedEvents.length
-        ? "Showing events with a result or a usable prediction. No OddsPapi request is made."
-        : (sourceError ? sourceError + " " : "") + "No usable predictions were found for this selection. Try another league, period, or prediction type. No OddsPapi request is made.",
+        ? "Live and upcoming fixtures only. Completed matches are used only for analysis. No OddsPapi request is made."
+        : (sourceError ? sourceError + " " : "") + "No live or upcoming fixtures were found for this selection. Try another league or period. No OddsPapi request is made.",
       bet_placement_enabled: false
     });
   });
