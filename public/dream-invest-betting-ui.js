@@ -24,7 +24,7 @@
     if (!value) return "Kickoff time unavailable";
     const date = new Date(value);
     if (!Number.isFinite(date.getTime())) return value;
-    return new Intl.DateTimeFormat("en-KE", { timeZone: "Africa/Nairobi", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(date);
+    return new Intl.DateTimeFormat("en-KE", { timeZone: "Africa/Nairobi", weekday: "short", day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZoneName: "short" }).format(date);
   }
 
   function exportRows(data) {
