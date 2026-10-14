@@ -10636,6 +10636,132 @@ app.post("/api/v1/school/lessons", async (req, res) => {
   }
 });
 
+
+/*
+ * School operations are persisted in the existing product store and scoped
+ * to the authenticated school tenant. Owner access requires an explicit
+ * registered school when more than one school exists.
+ */
+function resolveSchoolOperationsContext(req, res, store) {
+  const authPromise = getAuthenticatedAccount(req);
+  return authPromise.then(auth => {
+    if (!auth.success) {
+      res.status(auth.status).json({ success: false, error: auth.error });
+      return null;
+    }
+    const owner = auth.account.owner_account === true;
+    const role = String(auth.account.role || "").toLowerCase();
+    if (!owner && role !== "school") {
+      res.status(403).json({ success: false, error: "Only authenticated school accounts or the project owner can manage school operations." });
+      return null;
+    }
+    const schools = Object.values(store.schools || {}).filter(school => school && school.school_id);
+    const requested = String(req.query.school_id || req.body?.school_id || "").trim();
+    let schoolId = owner ? requested : String(
+      auth.account.tenant_id || auth.account.school_id || auth.user?.id || ""
+    ).trim();
+    if (owner && !schoolId) {
+      return { auth, owner, schoolId: "", schools, store };
+    }
+    if (owner && schoolId && !schools.some(school => String(school.school_id) === schoolId)) {
+      res.status(404).json({ success: false, error: "Choose a registered school before managing its records." });
+      return null;
+    }
+    if (!schoolId) {
+      res.status(403).json({ success: false, error: "A school scope is required for this operation." });
+      return null;
+    }
+    return { auth, owner, schoolId, schools, store };
+  });
+}
+
+app.get("/api/v1/school/attendance", async (req, res) => {
+  try {
+    const dataEngine = require("./product/data_engine");
+    const operations = require("./product/school_operations_engine");
+    const store = dataEngine.loadStore();
+    const context = await resolveSchoolOperationsContext(req, res, store);
+    if (!context) return;
+    if (!context.schoolId) {
+      return res.json({ success: true, school_id: null, schools: context.schools.map(school => ({ school_id: school.school_id, name: school.name })), roster: [], registers: [] });
+    }
+    const roster = operations.getSchoolRoster(store, context.schoolId);
+    return res.json({
+      success: true,
+      school_id: context.schoolId,
+      schools: context.owner ? context.schools.map(school => ({ school_id: school.school_id, name: school.name })) : [],
+      roster,
+      registers: operations.listAttendance(store, context.schoolId, String(req.query.date || "").trim() || null)
+    });
+  } catch (error) {
+    console.error("School attendance load error:", error);
+    return res.status(500).json({ success: false, error: "Could not load the school attendance register." });
+  }
+});
+
+app.post("/api/v1/school/attendance", async (req, res) => {
+  try {
+    const dataEngine = require("./product/data_engine");
+    const operations = require("./product/school_operations_engine");
+    const store = dataEngine.loadStore();
+    const context = await resolveSchoolOperationsContext(req, res, store);
+    if (!context) return;
+    if (!context.schoolId) return res.status(400).json({ success: false, error: "Choose a registered school before saving attendance." });
+    const result = operations.saveAttendanceRegister(store, {
+      schoolId: context.schoolId,
+      date: req.body && req.body.date,
+      records: req.body && req.body.records,
+      roster: operations.getSchoolRoster(store, context.schoolId)
+    });
+    if (!result.success) return res.status(400).json(result);
+    dataEngine.saveStore(store);
+    return res.json({ success: true, school_id: context.schoolId, register: result.register });
+  } catch (error) {
+    console.error("School attendance save error:", error);
+    return res.status(500).json({ success: false, error: "Could not save the school attendance register." });
+  }
+});
+
+app.get("/api/v1/school/timetable", async (req, res) => {
+  try {
+    const dataEngine = require("./product/data_engine");
+    const operations = require("./product/school_operations_engine");
+    const store = dataEngine.loadStore();
+    const context = await resolveSchoolOperationsContext(req, res, store);
+    if (!context) return;
+    if (!context.schoolId) {
+      return res.json({ success: true, school_id: null, schools: context.schools.map(school => ({ school_id: school.school_id, name: school.name })), timetable: [] });
+    }
+    return res.json({
+      success: true,
+      school_id: context.schoolId,
+      schools: context.owner ? context.schools.map(school => ({ school_id: school.school_id, name: school.name })) : [],
+      timetable: operations.listTimetable(store, context.schoolId)
+    });
+  } catch (error) {
+    console.error("School timetable load error:", error);
+    return res.status(500).json({ success: false, error: "Could not load the school timetable." });
+  }
+});
+
+app.post("/api/v1/school/timetable", async (req, res) => {
+  try {
+    const dataEngine = require("./product/data_engine");
+    const operations = require("./product/school_operations_engine");
+    const store = dataEngine.loadStore();
+    const context = await resolveSchoolOperationsContext(req, res, store);
+    if (!context) return;
+    if (!context.schoolId) return res.status(400).json({ success: false, error: "Choose a registered school before saving the timetable." });
+    const result = operations.saveTimetableEntry(store, Object.assign({}, req.body || {}, { schoolId: context.schoolId }));
+    if (!result.success) return res.status(400).json(result);
+    dataEngine.saveStore(store);
+    return res.status(201).json({ success: true, school_id: context.schoolId, entry: result.entry, timetable: result.timetable });
+  } catch (error) {
+    console.error("School timetable save error:", error);
+    return res.status(500).json({ success: false, error: "Could not save the school timetable entry." });
+  }
+});
+
 app.get("/api/v1/teacher/lessons", async (req, res) => {
   try {
     const auth = await getAuthenticatedAccount(req);

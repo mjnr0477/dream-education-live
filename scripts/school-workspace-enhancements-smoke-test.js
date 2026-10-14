@@ -20,6 +20,17 @@ assert.match(js, /\/api\/v1\/school\/lessons/);
 assert.match(js, /Open notes, teaching steps and assessment/);
 assert.match(server, /app\.get\("\/api\/v1\/school\/lessons"/);
 assert.match(server, /app\.post\("\/api\/v1\/school\/lessons"/);
+assert.match(server, /app\.get\("\/api\/v1\/school\/attendance"/);
+assert.match(server, /app\.post\("\/api\/v1\/school\/attendance"/);
+assert.match(server, /app\.get\("\/api\/v1\/school\/timetable"/);
+assert.match(server, /app\.post\("\/api\/v1\/school\/timetable"/);
+assert.match(js, /school-attendance-form/);
+assert.match(js, /school-timetable-form/);
+assert.match(js, /school-attendance-app/);
+assert.match(js, /school-timetable-app/);
+assert.match(js, /data-school-attendance-date/);
+assert.match(css, /school-attendance-row/);
+
 assert.match(server, /Only authenticated school accounts or the project owner can prepare lessons/);
 assert.match(server, /lessonEngine\.generateTeacherLesson/);
 assert.match(server, /lessonEngine\.createLesson/);
