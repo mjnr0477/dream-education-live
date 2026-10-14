@@ -54,32 +54,10 @@
     panel.setAttribute("aria-hidden", "false");
   }
 
-  function metric(label, value, hint) {
-    return '<article class="di-metric"><span>' + esc(label) + '</span><strong>' + esc(value) + '</strong><small>' + esc(hint || "") + '</small></article>';
-  }
-
   function money(value, currency) {
     const number = Number(value);
     if (!Number.isFinite(number)) return "—";
     return new Intl.NumberFormat("en-US", { style: "currency", currency: currency || "USD", maximumFractionDigits: 2 }).format(number);
-  }
-
-  function chartSvg(bars) {
-    const values = bars.map(function (bar) { return Number(bar.c); }).filter(Number.isFinite);
-    if (values.length < 2) return '<div class="di-empty">Not enough bars to draw a chart.</div>';
-    const width = 720, height = 230, pad = 16;
-    const min = Math.min.apply(null, values), max = Math.max.apply(null, values);
-    const range = max - min || 1;
-    const points = values.map(function (value, index) {
-      const x = pad + (index / (values.length - 1)) * (width - pad * 2);
-      const y = height - pad - ((value - min) / range) * (height - pad * 2);
-      return x.toFixed(2) + "," + y.toFixed(2);
-    }).join(" ");
-    const rising = values[values.length - 1] >= values[0];
-    return '<div class="di-chart-wrap"><svg class="di-chart" viewBox="0 0 ' + width + ' ' + height + '" role="img" aria-label="Historical closing prices">' +
-      '<line x1="16" y1="50" x2="704" y2="50" class="di-gridline"/><line x1="16" y1="115" x2="704" y2="115" class="di-gridline"/><line x1="16" y1="180" x2="704" y2="180" class="di-gridline"/>' +
-      '<polyline points="' + points + '" class="' + (rising ? "di-price-line-up" : "di-price-line-down") + '"/>' +
-      '</svg><div class="di-chart-labels"><span>' + esc(money(min)) + ' low</span><span>' + esc(money(max)) + ' high</span></div></div>';
   }
 
   function renderBase() {
@@ -95,26 +73,6 @@
           '</form>' +
           '<div id="di-main-output" aria-live="polite"><div class="di-loading">Choose a market and predict.</div></div>' +
         '</div></div>');
-  }
-
-  function renderAccount(account) {
-    const change = account.daily_equity_change == null ? null : Number(account.daily_equity_change);
-    const changePct = account.daily_equity_change_pct == null ? null : Number(account.daily_equity_change_pct);
-    const changeKnown = Number.isFinite(change);
-    const trendClass = !changeKnown ? "unknown" : change > 0 ? "up" : change < 0 ? "down" : "flat";
-    const trendLabel = !changeKnown ? "Daily movement unavailable" : change > 0 ? "Rising today" : change < 0 ? "Falling today" : "Flat today";
-    const trendValue = !changeKnown ? "—" : (change > 0 ? "+" : "") + money(change, account.currency);
-    const trendPct = Number.isFinite(changePct) ? " (" + (changePct > 0 ? "+" : "") + changePct.toFixed(2) + "%)" : "";
-    return '<section class="di-equity-panel">' +
-      '<div class="di-section-head"><div><span class="di-eyebrow">YOUR MONEY · PAPER ACCOUNT</span><h3>Account performance</h3><p class="di-muted">Current equity compared with Alpaca’s previous closing equity.</p></div><button class="de-action" id="di-refresh-account" type="button">Refresh balance</button></div>' +
-      '<div class="di-metrics">' +
-      metric("Total account value", money(account.equity, account.currency), "Current simulated equity") +
-      '<article class="di-metric di-equity-change di-equity-' + trendClass + '"><span>Daily profit / loss</span><strong>' + esc(trendValue + trendPct) + '</strong><small>' + esc(trendLabel) + '</small></article>' +
-      metric("Previous equity", money(account.last_equity, account.currency), "Previous trading-day close") +
-      metric("Cash", money(account.cash, account.currency), "Uninvested simulated cash") +
-      metric("Buying power", money(account.buying_power, account.currency), "Broker-reported amount available to trade") +
-      '</div><p class="di-muted">This is paper-account performance, not real money. Daily change can include unrealized market movement and may not equal profit since you started trading.</p>' +
-      '</section>';
   }
 
   function forecastForBars(bars) {
@@ -133,14 +91,7 @@
     const predicted = last + slope * 5;
     const changePct = last ? ((predicted - last) / last) * 100 : 0;
     const direction = changePct > 0.15 ? "UP" : changePct < -0.15 ? "DOWN" : "SIDEWAYS";
-    const deviations = sample.slice(1).map(function (value, index) {
-      return value - sample[index];
-    });
-    const matching = deviations.filter(function (change) {
-      return direction === "UP" ? change > 0 : direction === "DOWN" ? change < 0 : Math.abs(change) <= Math.abs(last * 0.0015);
-    }).length;
-    const consistency = deviations.length ? matching / deviations.length : 0;
-    return { last: last, predicted: predicted, changePct: changePct, direction: direction, consistency: consistency };
+    return { last: last, predicted: predicted, changePct: changePct, direction: direction };
   }
 
   function renderPredictionChart(bars, forecast) {
@@ -228,80 +179,6 @@
       output.innerHTML = '<div class="di-error"><strong>Market analysis unavailable</strong><p>' + esc(error.message) + '</p><button type="button" class="de-action" id="di-retry">Try again</button></div>';
       const retry = document.getElementById("di-retry");
       if (retry) retry.addEventListener("click", function () { loadMarket(symbol, timeframe); });
-    }
-  }
-
-  async function submitPaperOrder(event) {
-    event.preventDefault();
-    const form = event.currentTarget;
-    if (!form.elements.confirm.checked) return;
-    const result = document.getElementById("di-order-result");
-    const button = form.querySelector('button[type="submit"]');
-    if (button) button.disabled = true;
-    if (result) result.textContent = "Submitting simulated paper order…";
-    try {
-      const data = await api("/api/dream-invest/orders", {
-        method: "POST",
-        body: JSON.stringify({
-          symbol: form.elements.symbol.value,
-          side: form.elements.side.value,
-          qty: Number(form.elements.qty.value)
-        })
-      });
-      if (result) result.innerHTML = '<div class="di-success"><strong>Paper order accepted by Alpaca</strong><p>' + esc(data.order.side) + ' ' + esc(data.order.qty) + ' ' + esc(data.order.symbol) + ' · status: ' + esc(data.order.status) + '</p></div>';
-    } catch (error) {
-      if (result) result.innerHTML = '<div class="di-error"><strong>Paper order was not confirmed</strong><p>' + esc(error.message) + '</p></div>';
-    } finally {
-      if (button) button.disabled = false;
-    }
-  }
-
-  async function loadFxapisStatus() {
-    const badge = document.getElementById("di-fxapis-status");
-    const message = document.getElementById("di-fxapis-message");
-    if (!badge) return;
-    try {
-      const data = await api("/api/dream-invest/fxapis/status");
-      badge.textContent = data.connected ? "MT5 account registered" : data.configured ? "API key ready" : "API key missing";
-      badge.classList.toggle("is-connected", Boolean(data.connected || data.configured));
-      if (message) {
-        const account = data.account || {};
-        message.innerHTML = '<div class="' + (data.connected ? "di-success" : "di-muted") + '"><strong>' + esc(data.connected ? "FXAPIS account registered" : data.configured ? "FXAPIS is ready to connect" : "FXAPIS setup required") + '</strong><p>' + esc(data.message || "") + (account.server ? '<br>Server: ' + esc(account.server) : "") + (account.login ? '<br>Login: ' + esc(account.login) : "") + '</p></div>';
-      }
-      const form = document.getElementById("di-fxapis-form");
-      if (form && data.connected) form.hidden = true;
-    } catch (error) {
-      badge.textContent = "FXAPIS needs setup";
-      if (message) message.innerHTML = '<div class="di-error">' + esc(error.message) + '</div>';
-    }
-  }
-
-  async function submitFxapisConnection(event) {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const button = form.querySelector('button[type="submit"]');
-    const message = document.getElementById("di-fxapis-message");
-    const passwordField = form.elements.password;
-    if (button) { button.disabled = true; button.textContent = "Connecting securely…"; }
-    if (message) message.textContent = "Sending connection request to FXAPIS…";
-    try {
-      const data = await api("/api/dream-invest/fxapis/connect", {
-        method: "POST",
-        body: JSON.stringify({
-          login: form.elements.login.value.trim(),
-          server: form.elements.server.value.trim(),
-          password: passwordField.value
-        })
-      });
-      passwordField.value = "";
-      if (message) message.innerHTML = '<div class="di-success"><strong>MT5 account registered</strong><p>' + esc(data.message || "Connection request accepted.") + '</p></div>';
-      form.hidden = true;
-      await loadFxapisStatus();
-    } catch (error) {
-      passwordField.value = "";
-      if (message) message.innerHTML = '<div class="di-error"><strong>Connection not confirmed</strong><p>' + esc(error.message) + '</p></div>';
-    } finally {
-      if (button) { button.disabled = false; button.textContent = "Connect MT5 account"; }
     }
   }
 
@@ -429,8 +306,7 @@
       }
       loadMarket(symbol, form.elements.timeframe.value);
     });
-    if (output) output.innerHTML = '<div class="di-loading">Loading market data…</div>';
-    await loadMarket("AAPL", "1Day");
+    if (output) output.innerHTML = '<div class="di-loading">Choose a market and period, then tap Predict market.</div>';
   }
 
   document.addEventListener("click", function (event) {
