@@ -8,11 +8,12 @@ const science = require("./providers/science");
 const biomedical = require("./providers/biomedical");
 const data = require("./providers/data");
 const repositories = require("./providers/repositories");
+const core = require("./providers/core");
 
 
 const FAMILY_MAP = {
   mathematics:["openalex","doaj"],
-  mathematics_education:["openalex","doaj"],
+  mathematics_education:["openalex","doaj","core"],
   biology:["openalex","doaj","pubmed_central","ncbi_bookshelf","gbif","uniprot","rcsb_pdb"],
   chemistry:["openalex","doaj","pubchem"],
   physics:["openalex","doaj","arxiv"],
@@ -21,9 +22,9 @@ const FAMILY_MAP = {
   environment:["gbif","openalex","doaj","world_bank"],
   space:["openalex","arxiv"],
   economics:["world_bank","openalex","doaj"],
-  research:["openalex","doaj","unpaywall","zenodo","figshare"],
-  education:["openalex","doaj"],
-  general:["openalex","doaj","unpaywall","zenodo","figshare","world_bank","pubmed_central","ncbi_bookshelf","pubchem","gbif","uniprot","rcsb_pdb"]
+  research:["openalex","doaj","unpaywall","zenodo","figshare","core"],
+  education:["openalex","doaj","core"],
+  general:["openalex","doaj","unpaywall","zenodo","figshare","core","world_bank","pubmed_central","ncbi_bookshelf","pubchem","gbif","uniprot","rcsb_pdb"]
 };
 
 const PROVIDERS = {
@@ -41,7 +42,8 @@ const PROVIDERS = {
   ncbi_bookshelf:{search:biomedical.ncbiBookshelf},
   world_bank:{search:data.worldBank},
   zenodo:{search:repositories.zenodo},
-  figshare:{search:repositories.figshare}
+  figshare:{search:repositories.figshare},
+  core:{search:core.search}
 };
 
 function providerIds(queryInfo = {}) {
