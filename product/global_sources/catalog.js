@@ -8,6 +8,7 @@ const SOURCES = [
   {id:"library_of_congress",name:"Library of Congress",family:"general",access:"api",license:"mixed",status:"connected"},
   {id:"wikimedia_commons",name:"Wikimedia Commons",family:"general",access:"api",license:"mixed-open",status:"connected"},
   {id:"open_library",name:"Open Library",family:"general",access:"api",license:"mixed",status:"ready"},
+  {id:"google_books",name:"Google Books",family:"general",access:"REST API; free quota with API key",license:"Google Books API terms; descriptions and book content may be copyrighted",commercial_use:false,status:"connected"},
 
   // RESEARCH
   {id:"openalex",name:"OpenAlex",family:"research",access:"rest",license:"CC0",status:"connected"},

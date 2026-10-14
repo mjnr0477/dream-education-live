@@ -1091,12 +1091,15 @@ async function searchSources(query, limit = 5) {
     // first answer instead of waiting for background cache enrichment.
     {
       name: "trusted_global_mesh",
-      run: () => globalSourceRouter.search(searchQuery, {
-        domain: queryInfo.subject,
-        subject: queryInfo.subject,
-        topic: queryInfo.topic,
-        intent: queryInfo.intent
-      }, limit)
+      run: async () => {
+        const result = await globalSourceRouter.search(searchQuery, {
+          domain: queryInfo.subject,
+          subject: queryInfo.subject,
+          topic: queryInfo.topic,
+          intent: queryInfo.intent
+        }, limit);
+        return Array.isArray(result?.sources) ? result.sources : [];
+      }
     },
 
     // GLOBAL SOURCE EXPANSION — ADDITIVE
