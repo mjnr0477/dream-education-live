@@ -135,11 +135,13 @@ function escapeHTML(value) {
       cards: [
         {
           title: "Problem solving",
-          text: "Work through mathematical, scientific, technical and real-world problems."
+          text: "Open the learner workspace to work through mathematical, scientific, technical and real-world problems.",
+          action: "ai-problem-solving"
         },
         {
           title: "Knowledge discovery",
-          text: "Search, retrieve and organize useful knowledge for learning."
+          text: "Jump to Dream Search to retrieve and organize source-backed knowledge for learning.",
+          action: "ai-knowledge-discovery"
         },
         {
           title: "Code creation",
@@ -328,6 +330,8 @@ function escapeHTML(value) {
         const isCodingLab = card.action === "coding-lab";
         const isCodingLearning = card.action === "coding-learning";
         const isMediaStudio = card.action === "media-studio";
+        const isAIProblemSolving = card.action === "ai-problem-solving";
+        const isAIKnowledgeDiscovery = card.action === "ai-knowledge-discovery";
         const isAuthorizedSearch = card.action === "authorized-search" &&
           isOwnerAccount(getAuth());
         const cardAction = isCodeCreation
@@ -348,8 +352,12 @@ function escapeHTML(value) {
                       ? 'data-panel-action="coding-learning" role="button" tabindex="0"'
                       : isMediaStudio
                         ? 'data-panel-action="media-studio" role="button" tabindex="0"'
-                        : isAuthorizedSearch
-                        ? 'data-panel-action="authorized-search" role="button" tabindex="0"'
+                        : isAIProblemSolving
+                          ? 'data-panel-action="ai-problem-solving" role="button" tabindex="0"'
+                          : isAIKnowledgeDiscovery
+                            ? 'data-panel-action="ai-knowledge-discovery" role="button" tabindex="0"'
+                            : isAuthorizedSearch
+                              ? 'data-panel-action="authorized-search" role="button" tabindex="0"'
                 : "";
         const cardButton = isCodeCreation
           ? '<button class="panel-action" type="button" data-panel-action="code-generator">Open Code Generator</button>'
@@ -374,7 +382,7 @@ function escapeHTML(value) {
                 : "";
 
         return `
-          <article class="panel-card${isCodeCreation || isMeetings || isGeneralConnections ? " panel-card-action" : ""}"
+          <article class="panel-card${isCodeCreation || isMeetings || isGeneralConnections || isAIProblemSolving || isAIKnowledgeDiscovery ? " panel-card-action" : ""}"
             ${cardAction}>
             <h3>${escapeHTML(card.title)}</h3>
             <p>${escapeHTML(card.text)}</p>
@@ -1660,6 +1668,20 @@ document.addEventListener("click", function (event) {
       } else {
         console.error("Dream Education Media Studio module is not loaded.");
       }
+      return;
+    }
+
+    if (action === "ai-problem-solving") {
+      openPanel("learn");
+      return;
+    }
+
+    if (action === "ai-knowledge-discovery") {
+      closePanel();
+      const searchSection = document.getElementById("dream-search");
+      const searchInput = document.getElementById("dream-search-input");
+      if (searchSection) searchSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (searchInput) searchInput.focus({ preventScroll: true });
       return;
     }
 
