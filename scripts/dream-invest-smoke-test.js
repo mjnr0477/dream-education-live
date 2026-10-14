@@ -67,7 +67,8 @@ async function main() {
 
   res = response();
   await routes.get["/api/dream-invest/status"]({ headers: { authorization: "Bearer other" } }, res);
-  assert.equal(res.statusCode, 403);
+  assert.equal(res.body.success, true, "Signed-in users can access the prediction service status.");
+  assert.equal(res.body.paper_only, true);
 
   res = response();
   await routes.get["/api/dream-invest/status"]({ headers: { authorization: "Bearer owner" } }, res);
@@ -84,6 +85,10 @@ async function main() {
   assert.equal(requestOptions.headers["APCA-API-KEY-ID"], "test-paper-key");
   assert.equal(JSON.stringify(res.body).includes("test-paper-secret"), false);
 
+  res = response();
+  await routes.get["/api/dream-invest/bars"]({ headers: { authorization: "Bearer other" }, query: { symbol: "AAPL", timeframe: "1Day", limit: "100" } }, res);
+  assert.equal(res.body.success, true, "Signed-in users can access market predictions.");
+  assert.equal(res.body.paper_only, true);
   res = response();
   await routes.get["/api/dream-invest/bars"]({ headers: { authorization: "Bearer owner" }, query: { symbol: "AAPL", timeframe: "1Day", limit: "100" } }, res);
   assert.equal(res.body.success, true);
