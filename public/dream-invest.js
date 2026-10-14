@@ -83,9 +83,8 @@
   }
 
   function renderBase() {
-    openPanel("DREAM INVEST", "Dream Invest", "Choose Trading or Betting. Betting predictions use available OddsPapi data; no automatic real-money bets are placed.", 
+    openPanel("DREAM INVEST", "Dream Invest", "Choose a market and period to get a simple model-based prediction and price graph.",
       '<div class="dream-invest">' +
-        '<section class="di-banner"><div><span class="di-eyebrow">PAPER MODE · NO REAL-MONEY ORDERS</span><h3>Study the market. Test the signal.</h3><p>Rule-based indicators, historical checks and manually confirmed simulated orders. Automated execution remains off while we validate the engine.</p></div><span class="di-status" id="di-connection">Checking connection…</span></section>' +
         '<nav class="di-mode-switch" aria-label="Dream Invest mode"><button type="button" class="de-action primary" data-di-mode="trading">Trading</button><button type="button" class="de-action" data-di-mode="betting">Betting</button></nav>' +
         '<section class="di-section" id="di-betting-view" hidden><div class="di-section-head"><div><span class="di-eyebrow">SPORTS DATA · ODDSPAPI</span><h3>Betika predictions</h3><p class="di-muted">Predictions are estimates from available odds, not guarantees. Betting is not automated.</p></div><span class="di-status" id="di-betting-status">Checking OddsPapi…</span></div><div class="di-bet-controls"><button type="button" class="de-action" id="di-load-sports">Load sports</button><label>Sport ID<input id="di-sport-id" maxlength="60" placeholder="Choose from sports list"></label><button type="button" class="de-action" id="di-load-tournaments">Load tournaments</button><label>Tournament IDs<input id="di-tournament-ids" maxlength="500" placeholder="IDs separated by commas"></label><label>Bookmaker<input id="di-bookmaker" maxlength="80" value="betika" placeholder="betika"></label><button type="button" class="de-action primary" id="di-load-odds">Get odds & predictions</button></div><div id="di-betting-results" aria-live="polite"></div><p class="di-warning">OddsPapi supplies sports data; this integration does not place bets on Betika. Verify fixtures, bookmaker availability and odds before making any independent decision.</p></section>' +
         '<div id="di-trading-view">' +
@@ -114,37 +113,73 @@
       '</section>';
   }
 
+  function forecastForBars(bars) {
+    const values = (Array.isArray(bars) ? bars : []).map(function (bar) { return Number(bar.c); }).filter(Number.isFinite);
+    const sample = values.slice(-20);
+    if (sample.length < 5) return null;
+    const meanX = (sample.length - 1) / 2;
+    const meanY = sample.reduce(function (sum, value) { return sum + value; }, 0) / sample.length;
+    let numerator = 0, denominator = 0;
+    sample.forEach(function (value, index) {
+      numerator += (index - meanX) * (value - meanY);
+      denominator += (index - meanX) * (index - meanX);
+    });
+    const slope = denominator ? numerator / denominator : 0;
+    const last = sample[sample.length - 1];
+    const predicted = last + slope * 5;
+    const changePct = last ? ((predicted - last) / last) * 100 : 0;
+    const direction = changePct > 0.15 ? "UP" : changePct < -0.15 ? "DOWN" : "SIDEWAYS";
+    const deviations = sample.slice(1).map(function (value, index) {
+      return value - sample[index];
+    });
+    const matching = deviations.filter(function (change) {
+      return direction === "UP" ? change > 0 : direction === "DOWN" ? change < 0 : Math.abs(change) <= Math.abs(last * 0.0015);
+    }).length;
+    const consistency = deviations.length ? matching / deviations.length : 0;
+    return { last: last, predicted: predicted, changePct: changePct, direction: direction, consistency: consistency };
+  }
+
+  function renderPredictionChart(bars, forecast) {
+    const values = (Array.isArray(bars) ? bars : []).map(function (bar) { return Number(bar.c); }).filter(Number.isFinite);
+    if (values.length < 2) return '<div class="di-empty">Not enough market history to draw a graph.</div>';
+    const history = values.slice(-60);
+    const future = forecast ? [history[history.length - 1], forecast.predicted] : [];
+    const all = history.concat(future);
+    const min = Math.min.apply(null, all), max = Math.max.apply(null, all);
+    const range = max - min || Math.abs(max) * 0.001 || 1;
+    const width = 720, height = 240, pad = 18;
+    const y = function (value) { return height - pad - ((value - min) / range) * (height - pad * 2); };
+    const historyPoints = history.map(function (value, index) {
+      return (pad + index / Math.max(1, history.length + (forecast ? 1 : 0) - 1) * (width - pad * 2)) + "," + y(value);
+    }).join(" ");
+    let forecastLine = "";
+    if (forecast) {
+      const lastX = pad + (history.length - 1) / Math.max(1, history.length) * (width - pad * 2);
+      const nextX = width - pad;
+      forecastLine = '<line x1="' + lastX + '" y1="' + y(history[history.length - 1]) + '" x2="' + nextX + '" y2="' + y(forecast.predicted) + '" class="di-forecast-line"/>' +
+        '<circle cx="' + nextX + '" cy="' + y(forecast.predicted) + '" r="4" class="di-forecast-point"/>';
+    }
+    return '<div class="di-chart-wrap"><svg class="di-chart" viewBox="0 0 ' + width + ' ' + height + '" role="img" aria-label="Historical market price with estimated forecast">' +
+      '<line x1="18" y1="55" x2="702" y2="55" class="di-gridline"/><line x1="18" y1="120" x2="702" y2="120" class="di-gridline"/><line x1="18" y1="185" x2="702" y2="185" class="di-gridline"/>' +
+      '<polyline points="' + historyPoints + '" class="' + (history[history.length - 1] >= history[0] ? "di-price-line-up" : "di-price-line-down") + '"/>' + forecastLine +
+      '</svg><div class="di-chart-labels"><span>History · low ' + esc(money(min)) + '</span><span>' + (forecast ? "Forecast · " + esc(money(forecast.predicted)) : "high " + esc(money(max))) + '</span></div></div>';
+  }
+
   function renderAnalysis(data) {
-    const indicators = data.indicators || {};
-    const backtest = data.backtest || {};
-    const signal = indicators.signal || "HOLD";
-    const signalClass = signal.toLowerCase();
-    const hitRate = Number.isFinite(Number(backtest.directional_hit_rate_pct)) && backtest.directional_hit_rate_pct !== null
-      ? Number(backtest.directional_hit_rate_pct).toFixed(1) + "%"
-      : "Not enough signals";
     const bars = Array.isArray(data.bars) ? data.bars : [];
+    const forecast = forecastForBars(bars);
+    if (!forecast) return '<section class="di-section"><p class="di-muted">Not enough recent data to estimate this market. Try another symbol or period.</p></section>';
+    const directionClass = forecast.direction.toLowerCase();
+    const label = forecast.direction === "UP" ? "Expected to rise" : forecast.direction === "DOWN" ? "Expected to fall" : "No clear direction";
+    const changeText = (forecast.changePct > 0 ? "+" : "") + forecast.changePct.toFixed(2) + "%";
     const lastBar = bars[bars.length - 1] || {};
-    return '<section class="di-signal di-signal-' + esc(signalClass) + '"><div><span class="di-eyebrow">CURRENT RULE-BASED SIGNAL</span><h3>' + esc(signal) + '</h3><p>Signal score: ' + esc(indicators.heuristic_score) + ' / 100 · not a probability</p></div><strong>' + esc(money(indicators.latest_close)) + '</strong></section>' +
-      '<section class="di-metrics">' +
-      metric("SMA · 5 bars", money(indicators.sma_5), "Short trend") +
-      metric("SMA · 20 bars", money(indicators.sma_20), "Medium trend") +
-      metric("10-bar momentum", Number.isFinite(Number(indicators.momentum_10_pct)) ? Number(indicators.momentum_10_pct).toFixed(2) + "%" : "—", "Past movement, not a forecast") +
-      metric("20-bar volatility", Number.isFinite(Number(indicators.volatility_20_pct)) ? Number(indicators.volatility_20_pct).toFixed(2) + "%" : "—", "Approximate return variability") +
-      '</section>' +
-      '<section class="di-section"><div class="di-section-head"><h3>' + esc(data.symbol) + ' price history</h3><span>' + esc(data.timeframe) + ' · ' + esc(bars.length) + ' bars</span></div>' + chartSvg(bars) +
-      '<p class="di-muted">Last bar: ' + esc(lastBar.t || data.updated_at || "—") + '. Data feed: ' + esc(data.feed || "Alpaca") + '.</p></section>' +
-      '<section class="di-section"><div class="di-section-head"><h3>Historical signal check</h3><span>Walk-forward</span></div><div class="di-metrics">' +
-      metric("Directional hit rate", hitRate, "Only non-HOLD signals; next bar") +
-      metric("Signals evaluated", backtest.evaluated_signals == null ? "0" : backtest.evaluated_signals, "On returned historical bars") +
-      metric("Buy / sell signals", (backtest.buy_signals || 0) + " / " + (backtest.sell_signals || 0), "HOLD signals excluded") +
-      '</div><p class="di-warning">' + esc(backtest.warning || indicators.warning || "") + '</p></section>' +
-      '<section class="di-section"><div class="di-section-head"><h3>Paper order</h3><span>Maximum 10 whole shares</span></div>' +
-      '<form class="di-order-form" id="di-order-form"><input type="hidden" name="symbol" value="' + esc(data.symbol) + '">' +
-      '<label for="di-side">Action</label><select id="di-side" name="side"><option value="buy">Buy</option><option value="sell">Sell</option></select>' +
-      '<label for="di-qty">Whole shares</label><input id="di-qty" name="qty" type="number" min="1" max="10" step="1" value="1" required>' +
-      '<label class="di-confirm"><input type="checkbox" name="confirm" required> I understand this submits a simulated order to my Alpaca paper account, not a real-money trade.</label>' +
-      '<button class="de-action primary" type="submit">Submit paper order</button><p class="di-muted">The signal does not place trades automatically. Review each simulated order before submitting.</p></form><div id="di-order-result" aria-live="polite"></div></section>' +
-      '<p class="di-disclaimer">Research prototype only. Signals are not calibrated probabilities or financial advice. The basic hit-rate check does not include fees, spreads, slippage or portfolio risk and does not establish profitability.</p>';
+    return '<section class="di-signal di-signal-' + esc(directionClass) + '">' +
+      '<div><span class="di-eyebrow">MARKET PREDICTION · ESTIMATE</span><h3>' + esc(label) + '</h3><p>Estimated move over the next 5 selected periods</p></div>' +
+      '<strong>' + esc(changeText) + '</strong></section>' +
+      '<section class="di-section"><div class="di-section-head"><h3>' + esc(data.symbol) + ' price graph</h3><span>' + esc(data.timeframe) + '</span></div>' +
+      renderPredictionChart(bars, forecast) +
+      '<p class="di-muted">Last price: ' + esc(money(forecast.last)) + ' · Estimated price: ' + esc(money(forecast.predicted)) + '</p></section>' +
+      '<p class="di-disclaimer">Estimate based on recent prices, not a guarantee. Markets can move unexpectedly.</p>';
   }
 
   async function loadAccount() {
@@ -373,34 +408,25 @@
   async function openDreamInvest() {
     const auth = getAuth();
     if (!auth || !auth.account || !isOwner(auth)) {
-      openPanel("DREAM INVEST", "Owner access required", "Dream Invest is currently restricted to the Dream Education owner account.", 
-        '<div class="di-error"><p>Sign in with the owner account to access the Alpaca paper trading workspace.</p><button class="de-action primary" type="button" data-action="open" data-panel="signin">Sign in</button></div>');
+      openPanel("DREAM INVEST", "Owner access required", "Dream Invest is currently restricted to the Dream Education owner account.",
+        '<div class="di-error"><p>Sign in with the owner account to access market predictions.</p><button class="de-action primary" type="button" data-action="open" data-panel="signin">Sign in</button></div>');
       return;
     }
     renderBase();
     setupBettingMode();
     const output = document.getElementById("di-main-output");
-    try {
-      const status = await api("/api/dream-invest/status");
-      if (!status.configured) throw new Error("Alpaca credentials are missing from Render Environment.");
-      loadFxapisStatus();
-      const fxForm = document.getElementById("di-fxapis-form");
-      if (fxForm) fxForm.addEventListener("submit", submitFxapisConnection);
-      await loadAccount();
-      if (output) output.innerHTML = '<div class="di-loading">Loading market data…</div>';
-      const form = document.getElementById("di-market-form");
-      if (form) form.addEventListener("submit", function (event) {
-        event.preventDefault();
-        loadMarket(form.elements.symbol.value.trim().toUpperCase(), form.elements.timeframe.value);
-      });
-      await loadMarket("AAPL", "1Day");
-    } catch (error) {
-      const connection = document.getElementById("di-connection");
-      if (connection) connection.textContent = "Connection needs attention";
-      if (output) output.innerHTML = '<div class="di-error"><strong>Could not connect to Alpaca</strong><p>' + esc(error.message) + '</p><p>Check that the Render variables are saved and that the API key belongs to the paper account.</p><button type="button" class="de-action" id="di-reconnect">Retry connection</button></div>';
-      const retry = document.getElementById("di-reconnect");
-      if (retry) retry.addEventListener("click", openDreamInvest);
-    }
+    const form = document.getElementById("di-market-form");
+    if (form) form.addEventListener("submit", function (event) {
+      event.preventDefault();
+      const symbol = String(form.elements.symbol.value || "").trim().toUpperCase();
+      if (!/^[A-Z0-9.\-]{1,12}$/.test(symbol)) {
+        if (output) output.innerHTML = '<div class="di-error">Enter a valid market symbol.</div>';
+        return;
+      }
+      loadMarket(symbol, form.elements.timeframe.value);
+    });
+    if (output) output.innerHTML = '<div class="di-loading">Loading market data…</div>';
+    await loadMarket("AAPL", "1Day");
   }
 
   document.addEventListener("click", function (event) {
