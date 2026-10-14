@@ -149,7 +149,7 @@ function soccerProbabilities(homeLambda, awayLambda) {
   return { home: home / total, draw: draw / total, away: away / total };
 }
 function isFinalResult(event) {
-  return /finished|final|completed|ended|full time|full-time|\\bft\\b|result_available/i.test(clean(event && event.match_status, 80));
+  return /finished|final|completed|ended|full time|full-time|\bft\b|result_available/i.test(clean(event && event.match_status, 80));
 }
 function buildRecentForm(history, sport) {
   const teams = new Map();
