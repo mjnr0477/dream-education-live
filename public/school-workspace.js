@@ -129,7 +129,7 @@
       if (!options) return '<p class="school-module-note">No registered school is available for this owner account yet. Onboard a school first, then return here.</p>';
       return '<div class="school-module-form-row"><label for="school-ops-school-' + type + '">School<select id="school-ops-school-' + type + '">' + options + '</select></label><button class="school-module-action primary" type="button" data-school-ops-load="' + type + '">Open school records</button></div>';
     }
-    async function loadSchoolAttendance(schoolId) {
+    async function loadSchoolAttendance(schoolId, selectedDate = localDateValue()) {
       const target = moduleRoot.querySelector("#school-attendance-app");
       if (!target) return;
       const token = schoolOpsToken();
@@ -138,13 +138,13 @@
       try {
         const query = new URLSearchParams();
         if (schoolId) query.set("school_id", schoolId);
-        query.set("date", localDateValue());
+        query.set("date", selectedDate);
         const data = await fetchSchoolLessonJSON("/api/v1/school/attendance?" + query.toString(), {
           headers: { "Accept": "application/json", "Authorization": "Bearer " + token }
         });
         if (!data.school_id) { target.innerHTML = schoolPicker("attendance", data.schools); return; }
         target.dataset.schoolId = data.school_id;
-        const register = (data.registers || []).find(item => item.date === localDateValue());
+        const register = (data.registers || []).find(item => item.date === selectedDate);
         const existing = new Map(((register && register.records) || []).map(item => [String(item.learner_id), item]));
         const roster = Array.isArray(data.roster) ? data.roster : [];
         const rows = roster.map(learner => {
@@ -153,7 +153,7 @@
             ["present","absent","late","excused"].map(status => '<option value="' + status + '"' + (prior.status === status ? " selected" : "") + '>' + status.charAt(0).toUpperCase() + status.slice(1) + '</option>').join("") +
             '</select></label><label>Note<input type="text" maxlength="250" data-learner-note="' + esc(learner.learner_id) + '" value="' + esc(prior.note || "") + '" placeholder="Optional note"></label></div>';
         }).join("");
-        target.innerHTML = '<form id="school-attendance-form"><input type="hidden" name="school_id" value="' + esc(data.school_id) + '"><label>Register date<input type="date" name="date" value="' + esc(localDateValue()) + '" required></label>' +
+        target.innerHTML = '<form id="school-attendance-form"><input type="hidden" name="school_id" value="' + esc(data.school_id) + '"><label>Register date<input type="date" name="date" value="' + esc(selectedDate) + '" required data-school-attendance-date></label>' +
           (roster.length ? '<div class="school-attendance-list">' + rows + '</div><button class="school-module-action primary" type="submit">Save daily register</button>' :
             '<p class="school-module-note">No connected learners are attached to this school yet. Link learners to school classes before recording attendance.</p>') +
           '<p class="school-module-note" id="school-attendance-feedback" aria-live="polite"></p>' +
@@ -295,7 +295,7 @@
             body: JSON.stringify(payload)
           });
           if (feedback) feedback.textContent = "Register saved: " + data.register.counts.present + " present, " + data.register.counts.absent + " absent, " + data.register.counts.late + " late, " + data.register.counts.excused + " excused.";
-          await loadSchoolAttendance(payload.school_id);
+          await loadSchoolAttendance(payload.school_id, payload.date);
         } catch (error) { if (feedback) feedback.textContent = error.message || "Attendance could not be saved."; }
       } else {
         if (feedback) feedback.textContent = "Saving timetable entry…";
