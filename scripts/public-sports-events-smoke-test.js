@@ -19,6 +19,10 @@ const { getPublicSportsEvents, normalizeSportScore, normalizeSportsDb, isUpcomin
   assert.equal(sportsDb.source, "TheSportsDB");
   const testNow = Date.parse("2026-10-14T12:00:00Z");
   assert.equal(isUpcomingOrLive({ kickoff: "2026-10-14T15:00:00Z", match_status: "scheduled" }, testNow), true);
+  assert.equal(isUpcomingOrLive({ kickoff: "2026-10-14T12:00:00Z", match_status: "scheduled" }, testNow), true,
+    "A fixture remains listed at the exact kickoff until a source confirms it has gone live.");
+  assert.equal(isUpcomingOrLive({ kickoff: "2026-10-14T11:59:00Z", match_status: "scheduled" }, testNow), true,
+    "Kickoff time alone must not remove a fixture while source status is delayed.");
   assert.equal(isUpcomingOrLive({ kickoff: "2026-10-14T11:00:00Z", match_status: "finished", result_verified: true }, testNow), false);
   assert.equal(isUpcomingOrLive({ kickoff: "2026-10-14T15:00:00Z", match_status: "in progress" }, testNow), false);
   assert.equal(isUpcomingOrLive({ kickoff: "2026-10-14T15:00:00Z", match_status: "STATUS_IN_PROGRESS" }, testNow), false);
