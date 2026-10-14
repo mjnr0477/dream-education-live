@@ -118,7 +118,7 @@
           (data.market === "h2h" && item.model_probabilities ? '<div class="di-outcomes"><span>Home <b>' + esc(item.model_probabilities.home_win_pct) + '%</b></span>' +
             (Number(item.model_probabilities.draw_pct) > 0 ? '<span>Draw <b>' + esc(item.model_probabilities.draw_pct) + '%</b></span>' : '') +
             '<span>Away <b>' + esc(item.model_probabilities.away_win_pct) + '%</b></span></div>' : '') +
-          '<small class="di-prediction-note">Estimate from recent results · Not guaranteed</small></article>';
+          '</article>';
       }).join("") + '</div>' + sportScoreCredit;
   }
   async function loadLeagues(root, sport, period, keepValue) {
