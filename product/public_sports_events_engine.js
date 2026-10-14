@@ -119,14 +119,18 @@ function normalizeSportsDb(row) {
   if (!home || !away) return null;
   const date = clean(row.dateEvent || row.date || "", 20);
   const time = clean(row.strTime || row.time || "", 20);
-  const kickoff = date ? (time && time !== "00:00:00" ? date + "T" + time + "Z" : date) : "";
+  const timestamp = row.strTimestamp ? Date.parse(row.strTimestamp) : NaN;
+  const kickoff = Number.isFinite(timestamp) ? new Date(timestamp).toISOString() :
+    (date ? (time && time !== "00:00:00" ? date + "T" + time + "Z" : date) : "");
   const homeScore = scoreValue(row, ["intHomeScore", "home_score", "homeScore"]);
   const awayScore = scoreValue(row, ["intAwayScore", "away_score", "awayScore"]);
+  const sourceStatus = clean(row.strProgress || row.strStatus || row.strEventStatus || row.status || "", 60);
+  const matchStatus = sourceStatus || (homeScore !== null && awayScore !== null ? "unknown" : "scheduled");
   return {
     fixture: home + " vs " + away, fixture_id: clean(row.idEvent || row.id, 100) || null,
     kickoff: kickoff || null, league: clean(row.strLeague || row.league, 120) || "Competition",
     home_team: home, away_team: away, home_score: homeScore, away_score: awayScore,
-    match_status: homeScore !== null && awayScore !== null ? "finished" : "scheduled",
+    match_status: matchStatus,
     source: "TheSportsDB", source_url: "https://www.thesportsdb.com/",
     result_verified: homeScore !== null && awayScore !== null,
     available_outcomes: [], market_favourite: null, prediction_status: "awaiting_form_data",
@@ -184,7 +188,7 @@ function isFinalResult(event) {
 }
 function isLiveEvent(event) {
   const status = clean(event && event.match_status, 80).toLowerCase();
-  return /live|in.?play|in progress|first half|second half|half.?time|extra time|penalt|overtime|quarter|period|\bset\s*\d|top of|bottom of/.test(status);
+  return /live|in[_ -]?play|in[_ -]?progress|first half|second half|half.?time|extra time|penalt|overtime|quarter|period|\bset\s*\d|top of|bottom of/.test(status);
 }
 function isUpcomingOrLive(event, now = Date.now()) {
   if (!event || !event.kickoff || !Number.isFinite(Date.parse(event.kickoff))) return false;
