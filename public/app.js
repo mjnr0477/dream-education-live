@@ -377,9 +377,13 @@ function escapeHTML(value) {
                     ? '<button class="panel-action" type="button" data-panel-action="coding-learning">Choose how to learn coding</button>'
                     : isMediaStudio
                       ? '<button class="panel-action" type="button" data-panel-action="media-studio">Open Media Studio</button>'
-                      : isAuthorizedSearch
-                      ? '<button class="panel-action" type="button" data-panel-action="authorized-search">Open Authorized Search</button>'
-                : "";
+                      : isAIProblemSolving
+                        ? '<button class="panel-action" type="button" data-panel-action="ai-problem-solving">Open Problem Solving</button>'
+                        : isAIKnowledgeDiscovery
+                          ? '<button class="panel-action" type="button" data-panel-action="ai-knowledge-discovery">Open Knowledge Discovery</button>'
+                          : isAuthorizedSearch
+                            ? '<button class="panel-action" type="button" data-panel-action="authorized-search">Open Authorized Search</button>'
+                            : "";
 
         return `
           <article class="panel-card${isCodeCreation || isMeetings || isGeneralConnections || isAIProblemSolving || isAIKnowledgeDiscovery ? " panel-card-action" : ""}"
