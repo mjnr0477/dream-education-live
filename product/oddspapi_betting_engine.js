@@ -133,12 +133,13 @@ function registerOddsPapiRoutes(app, options = {}) {
         return res.status(400).json({ success: false, error: "Choose Today, Tomorrow, This Week, or This Month." });
       }
       const sports = rowsOf(await requestProvider("/v4/sports"));
-      const sport = sports.find(item => {
-        const label = text(item.sportName || item.name || item.slug || item.sportSlug, 100).toLowerCase();
-        return sportQuery === "soccer" || sportQuery === "football"
-          ? /soccer|football/.test(label)
-          : label === sportQuery || label.includes(sportQuery);
-      });
+      const sportLabels = sports.map(item => ({
+        item,
+        label: text(item.sportName || item.name || item.slug || item.sportSlug, 100).toLowerCase()
+      }));
+      const sport = (sportQuery === "soccer" || sportQuery === "football"
+        ? sportLabels.find(entry => /soccer/.test(entry.label)) || sportLabels.find(entry => /football/.test(entry.label))
+        : sportLabels.find(entry => entry.label === sportQuery) || sportLabels.find(entry => entry.label.includes(sportQuery)))?.item;
       if (!sport) {
         return res.status(404).json({ success: false, error: "That sport is not available from OddsPapi. Choose a sport supported by your account." });
       }
