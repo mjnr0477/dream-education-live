@@ -190,7 +190,7 @@ function buildOddsPrediction(payload, options = {}) {
       bookmaker,
       market_id: marketId,
       market_type: marketType,
-      available_outcomes: odds,
+      available_outcomes: hasRecognizedMarket ? normalized : odds,
       market_favourite: validPrediction ? favourite : null,
       probability_method: hasRecognizedMarket ? "Bookmaker implied probabilities normalized to remove the market overround" : "Unclassified odds; no prediction issued",
       data_quality: {
