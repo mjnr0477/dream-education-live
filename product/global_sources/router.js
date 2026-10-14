@@ -9,25 +9,23 @@ const biomedical = require("./providers/biomedical");
 const data = require("./providers/data");
 const repositories = require("./providers/repositories");
 const core = require("./providers/core");
-const crossref = require("./providers/crossref");
-const arxiv = require("./providers/arxiv");
 const googleBooks = require("./providers/google_books");
 
 
 const FAMILY_MAP = {
-  mathematics:["openalex","doaj"],
-  mathematics_education:["openalex","doaj","core","google_books"],
-  biology:["openalex","doaj","pubmed_central","ncbi_bookshelf","gbif","uniprot","rcsb_pdb"],
-  chemistry:["openalex","doaj","pubchem"],
-  physics:["openalex","doaj","arxiv"],
-  medicine:["pubmed_central","ncbi_bookshelf","openalex","doaj"],
-  computer_science:["openalex","arxiv","doaj","crossref"],
-  environment:["gbif","openalex","doaj","world_bank"],
-  space:["openalex","arxiv"],
-  economics:["world_bank","openalex","doaj"],
-  research:["openalex","doaj","unpaywall","zenodo","figshare","core","crossref","arxiv"],
-  education:["openalex","doaj","core","google_books"],
-  general:["openalex","doaj","unpaywall","zenodo","figshare","core","crossref","arxiv","google_books","world_bank","pubmed_central","ncbi_bookshelf","pubchem","gbif","uniprot","rcsb_pdb"]
+  mathematics:[],
+  mathematics_education:["core","google_books"],
+  biology:["pubmed_central","ncbi_bookshelf","gbif","uniprot","rcsb_pdb"],
+  chemistry:["pubchem"],
+  physics:[],
+  medicine:["pubmed_central","ncbi_bookshelf"],
+  computer_science:["core","figshare"],
+  environment:["gbif","world_bank"],
+  space:[],
+  economics:["world_bank"],
+  research:["unpaywall","figshare","core"],
+  education:["core","google_books"],
+  general:["unpaywall","figshare","core","google_books","world_bank","pubmed_central","ncbi_bookshelf","pubchem","gbif","uniprot","rcsb_pdb"]
 };
 
 const PROVIDERS = {
@@ -47,8 +45,6 @@ const PROVIDERS = {
   zenodo:{search:repositories.zenodo},
   figshare:{search:repositories.figshare},
   core:{search:core.search},
-  crossref:{search:crossref.search},
-  arxiv:{search:arxiv.search},
   google_books:{search:googleBooks.search}
 };
 
