@@ -272,8 +272,9 @@ async function getPublicSportsEvents({ sport, fromDate, toDate }) {
   const dbSport = sportsDbSport(sport);
   let sportsDbOk = false;
   // Supplement the first, middle and final day to avoid overwhelming the free feed.
-  const dbDates = [...new Set([fromDate, toDate, dateRange(fromDate, toDate, 35)[Math.floor((targetDates.length - 1) / 2)]].filter(Boolean))];
-  const dbResults = await mapLimit(dbDates, 2, async date => {
+  const dbHistoryDates = historyDates.filter((_, index) => index % 3 === 0);
+  const dbDates = [...new Set([fromDate, toDate, dateRange(fromDate, toDate, 35)[Math.floor((targetDates.length - 1) / 2)], ...dbHistoryDates].filter(Boolean))];
+  const dbResults = await mapLimit(dbDates, 5, async date => {
     const url = SPORTS_DB_BASE + "?" + new URLSearchParams({ d: date, s: dbSport }).toString();
     const payload = await fetchCache(url);
     return listOf(payload, ["events", "results", "data"]).map(normalizeSportsDb).filter(Boolean);
@@ -283,7 +284,7 @@ async function getPublicSportsEvents({ sport, fromDate, toDate }) {
     sportsDbOk = true;
     const date = dbDates[index];
     events.push(...result.value.filter(event => inWindow(event, fromDate, toDate)));
-    if (date < fromDate) history.push(...result.value);
+    if (date < fromDate) history.push(...result.value.filter(event => event.result_verified));
   });
   const dedupe = rows => {
     const seen = new Set();
