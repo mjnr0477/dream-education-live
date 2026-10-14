@@ -31,7 +31,8 @@ function outcomeLabel(raw, fixture) {
   if (away && value === away) return "away";
   return null;
 }
-function structuredMarket(fixture, preferredBookmaker) {
+function structuredMarket(fixture, options = {}) {
+  const preferredBookmaker = options.bookmaker;
   const bookmakerOdds = fixture && fixture.bookmakerOdds;
   if (!bookmakerOdds || typeof bookmakerOdds !== "object") return null;
   const entries = Object.entries(bookmakerOdds).filter(([name, book]) =>
@@ -66,7 +67,7 @@ function structuredMarket(fixture, preferredBookmaker) {
         else parsed.push({ bookmaker, market_id: marketId, market, outcomes, threeWay: false });
       }
     }
-    const best = parsed.find(item => item.threeWay) || parsed.find(item => item.outcomes.length === 2);
+    const best = parsed.find(item => item.threeWay) || (!options.requireThreeWay ? parsed.find(item => item.outcomes.length === 2) : null);
     if (best) return best;
   }
   return null;
@@ -77,7 +78,7 @@ function buildOddsPrediction(payload, options = {}) {
   for (const row of rows) {
     const fixtureName = text(row.name || row.fixtureName || row.eventName || row.match || row.title ||
       [row.participant1Name || row.homeTeam || row.home || row.home_team, row.participant2Name || row.awayTeam || row.away || row.away_team].filter(Boolean).join(" vs ") || "Fixture", 180);
-    const structured = structuredMarket(row, options.bookmaker);
+    const structured = structuredMarket(row, options);
     let odds = [];
     let marketType = "unknown";
     let bookmaker = options.bookmaker || null;
@@ -274,11 +275,11 @@ function registerOddsPapiRoutes(app, options = {}) {
       });
       let bookmaker = "betika";
       let scoped = getScopedFixtures(await requestProvider("/v4/odds-by-tournaments", { bookmakers: bookmaker, tournamentIds: ids.join(",") }));
-      let predictions = buildOddsPrediction(scoped, { bookmaker });
+      let predictions = buildOddsPrediction(scoped, { bookmaker, requireThreeWay: /soccer|football/i.test(sportQuery) });
       if (!predictions.some(item => item.available_outcomes.length)) {
         bookmaker = "pinnacle";
         scoped = getScopedFixtures(await requestProvider("/v4/odds-by-tournaments", { bookmaker, tournamentIds: ids.join(",") }));
-        predictions = buildOddsPrediction(scoped, { bookmaker });
+        predictions = buildOddsPrediction(scoped, { bookmaker, requireThreeWay: /soccer|football/i.test(sportQuery) });
       }
       predictions = predictions.map((item, index) => ({
         ...item,
