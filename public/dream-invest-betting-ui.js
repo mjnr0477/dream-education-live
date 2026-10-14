@@ -37,6 +37,7 @@
         const source = item.source || (item.sources || []).join(", ") || "Event feed";
         return '<article class="di-bet-row di-prediction-card"><div class="di-prediction-title"><strong>' + esc(item.fixture || "Fixture") + '</strong><span class="di-league-tag">' + esc(item.league || "Competition") + '</span></div>' +
           '<span class="di-kickoff">' + esc(localTime(item.kickoff)) + ' · ' + esc(source) + '</span>' +
+          (item.home_score != null && item.away_score != null ? '<div class="di-live-score"><strong>' + esc(item.home_score) + ' – ' + esc(item.away_score) + '</strong><small>' + esc(item.match_status || "Result") + '</small></div>' : '') +
           '<div class="di-pick"><span>Prediction status</span><strong>' + esc(favorite ? favorite.outcome : "Not enough verified data") + '</strong>' +
           (favorite ? '<b>' + esc(favorite.decimal_odds) + ' odds</b><small>' + esc(favorite.model_probability_pct) + '% normalized market probability</small>' : '<small>This event is listed, but Dream will not invent a prediction without fresh, verified market data.</small>') + '</div>' +
           (outcomes.length ? '<div class="di-outcomes">' + outcomes.map(outcome => '<span>' + esc(outcome.outcome) + ' <b>' + esc(outcome.decimal_odds) + '</b></span>').join("") + '</div>' : '') +
