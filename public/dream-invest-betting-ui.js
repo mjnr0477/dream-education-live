@@ -120,12 +120,11 @@
           esc(item.market_prediction ? item.market_prediction.label :
             item.prediction_status === "result_available" ? "Result available" : favorite ? favorite.outcome : "Not enough verified history") + '</strong>' +
           (item.prediction_status === "result_available" ? '<small>Final score: ' + esc(item.home_score) + ' – ' + esc(item.away_score) + '</small>' :
-            item.market_prediction && item.market_prediction.probability_pct != null ? '<small>Estimated probability: ' + esc(item.market_prediction.probability_pct) + '% · ' + esc(item.confidence || "low") + ' confidence</small>' :
-            '<small>Not enough verified data for this market. Dream will not invent a pick.</small>') + '</div>' +
+            item.market_prediction && item.market_prediction.probability_pct != null ? '<small>' + esc(item.market_prediction.probability_pct) + '% estimated probability</small>' : '') + '</div>' +
           (data.market === "h2h" && item.model_probabilities ? '<div class="di-outcomes"><span>Home <b>' + esc(item.model_probabilities.home_win_pct) + '%</b></span>' +
             (Number(item.model_probabilities.draw_pct) > 0 ? '<span>Draw <b>' + esc(item.model_probabilities.draw_pct) + '%</b></span>' : '') +
             '<span>Away <b>' + esc(item.model_probabilities.away_win_pct) + '%</b></span></div>' : '') +
-          '<small class="di-prediction-note">Statistical estimates are uncertain, not guarantees or confirmed betting outcomes. ' + esc(item.warning || "") + '</small></article>';
+          '<small class="di-prediction-note">Estimate from recent results · Not guaranteed</small></article>';
       }).join("") + '</div>' + sportScoreCredit;
   }
   async function loadLeagues(root, sport, period, keepValue) {
