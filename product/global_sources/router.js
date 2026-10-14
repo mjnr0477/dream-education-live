@@ -10,6 +10,7 @@ const data = require("./providers/data");
 const repositories = require("./providers/repositories");
 const core = require("./providers/core");
 const googleBooks = require("./providers/google_books");
+const youtube = require("./providers/youtube");
 
 
 const FAMILY_MAP = {
@@ -24,8 +25,9 @@ const FAMILY_MAP = {
   space:[],
   economics:["world_bank"],
   research:["unpaywall","figshare","core"],
-  education:["core","google_books"],
-  general:["unpaywall","figshare","core","google_books","world_bank","pubmed_central","ncbi_bookshelf","pubchem","gbif","uniprot","rcsb_pdb"]
+  education:["core","google_books","youtube"],
+  general:["unpaywall","figshare","core","google_books","youtube","world_bank","pubmed_central","ncbi_bookshelf","pubchem","gbif","uniprot","rcsb_pdb"],
+  media:["youtube"]
 };
 
 const PROVIDERS = {
@@ -45,7 +47,8 @@ const PROVIDERS = {
   zenodo:{search:repositories.zenodo},
   figshare:{search:repositories.figshare},
   core:{search:core.search},
-  google_books:{search:googleBooks.search}
+  google_books:{search:googleBooks.search},
+  youtube:{search:youtube.search}
 };
 
 function providerIds(queryInfo = {}) {
