@@ -23,7 +23,7 @@ const FAMILY_MAP = {
   space:["openalex","arxiv"],
   economics:["world_bank","openalex","doaj"],
   research:["openalex","doaj","unpaywall","zenodo","figshare","core"],
-  education:["openalex","doaj"],
+  education:["openalex","doaj","core"],
   general:["openalex","doaj","unpaywall","zenodo","figshare","core","world_bank","pubmed_central","ncbi_bookshelf","pubchem","gbif","uniprot","rcsb_pdb"]
 };
 
