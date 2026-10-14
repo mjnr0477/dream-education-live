@@ -25,7 +25,7 @@ function fetchCache(url) {
   if (publicInflight.has(url)) return publicInflight.get(url);
   const pending = (async () => {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 8000);
+    const timer = setTimeout(() => controller.abort(), 4500);
     try {
       const response = await fetch(url, { headers: { Accept: "application/json" }, signal: controller.signal });
       if (!response.ok) throw Object.assign(new Error("Public sports source returned HTTP " + response.status), { status: response.status });
@@ -221,9 +221,9 @@ async function getPublicSportsEvents({ sport, fromDate, toDate }) {
   }
   const targetDates = dateRange(fromDate, toDate, 35);
   // Keep a short history window for an independent form-based prediction model.
-  const historyDates = Array.from({ length: 14 }, (_, index) => dateAdd(fromDate, -(index + 1)));
+  const historyDates = Array.from({ length: 10 }, (_, index) => dateAdd(fromDate, -(index + 1)));
   const allDates = [...new Set([...targetDates, ...historyDates])];
-  const sportScoreResults = await mapLimit(allDates, 5, async date => {
+  const sportScoreResults = await mapLimit(allDates, 12, async date => {
     const url = SPORT_SCORE_BASE + "?" + new URLSearchParams({ sport: apiSport, date, limit: "200" }).toString();
     const payload = await fetchCache(url);
     return listOf(payload, ["fixtures", "matches", "events", "results", "data"]).map(normalizeSportScore).filter(Boolean);
