@@ -54,6 +54,35 @@ function res() { return { statusCode: 200, body: null, status(n) { this.statusCo
   assert.match(response.body.error, /Request limit exceeded/);
   mockProviderResponse = null;
   assert.equal(buildOddsPrediction({ data: [{ name: "A vs B", odds: [{ name: "A", decimalOdds: 1.8 }] }] }).length, 1);
+  const structuredFixture = {
+    fixtureId: "structured-1", participant1Name: "Home FC", participant2Name: "Away FC",
+    tournamentName: "Test League", statusId: 0, updatedAt: new Date().toISOString(),
+    startTime: new Date(Date.now() + 3600000).toISOString(),
+    bookmakerOdds: { pinnacle: { bookmakerIsActive: true, suspended: false, markets: {
+      "101": { marketActive: true, outcomes: {
+        "1": { players: { "0": { active: true, bookmakerOutcomeId: "home", price: 2.1, changedAt: new Date().toISOString() } } },
+        "X": { players: { "0": { active: true, bookmakerOutcomeId: "draw", price: 3.3, changedAt: new Date().toISOString() } } },
+        "2": { players: { "0": { active: true, bookmakerOutcomeId: "away", price: 3.6, changedAt: new Date().toISOString() } } }
+      } }
+    } } }
+  };
+  const calibrated = buildOddsPrediction([structuredFixture], { bookmaker: "pinnacle" })[0];
+  assert.equal(calibrated.prediction_status, "prediction_available");
+  assert.equal(calibrated.market_type, "three_way_match_result");
+  assert.equal(calibrated.available_outcomes.length, 3);
+  assert.ok(calibrated.market_favourite.model_probability_pct > 0);
+  assert.ok(Math.abs(calibrated.available_outcomes.reduce((sum, item) => sum + item.model_probability_pct, 0) - 100) < 0.1);
+  assert.equal(calibrated.data_quality.structured_market_verified, true);
+  const incompleteSoccer = JSON.parse(JSON.stringify(structuredFixture));
+  delete incompleteSoccer.bookmakerOdds.pinnacle.markets["101"].outcomes.X;
+  assert.equal(buildOddsPrediction([incompleteSoccer], { bookmaker: "pinnacle", requireThreeWay: true })[0].prediction_status, "insufficient_verified_data");
+  const staleFixture = JSON.parse(JSON.stringify(structuredFixture));
+  staleFixture.updatedAt = new Date(Date.now() - 8 * 3600000).toISOString();
+  for (const outcome of Object.values(staleFixture.bookmakerOdds.pinnacle.markets["101"].outcomes)) outcome.players["0"].changedAt = new Date(Date.now() - 8 * 3600000).toISOString();
+  const stale = buildOddsPrediction([staleFixture], { bookmaker: "pinnacle" })[0];
+  assert.equal(stale.prediction_status, "insufficient_verified_data");
+  assert.equal(stale.market_favourite, null);
+
   if (oldKey === undefined) delete process.env.ODDSPAPI_API_KEY; else process.env.ODDSPAPI_API_KEY = oldKey;
   global.fetch = oldFetch;
   console.log("OddsPapi betting engine smoke test passed.");
