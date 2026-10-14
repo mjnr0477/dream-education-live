@@ -31,7 +31,7 @@ async function search(query, limit = 5) {
     const authors = (item.author || []).map(author =>
       [author.given, author.family].filter(Boolean).join(" ")
     ).filter(Boolean).slice(0, 6);
-    const abstract = String(item.abstract || "").replace(/<[^>]+>/g, " ").replace(/\\s+/g, " ").trim();
+    const abstract = String(item.abstract || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
     const doi = String(item.DOI || "").trim();
     const published = item.published?.["date-parts"]?.[0] || item.created?.["date-parts"]?.[0] || [];
     const year = published[0] || null;
