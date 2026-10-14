@@ -82,6 +82,9 @@ function res() { return { statusCode: 200, body: null, status(n) { this.statusCo
   const stale = buildOddsPrediction([staleFixture], { bookmaker: "pinnacle" })[0];
   assert.equal(stale.prediction_status, "insufficient_verified_data");
   assert.equal(stale.market_favourite, null);
+  const mixedFreshness = JSON.parse(JSON.stringify(structuredFixture));
+  mixedFreshness.bookmakerOdds.pinnacle.markets["101"].outcomes["1"].players["0"].changedAt = new Date(Date.now() - 8 * 3600000).toISOString();
+  assert.equal(buildOddsPrediction([mixedFreshness], { bookmaker: "pinnacle" })[0].prediction_status, "insufficient_verified_data");
 
   if (oldKey === undefined) delete process.env.ODDSPAPI_API_KEY; else process.env.ODDSPAPI_API_KEY = oldKey;
   global.fetch = oldFetch;
