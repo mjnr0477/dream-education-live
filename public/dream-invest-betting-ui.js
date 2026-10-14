@@ -108,8 +108,7 @@
         const favorite = item.market_favourite;
         const source = item.source || (item.sources || []).join(", ") || "Event feed";
         return '<article class="di-bet-row di-prediction-card"><div class="di-prediction-title"><strong>' + esc(item.fixture || "Fixture") + '</strong><span class="di-league-tag">' + esc(item.league || "Competition") + '</span></div>' +
-          '<span class="di-kickoff"><strong>' + (item.event_state === "live" ? 'LIVE · ' : 'UPCOMING · ') + '</strong>' + esc(localTime(item.kickoff)) + ' · ' + esc(source) + '</span>' +
-          
+          '<span class="di-kickoff"><strong>UPCOMING · </strong>' + esc(localTime(item.kickoff)) + ' · ' + esc(source) + '</span>' +
           '<div class="di-pick"><span>' + esc(item.prediction_status === "result_available" ? "Recorded result" : marketTitle) + '</span><strong>' +
           esc(item.market_prediction ? item.market_prediction.label :
             item.prediction_status === "result_available" ? "Result available" : favorite ? favorite.outcome : "Not enough verified history") + '</strong>' +
