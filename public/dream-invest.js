@@ -177,6 +177,8 @@
     }
   }
 
+  let bettingRefreshTimer = null;
+
   async function loadUpcomingPredictions() {
     const output = document.getElementById("di-betting-results");
     if (!output) return;
@@ -201,7 +203,23 @@
             ? '<p class="di-muted">' + esc(data.source_errors.join(" · ")) + '</p>' : '');
         return;
       }
-      output.innerHTML = '<div class="di-bet-list">' + predictions.map(function (item) {
+      const predictedCount = Number.isFinite(Number(data.predicted_count))
+        ? Number(data.predicted_count)
+        : predictions.filter(function (item) {
+          return item.market_prediction && item.market_prediction.probability_pct != null &&
+            Number.isFinite(Number(item.market_prediction.probability_pct));
+        }).length;
+      const withheldCount = Number.isFinite(Number(data.prediction_withheld_count))
+        ? Number(data.prediction_withheld_count)
+        : Math.max(0, predictions.length - predictedCount);
+      const coveragePct = Number.isFinite(Number(data.prediction_coverage_pct))
+        ? Number(data.prediction_coverage_pct)
+        : (predictions.length ? Math.round(predictedCount / predictions.length * 1000) / 10 : 0);
+      const coverageSummary = '<section class="di-section"><strong>Fixture coverage</strong>' +
+        '<p class="di-muted">' + predictions.length + ' fixtures found · ' + predictedCount +
+        ' estimates available · ' + withheldCount + ' withheld (' + coveragePct.toFixed(1) + '% estimate coverage)</p>' +
+        '<p class="di-muted">Coverage is not accuracy. Estimates are checked against verified history where available; missing evidence is not replaced with a fabricated pick.</p></section>';
+      output.innerHTML = coverageSummary + '<div class="di-bet-list">' + predictions.map(function (item) {
         const pick = item.market_prediction || {};
         const available = pick.probability_pct != null && Number.isFinite(Number(pick.probability_pct));
         const status = item.prediction_status === "no_verified_consensus" ? "No verified consensus" :
@@ -235,6 +253,7 @@
         if (trading) trading.hidden = isBetting;
         if (betting) betting.hidden = !isBetting;
         modeButtons.forEach(function (item) { item.classList.toggle("primary", item === button); });
+        if (isBetting) loadUpcomingPredictions();
       });
     });
     const periodSelect = document.getElementById("di-bet-period");
@@ -251,6 +270,13 @@
     });
     const loadButton = document.getElementById("di-load-upcoming");
     if (loadButton) loadButton.addEventListener("click", loadUpcomingPredictions);
+    if (bettingRefreshTimer) clearInterval(bettingRefreshTimer);
+    bettingRefreshTimer = setInterval(function () {
+      if (typeof document !== "undefined" && document.visibilityState === "visible" &&
+          betting && !betting.hidden) {
+        loadUpcomingPredictions();
+      }
+    }, 60000);
   }
 
 
