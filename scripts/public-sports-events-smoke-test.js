@@ -98,6 +98,18 @@ const { getPublicSportsEvents, normalizeSportScore, normalizeSportsDb, isUpcomin
     assert.equal(result.providers.includes("SportScore"), true);
     assert.match(result.attribution_html, /Powered by SportScore/);
     assert.ok(requests.some(url => url.includes("/api/v1/fixtures/") && url.includes("date=2026-10-14")));
+    assert.ok(requests.some(url => url.includes("site.api.espn.com") && url.includes("eng.4/scoreboard")),
+      "Expanded coverage should include English League Two.");
+    assert.ok(requests.some(url => url.includes("site.api.espn.com") && url.includes("uefa.wchamp/scoreboard")),
+      "Expanded coverage should include women's international club competition.");
+    assert.ok(requests.some(url => url.includes("site.api.espn.com") && url.includes("dates=20260815-20261013")),
+      "Team form should use a 60-day ESPN history window.");
+    assert.ok(requests.some(url => url.includes("site.api.espn.com") && url.includes("eng.4/scoreboard")),
+      "Expanded coverage should include English League Two.");
+    assert.ok(requests.some(url => url.includes("site.api.espn.com") && url.includes("uefa.wchamp/scoreboard")),
+      "Expanded coverage should include women's international club competition.");
+    assert.ok(requests.some(url => url.includes("site.api.espn.com") && url.includes("dates=20260815-20261013")),
+      "Team form should use a 60-day ESPN history window.");
     assert.ok(requests.some(url => url.includes("thesportsdb.com") && new URL(url).searchParams.get("d") < "2026-10-14"), "TheSportsDB should contribute historical results, not just upcoming fixtures.");
     assert.ok(requests.every(url => !url.includes("oddspapi.io")));
   } finally {

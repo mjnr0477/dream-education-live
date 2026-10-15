@@ -20,7 +20,7 @@ function listOf(payload, keys) {
   if (payload && payload.result && typeof payload.result === "object") return listOf(payload.result, keys);
   return [];
 }
-function fetchCache(url) {
+function fetchCache(url, ttlMs = PUBLIC_CACHE_MS) {
   const cached = publicCache.get(url);
   if (cached && cached.expiresAt > Date.now()) return Promise.resolve(cached.value);
   if (cached) publicCache.delete(url);
@@ -32,7 +32,7 @@ function fetchCache(url) {
       const response = await fetch(url, { headers: { Accept: "application/json" }, signal: controller.signal });
       if (!response.ok) throw Object.assign(new Error("Public sports source returned HTTP " + response.status), { status: response.status });
       const value = await response.json();
-      publicCache.set(url, { value, expiresAt: Date.now() + PUBLIC_CACHE_MS });
+      publicCache.set(url, { value, expiresAt: Date.now() + Math.max(1000, Number(ttlMs) || PUBLIC_CACHE_MS) });
       while (publicCache.size > MAX_CACHE) publicCache.delete(publicCache.keys().next().value);
       return value;
     } finally { clearTimeout(timer); }
@@ -85,14 +85,27 @@ function normalizeSportScore(row) {
   };
 }
 const ESPN_LEAGUES = [
-  ["eng.1", "Premier League"], ["eng.2", "English Championship"], ["eng.3", "English League One"],
+  // Major domestic divisions and second tiers.
+  ["eng.1", "Premier League"], ["eng.2", "English Championship"], ["eng.3", "English League One"], ["eng.4", "English League Two"],
   ["esp.1", "LaLiga"], ["esp.2", "LaLiga 2"], ["ger.1", "Bundesliga"], ["ger.2", "2. Bundesliga"],
   ["ita.1", "Serie A"], ["ita.2", "Serie B"], ["fra.1", "Ligue 1"], ["fra.2", "Ligue 2"],
   ["ned.1", "Eredivisie"], ["por.1", "Primeira Liga"], ["sco.1", "Scottish Premiership"],
+  ["bel.1", "Belgian Pro League"], ["tur.1", "Turkish Super Lig"], ["gre.1", "Greek Super League"],
+  ["den.1", "Danish Superliga"], ["nor.1", "Norwegian Eliteserien"], ["swe.1", "Swedish Allsvenskan"],
+  ["sui.1", "Swiss Super League"], ["aut.1", "Austrian Bundesliga"], ["pol.1", "Polish Ekstraklasa"],
+  ["usa.1", "MLS"], ["usa.usl.1", "USL Championship"], ["usa.nwsl", "NWSL"],
+  ["mex.1", "Liga MX"], ["mex.2", "Liga de Expansión MX"], ["bra.1", "Brazil Serie A"], ["bra.2", "Brazil Serie B"],
+  ["arg.1", "Argentina Primera División"], ["arg.2", "Argentina Primera Nacional"],
+  ["saudi.1", "Saudi Pro League"], ["aus.1", "A-League"], ["jpn.1", "J.League"], ["kor.1", "K League 1"],
+  ["rsa.1", "South African Premiership"], ["ind.1", "Indian Super League"],
+  // International club competitions and national-team tournaments.
   ["uefa.champions", "UEFA Champions League"], ["uefa.europa", "UEFA Europa League"],
-  ["uefa.europa.conf", "UEFA Conference League"], ["usa.1", "MLS"], ["usa.usl.1", "USL Championship"], ["usa.nwsl", "NWSL"],
-  ["mex.1", "Liga MX"], ["bra.1", "Brazil Serie A"], ["arg.1", "Argentina Primera División"],
-  ["saudi.1", "Saudi Pro League"], ["aus.1", "A-League"], ["jpn.1", "J.League"], ["kor.1", "K League 1"]
+  ["uefa.europa.conf", "UEFA Conference League"], ["uefa.nations", "UEFA Nations League"],
+  ["uefa.euro", "UEFA European Championship"], ["concacaf.gold", "CONCACAF Gold Cup"],
+  ["fifa.world", "FIFA World Cup"], ["fifa.cwc", "FIFA Club World Cup"],
+  // Women's competitions.
+  ["eng.w.1", "Women's Super League"], ["esp.w.1", "Liga F"], ["ger.w.1", "Frauen-Bundesliga"],
+  ["fra.w.1", "Division 1 Féminine"], ["ita.w.1", "Serie A Women"], ["uefa.wchamp", "UEFA Women's Champions League"]
 ];
 function normalizeESPN(row, leagueName) {
   const competition = Array.isArray(row.competitions) ? row.competitions[0] : null;
@@ -224,7 +237,7 @@ function isUpcomingOrLive(event, now = Date.now()) {
 }
 function buildRecentForm(history, sport) {
   const teams = new Map();
-  const cutoff = Date.now() - 45 * 86400000;
+  const cutoff = Date.now() - 60 * 86400000;
   for (const event of history) {
     if (event.home_score === null || event.away_score === null || !event.home_team || !event.away_team) continue;
     const kickoffMs = Date.parse(event.kickoff || "");
@@ -352,13 +365,13 @@ async function getPublicSportsEvents({ sport, fromDate, toDate }) {
   }
   // Fetch sources concurrently. Sequentially waiting on every provider made the
   // old endpoint take too long, especially for a one-day request with 35 history days.
-  const historyDates = Array.from({ length: 35 }, (_, index) => dateAdd(fromDate, -(index + 1)));
+  const historyDates = Array.from({ length: 60 }, (_, index) => dateAdd(fromDate, -(index + 1)));
   const allDates = [...new Set([...targetDates, ...historyDates])];
   const sourceErrors = [];
   const loadSportScore = async () => {
     const results = await mapLimit(allDates, 20, async date => {
       const url = SPORT_SCORE_BASE + "?" + new URLSearchParams({ sport: apiSport, date, limit: "200" }).toString();
-      const payload = await fetchCache(url);
+      const payload = await fetchCache(url, targetDates.includes(date) ? 60 * 1000 : 6 * 60 * 60 * 1000);
       return { date, rows: listOf(payload, ["fixtures", "matches", "events", "results", "data"]).map(normalizeSportScore).filter(Boolean) };
     });
     const events = [], history = [];
@@ -378,7 +391,7 @@ async function getPublicSportsEvents({ sport, fromDate, toDate }) {
     const dbDates = [...new Set([...targetDates, ...dbHistoryDates])];
     const results = await mapLimit(dbDates, 15, async date => {
       const url = SPORTS_DB_BASE + "?" + new URLSearchParams({ d: date, s: dbSport }).toString();
-      const payload = await fetchCache(url);
+      const payload = await fetchCache(url, targetDates.includes(date) ? 60 * 1000 : 6 * 60 * 60 * 1000);
       return { date, rows: listOf(payload, ["events", "results", "data"]).map(normalizeSportsDb).filter(Boolean) };
     });
     const events = [], history = [];
@@ -394,14 +407,14 @@ async function getPublicSportsEvents({ sport, fromDate, toDate }) {
   };
   const loadESPN = async () => {
     if (!/^(soccer|football)$/i.test(clean(sport, 50))) return { events: [], history: [], ok: false };
-    const historyFrom = dateAdd(fromDate, -35);
+    const historyFrom = dateAdd(fromDate, -60);
     const historyTo = dateAdd(fromDate, -1);
     const results = await mapLimit(ESPN_LEAGUES, 12, async ([slug, leagueName]) => {
       const targetUrl = "https://site.api.espn.com/apis/site/v2/sports/soccer/" + slug +
         "/scoreboard?dates=" + espnDateRange(fromDate, toDate) + "&limit=100";
       const historyUrl = "https://site.api.espn.com/apis/site/v2/sports/soccer/" + slug +
         "/scoreboard?dates=" + espnDateRange(historyFrom, historyTo) + "&limit=100";
-      const [targetPayload, historyPayload] = await Promise.all([fetchCache(targetUrl), fetchCache(historyUrl)]);
+      const [targetPayload, historyPayload] = await Promise.all([fetchCache(targetUrl, 60 * 1000), fetchCache(historyUrl, 6 * 60 * 60 * 1000)]);
       return {
         events: listOf(targetPayload, ["events"]).map(row => normalizeESPN(row, leagueName)).filter(Boolean),
         history: listOf(historyPayload, ["events"]).map(row => normalizeESPN(row, leagueName)).filter(event => event && event.result_verified)
