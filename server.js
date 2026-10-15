@@ -10727,6 +10727,68 @@ function resolveSchoolOperationsContext(req, res, store) {
   });
 }
 
+/*
+  Parent attendance view exposes only status/date for learners connected to
+  the authenticated parent. School staff notes and other learners stay private.
+*/
+app.get("/api/v1/parent/attendance", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    if (String(auth.account.role || "").toLowerCase() !== "parent") {
+      return res.status(403).json({ success: false, error: "Only a parent account can view connected child attendance." });
+    }
+    const dataEngine = require("./product/data_engine");
+    const connectionEngine = require("./product/connection_engine");
+    const store = dataEngine.loadStore();
+    const parentId = connectionEngine.getAccountEntityId(auth.account);
+    if (!parentId) return res.status(403).json({ success: false, error: "Parent profile is not linked to this account." });
+    const connections = connectionEngine.listConnections(store, {
+      status: "active", type: "parent_learner", role: "parent", id: parentId
+    }).filter(connection => connection.from_role === "parent" &&
+      String(connection.from_id) === String(parentId) &&
+      connection.to_role === "learner" && connection.to_id);
+    const childIds = Array.from(new Set(connections.map(connection => String(connection.to_id))));
+    const attendance = [];
+    for (const learnerId of childIds) {
+      const learner = store.learners?.[learnerId] || {};
+      const records = [];
+      for (const [schoolId, byDate] of Object.entries(store.school_attendance || {})) {
+        for (const register of Object.values(byDate || {})) {
+          if (!register || !Array.isArray(register.records)) continue;
+          for (const record of register.records) {
+            if (!record || String(record.learner_id) !== learnerId) continue;
+            const status = String(record.status || "").toLowerCase();
+            if (!["present", "absent", "late", "excused"].includes(status)) continue;
+            records.push({
+              learner_id: learnerId,
+              learner_name: String(learner.name || learner.full_name || learner.display_name || learnerId).slice(0, 160),
+              school_name: String(store.schools?.[schoolId]?.name || "Connected school").slice(0, 160),
+              date: String(register.date || ""),
+              status
+            });
+          }
+        }
+      }
+      records.sort((a, b) => b.date.localeCompare(a.date));
+      attendance.push(...records.slice(0, 90));
+    }
+    attendance.sort((a, b) => b.date.localeCompare(a.date) || a.learner_name.localeCompare(b.learner_name));
+    return res.json({
+      success: true,
+      children: childIds.map(learnerId => {
+        const learner = store.learners?.[learnerId] || {};
+        return { learner_id: learnerId, name: String(learner.name || learner.full_name || learner.display_name || learnerId).slice(0, 160) };
+      }),
+      attendance: attendance.slice(0, 300)
+    });
+  } catch (error) {
+    console.error("Parent attendance load error:", error);
+    return res.status(500).json({ success: false, error: "Could not load attendance for connected learners." });
+  }
+});
+
+
 app.get("/api/v1/school/attendance", async (req, res) => {
   try {
     const dataEngine = require("./product/data_engine");
