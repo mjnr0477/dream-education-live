@@ -163,7 +163,13 @@ function registerFreeAiMediaRoutes(app, options = {}) {
           title: normalizeText(source.title, 240) || "Untitled source",
           source: normalizeText(source.source || source.provider, 100) || "Knowledge source",
           url: normalizeText(source.url, 1000),
-          extract: normalizeText(source.extract || source.snippet, 1600)
+          extract: normalizeText(source.extract || source.snippet, 1600),
+          source_type: normalizeText(source.source_type, 80),
+          media: (Array.isArray(source.media) ? source.media : [])
+            .filter(asset => asset && asset.type === "video" &&
+              /^https:\/\/www\.youtube\.com\/embed\/[A-Za-z0-9_-]{6,20}$/.test(String(asset.url || "")))
+            .slice(0, 2)
+            .map(asset => ({ type: "video", url: String(asset.url) }))
         }));
       const evidenceContext = knowledgeSources.length
         ? knowledgeSources.map(source => `[Source ${source.id}] ${source.title} — ${source.source}\nURL: ${source.url}\nEvidence: ${source.extract}`).join("\n\n")
