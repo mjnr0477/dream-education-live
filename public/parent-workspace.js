@@ -2,7 +2,7 @@
   "use strict";
   const esc = value => String(value == null ? "" : value).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const authKey = "dream_education_auth";
-  let state = { info: null, intelligence: null, children: [], selected: "", tab: "overview", resources: [], lessons: [], connections: [], meetings: [], notice: "" };
+  let state = { info: null, intelligence: null, children: [], selected: "", tab: "overview", resources: [], lessons: [], connections: [], meetings: [], attendance: [], attendanceAvailable: false, attendanceChildren: [], notice: "" };
   const body = () => document.getElementById("panel-body");
   const getAuth = () => { try { return JSON.parse(localStorage.getItem(authKey) || "null"); } catch (_) { return null; } };
   const tokenHeaders = () => {
@@ -91,17 +91,25 @@
       '<section class="de-section"><h3>Helpful ways to respond</h3><ul class="parent-support-list"><li>Ask what part makes sense and where the confusion begins.</li><li>Work through one example together, then let your child try independently.</li><li>Ask the teacher for clarification if the same difficulty persists.</li><li>Use encouragement and curiosity; never use a score alone to label a child.</li></ul></section>';
   }
   async function loadConnectionsAndMeetings() {
-    const [connections, meetings] = await Promise.all([
+    const [connections, meetings, attendance] = await Promise.all([
       request("/api/product/connections?status=active").catch(() => ({ connections: [] })),
-      request("/api/product/meetings").catch(() => ({ meetings: [] }))
+      request("/api/product/meetings").catch(() => ({ meetings: [] })),
+      request("/api/v1/parent/attendance").catch(() => ({ success: false, attendance: [], children: [] }))
     ]);
     state.connections = Array.isArray(connections.connections) ? connections.connections : Array.isArray(connections.results) ? connections.results : [];
     state.meetings = Array.isArray(meetings.meetings) ? meetings.meetings : [];
+    state.attendanceAvailable = attendance.success === true && Array.isArray(attendance.attendance);
+    state.attendance = state.attendanceAvailable ? attendance.attendance : [];
+    state.attendanceChildren = Array.isArray(attendance.children) ? attendance.children : [];
   }
   function community() {
     const connections = state.connections.length ? '<div class="parent-contact-list">' + state.connections.map(c => '<article><strong>' + esc(c.name || c.to_name || c.from_name || c.connection_id || "Active connection") + '</strong><span>' + esc(c.type || c.to_role || c.from_role || "Connected") + '</span></article>').join("") + '</div>' : empty("No active connections returned", "Use Connections to request a connection with your child’s teacher or school.");
     const meetings = state.meetings.length ? '<div class="parent-contact-list">' + state.meetings.map(m => '<article><strong>' + esc(m.title || "Meeting") + '</strong><span>' + esc([m.scheduled_date, m.scheduled_time, m.status].filter(Boolean).join(" · ") || "Scheduled meeting") + '</span>' + (m.agenda ? '<p><b>Agenda:</b> ' + esc(m.agenda) + '</p>' : '') + (m.follow_up ? '<p><b>Notes:</b> ' + esc(m.follow_up) + '</p>' : '') + (m.action_items ? '<p><b>Next actions:</b> ' + esc(m.action_items) + '</p>' : '') + '</article>').join("") + '</div>' : empty("No meetings found", "Meetings linked to authorised connections will appear here when available.");
-    return '<div class="parent-two-column"><section class="de-section"><div class="de-section-title"><h3>Teachers &amp; school connections</h3></div>' + connections + '<div class="de-actions">' + button("Manage connections", "connections", true) + button("Open messages", "chat") + '</div></section><section class="de-section"><div class="de-section-title"><h3>Meetings &amp; calendar</h3></div>' + meetings + '<div class="de-actions">' + button("Open meetings", "meetings", true) + '</div></section></div><section class="de-section"><h3>Attendance &amp; school notices</h3>' + empty("Not connected to a parent attendance feed yet", "Dream Education does not currently expose a verified attendance register or school-notice feed to this workspace. No attendance is guessed or shown as real.") + '</section>';
+    return '<div class="parent-two-column"><section class="de-section"><div class="de-section-title"><h3>Teachers &amp; school connections</h3></div>' + connections + '<div class="de-actions">' + button("Manage connections", "connections", true) + button("Open messages", "chat") + '</div></section><section class="de-section"><div class="de-section-title"><h3>Meetings &amp; calendar</h3></div>' + meetings + '<div class="de-actions">' + button("Open meetings", "meetings", true) + '</div></section></div><section class="de-section"><h3>Attendance &amp; school notices</h3>' + (state.attendanceAvailable
+      ? (state.attendance.length
+        ? '<div class="parent-contact-list">' + state.attendance.slice(0, 60).map(item => '<article><strong>' + esc(item.learner_name || "Learner") + ' · ' + esc(item.status) + '</strong><span>' + esc([item.date, item.school_name].filter(Boolean).join(" · ")) + '</span></article>').join("") + '</div><p class="parent-disclaimer">Only attendance status and date from saved school registers are shown. Staff notes and other learners’ records are not shared here.</p>'
+        : empty(state.attendanceChildren.length ? "No attendance records have been saved yet" : "No connected child attendance is available", state.attendanceChildren.length ? "When the connected school records attendance, the latest verified entries will appear here." : "Connect your parent account to your child’s learner account first."))
+      : empty("Attendance could not be loaded", "The parent attendance service is temporarily unavailable. Refresh to try again; no attendance has been guessed.")) + '</section>';
   }
   function achievements() {
     const child = selectedChild();
