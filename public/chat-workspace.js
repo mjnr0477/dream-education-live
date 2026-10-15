@@ -228,6 +228,8 @@
       box.innerHTML = '<div class="de-chat-empty"><strong>Start the group conversation.</strong><span>Send the first message to everyone in this group.</span></div>';
       return;
     }
+    const wasNearBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 80;
+    const previousScrollTop = box.scrollTop;
     box.innerHTML = "";
     list.forEach(function (message) {
       const mine = message.sender_role === currentInfo.role && message.sender_id === currentInfo.id;
@@ -242,7 +244,8 @@
       body.textContent = message.content || "";
       item.appendChild(meta); item.appendChild(body); box.appendChild(item);
     });
-    box.scrollTop = box.scrollHeight;
+    if (wasNearBottom) box.scrollTop = box.scrollHeight;
+    else box.scrollTop = previousScrollTop;
   }
 
   async function addGroupMember() {
@@ -295,6 +298,8 @@
       box.innerHTML = '<div class="de-chat-empty"><strong>Start the conversation.</strong><span>Your message will be sent securely over the HTTPS connection.</span></div>';
       return;
     }
+    const wasNearBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 80;
+    const previousScrollTop = box.scrollTop;
     box.innerHTML = "";
     list.forEach(function (message) {
       const mine = message.sender_role === currentInfo.role && message.sender_id === currentInfo.id;
@@ -311,7 +316,8 @@
       item.appendChild(body);
       box.appendChild(item);
     });
-    box.scrollTop = box.scrollHeight;
+    if (wasNearBottom) box.scrollTop = box.scrollHeight;
+    else box.scrollTop = previousScrollTop;
   }
 
   async function loadMessages() {
@@ -493,7 +499,7 @@
       status(error.message, true);
     }
     pollTimer = setInterval(function () {
-      if (!isCurrentChat()) return;
+      if (!isCurrentChat() || document.visibilityState === "hidden") return;
       if (selectedGroup) loadGroupMessages().catch(function (error) { status(error.message, true); });
       else if (selectedUser) loadMessages().catch(function (error) { status(error.message, true); });
     }, 3500);
