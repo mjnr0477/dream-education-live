@@ -84,7 +84,7 @@
       image.loading = "lazy";
       image.className = "de-media-result-image";
       host.appendChild(image);
-    } else if (action === "tts" && mediaUrl && /^(https:\/\/|data:audio\/)/i.test(mediaUrl)) {
+    } else if ((action === "tts" || action === "freetts") && mediaUrl && /^(https:\/\/|data:audio\/)/i.test(mediaUrl)) {
       const audio = document.createElement("audio");
       audio.controls = true;
       audio.preload = "metadata";
