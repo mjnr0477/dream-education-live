@@ -7216,7 +7216,8 @@ app.post("/api/product/meetings", async (req, res) => {
       provider,
       external_url,
       scheduled_date,
-      scheduled_time
+      scheduled_time,
+      agenda
     } = req.body || {};
 
     if (!connection_id || !title || !scheduled_date || !scheduled_time) {
@@ -7327,6 +7328,9 @@ app.post("/api/product/meetings", async (req, res) => {
       created_by_id: accountEntityId,
       title: String(title).trim(),
       type: meetingType,
+      agenda: String(agenda || "").trim().slice(0, 2000),
+      follow_up: "",
+      action_items: "",
       scheduled_date: String(scheduled_date),
       scheduled_time: String(scheduled_time),
       status: "scheduled",
@@ -7458,6 +7462,54 @@ app.get("/api/product/meetings", async (req, res) => {
   }
 });
 
+
+
+
+/*
+  DREAM EDUCATION MEETING FOLLOW-UP
+  Only participants on the meeting's active connection may save shared notes.
+*/
+app.post("/api/product/meetings/:meeting_id/follow-up", async (req, res) => {
+  try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+
+    const dataEngine = require("./product/data_engine");
+    const connectionEngine = require("./product/connection_engine");
+    const store = dataEngine.loadStore();
+    const meeting = store.meetings?.[String(req.params.meeting_id)] || null;
+    if (!meeting) return res.status(404).json({ success: false, error: "Meeting not found." });
+
+    const connection = connectionEngine.getConnection(store, String(meeting.connection_id));
+    if (!connection || connection.status !== "active") {
+      return res.status(409).json({ success: false, error: "Meeting follow-up requires an active connection." });
+    }
+    connectionEngine.authorizeAccountForConnection(auth.account, connection);
+
+    const followUp = String(req.body?.follow_up || "").trim();
+    const actionItems = String(req.body?.action_items || "").trim();
+    if (followUp.length > 4000 || actionItems.length > 2000) {
+      return res.status(400).json({ success: false, error: "Follow-up notes are limited to 4,000 characters and action items to 2,000 characters." });
+    }
+    if (!followUp && !actionItems) {
+      return res.status(400).json({ success: false, error: "Add meeting notes or an action item before saving." });
+    }
+
+    meeting.follow_up = followUp;
+    meeting.action_items = actionItems;
+    meeting.follow_up_updated_at = new Date().toISOString();
+    meeting.follow_up_updated_by_role = auth.account.role;
+    dataEngine.saveStore(store);
+    return res.status(200).json({ success: true, meeting: {
+      meeting_id: meeting.meeting_id, agenda: meeting.agenda || "",
+      follow_up: meeting.follow_up, action_items: meeting.action_items,
+      follow_up_updated_at: meeting.follow_up_updated_at
+    }});
+  } catch (error) {
+    console.error("Meeting follow-up save error:", error);
+    return res.status(403).json({ success: false, error: error.message || "Meeting follow-up could not be saved." });
+  }
+});
 
 
 /*

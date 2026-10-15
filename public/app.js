@@ -4762,7 +4762,7 @@ async function openMeetings() {
       teams: "Microsoft Teams"
     }[provider] || "Meeting");
 
-    const renderMeeting = meeting => `
+    const renderMeeting = (meeting, showFollowUp) => `
       <article class="de-meeting-card">
         <div class="de-meeting-card-top">
           <span class="de-meeting-type">${escapeText(String(meeting.type || "meeting").replace(/-/g, " "))}</span>
@@ -4771,6 +4771,8 @@ async function openMeetings() {
         <h3>${escapeText(meeting.title || "Meeting")}</h3>
         <p class="de-meeting-date"><span aria-hidden="true">◷</span> ${escapeText(meeting.scheduled_date)} · ${escapeText(meeting.scheduled_time)}</p>
         <p class="de-meeting-status">Status: ${escapeText(meeting.status || "scheduled")}</p>
+        ${meeting.agenda ? '<p class="de-meeting-agenda"><strong>Agenda</strong><br>' + escapeText(meeting.agenda) + '</p>' : ''}
+        ${showFollowUp ? '<div class="de-meeting-follow-up"><label for="meeting-follow-up-' + escapeText(meeting.meeting_id) + '">Meeting notes / decisions</label><textarea class="panel-input" id="meeting-follow-up-' + escapeText(meeting.meeting_id) + '" maxlength="4000" rows="3" placeholder="What was discussed? What did participants agree?">' + escapeText(meeting.follow_up || '') + '</textarea><label for="meeting-action-items-' + escapeText(meeting.meeting_id) + '">Next actions</label><textarea class="panel-input" id="meeting-action-items-' + escapeText(meeting.meeting_id) + '" maxlength="2000" rows="2" placeholder="Action — person responsible — due date">' + escapeText(meeting.action_items || '') + '</textarea><p class="de-meeting-message" data-meeting-follow-up-status="' + escapeText(meeting.meeting_id) + '" role="status" aria-live="polite"></p><button class="panel-action" type="button" data-meeting-action="save-follow-up" data-meeting-id="' + escapeText(meeting.meeting_id) + '">Save notes & actions</button></div>' : ''}
         <div class="de-meeting-card-actions">
           <button class="panel-action" type="button" data-meeting-action="join" data-meeting-id="${escapeText(meeting.meeting_id)}">Join meeting <span aria-hidden="true">→</span></button>
         </div>
@@ -4793,10 +4795,29 @@ async function openMeetings() {
           return;
         }
 
-        const button = event.target.closest(
-          '[data-meeting-action="join"]'
-        );
+        const followUpButton = event.target.closest('[data-meeting-action="save-follow-up"]');
+        if (followUpButton) {
+          const meetingId = followUpButton.dataset.meetingId;
+          const followUpInput = document.getElementById("meeting-follow-up-" + meetingId);
+          const actionItemsInput = document.getElementById("meeting-action-items-" + meetingId);
+          const status = panelBodyElement.querySelector('[data-meeting-follow-up-status="' + CSS.escape(meetingId) + '"]');
+          followUpButton.disabled = true;
+          if (status) status.textContent = "Saving shared follow-up…";
+          try {
+            const response = await fetchWithTimeout("/api/product/meetings/" + encodeURIComponent(meetingId) + "/follow-up", {
+              method: "POST", headers,
+              body: JSON.stringify({ follow_up: followUpInput?.value || "", action_items: actionItemsInput?.value || "" })
+            });
+            const data = await response.json();
+            if (!response.ok || !data.success) throw new Error(data.error || "Meeting follow-up could not be saved.");
+            if (status) status.textContent = "Notes and actions saved for authorised meeting participants.";
+          } catch (error) {
+            if (status) status.textContent = error.message || "Meeting follow-up could not be saved.";
+          } finally { followUpButton.disabled = false; }
+          return;
+        }
 
+        const button = event.target.closest('[data-meeting-action="join"]');
         if (!button) return;
 
         const meetingId = button.dataset.meetingId;
@@ -4873,7 +4894,7 @@ async function openMeetings() {
     }
 
     const upcomingHTML = upcoming.length
-      ? upcoming.map(renderMeeting).join("")
+      ? upcoming.map(meeting => renderMeeting(meeting, false)).join("")
       : `
         <article class="de-meeting-empty">
           <span class="de-meeting-empty-icon" aria-hidden="true">▣</span>
@@ -4883,7 +4904,7 @@ async function openMeetings() {
       `;
 
     const pastHTML = past.length
-      ? past.map(renderMeeting).join("")
+      ? past.map(meeting => renderMeeting(meeting, true)).join("")
       : `
         <article class="de-meeting-empty">
           <span class="de-meeting-empty-icon" aria-hidden="true">◷</span>
@@ -4936,6 +4957,10 @@ async function openMeetings() {
             <div class="de-meeting-field de-meeting-field-wide">
               <label class="panel-label" for="meeting-title">Meeting title</label>
               <input class="panel-input" id="meeting-title" type="text" maxlength="160" placeholder="e.g. Mathematics revision">
+            </div>
+            <div class="de-meeting-field de-meeting-field-wide">
+              <label class="panel-label" for="meeting-agenda">Agenda / learning goal (optional)</label>
+              <textarea class="panel-input" id="meeting-agenda" maxlength="2000" rows="3" placeholder="What should the group cover? e.g. fractions practice, recent progress, next steps"></textarea>
             </div>
             <div class="de-meeting-field">
               <label class="panel-label" for="meeting-type">Meeting type</label>
@@ -5083,6 +5108,7 @@ async function openMeetings() {
               title,
               type,
               provider,
+              agenda: document.getElementById("meeting-agenda")?.value.trim() || "",
               external_url: externalUrl || undefined,
               scheduled_date: scheduledDate,
               scheduled_time: scheduledTime
