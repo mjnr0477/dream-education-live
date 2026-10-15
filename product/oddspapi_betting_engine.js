@@ -427,11 +427,19 @@ function registerOddsPapiRoutes(app, options = {}) {
       ? await enrichWithAnalystConsensus(selectedEvents, fromDate, toDate)
       : { events: selectedEvents, source: null, status: "The BSD independent prediction model is currently connected for soccer only.", configured: false };
     const finalEvents = analystResult.events;
+    const predictedCount = finalEvents.filter(event =>
+      event && event.market_prediction && Number.isFinite(Number(event.market_prediction.probability_pct)) &&
+      event.market_prediction.probability_pct !== null).length;
+    const withheldCount = Math.max(0, finalEvents.length - predictedCount);
+    const predictionCoveragePct = finalEvents.length ? Math.round(predictedCount / finalEvents.length * 1000) / 10 : 0;
     const eventSources = [...new Set([...(publicResult.providers || []), ...(analystResult.source ? [analystResult.source] : [])])];
     return res.json({
       success: true, period, from: fromDate, to: toDate, sport: sportQuery,
       league: leagueQuery === "all" ? "All leagues" : leagueQuery, market, direction, goalLine,
       bookmaker: "Not required", count: finalEvents.length, predictions: finalEvents,
+      predicted_count: predictedCount, prediction_withheld_count: withheldCount,
+      prediction_coverage_pct: predictionCoveragePct,
+      prediction_quality_note: "Coverage counts estimates with a numeric probability, not proven accuracy. Actual accuracy must be measured against completed match results; no prediction is guaranteed.",
       sources: eventSources, analyst_source_status: analystResult.status, model: publicResult.model || "recent-results-form-v1",
       history_matches_used: Number(publicResult.history_matches) || 0,
       attribution_html: publicResult.attribution_html || '<a href="https://sportscore.com/" rel="dofollow">Powered by SportScore</a>',
