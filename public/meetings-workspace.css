@@ -49,3 +49,8 @@
 .de-meeting-tool-grid strong{font-size:13px}
 .de-meeting-tool-grid p{margin:0;color:var(--text-secondary,rgba(127,127,127,.9));font-size:12px;line-height:1.55}
 @media(max-width:520px){.de-meetings{gap:13px}.de-meetings-hero{padding:17px}.de-meetings-hero-icon{flex-basis:48px;width:48px;height:48px;font-size:25px;border-radius:15px}.de-meeting-stats{gap:7px}.de-meeting-stat{grid-template-columns:1fr;gap:5px;padding:10px}.de-meeting-stat-icon{grid-row:auto;width:27px;height:27px}.de-meeting-stat strong{font-size:19px}.de-meeting-stat>span:last-child{font-size:10px}.de-meeting-create,.de-meeting-schedule,.de-meeting-tools{padding:14px}.de-meeting-form-grid{grid-template-columns:1fr;gap:12px}.de-meeting-field-wide{grid-column:auto}.de-meeting-create-footer{align-items:stretch;flex-direction:column}.de-meeting-create-footer .panel-action{width:100%}.de-meeting-tool-grid{grid-template-columns:1fr}}
+.de-meeting-agenda{margin:10px 0;padding:12px;border-left:3px solid var(--accent,#dfff63);background:var(--surface,rgba(255,255,255,.04));border-radius:0 10px 10px 0;overflow-wrap:anywhere}
+.de-meeting-follow-up{display:grid;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line,rgba(255,255,255,.12))}
+.de-meeting-follow-up label{font-size:.9rem;font-weight:650}
+.de-meeting-follow-up textarea{width:100%;resize:vertical;min-height:72px}
+.de-meeting-follow-up .de-meeting-message{margin:0;min-height:1.3em;font-size:.85rem}
