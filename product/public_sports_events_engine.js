@@ -20,7 +20,7 @@ function listOf(payload, keys) {
   if (payload && payload.result && typeof payload.result === "object") return listOf(payload.result, keys);
   return [];
 }
-function fetchCache(url) {
+function fetchCache(url, ttlMs = PUBLIC_CACHE_MS) {
   const cached = publicCache.get(url);
   if (cached && cached.expiresAt > Date.now()) return Promise.resolve(cached.value);
   if (cached) publicCache.delete(url);
@@ -32,7 +32,7 @@ function fetchCache(url) {
       const response = await fetch(url, { headers: { Accept: "application/json" }, signal: controller.signal });
       if (!response.ok) throw Object.assign(new Error("Public sports source returned HTTP " + response.status), { status: response.status });
       const value = await response.json();
-      publicCache.set(url, { value, expiresAt: Date.now() + PUBLIC_CACHE_MS });
+      publicCache.set(url, { value, expiresAt: Date.now() + Math.max(1000, Number(ttlMs) || PUBLIC_CACHE_MS) });
       while (publicCache.size > MAX_CACHE) publicCache.delete(publicCache.keys().next().value);
       return value;
     } finally { clearTimeout(timer); }
@@ -371,7 +371,7 @@ async function getPublicSportsEvents({ sport, fromDate, toDate }) {
   const loadSportScore = async () => {
     const results = await mapLimit(allDates, 20, async date => {
       const url = SPORT_SCORE_BASE + "?" + new URLSearchParams({ sport: apiSport, date, limit: "200" }).toString();
-      const payload = await fetchCache(url);
+      const payload = await fetchCache(url, targetDates.includes(date) ? 60 * 1000 : 6 * 60 * 60 * 1000);
       return { date, rows: listOf(payload, ["fixtures", "matches", "events", "results", "data"]).map(normalizeSportScore).filter(Boolean) };
     });
     const events = [], history = [];
@@ -391,7 +391,7 @@ async function getPublicSportsEvents({ sport, fromDate, toDate }) {
     const dbDates = [...new Set([...targetDates, ...dbHistoryDates])];
     const results = await mapLimit(dbDates, 15, async date => {
       const url = SPORTS_DB_BASE + "?" + new URLSearchParams({ d: date, s: dbSport }).toString();
-      const payload = await fetchCache(url);
+      const payload = await fetchCache(url, targetDates.includes(date) ? 60 * 1000 : 6 * 60 * 60 * 1000);
       return { date, rows: listOf(payload, ["events", "results", "data"]).map(normalizeSportsDb).filter(Boolean) };
     });
     const events = [], history = [];
@@ -414,7 +414,7 @@ async function getPublicSportsEvents({ sport, fromDate, toDate }) {
         "/scoreboard?dates=" + espnDateRange(fromDate, toDate) + "&limit=100";
       const historyUrl = "https://site.api.espn.com/apis/site/v2/sports/soccer/" + slug +
         "/scoreboard?dates=" + espnDateRange(historyFrom, historyTo) + "&limit=100";
-      const [targetPayload, historyPayload] = await Promise.all([fetchCache(targetUrl), fetchCache(historyUrl)]);
+      const [targetPayload, historyPayload] = await Promise.all([fetchCache(targetUrl, 60 * 1000), fetchCache(historyUrl, 6 * 60 * 60 * 1000)]);
       return {
         events: listOf(targetPayload, ["events"]).map(row => normalizeESPN(row, leagueName)).filter(Boolean),
         history: listOf(historyPayload, ["events"]).map(row => normalizeESPN(row, leagueName)).filter(event => event && event.result_verified)
