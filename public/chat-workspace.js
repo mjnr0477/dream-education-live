@@ -62,6 +62,7 @@
     panelBody.innerHTML =
       '<section class="de-chat-workspace" id="de-chat-workspace">' +
         '<aside class="de-chat-sidebar">' +
+          '<div class="de-chat-learning-tools"><strong>Learning tools</strong><p>Turn a conversation into a lesson or learning resource.</p><button type="button" class="de-chat-tool-button" data-panel-action="media-studio">Open Media Studio</button><button type="button" class="de-chat-tool-button secondary" data-panel-action="learn">Open Learn</button></div>' +
           '<form id="de-chat-search-form" class="de-chat-search">' +
             '<label for="de-chat-search">Find people</label>' +
             '<div class="de-chat-search-row"><input id="de-chat-search" type="search" maxlength="160" autocomplete="off" placeholder="Name, username, or email"><button type="submit">Search</button></div>' +

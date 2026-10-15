@@ -4933,6 +4933,10 @@ async function openMeetings() {
           </div>
           <div class="de-meetings-hero-icon" aria-hidden="true">▣</div>
         </section>
+        <div class="de-meetings-learning-actions" aria-label="Meeting preparation tools">
+          <button class="panel-action" type="button" data-panel-action="media-studio">Create lesson media</button>
+          <button class="panel-action secondary" type="button" data-panel-action="learn">Open learning space</button>
+        </div>
 
         <section class="de-meeting-stats" aria-label="Meeting overview">
           <article class="de-meeting-stat"><span class="de-meeting-stat-icon">▦</span><strong>${upcoming.length}</strong><span>Upcoming</span></article>

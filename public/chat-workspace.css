@@ -24,3 +24,11 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+.de-chat-learning-tools{display:grid;gap:7px;margin:0 0 14px;padding:13px;border:1px solid var(--line,rgba(127,127,127,.2));border-radius:13px;background:var(--surface,rgba(127,127,127,.04))}
+.de-chat-learning-tools strong{font-size:13px}
+.de-chat-learning-tools p{margin:0;color:var(--muted,#969aa8);font-size:12px;line-height:1.5}
+.de-chat-tool-button{min-height:38px;padding:8px 10px;border:1px solid var(--line,rgba(127,127,127,.2));border-radius:9px;background:var(--accent,#dfff63);color:#111;font:inherit;font-size:12px;font-weight:750;cursor:pointer}
+.de-chat-tool-button.secondary{background:transparent;color:inherit}
+.de-meetings-learning-actions{display:flex;flex-wrap:wrap;gap:9px}
+@media(max-width:560px){.de-meetings-learning-actions{display:grid;grid-template-columns:1fr}.de-chat-learning-tools{margin-bottom:10px}}
