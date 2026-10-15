@@ -59,6 +59,6 @@ const disagreement = render({
 }, trendDown);
 assert.match(disagreement.__html, /Signals disagree/);
 assert.equal(disagreement.__forecast, null, "Conflicting direction estimates must be withheld.");
-assert.match(index, /dream-invest\.js\?v=20261015c/);
+assert.match(index, /dream-invest\.js\?v=20261015d/);
 
 console.log("Dream Invest evidence-gated UI smoke test passed.");

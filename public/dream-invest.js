@@ -253,11 +253,107 @@
     if (loadButton) loadButton.addEventListener("click", loadUpcomingPredictions);
   }
 
+
+  function setInvestVisibility(enabled) {
+    document.querySelectorAll("[data-dream-invest-open], [data-about-workspace='invest']").forEach(function (element) {
+      element.hidden = !enabled;
+      if (enabled) element.style.removeProperty("display");
+      else element.style.display = "none";
+    });
+  }
+
+  async function syncVisibility() {
+    const auth = getAuth();
+    if (!auth || !auth.success || !auth.account) {
+      setInvestVisibility(false);
+      return false;
+    }
+    try {
+      const preferences = await api("/api/dream-invest/preferences");
+      setInvestVisibility(preferences.enabled === true);
+      return preferences.enabled === true;
+    } catch (_) {
+      setInvestVisibility(false);
+      return false;
+    }
+  }
+
+  async function openSettings() {
+    const auth = getAuth();
+    if (!auth || !auth.success || !auth.account) {
+      openPanel("OPTIONAL FEATURES", "Sign in to manage features", "Your choices are saved to your Dream Education account.",
+        '<div class="di-error"><p>Sign in to choose whether Dream Invest appears in your account.</p><button class="de-action primary" type="button" data-action="open" data-panel="signin">Sign in</button></div>');
+      return;
+    }
+    openPanel("OPTIONAL FEATURES", "Choose your tools", "Dream Invest is optional. Turn it on only if you want trading and upcoming-match analysis in your dashboard.",
+      '<section class="di-section"><label class="di-opt-in-row" for="di-invest-enabled"><input id="di-invest-enabled" type="checkbox"><span><strong>Show Dream Invest in my account</strong><small>When off, Dream Invest is hidden and its API endpoints are blocked for this account.</small></span></label><div class="panel-actions"><button class="panel-action" type="button" data-di-save-preference>Save preference</button></div><p id="di-preference-status" class="di-muted" aria-live="polite">Loading your saved preference…</p></section>');
+    const checkbox = document.getElementById("di-invest-enabled");
+    const status = document.getElementById("di-preference-status");
+    try {
+      const preferences = await api("/api/dream-invest/preferences");
+      if (checkbox) checkbox.checked = preferences.enabled === true;
+      if (status) status.textContent = preferences.enabled ? "Dream Invest is enabled for this account." : "Dream Invest is currently off.";
+    } catch (error) {
+      if (status) status.textContent = error.message || "Could not load your saved preference.";
+    }
+  }
+
+  async function savePreference() {
+    const checkbox = document.getElementById("di-invest-enabled");
+    const status = document.getElementById("di-preference-status");
+    if (!checkbox || !status) return;
+    const button = document.querySelector("[data-di-save-preference]");
+    if (button) button.disabled = true;
+    status.textContent = "Saving your preference…";
+    try {
+      const result = await api("/api/dream-invest/preferences", {
+        method: "POST",
+        body: JSON.stringify({ enabled: checkbox.checked })
+      });
+      setInvestVisibility(result.enabled === true);
+      status.textContent = result.enabled
+        ? "Saved. Dream Invest is now visible in your account."
+        : "Saved. Dream Invest is now hidden from your account.";
+    } catch (error) {
+      status.textContent = error.message || "Could not save your preference. Please try again.";
+    } finally {
+      if (button) button.disabled = false;
+    }
+  }
+
+  document.addEventListener("click", function (event) {
+    const saveButton = event.target && event.target.closest
+      ? event.target.closest("[data-di-save-preference]")
+      : null;
+    if (saveButton) {
+      event.preventDefault();
+      savePreference();
+    }
+  });
+
+  window.addEventListener("dream-education-auth-changed", syncVisibility);
+  syncVisibility();
+
   async function openDreamInvest() {
     const auth = getAuth();
     if (!auth || !auth.success || !auth.account) {
       openPanel("DREAM INVEST", "Sign in to continue", "Dream Invest is available to all Dream Education account holders.",
         '<div class="di-error"><p>Sign in to your Dream Education account to use market analysis and upcoming match predictions.</p><button class="de-action primary" type="button" data-action="open" data-panel="signin">Sign in</button></div>');
+      return;
+    }
+    let preferences;
+    try {
+      preferences = await api("/api/dream-invest/preferences");
+    } catch (_) {
+      setInvestVisibility(false);
+      openPanel("DREAM INVEST", "Enable Dream Invest first", "Dream Invest is optional and must be enabled for your account.",
+        '<div class="di-error"><p>Open Explore → Optional Features to enable Dream Invest.</p><button class="de-action primary" type="button" data-panel-action="optional-features">Optional Features</button></div>');
+      return;
+    }
+    if (preferences.enabled !== true) {
+      setInvestVisibility(false);
+      openPanel("DREAM INVEST", "Dream Invest is turned off", "You decide whether this feature appears in your account.",
+        '<div class="di-error"><p>Open Explore → Optional Features to enable Dream Invest.</p><button class="de-action primary" type="button" data-panel-action="optional-features">Optional Features</button></div>');
       return;
     }
     renderBase();
@@ -288,4 +384,5 @@
   }, true);
 
   window.openDreamInvest = openDreamInvest;
+  window.DreamInvestAccess = { openSettings: openSettings, syncVisibility: syncVisibility };
 })();

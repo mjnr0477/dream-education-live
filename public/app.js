@@ -226,6 +226,11 @@ function escapeHTML(value) {
         {
           title: "AI Lab",
           text: "Use intelligent tools for solving and creating."
+        },
+        {
+          title: "Optional Features",
+          text: "Choose which optional tools appear in your account.",
+          action: "optional-features"
         }
       ],
       primary: "Get started",
@@ -334,6 +339,7 @@ function escapeHTML(value) {
         const isAIKnowledgeDiscovery = card.action === "ai-knowledge-discovery";
         const isAuthorizedSearch = card.action === "authorized-search" &&
           isOwnerAccount(getAuth());
+        const isOptionalFeatures = card.action === "optional-features";
         const cardAction = isCodeCreation
           ? 'data-panel-action="code-generator" role="button" tabindex="0"'
           : isMeetings
@@ -358,6 +364,8 @@ function escapeHTML(value) {
                             ? 'data-panel-action="ai-knowledge-discovery" role="button" tabindex="0"'
                             : isAuthorizedSearch
                               ? 'data-panel-action="authorized-search" role="button" tabindex="0"'
+                              : isOptionalFeatures
+                                ? 'data-panel-action="optional-features" role="button" tabindex="0"'
                 : "";
         const cardButton = isCodeCreation
           ? '<button class="panel-action" type="button" data-panel-action="code-generator">Open Code Generator</button>'
@@ -383,7 +391,9 @@ function escapeHTML(value) {
                           ? '<button class="panel-action" type="button" data-panel-action="ai-knowledge-discovery">Open Knowledge Discovery</button>'
                           : isAuthorizedSearch
                             ? '<button class="panel-action" type="button" data-panel-action="authorized-search">Open Authorized Search</button>'
-                            : "";
+                            : isOptionalFeatures
+                              ? '<button class="panel-action" type="button" data-panel-action="optional-features">Manage Optional Features</button>'
+                              : "";
 
         return `
           <article class="panel-card${isCodeCreation || isMeetings || isGeneralConnections || isAIProblemSolving || isAIKnowledgeDiscovery ? " panel-card-action" : ""}"
@@ -1188,7 +1198,7 @@ function escapeHTML(value) {
             <button type="button" class="de-action" data-about-workspace="school">Open School</button>
             <button type="button" class="de-action" data-about-workspace="tools">Open AI Lab</button>
             <button type="button" class="de-action" data-about-workspace="search">Try Dream Search</button>
-            <button type="button" class="de-action" data-about-workspace="invest">Explore Dream Invest</button>
+            <button type="button" class="de-action" data-about-workspace="invest" hidden>Explore Dream Invest</button>
             <button type="button" class="de-action" data-panel-action="subscription">View plans</button>
           </div>
         </section>
@@ -1683,6 +1693,15 @@ document.addEventListener("click", function (event) {
         openTeacherConnections();
       }
 
+      return;
+    }
+
+    if (action === "optional-features") {
+      if (window.DreamInvestAccess && typeof window.DreamInvestAccess.openSettings === "function") {
+        window.DreamInvestAccess.openSettings();
+      } else {
+        openPanel("OPTIONAL FEATURES", "Settings unavailable", "Please refresh Dream Education and try again.");
+      }
       return;
     }
 
