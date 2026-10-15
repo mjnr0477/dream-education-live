@@ -84,7 +84,7 @@
       image.loading = "lazy";
       image.className = "de-media-result-image";
       host.appendChild(image);
-    } else if (action === "tts" && mediaUrl && /^(https:\/\/|data:audio\/)/i.test(mediaUrl)) {
+    } else if ((action === "tts" || action === "freetts") && mediaUrl && /^(https:\/\/|data:audio\/)/i.test(mediaUrl)) {
       const audio = document.createElement("audio");
       audio.controls = true;
       audio.preload = "metadata";
@@ -94,52 +94,54 @@
     }
 
     const outputText = findOutputText(result);
-    if (outputText) {
-      appendText(host, "pre", outputText, "de-media-result-text");
-    } else {
-      appendText(host, "pre", JSON.stringify(result, null, 2), "de-media-result-text");
+    if ((action === "chat" || action === "translate") && outputText) {
+      appendText(host, "div", outputText, "de-media-result-text");
     }
 
     if (action === "chat" && Array.isArray(responseData?.knowledge_sources) && responseData.knowledge_sources.length) {
-      const sourcesHost = document.createElement("section");
-      sourcesHost.className = "de-media-sources";
-      appendText(sourcesHost, "h4", "Sources used", "de-media-sources-title");
-      const list = document.createElement("ul");
-      for (const source of responseData.knowledge_sources.slice(0, 6)) {
-        if (!source || !/^https?:\/\//i.test(String(source.url || ""))) continue;
-        const item = document.createElement("li");
-        const link = document.createElement("a");
-        link.href = source.url;
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-        link.textContent = (source.title || "Source") + (source.source ? " — " + source.source : "");
-        item.appendChild(link);
-        list.appendChild(item);
+      const videoSources = responseData.knowledge_sources.filter(source =>
+        Array.isArray(source?.media) && source.media.some(asset =>
+          asset?.type === "video" &&
+          /^https:\/\/www\.youtube\.com\/embed\/[A-Za-z0-9_-]{6,20}$/.test(String(asset.url || ""))
+        )
+      ).slice(0, 3);
+      for (const source of videoSources) {
+        const asset = source.media.find(item => item?.type === "video" &&
+          /^https:\/\/www\.youtube\.com\/embed\/[A-Za-z0-9_-]{6,20}$/.test(String(item.url || "")));
+        if (!asset) continue;
+        const frame = document.createElement("iframe");
+        frame.src = asset.url;
+        frame.title = String(source.title || "Educational YouTube video").slice(0, 200);
+        frame.loading = "lazy";
+        frame.referrerPolicy = "strict-origin-when-cross-origin";
+        frame.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+        frame.allowFullscreen = true;
+        frame.className = "de-media-result-video";
+        host.appendChild(frame);
       }
-      if (list.children.length) {
+
+      const nonVideoSources = responseData.knowledge_sources.filter(source =>
+        source && /^https?:\/\//i.test(String(source.url || "")) &&
+        !(Array.isArray(source.media) && source.media.some(asset => asset?.type === "video"))
+      ).slice(0, 6);
+      if (nonVideoSources.length) {
+        const sourcesHost = document.createElement("section");
+        sourcesHost.className = "de-media-sources";
+        appendText(sourcesHost, "h4", "Sources used", "de-media-sources-title");
+        const list = document.createElement("ul");
+        for (const source of nonVideoSources) {
+          const item = document.createElement("li");
+          const link = document.createElement("a");
+          link.href = source.url;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          link.textContent = (source.title || "Source") + (source.source ? " — " + source.source : "");
+          item.appendChild(link);
+          list.appendChild(item);
+        }
         sourcesHost.appendChild(list);
         host.appendChild(sourcesHost);
       }
-    }
-
-    if (mediaUrl && /^https:\/\//i.test(mediaUrl)) {
-      const link = document.createElement("a");
-      link.href = mediaUrl;
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-      link.textContent = "Open generated media";
-      link.className = "de-media-result-link";
-      host.appendChild(link);
-    }
-
-    if (action === "freetts" && result?.subtitles_url) {
-      const subtitles = document.createElement("a");
-      subtitles.href = result.subtitles_url;
-      subtitles.target = "_blank";
-      subtitles.rel = "noopener noreferrer";
-      subtitles.textContent = "Download synchronized subtitles (.srt)";
-      subtitles.className = "de-media-result-link";
-      host.appendChild(subtitles);
     }
   }
 
