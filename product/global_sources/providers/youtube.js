@@ -10,7 +10,25 @@ const MAX_RESULTS = 10;
 async function search(query, limit = 5) {
   const q = String(query || "").trim();
   const key = String(process.env.YOUTUBE_API_KEY || "").trim();
-  if (!q || !key) return [];
+  if (!q) return [];
+
+  // Without an API key, provide a direct YouTube search link only. This
+  // intentionally does not scrape YouTube or represent the link as retrieved
+  // video metadata; the learner opens YouTube to view current results.
+  if (!key) {
+    return [{
+      provider: "youtube",
+      source: "YouTube (direct search)",
+      source_type: "search_link",
+      title: "Search YouTube for: " + q.slice(0, 180),
+      extract: "Direct search link only. Dream Education did not retrieve YouTube video metadata, transcripts, or video content. Open the link to view YouTube's current search results.",
+      url: "https://www.youtube.com/results?search_query=" + encodeURIComponent(q),
+      media: [],
+      license: "YouTube Terms; direct user navigation only.",
+      commercial_use: false,
+      retrieval_mode: "direct_search_link"
+    }];
+  }
 
   await waitFor("youtube", 300);
   const params = new URLSearchParams({
