@@ -1198,7 +1198,7 @@ function escapeHTML(value) {
             <button type="button" class="de-action" data-about-workspace="school">Open School</button>
             <button type="button" class="de-action" data-about-workspace="tools">Open AI Lab</button>
             <button type="button" class="de-action" data-about-workspace="search">Try Dream Search</button>
-            <button type="button" class="de-action" data-about-workspace="invest">Explore Dream Invest</button>
+            <button type="button" class="de-action" data-about-workspace="invest" hidden>Explore Dream Invest</button>
             <button type="button" class="de-action" data-panel-action="subscription">View plans</button>
           </div>
         </section>
