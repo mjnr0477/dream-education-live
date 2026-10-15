@@ -74,6 +74,7 @@
         '</aside>' +
         '<section class="de-chat-thread">' +
           '<header class="de-chat-thread-head"><div><span class="de-chat-status-dot"></span><strong id="de-chat-recipient">Choose someone to chat with</strong><small id="de-chat-recipient-role"></small></div><div class="de-chat-safety"><button type="button" id="de-chat-add-member" hidden>Add member</button><button type="button" id="de-chat-leave-group" hidden>Leave group</button><button type="button" id="de-chat-block" disabled>Block</button><button type="button" id="de-chat-report" disabled>Report</button></div></header>' +
+          '<nav class="de-chat-quick-actions" aria-label="Connected learning tools"><span>Continue learning</span><button type="button" data-panel-action="media-studio">♫ Media Studio</button><button type="button" data-panel-action="meetings">▣ Meetings</button></nav>' +
           '<div id="de-chat-messages" class="de-chat-messages" aria-live="polite"><div class="de-chat-empty"><strong>Your conversations live here.</strong><span>Search for a registered person to send your first message.</span></div></div>' +
           '<form id="de-chat-send-form" class="de-chat-compose"><textarea id="de-chat-message" rows="2" maxlength="4000" placeholder="Write a message…" aria-label="Message" disabled></textarea><button id="de-chat-send" type="submit" disabled>Send <span aria-hidden="true">➤</span></button></form>' +
           '<p id="de-chat-status" class="de-chat-status" role="status" aria-live="polite"></p>' +
