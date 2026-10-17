@@ -1959,6 +1959,92 @@ if (action === "chat") {
     });
   }
 
+  // Keep saved sessions alive by rotating Supabase tokens before access-token expiry.
+  // Network failures are retried without discarding a still-stored session.
+  let sessionRefreshTimer = null;
+  let sessionRefreshInFlight = false;
+
+  function accessTokenExpiryMs(token) {
+    try {
+      const payloadPart = String(token || "").split(".")[1];
+      if (!payloadPart) return 0;
+      const normalized = payloadPart.replace(/-/g, "+").replace(/_/g, "/");
+      const payload = JSON.parse(atob(normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=")));
+      return Number(payload.exp || 0) * 1000;
+    } catch (error) {
+      return 0;
+    }
+  }
+
+  function scheduleSavedSessionRefresh(auth, delayOverride) {
+    if (sessionRefreshTimer) {
+      clearTimeout(sessionRefreshTimer);
+      sessionRefreshTimer = null;
+    }
+
+    if (!auth || !auth.success || !auth.session || !auth.session.refresh_token) return;
+
+    const expiry = accessTokenExpiryMs(auth.session.access_token);
+    const delay = Number.isFinite(delayOverride)
+      ? Math.max(1000, delayOverride)
+      : expiry
+        ? Math.max(1000, expiry - Date.now() - 120000)
+        : 1000;
+
+    sessionRefreshTimer = setTimeout(function () {
+      renewSavedSession();
+    }, Math.min(delay, 2147480000));
+  }
+
+  async function renewSavedSession() {
+    if (sessionRefreshInFlight) return;
+    const auth = getAuth();
+
+    if (!auth || !auth.success || !auth.session || !auth.session.refresh_token) return;
+
+    sessionRefreshInFlight = true;
+    try {
+      const response = await fetch("/api/auth/refresh", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh_token: auth.session.refresh_token })
+      });
+      const data = await response.json().catch(function () { return {}; });
+
+      if (response.ok && data.success && data.session && data.session.access_token && data.session.refresh_token) {
+        saveAuth(data);
+        scheduleSavedSessionRefresh(data);
+        return;
+      }
+
+      // Only clear a session when the server explicitly rejects the refresh token
+      // or confirms that this account is no longer linked. Keep it on transient failures.
+      if (response.status === 400 || response.status === 401 || response.status === 403) {
+        clearAuth();
+        return;
+      }
+
+      scheduleSavedSessionRefresh(auth, 60000);
+    } catch (error) {
+      console.warn("Dream Education session refresh will be retried:", error);
+      scheduleSavedSessionRefresh(auth, 60000);
+    } finally {
+      sessionRefreshInFlight = false;
+    }
+  }
+
+  function initializePersistentSession() {
+    const auth = getAuth();
+    if (!auth || !auth.success || !auth.session || !auth.session.refresh_token) return;
+
+    const expiry = accessTokenExpiryMs(auth.session.access_token);
+    if (!expiry || expiry <= Date.now() + 120000) {
+      renewSavedSession();
+    } else {
+      scheduleSavedSessionRefresh(auth);
+    }
+  }
+
   const savedAuth = getAuth();
 
   if (savedAuth && savedAuth.success) {
@@ -1982,6 +2068,8 @@ if (action === "chat") {
     clearAuth,
     experiences
   };
+
+  initializePersistentSession();
 
 })();
 
