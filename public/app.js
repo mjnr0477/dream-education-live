@@ -27,6 +27,14 @@ function escapeHTML(value) {
   }
 
   const experiences = {
+    books: {
+      kicker: "BOOKS & READING",
+      title: "Discover your next read.",
+      description: "Explore books by Mathias Simiyu, then discover trusted sources for more books and free learning resources.",
+      cards: [],
+      primary: "Explore books",
+      secondary: "Close"
+    },
     learn: {
       kicker: "LEARNING SPACE",
       title: "Start learning.",
@@ -1253,6 +1261,8 @@ function escapeHTML(value) {
 
     if (experience.form) {
       body = renderAuthForm(experience.form);
+    } else if (name === "books") {
+      body = typeof window.renderBooksReading === "function" ? window.renderBooksReading() : '<p>Books are loading. Please try again.</p>';
     } else if (name === "about") {
       body = renderAboutDream();
     } else {
