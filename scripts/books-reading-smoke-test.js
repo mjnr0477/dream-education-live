@@ -11,7 +11,7 @@ const pkg = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"))
 assert.match(html, /data-panel="books">Books & Reading<\/button>/);
 assert.match(html, /books-reading\.css/);
 assert.match(app, /function renderBooksReading\(\)/);
-assert.match(app, /name === "books"\)\s*\{\s*body = renderBooksReading\(\)/);
+assert.match(app, /name === "books"\)\s*\{\s*body = typeof window\.renderBooksReading/);
 assert.match(books, /https:\/\/books2read\.com\/u\/3Leqq0/);
 assert.match(books, /Fulfill Your Purpose/);
 assert.match(books, /Beyond Labels/);
