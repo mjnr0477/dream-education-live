@@ -6180,6 +6180,77 @@ app.post("/api/auth/login", async (req, res) => {
   }
 });
 
+
+// Refresh a saved session without asking the user to enter their password again.
+// Supabase rotates refresh tokens; clients must persist the returned token pair.
+app.post("/api/auth/refresh", async (req, res) => {
+  try {
+    const refreshToken = String(req.body?.refresh_token || "").trim();
+    if (!refreshToken) {
+      return res.status(400).json({
+        success: false,
+        error: "Refresh token is required."
+      });
+    }
+
+    const { data: authData, error: authError } =
+      await supabaseAuth.auth.refreshSession({
+        refresh_token: refreshToken
+      });
+
+    if (authError || !authData?.user || !authData?.session) {
+      return res.status(401).json({
+        success: false,
+        error: "Your session could not be renewed. Please sign in again."
+      });
+    }
+
+    const email = String(authData.user.email || "").trim().toLowerCase();
+    const account =
+      getAccount(authData.user.id) ||
+      getAccountByEmail(email);
+
+    if (!account) {
+      return res.status(403).json({
+        success: false,
+        error: "Authenticated account is not linked to Dream Education."
+      });
+    }
+
+    const role = account.role || "learner";
+    let profile = null;
+
+    if (role === "learner" && account.learner_id) {
+      profile = getLearner(account.learner_id);
+    } else if (role === "teacher" && account.teacher_id) {
+      profile = getTeacher(account.teacher_id);
+    } else if (role === "parent" && account.parent_id) {
+      profile = getParent(account.parent_id);
+    } else if (role === "school" && account.school_id) {
+      profile = getSchool(account.school_id);
+    }
+
+    return res.json({
+      success: true,
+      account,
+      role,
+      profile,
+      learner: role === "learner" ? profile : null,
+      session: {
+        access_token: authData.session.access_token,
+        refresh_token: authData.session.refresh_token
+      },
+      message: "Session renewed."
+    });
+  } catch (error) {
+    console.error("Session refresh error:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Unable to renew the session right now."
+    });
+  }
+});
+
 app.post("/api/product/learner", (req, res) => {
   try {
     const existingLearner = req.body.learner_id
