@@ -31,24 +31,27 @@ assert.match(server, /networkResult\.count !== null && networkResult\.count > 0/
 assert.match(server, /portalResult\.count !== null && portalResult\.count > 0/);
 assert.match(client, /fetch\(["']\/api\/dream-wifi\/provider-test["']/);
 assert.match(page, /Check network setup/);
-assert.match(page, /class="dream-wifi-nav-setup"/);
-assert.match(page, /Open setup \/ sign in/);
-assert.equal((page.match(/class="dream-wifi-nav-popover"/g) || []).length, 2, "Desktop and mobile Dream Wi-Fi actions must share a contained popover.");
-assert.match(fs.readFileSync(path.join(root, "public", "dream-wifi.css"), "utf8"), /\.dream-wifi-nav-popover/);
-assert.match(client, /querySelectorAll\("\.dream-wifi-nav-setup"\)/);
-assert.match(client, /section\.scrollIntoView\(\{ behavior: "smooth", block: "start" \}\)/);
-assert.match(client, /data-panel="signin"/);
+assert.match(page, /href="\/dream-wifi\.html"/);
+assert.doesNotMatch(page, /class="dream-wifi-nav-popover"/);
+const standalone = fs.readFileSync(path.join(root, "public", "dream-wifi.html"), "utf8");
+const standaloneClient = fs.readFileSync(path.join(root, "public", "dream-wifi-page.js"), "utf8");
+assert.match(standalone, /Internet access,/);
+assert.match(standalone, /id="wifi-test"/);
+assert.match(standalone, /id="wifi-hardware-check"/);
+assert.match(standaloneClient, /fetch\("\/api\/dream-wifi\/provider-test"/);
+assert.match(standaloneClient, /fetch\("\/api\/dream-wifi\/owner-status"/);
+assert.match(standaloneClient, /live internet access/);
+assert.match(fs.readFileSync(path.join(root, "public", "dream-wifi.css"), "utf8"), /\.dream-wifi-nav-link\[href\]/);
 
 
 assert.match(client, /fetch\(["']\/api\/dream-wifi\/owner-status["']/);
 assert.match(client, /Authorization:\s*["']Bearer ["']\s*\+\s*token/);
 assert.doesNotMatch(client, /mathiassimiyu52@gmail\.com/i);
 assert.match(page, /id=["']dream-wifi-section["']/);
-assert.ok(page.indexOf('id="dream-wifi-section"') < page.indexOf('id="dream-search"'),
-  "Dream Wi-Fi must appear above Public Search in the landing page.");
+assert.match(page, /href="\/dream-wifi\.html"/, "Dream Wi-Fi must navigate to its own page.");
 assert.match(page, /data-wifi-provider-status/);
-assert.match(page, /dream-wifi\.css\?v=20261019h/);
-assert.match(page, /dream-wifi\.js\?v=20261019e/);
+assert.match(page, /dream-wifi\.css\?v=20261019i/);
+assert.match(page, /dream-wifi\.js\?v=20261019f/);
 assert.match(page, /Setup checklist/);
 assert.match(page, /data-wifi-check-api/);
 assert.match(page, /data-wifi-check-network/);

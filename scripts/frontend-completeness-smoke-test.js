@@ -198,7 +198,11 @@ for (const action of declaredPrimaryActions) {
 }
 
 for (const [name, source] of [["public/index.html", index], ["public/app.js", app], ["public/frontend-workspace.js", workspace]]) {
-  if (/<a\b/i.test(source) || /target\s*=\s*["\']_blank/i.test(source)) {
+  // Dream Wi-Fi is a direct navigation destination, not a learner-facing material link.
+  const auditedSource = name === "public/index.html"
+    ? source.replace(/<a class="dream-wifi-nav-link[^"]*" href="\/dream-wifi\.html">Dream WiFi <span aria-hidden="true">↗<\/span><\/a>/g, "")
+    : source;
+  if (/<a\b/i.test(auditedSource) || /target\s*=\s*["\']_blank/i.test(auditedSource)) {
     throw new Error("Learner-facing frontend must not render material links: " + name);
   }
 }
