@@ -47,7 +47,7 @@
         </button>
       </div>
 
-      <button class="mobile-menu" data-action="menu" aria-label="Open menu">
+      <button class="mobile-menu" data-action="menu" aria-label="Open menu" aria-controls="mobile-drawer" aria-expanded="false">
         <span></span><span></span>
       </button>
     </header>
@@ -158,7 +158,7 @@
     </div>
   </aside>
 
-  <div class="mobile-drawer" id="mobile-drawer">
+  <div class="mobile-drawer" id="mobile-drawer" aria-hidden="true" inert>
     <button data-action="open" data-panel="explore">Explore</button>
     <button data-action="open" data-panel="about">About</button>
     <button data-action="open" data-panel="books">Books & Reading</button>
