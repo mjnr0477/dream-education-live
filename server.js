@@ -5707,6 +5707,7 @@ const {
 
 // Dream Wi-Fi owner-only readiness endpoint. Never trust client-side owner flags.
 app.get("/api/dream-wifi/owner-status", async (req, res) => {
+  res.set("Cache-Control", "no-store");
   const authorization = String(req.get("authorization") || "");
   const match = authorization.match(/^Bearer\s+(.+)$/i);
 
