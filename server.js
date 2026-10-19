@@ -5892,8 +5892,9 @@ app.get("/api/dream-wifi/provider-test", async (req, res) => {
       });
     }
 
-    const hasNetwork = networkResult.count === null || networkResult.count > 0;
-    const hasPortal = portalResult.count === null || portalResult.count > 0;
+    // Unknown counts must never be treated as proof of a configured network.
+    const hasNetwork = networkResult.count !== null && networkResult.count > 0;
+    const hasPortal = portalResult.count !== null && portalResult.count > 0;
     const readyForHardwareTest = hasNetwork && hasPortal;
 
     return res.json({
@@ -5907,11 +5908,15 @@ app.get("/api/dream-wifi/provider-test", async (req, res) => {
       ready_for_hardware_test: readyForHardwareTest,
       live_access_enabled: false,
       packages_enabled: false,
-      message: !hasNetwork
-        ? "IronWiFi API access works, but no network is configured yet. Create a network in IronWiFi, then connect an authorized hotspot/controller before testing a real device."
-        : !hasPortal
-          ? "An IronWiFi network exists, but no captive portal is configured. Create a portal and link it to the network, then configure an authorized hotspot/controller."
-          : "IronWiFi has network and captive-portal configuration. This still does not prove a physical hotspot is connected or authorized; test a device on the actual access point before enabling packages."
+      message: networkResult.count === null
+        ? "IronWiFi responded, but Dream could not confirm the network count from the API response. Check the API response format and permissions before continuing."
+        : !hasNetwork
+          ? "IronWiFi API access works, but no network is configured yet. Create a network in IronWiFi, then connect an authorized hotspot/controller before testing a real device."
+          : portalResult.count === null
+            ? "Dream could not confirm the captive-portal count from the API response. Check the API response format and permissions before continuing."
+            : !hasPortal
+              ? "An IronWiFi network exists, but no captive portal is configured. Create a portal and link it to the network, then configure an authorized hotspot/controller."
+              : "IronWiFi has network and captive-portal configuration. This still does not prove a physical hotspot is connected or authorized; test a device on the actual access point before enabling packages."
     });
   } catch (error) {
     console.error("Dream Wi-Fi provider test failed:", error);
