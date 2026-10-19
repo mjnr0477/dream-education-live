@@ -175,6 +175,25 @@
     });
   }
 
+  document.querySelectorAll(".dream-wifi-nav-setup").forEach(function (button) {
+    button.addEventListener("click", async function () {
+      await syncVisibility();
+
+      // Only the server-verified owner can open the private setup section.
+      if (verifiedOwner && !section.hidden) {
+        document.querySelectorAll(".dream-wifi-nav-details").forEach(function (details) {
+          details.open = false;
+        });
+        section.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+
+      // For everyone else, offer the existing sign-in flow; never expose owner setup.
+      const signInButton = document.querySelector('[data-action="open"][data-panel="signin"]');
+      if (signInButton) signInButton.click();
+    });
+  });
+
   window.addEventListener("storage", syncVisibility);
   window.addEventListener("dream-education-auth-changed", syncVisibility);
   syncVisibility();
