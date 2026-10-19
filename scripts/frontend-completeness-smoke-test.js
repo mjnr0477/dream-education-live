@@ -76,6 +76,8 @@ for (const [asset, version] of [["style.css", "20261019a"], ["frontend-workspace
   if (!assetReference.test(index)) throw new Error("Updated cache-busting version missing for " + asset);
 }
 
+if (!index.includes("/app.js?v=20261019b")) throw new Error("Updated app.js cache-busting version missing.");
+
 const requiredCompactDestinations = [
   'data-panel="learn"', 'data-panel="teach"', 'data-panel="connect"',
   'data-panel="tools"', 'data-panel="school"', 'data-panel="about"',
