@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#07080d">
   <meta name="description" content="Dream Wi-Fi — connect through participating, authorized existing hotspot networks.">
   <title>Dream Wi-Fi | Dream Education</title>
-  <link rel="stylesheet" href="/dream-wifi.css?v=20261019i">
+  <link rel="stylesheet" href="/dream-wifi.css?v=20261020a">
   <style>
     *{box-sizing:border-box} body{margin:0;min-height:100vh;background:#07080d;color:#f8fafc;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
     .wifi-top{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px clamp(18px,5vw,64px);border-bottom:1px solid #1e293b}
@@ -48,7 +48,8 @@
     <section class="wifi-card" aria-labelledby="wifi-state-title">
       <span class="wifi-status" id="wifi-state-title">● Setup and access status</span>
       <div class="wifi-grid">
-        <div class="wifi-tile"><span>Provider API</span><strong id="wifi-api-state">Checking owner access…</strong></div>
+        <div class="wifi-tile"><span>IronWiFi API</span><strong id="wifi-api-state">Checking owner access…</strong></div>
+        <div class="wifi-tile"><span>Cisco Meraki API</span><strong id="wifi-meraki-api-state">Not checked</strong></div>
         <div class="wifi-tile"><span>Network and captive portal</span><strong id="wifi-network-state">Not verified</strong></div>
         <div class="wifi-tile"><span>Provider networks configured</span><strong id="wifi-network-count">Not checked</strong></div>
         <div class="wifi-tile"><span>Access points seen by IronWiFi</span><strong id="wifi-access-point-count">Not checked</strong></div>
@@ -60,6 +61,7 @@
         <ul>
           <li><span>Owner access verified</span><strong id="wifi-owner-check">Checking…</strong></li>
           <li><span>IronWiFi API reachable</span><strong id="wifi-api-check">Not checked</strong></li>
+          <li><span>Meraki API and authorized inventory</span><strong id="wifi-meraki-check">Not checked</strong></li>
           <li><span>Network configured</span><strong id="wifi-network-check">Not checked</strong></li>
           <li><span>Access point discovered by provider</span><strong id="wifi-access-point-check">Not checked</strong></li>
           <li><span>Captive portal configured</span><strong id="wifi-portal-check">Not checked</strong></li>
@@ -68,7 +70,8 @@
       </div>
       <div class="wifi-actions">
         <button class="wifi-button" id="wifi-connect" type="button">Connect</button>
-        <button class="wifi-button secondary" id="wifi-test" type="button">Check provider setup</button>
+        <button class="wifi-button secondary" id="wifi-test" type="button">Check IronWiFi setup</button>
+        <button class="wifi-button secondary" id="wifi-meraki-test" type="button">Check Meraki API</button>
         <a class="wifi-button secondary" href="/">Sign in / return to Dream</a>
       </div>
       <p class="wifi-note">Tap Connect to open your phone's Wi-Fi settings. Choose the participating Dream Wi-Fi network if it is broadcasting nearby. The provider network count below is not a scan of nearby Wi-Fi names. If the SSID is missing, the authorized physical access point may not be broadcasting or may not be configured yet; this page cannot create a Wi-Fi signal by itself.</p>
@@ -93,14 +96,20 @@
         <li>Ask a participating venue or hotspot operator to authorize a test on its existing equipment.</li>
         <li>Configure the captive portal for that exact access point/controller and test a real phone from join through internet access and session expiry.</li>
       </ol>
+      <h3>Choose the hardware guide used by your network operator</h3>
+      <p class="wifi-note">These are supported setup paths—not automatic connections. The operator must own or administer the equipment and authorize Dream's test. You do not need to choose a vendor until an operator tells us which hardware they use.</p>
       <div class="wifi-actions">
         <a class="wifi-button" href="https://console.ironwifi.com/" target="_blank" rel="noopener noreferrer">Open IronWiFi Console ↗</a>
-        <a class="wifi-button secondary" href="https://help.ironwifi.com/supported-devices" target="_blank" rel="noopener noreferrer">Check compatible devices ↗</a>
+        <a class="wifi-button secondary" href="https://help.ironwifi.com/configuration-guides/ubiquiti/unifi-hotspot" target="_blank" rel="noopener noreferrer">UniFi guide ↗</a>
+        <a class="wifi-button secondary" href="https://help.ironwifi.com/configuration-guides/tp-link/omada" target="_blank" rel="noopener noreferrer">TP-Link Omada guide ↗</a>
+        <a class="wifi-button secondary" href="https://help.ironwifi.com/configuration-guides/mikrotik" target="_blank" rel="noopener noreferrer">MikroTik guide ↗</a>
+        <a class="wifi-button secondary" href="https://help.ironwifi.com/configuration-guides/cisco/meraki" target="_blank" rel="noopener noreferrer">Cisco Meraki guide ↗</a>
+        <a class="wifi-button secondary" href="https://help.ironwifi.com/supported-devices" target="_blank" rel="noopener noreferrer">All compatible devices ↗</a>
         <a class="wifi-button secondary" href="https://help.ironwifi.com/user-guide/captive-portals" target="_blank" rel="noopener noreferrer">Captive portal guide ↗</a>
       </div>
     </section>
     <p class="wifi-note">Important: a successful API check does not itself provide internet. To finish the real connection, Dream still needs a participating network owner/provider, a configured captive portal, and an authorized access point or controller for end-to-end device testing. Packages and payments stay disabled until those steps are verified.</p>
   </main>
-  <script src="/dream-wifi-page.js?v=20261019b"></script>
+  <script src="/dream-wifi-page.js?v=20261020b"></script>
 </body>
 </html>
