@@ -1,6 +1,6 @@
 /* Owner-only Dream Wi-Fi preview.
- * This UI intentionally does not create a Wi-Fi connection, sell packages, or call a provider.
- * Real provider access must be authorized and enforced server-side before public release.
+ * Visibility is granted only after the server validates the Supabase access token.
+ * This UI does not create a Wi-Fi connection, sell packages, or call a provider.
  */
 (function () {
   "use strict";
@@ -11,6 +11,8 @@
   const dashboard = document.getElementById("dream-wifi-dashboard");
   const closeButton = document.getElementById("dream-wifi-close");
   const status = document.getElementById("dream-wifi-owner-status");
+  let verifiedOwner = false;
+  let requestVersion = 0;
 
   if (!section || !openButton || !dashboard) return;
 
@@ -23,27 +25,85 @@
     }
   }
 
-  function isOwner() {
+  function getAccessToken() {
     const auth = readAuth();
-    const account = auth && auth.account ? auth.account : {};
-    return account.owner_account === true ||
-      String(account.email || (auth && auth.email) || "").trim().toLowerCase() === "mathiassimiyu52@gmail.com";
+    return auth && auth.session && typeof auth.session.access_token === "string"
+      ? auth.session.access_token
+      : "";
   }
 
-  function syncVisibility() {
-    const allowed = isOwner();
-    section.hidden = !allowed;
-    if (!allowed) dashboard.hidden = true;
-    if (status) status.textContent = allowed
-      ? "Owner preview enabled for this signed-in browser."
-      : "Owner sign-in required.";
+  function setHidden() {
+    verifiedOwner = false;
+    section.hidden = true;
+    dashboard.hidden = true;
+    openButton.setAttribute("aria-expanded", "false");
   }
 
-  openButton.addEventListener("click", function () {
-    if (!isOwner()) {
-      syncVisibility();
+  async function syncVisibility() {
+    const version = ++requestVersion;
+    const token = getAccessToken();
+
+    // Hide first; localStorage account/email fields are not proof of ownership.
+    setHidden();
+    if (!token) {
+      if (status) status.textContent = "Sign in with the owner account to view this private preview.";
       return;
     }
+
+    try {
+      const response = await fetch("/api/dream-wifi/owner-status", {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          Authorization: "Bearer " + token
+        },
+        cache: "no-store"
+      });
+      const result = await response.json().catch(function () { return null; });
+
+      // Ignore stale responses after a login/logout or a newer status request.
+      if (version !== requestVersion) return;
+
+      if (!response.ok || !result || result.success !== true || result.owner !== true) {
+        if (status) status.textContent = "Owner verification required. Sign in with the owner account.";
+        return;
+      }
+
+      verifiedOwner = true;
+      section.hidden = false;
+      if (status) {
+        status.textContent = result.message ||
+          "Owner verified. Provider access and packages remain disabled until tested.";
+      }
+
+      const providerStatus = dashboard.querySelector("[data-wifi-provider-status]");
+      const accessStatus = dashboard.querySelector("[data-wifi-access-status]");
+      const packageStatus = dashboard.querySelector("[data-wifi-package-status]");
+
+      if (providerStatus) {
+        providerStatus.textContent = result.provider_configured
+          ? "Configured — verification pending"
+          : "Not configured";
+      }
+      if (accessStatus) {
+        accessStatus.textContent = result.live_access_enabled === true
+          ? "Enabled by server"
+          : "Not yet verified";
+      }
+      if (packageStatus) {
+        packageStatus.textContent = result.packages_enabled === true
+          ? "Enabled by server"
+          : "Disabled";
+      }
+    } catch (_) {
+      if (version !== requestVersion) return;
+      if (status) status.textContent = "Could not verify owner access. Check your connection and try again.";
+    }
+  }
+
+  openButton.addEventListener("click", async function () {
+    await syncVisibility();
+    if (!verifiedOwner) return;
     dashboard.hidden = false;
     openButton.setAttribute("aria-expanded", "true");
     dashboard.scrollIntoView({ behavior: "smooth", block: "nearest" });
