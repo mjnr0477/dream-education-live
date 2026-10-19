@@ -5,8 +5,9 @@ const crypto = require("crypto");
 const buckets = new Map();
 
 function clientKey(req) {
-  const forwarded = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim();
-  return forwarded || req.socket?.remoteAddress || "unknown";
+  // req.ip is resolved by Express using the app's explicitly configured
+  // trusted-proxy policy; never trust the raw X-Forwarded-For header here.
+  return String(req.ip || req.socket?.remoteAddress || "unknown");
 }
 
 function rateLimit({ windowMs = 60_000, max = 60, prefix = "gli" } = {}) {
@@ -35,7 +36,8 @@ function rateLimit({ windowMs = 60_000, max = 60, prefix = "gli" } = {}) {
 }
 
 function requestId(req, res, next) {
-  const id = String(req.headers["x-request-id"] || "").trim() || crypto.randomUUID();
+  const supplied = String(req.headers["x-request-id"] || "").trim();
+  const id = /^[A-Za-z0-9._:-]{1,128}$/.test(supplied) ? supplied : crypto.randomUUID();
   req.request_id = id;
   res.setHeader("X-Request-Id", id);
   return next();
