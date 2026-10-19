@@ -90,15 +90,15 @@ async function checkMerakiReadiness({
     };
   }
 
-  // Probe only the first accessible organization and request one record per collection.
+  // Probe only the first accessible organization and request the minimum supported page size per collection.
   // Do not expose organization names, network names, device serials, or other inventory.
   const orgId = encodeURIComponent(String(orgs[0].id || ""));
   if (!orgId) {
     return { success: false, code: "invalid_provider_response", message: "Meraki returned an organization without an ID." };
   }
   const [networks, devices] = await Promise.all([
-    get("/organizations/" + orgId + "/networks?perPage=1"),
-    get("/organizations/" + orgId + "/devices?perPage=1")
+    get("/organizations/" + orgId + "/networks?perPage=3"),
+    get("/organizations/" + orgId + "/devices?perPage=3")
   ]);
   const failedEntry = [
     { name: "networks", result: networks },
