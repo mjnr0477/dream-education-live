@@ -43,8 +43,8 @@ const { checkMerakiReadiness } = require("../product/dream_wifi_meraki");
   assert.equal(requests.length, 3);
   assert.equal(requests[0].url, "https://api.meraki.com/api/v1/organizations");
   assert.equal(requests[0].options.headers.Authorization, "Bearer test-key");
-  assert.ok(requests.some((item) => item.url.endsWith("/networks?perPage=1")));
-  assert.ok(requests.some((item) => item.url.endsWith("/devices?perPage=1")));
+  assert.ok(requests.some((item) => item.url.endsWith("/networks?perPage=3")));
+  assert.ok(requests.some((item) => item.url.endsWith("/devices?perPage=3")));
   assert.equal(JSON.stringify(ok).includes("Private Org"), false);
   assert.equal(JSON.stringify(ok).includes("private-serial"), false);
 
