@@ -26,6 +26,15 @@ for (const file of requiredFiles) {
   if (!fs.existsSync(file)) throw new Error("Missing frontend file: " + file);
 }
 
+const robots = read("public/robots.txt");
+const sitemap = read("public/sitemap.xml");
+if (!robots.includes("User-agent: *") || !robots.includes("Sitemap: https://dream-education-live-4.onrender.com/sitemap.xml")) {
+  throw new Error("Crawler guidance must allow public crawling and advertise the sitemap.");
+}
+if (!sitemap.includes("<loc>https://dream-education-live-4.onrender.com/</loc>") || !sitemap.includes("<urlset")) {
+  throw new Error("Sitemap must contain the canonical public landing page.");
+}
+
 const requiredFrontendRoutes = [
   "/api/auth/register",
   "/api/auth/login",
