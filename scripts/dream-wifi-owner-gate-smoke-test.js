@@ -49,6 +49,15 @@ assert.ok(page.indexOf('id="dream-wifi-section"') < page.indexOf('id="dream-sear
 assert.match(page, /data-wifi-provider-status/);
 assert.match(page, /dream-wifi\.css\?v=20261019g/);
 assert.match(page, /dream-wifi\.js\?v=20261019d/);
+assert.match(page, /Setup checklist/);
+assert.match(page, /data-wifi-check-api/);
+assert.match(page, /data-wifi-check-network/);
+assert.match(page, /data-wifi-check-portal/);
+assert.match(page, /data-wifi-check-hardware/);
+assert.match(client, /Create network in IronWiFi/);
+assert.match(client, /Create captive portal in IronWiFi/);
+assert.match(client, /Ready for authorized device test/);
+
 assert.match(page, /data-wifi-access-status/);
 assert.match(page, /data-wifi-package-status/);
 
