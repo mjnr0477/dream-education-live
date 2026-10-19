@@ -147,3 +147,35 @@
   font-size: .85rem;
   line-height: 1.55;
 }
+
+/* Keep Dream WiFi discoverable from the primary desktop and mobile navigation. */
+.dream-wifi-nav-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 7px 12px;
+  border: 1px solid rgba(134, 239, 172, .48);
+  border-radius: 999px;
+  background: #16a34a;
+  color: #fff !important;
+  font: inherit;
+  font-size: .84rem;
+  font-weight: 800;
+  line-height: 1.1;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(22, 163, 74, .18);
+}
+.dream-wifi-nav-link:hover { background: #15803d; }
+.dream-wifi-nav-link:focus-visible {
+  outline: 3px solid #86efac;
+  outline-offset: 3px;
+}
+.dream-wifi-mobile-link {
+  align-self: stretch;
+  justify-content: flex-start;
+  min-height: 44px;
+  padding: 12px 14px;
+  border-radius: 12px;
+}
