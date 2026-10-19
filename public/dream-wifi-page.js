@@ -4,6 +4,7 @@
   const el = (id) => document.getElementById(id);
   const button = el("wifi-test");
   let ownerVerified = false;
+
   function token() {
     try {
       const auth = JSON.parse(localStorage.getItem(AUTH_KEY) || "null");
@@ -12,6 +13,7 @@
   }
   function show(id, value) { const node = el(id); if (node) node.textContent = value; }
   function recordCheckTime() { show("wifi-last-check", "Last provider check: " + new Date().toLocaleString()); }
+
   async function ownerCheck() {
     const accessToken = token();
     if (!accessToken) {
@@ -35,6 +37,65 @@
       return false;
     }
   }
+
+  function renderPackages(result) {
+    const grid = el("wifi-package-grid");
+    if (!grid) return;
+    grid.replaceChildren();
+    const packages = Array.isArray(result && result.packages) ? result.packages : [];
+    if (!packages.length) {
+      const empty = document.createElement("p");
+      empty.className = "wifi-note";
+      empty.textContent = "Package options are temporarily unavailable. Please try again later.";
+      grid.appendChild(empty);
+      return;
+    }
+    packages.forEach((item) => {
+      const card = document.createElement("article");
+      card.className = "wifi-package-card";
+      const title = document.createElement("h3");
+      title.textContent = String(item.name || "Wi-Fi package");
+      const price = document.createElement("div");
+      price.className = "wifi-package-price";
+      price.textContent = item.price_kes === null || item.price_kes === undefined
+        ? "Price being finalized"
+        : "KES " + Number(item.price_kes).toLocaleString("en-KE") + (item.price_source === "illustrative_example" ? " example" : "");
+      const note = document.createElement("p");
+      note.className = "wifi-package-note";
+      note.textContent = item.price_source === "illustrative_example"
+        ? "Illustrative only; confirm against the provider's actual rate."
+        : item.price_configured
+          ? "Server-configured price; sales remain disabled pending live verification."
+          : "Retail price has not been configured yet.";
+      const action = document.createElement("button");
+      action.type = "button";
+      action.className = "wifi-button secondary";
+      action.disabled = true;
+      action.textContent = "Not available yet";
+      card.append(title, price, note, action);
+      grid.appendChild(card);
+    });
+    show("wifi-package-message", result.message || "Package durations are ready for pricing, but payment and activation remain disabled until a real hotspot is verified.");
+  }
+
+  async function loadPackages() {
+    try {
+      const response = await fetch("/api/dream-wifi/packages", {headers:{Accept:"application/json"},cache:"no-store"});
+      const result = await response.json().catch(() => null);
+      if (!response.ok || !result || result.success !== true) throw new Error("Package catalogue unavailable");
+      renderPackages(result);
+    } catch (_) {
+      const grid = el("wifi-package-grid");
+      if (grid) {
+        grid.replaceChildren();
+        const message = document.createElement("p");
+        message.className = "wifi-note";
+        message.textContent = "Could not load packages. Check your connection and reload this page.";
+        grid.appendChild(message);
+      }
+    }
+  }
+
   async function runCheck() {
     if (!button) return;
     button.disabled = true;
@@ -47,7 +108,7 @@
       const response = await fetch("/api/dream-wifi/provider-test", {headers:{Accept:"application/json",Authorization:"Bearer "+accessToken},cache:"no-store"});
       const result = await response.json().catch(() => null);
       if (!response.ok || !result || result.success !== true) {
-        show("wifi-api-state", result && result.code === "invalid_api_key" ? "API key rejected" : result && result.code === "insufficient_permissions" ? "Permissions required" : result && result.code === "provider_not_configured" ? "API key missing" : "Provider check failed");
+        show("wifi-api-state", "Provider check failed");
         show("wifi-api-check", result && result.code === "invalid_api_key" ? "Key rejected" : result && result.code === "insufficient_permissions" ? "Permissions required" : result && result.code === "provider_not_configured" ? "Server key missing" : "Not verified");
         show("wifi-network-count", "Not available");
         show("wifi-portal-count", "Not available");
@@ -75,6 +136,8 @@
       button.textContent = original;
     }
   }
+
   if (button) button.addEventListener("click", runCheck);
   ownerCheck();
+  loadPackages();
 })();
