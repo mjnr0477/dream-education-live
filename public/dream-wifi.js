@@ -1,6 +1,6 @@
 /* Owner-only Dream Wi-Fi preview.
  * Visibility is granted only after the server validates the Supabase access token.
- * This UI does not create a Wi-Fi connection, sell packages, or call a provider.
+ * This UI can check IronWiFi network configuration, but it cannot activate hotspots or sell packages.
  */
 (function () {
   "use strict";
@@ -134,7 +134,7 @@
       const originalLabel = providerTestButton.textContent;
       providerTestButton.disabled = true;
       providerTestButton.textContent = "Testing API…";
-      if (status) status.textContent = "Checking IronWiFi securely from Dream's server…";
+      if (status) status.textContent = "Checking IronWiFi network and captive-portal configuration securely…";
 
       try {
         const response = await fetch("/api/dream-wifi/provider-test", {
@@ -155,7 +155,7 @@
         const providerStatus = dashboard.querySelector("[data-wifi-provider-status]");
         if (providerStatus) {
           if (response.ok && result && result.success === true) {
-            providerStatus.textContent = "API authenticated — network test still required";
+            providerStatus.textContent = "API connected — checking network setup";
           } else if (result && result.code === "invalid_api_key") {
             providerStatus.textContent = "API key rejected";
           } else if (result && result.code === "insufficient_permissions") {
