@@ -153,8 +153,13 @@
         }
 
         const providerStatus = dashboard.querySelector("[data-wifi-provider-status]");
+        const checkApi = dashboard.querySelector("[data-wifi-check-api]");
+        const checkNetwork = dashboard.querySelector("[data-wifi-check-network]");
+        const checkPortal = dashboard.querySelector("[data-wifi-check-portal]");
+        const checkHardware = dashboard.querySelector("[data-wifi-check-hardware]");
+        const providerOk = response.ok && result && result.success === true;
         if (providerStatus) {
-          if (response.ok && result && result.success === true) {
+          if (providerOk) {
             providerStatus.textContent = "API connected · " + (result.network_configured ? "network configured" : "no network configured") + " · " + (result.captive_portal_configured ? "portal configured" : "no portal configured");
           } else if (result && result.code === "invalid_api_key") {
             providerStatus.textContent = "API key rejected";
@@ -166,8 +171,31 @@
             providerStatus.textContent = "API test unsuccessful";
           }
         }
+        if (checkApi) {
+          checkApi.textContent = providerOk ? "Connected" :
+            result && result.code === "invalid_api_key" ? "API key rejected" :
+            result && result.code === "insufficient_permissions" ? "Permissions required" :
+            result && result.code === "provider_not_configured" ? "Server key missing" : "Check failed";
+        }
+        if (checkNetwork) {
+          checkNetwork.textContent = providerOk
+            ? (result.network_configured ? "Configured" : "Create network in IronWiFi")
+            : "Waiting for API check";
+        }
+        if (checkPortal) {
+          checkPortal.textContent = providerOk
+            ? (result.captive_portal_configured ? "Configured" : "Create captive portal in IronWiFi")
+            : "Waiting for API check";
+        }
+        if (checkHardware) {
+          checkHardware.textContent = providerOk && result.ready_for_hardware_test
+            ? "Ready for authorized device test"
+            : "Waiting for network and portal";
+        }
       } catch (_) {
         if (status) status.textContent = "Could not complete the IronWiFi API test. Check Dream's connection and try again.";
+        const checkApi = dashboard.querySelector("[data-wifi-check-api]");
+        if (checkApi) checkApi.textContent = "Provider unreachable";
       } finally {
         providerTestButton.disabled = false;
         providerTestButton.textContent = originalLabel;
