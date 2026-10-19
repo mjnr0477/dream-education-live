@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://dream-education-live-4.onrender.com/sitemap.xml
