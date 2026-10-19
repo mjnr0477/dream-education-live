@@ -199,3 +199,49 @@
     margin-top: 8px;
   }
 }
+
+
+.dream-wifi-checklist {
+  margin-top: 16px;
+  padding: 18px;
+  border: 1px solid rgba(148, 163, 184, .18);
+  border-radius: 16px;
+  background: rgba(10, 15, 26, .65);
+}
+.dream-wifi-checklist h4 {
+  margin: 0 0 12px;
+  color: #f8fafc;
+  font-size: 1rem;
+}
+.dream-wifi-checklist ul {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.dream-wifi-checklist li {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 11px 0;
+  border-top: 1px solid rgba(148, 163, 184, .12);
+  color: #cbd5e1;
+  line-height: 1.45;
+}
+.dream-wifi-checklist li strong {
+  color: #7dd3fc;
+  text-align: right;
+  font-size: .86rem;
+}
+.dream-wifi-checklist > p {
+  margin: 12px 0 0;
+  color: #94a3b8;
+  font-size: .82rem;
+  line-height: 1.6;
+}
+@media (max-width: 520px) {
+  .dream-wifi-checklist li { flex-direction: column; gap: 4px; }
+  .dream-wifi-checklist li strong { text-align: left; }
+}
