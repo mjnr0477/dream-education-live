@@ -35,7 +35,8 @@ function getDreamWifiPackages(env = process.env) {
       duration_seconds: definition.duration_seconds,
       duration_minutes: definition.duration_seconds / 60,
       price_kes: price,
-      price_configured: price !== null,
+      // An illustrative amount is visible for planning, not a configured sale price.
+      price_configured: configured !== null,
       price_source: configured !== null ? "server_environment" : price !== null ? "illustrative_example" : "not_set"
     };
   });
