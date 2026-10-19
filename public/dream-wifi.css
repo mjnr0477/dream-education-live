@@ -151,6 +151,26 @@
   line-height: 1.55;
   box-shadow: 0 12px 32px rgba(0, 0, 0, .35);
 }
+.dream-wifi-nav-setup {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 8px 0 0;
+  padding: 9px 12px;
+  width: 100%;
+  border: 1px solid rgba(134, 239, 172, .4);
+  border-radius: 9px;
+  background: #166534;
+  color: #f0fdf4;
+  font: inherit;
+  font-size: .84rem;
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+}
+.dream-wifi-nav-setup:hover { background: #15803d; }
+.dream-wifi-nav-setup:focus-visible { outline: 3px solid #86efac; outline-offset: 2px; }
 .dream-wifi-mobile-details { display: none; }
 @media (max-width: 700px) {
   .dream-wifi-mobile-details {

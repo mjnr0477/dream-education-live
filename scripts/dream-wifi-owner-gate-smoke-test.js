@@ -31,6 +31,12 @@ assert.match(server, /networkResult\.count !== null && networkResult\.count > 0/
 assert.match(server, /portalResult\.count !== null && portalResult\.count > 0/);
 assert.match(client, /fetch\(["']\/api\/dream-wifi\/provider-test["']/);
 assert.match(page, /Check network setup/);
+assert.match(page, /class="dream-wifi-nav-setup"/);
+assert.match(page, /Open setup \/ sign in/);
+assert.match(client, /querySelectorAll\("\.dream-wifi-nav-setup"\)/);
+assert.match(client, /section\.scrollIntoView\(\{ behavior: "smooth", block: "start" \}\)/);
+assert.match(client, /data-panel="signin"/);
+
 
 assert.match(client, /fetch\(["']\/api\/dream-wifi\/owner-status["']/);
 assert.match(client, /Authorization:\s*["']Bearer ["']\s*\+\s*token/);
