@@ -37,6 +37,11 @@ const standalone = fs.readFileSync(path.join(root, "public", "dream-wifi.html"),
 const standaloneClient = fs.readFileSync(path.join(root, "public", "dream-wifi-page.js"), "utf8");
 assert.match(standalone, /Internet access,/);
 assert.match(standalone, /id="wifi-test"/);
+assert.match(standalone, /id="wifi-connect"/);
+assert.match(standalone, />Connect<\/button>/);
+assert.match(standaloneClient, /id\("wifi-connect"\)/);
+assert.match(standaloneClient, /android\.settings\.WIFI_SETTINGS/);
+assert.match(standaloneClient, /If no network appears/);
 assert.match(standalone, /id="wifi-network-count"/);
 assert.match(standalone, /id="wifi-portal-count"/);
 assert.match(standalone, /id="wifi-last-check"/);
