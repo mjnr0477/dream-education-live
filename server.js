@@ -5705,6 +5705,70 @@ const {
   activatePlan
 } = require("./product/payment_engine");
 
+// Dream Wi-Fi owner-only readiness endpoint. Never trust client-side owner flags.
+app.get("/api/dream-wifi/owner-status", async (req, res) => {
+  const authorization = String(req.get("authorization") || "");
+  const match = authorization.match(/^Bearer\s+(.+)$/i);
+
+  if (!match) {
+    return res.status(401).json({
+      success: false,
+      owner: false,
+      error: "A valid Dream Education session is required."
+    });
+  }
+
+  try {
+    const { data, error } = await supabaseAuth.auth.getUser(match[1].trim());
+    const user = data && data.user ? data.user : null;
+
+    if (error || !user) {
+      return res.status(401).json({
+        success: false,
+        owner: false,
+        error: "Your session is invalid or expired."
+      });
+    }
+
+    if (!isOwnerAccount({ email: user.email })) {
+      return res.status(403).json({
+        success: false,
+        owner: false,
+        error: "Owner access is required."
+      });
+    }
+
+    const providerConfigured = Boolean(
+      process.env.DREAM_WIFI_PROVIDER_API_URL &&
+      process.env.DREAM_WIFI_PROVIDER_API_KEY
+    );
+
+    return res.json({
+      success: true,
+      owner: true,
+      provider_configured: providerConfigured,
+      provider: providerConfigured
+        ? String(process.env.DREAM_WIFI_PROVIDER || "configured-provider")
+        : null,
+      live_access_enabled: false,
+      packages_enabled: false,
+      status: providerConfigured
+        ? "provider_configured_but_not_verified"
+        : "provider_not_configured",
+      message: providerConfigured
+        ? "Provider credentials are present, but live access remains disabled until an end-to-end connection test passes."
+        : "No authorized Wi-Fi provider is configured yet. Live access and packages remain disabled."
+    });
+  } catch (error) {
+    console.error("Dream Wi-Fi owner-status check failed:", error);
+    return res.status(503).json({
+      success: false,
+      owner: false,
+      error: "Dream Wi-Fi status is temporarily unavailable."
+    });
+  }
+});
+
 registerDreamInvestAccessRoutes(app, { getAuthenticatedAccount });
 registerDreamInvestRoutes(app, { getAuthenticatedAccount });
 registerDreamSearchRoutes(app, { getAuthenticatedAccount, isOwnerAccount });
