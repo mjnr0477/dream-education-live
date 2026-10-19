@@ -27,6 +27,8 @@ assert.match(server, /readCollection\("\/captive-portals\?page=1&page_size=1", "
 assert.match(server, /network_configured:\s*hasNetwork/);
 assert.match(server, /captive_portal_configured:\s*hasPortal/);
 assert.match(server, /ready_for_hardware_test:\s*readyForHardwareTest/);
+assert.match(server, /networkResult\.count !== null && networkResult\.count > 0/);
+assert.match(server, /portalResult\.count !== null && portalResult\.count > 0/);
 assert.match(client, /fetch\(["']\/api\/dream-wifi\/provider-test["']/);
 assert.match(page, /Check network setup/);
 
