@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="/teacher-workspace.css?v=20261012a">
   <link rel="stylesheet" href="/meetings-workspace.css?v=20261012a">
   <link rel="stylesheet" href="/dream-search.css?v=20261011d">
-  <link rel="stylesheet" href="/dream-wifi.css?v=20261019g">
+  <link rel="stylesheet" href="/dream-wifi.css?v=20261019h">
   <link rel="stylesheet" href="/nextgen-visual.css?v=20261011a">
   <link rel="stylesheet" href="/school-workspace.css?v=20261015a">
   <link rel="stylesheet" href="/parent-workspace.css?v=20261013b">
@@ -162,6 +162,17 @@
               </div>
             </div>
 
+            <div class="dream-wifi-checklist" aria-labelledby="dream-wifi-checklist-title">
+              <h4 id="dream-wifi-checklist-title">Setup checklist</h4>
+              <ul>
+                <li><span>IronWiFi API access</span><strong data-wifi-check-api>Not checked</strong></li>
+                <li><span>Network created in IronWiFi</span><strong data-wifi-check-network>Not checked</strong></li>
+                <li><span>Captive portal configured</span><strong data-wifi-check-portal>Not checked</strong></li>
+                <li><span>Authorized access point/controller test</span><strong data-wifi-check-hardware>Not verified</strong></li>
+              </ul>
+              <p>These checks report setup readiness only. Live internet access and paid packages remain disabled until a real authorized device connection is tested.</p>
+            </div>
+
             <div class="dream-wifi-next">
               <strong>Next technical gate:</strong> identify a provider with an authorized API or SDK, participating hotspot coverage, and terms that require no upfront payment or minimum commitment. Then test authentication and session expiry before enabling packages.
             </div>
@@ -243,7 +254,7 @@
   </div>
 
   <script src="/app.js?v=20261019b"></script>
-  <script src="/dream-wifi.js?v=20261019d"></script>
+  <script src="/dream-wifi.js?v=20261019e"></script>
   <script src="/books-reading.js?v=20261018a"></script>
   <script src="/dream-search.js?v=20261011b"></script>
   <script src="/frontend-workspace.js?v=20261019a"></script>
