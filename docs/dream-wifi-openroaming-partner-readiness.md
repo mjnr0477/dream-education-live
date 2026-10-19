@@ -19,6 +19,47 @@ Potential roles:
 - **Identity provider (IdP):** authenticates Dream users and provisions credentials or profiles, subject to IronWiFi and federation requirements.
 - **Dream Education:** provides the user-facing discovery/onboarding experience and, only after commercial and technical approval, package/payment orchestration.
 
+## Ready-to-send message to IronWiFi
+
+**To:** support@ironwifi.com  
+**Subject:** Dream Education — request for existing Wi-Fi partner and OpenRoaming pilot
+
+Hello IronWiFi team,
+
+I am building Dream Education, an education platform, and am exploring Dream Wi-Fi so our users can connect through existing, authorized Wi-Fi networks rather than Dream buying physical routers.
+
+Our IronWiFi API connection is reachable and the network/captive-portal configuration appears present, but our owner diagnostic currently shows no access points discovered. We do not own or administer a UniFi controller or physical access point, so we need a legitimate existing-network partner to help us complete a real test.
+
+Could you please advise:
+
+1. Can our current tenant participate as an OpenRoaming/Passpoint identity provider for users connecting to third-party networks?
+2. Can you introduce us to an existing access-network operator willing to run a small authorized pilot, initially in Kenya?
+3. What technical setup, Android credential/profile provisioning, and access-expiry/revocation flow do you recommend?
+4. Are there any no-cost or settlement-free education pilot options? Please state any fees, minimum commitments, required upgrades, and commercial conditions before we proceed.
+5. What exact next steps would let us verify a real phone connection and internet access without purchasing equipment?
+
+We will keep customer checkout and live package activation disabled until the provider authorizes the test and the complete connection, payment, and expiry flow is verified.
+
+Thank you,
+Dream Education team
+
+## Ready-to-send message to a Wi-Fi operator
+
+**Subject:** Partnership request — pilot access to your existing Wi-Fi hotspots
+
+Hello,
+
+I represent Dream Education, an education platform exploring an affordable way for learners and other users to connect through existing Wi-Fi hotspots. We are not asking you to buy new equipment or give us unauthorized access to your network.
+
+Would your organization consider a small pilot in which you retain control of your access points and internet service, and explicitly authorize a limited Dream Education user test? We are evaluating IronWiFi and OpenRoaming/Passpoint where supported.
+
+Before any test, we would agree on the technical requirements, user limits, costs, data/privacy responsibilities, support arrangements, and whether access can be provided on a settlement-free or paid wholesale basis. We will not advertise your network as available or sell access until you approve it in writing and the test succeeds.
+
+If this may fit your network, please let us know who handles Wi-Fi infrastructure or roaming partnerships.
+
+Thank you,
+Dream Education team
+
 ## Questions for IronWiFi
 
 Before implementing another integration, obtain written answers to these questions from IronWiFi support or its Wi-Fi identity team:
@@ -60,3 +101,5 @@ Do not enable checkout until all of the following are demonstrated with an autho
 - IronWiFi integration matrix: https://help.ironwifi.com/integration-matrix
 - IronWiFi quick start and access-point prerequisites: https://help.ironwifi.com/getting-started/quick-start
 - IronWiFi support: support@ironwifi.com
+- Wireless Broadband Alliance OpenRoaming overview: https://wballiance.com/openroaming/
+- WBA OpenRoaming certified partners: https://wballiance.com/openroaming/certified-partners/
