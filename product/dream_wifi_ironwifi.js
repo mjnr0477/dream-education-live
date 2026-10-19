@@ -1,23 +1,23 @@
 "use strict";
 
 // Dream Wi-Fi provider adapter.
-// IronWiFi vouchers can be used by a compatible MikroTik captive-portal/RADIUS
-// setup. This module never enables checkout or runs automatically: callers must
-// explicitly request a single voucher only after verified payment and policy checks.
+// Creates a single IronWiFi voucher only when explicitly called by trusted
+// server-side code. This module is not connected to checkout or a public route.
 const MAX_DURATION_SECONDS = 365 * 24 * 60 * 60;
 
 function getProviderConfig(env = process.env) {
   const apiKey = String(env.IRONWIFI_API_KEY || "").trim();
-  // Require an explicitly selected tenant/region base URL for voucher writes.
-  // Do not guess the tenant region from the read-only diagnostics URL.
-  const baseUrl = String(env.IRONWIFI_WIFI_API_BASE_URL || "").trim().replace(/\/+$/, "");
-  const tableId = String(env.IRONWIFI_WIFI_TABLE_ID || "").trim();
+  // Set this to the API base URL for the IronWiFi tenant's region, ending in /api.
+  let baseUrl = String(env.IRONWIFI_WIFI_API_BASE_URL || "").trim();
+  while (baseUrl.endsWith("/")) baseUrl = baseUrl.slice(0, -1);
+  // Optional for MSP/parent accounts managing a specific company tenant.
+  const companyId = String(env.IRONWIFI_WIFI_COMPANY_ID || "").trim();
 
   return {
-    configured: Boolean(apiKey && baseUrl && tableId),
+    configured: Boolean(apiKey && baseUrl),
     apiKey,
     baseUrl,
-    tableId
+    companyId
   };
 }
 
@@ -32,7 +32,6 @@ function safeProviderError(status) {
 
 async function createDreamWifiVoucher({
   durationSeconds,
-  comment = "Dream Wi-Fi paid access",
   env = process.env,
   fetchImpl = globalThis.fetch
 } = {}) {
@@ -49,13 +48,14 @@ async function createDreamWifiVoucher({
     return {
       success: false,
       code: "provider_voucher_configuration_missing",
-      required: ["IRONWIFI_API_KEY", "IRONWIFI_WIFI_API_BASE_URL", "IRONWIFI_WIFI_TABLE_ID"]
+      required: ["IRONWIFI_API_KEY", "IRONWIFI_WIFI_API_BASE_URL"]
     };
   }
 
+  const companyPath = config.companyId ? `/${encodeURIComponent(config.companyId)}` : "";
   let response;
   try {
-    response = await fetchImpl(`${config.baseUrl}/vouchers`, {
+    response = await fetchImpl(`${config.baseUrl}${companyPath}/vouchers`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${config.apiKey}`,
@@ -63,10 +63,9 @@ async function createDreamWifiVoucher({
         Accept: "application/json"
       },
       body: JSON.stringify({
-        table_id: config.tableId,
-        duration,
-        count: 1,
-        comment: String(comment).slice(0, 120)
+        voucher_duration: duration,
+        voucher_redemption_limit: 1,
+        voucher_devices: 1
       })
     });
   } catch (_) {
@@ -88,16 +87,16 @@ async function createDreamWifiVoucher({
     return { success: false, code: "provider_invalid_response" };
   }
 
-  // Do not return provider payloads wholesale; only expose the minimum voucher
-  // fields needed by a future authenticated, post-payment customer flow.
   const voucher = payload && (
     payload.voucher ||
     (payload._embedded && Array.isArray(payload._embedded.vouchers) && payload._embedded.vouchers[0]) ||
     (Array.isArray(payload.vouchers) && payload.vouchers[0]) ||
     payload
   );
-  const code = voucher && typeof voucher.code === "string" ? voucher.code.trim() : "";
-  const id = voucher && typeof voucher.id === "string" ? voucher.id.trim() : "";
+  const codeValue = voucher && (voucher.code || voucher.voucher_code || voucher.username);
+  const code = typeof codeValue === "string" ? codeValue.trim() : "";
+  const idValue = voucher && voucher.id;
+  const id = typeof idValue === "string" || typeof idValue === "number" ? String(idValue).trim() : "";
 
   if (!code) {
     return { success: false, code: "provider_voucher_code_missing" };

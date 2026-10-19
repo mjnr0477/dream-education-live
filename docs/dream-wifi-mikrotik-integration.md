@@ -2,19 +2,19 @@
 
 ## Integration choice
 
-Dream Wi-Fi will use a compatible MikroTik hotspot/captive portal with IronWiFi handling identity and voucher provisioning (subject to the exact controller configuration supported by the IronWiFi tenant). Dream Education remains the package and payment orchestration layer. This does not create Wi-Fi coverage by itself: an authorized MikroTik controller/access point and internet uplink are required for a real connection.
+Dream Wi-Fi targets a compatible MikroTik hotspot/captive portal with IronWiFi handling identity and voucher provisioning, subject to the exact controller configuration supported by the IronWiFi tenant. Dream Education remains the package and payment orchestration layer. This does not create Wi-Fi coverage by itself: an authorized controller/access point and internet uplink are required for a real connection.
 
-## Provider adapter added
+## Provider adapter
 
-`product/dream_wifi_ironwifi.js` contains a fail-closed voucher-creation adapter based on IronWiFi's documented `POST /vouchers` request. It requests exactly one voucher for a duration in seconds and returns only the voucher code, identifier (if supplied), and duration. It does not expose provider response bodies or API keys.
+`product/dream_wifi_ironwifi.js` contains a fail-closed voucher-creation adapter using IronWiFi's documented `POST /api[/:company_id]/vouchers` endpoint and documented voucher fields: `voucher_duration`, `voucher_redemption_limit`, and `voucher_devices`. It requests exactly one device-limited voucher and returns only a minimal code, identifier (if supplied), and duration. It does not expose provider response bodies or API keys.
 
-The adapter is deliberately not wired to customer checkout yet. No voucher is created merely by viewing the dashboard or package list.
+The adapter is deliberately not wired to customer checkout or a public route. No voucher is created merely by viewing the dashboard or package list.
 
-## Server configuration needed before a controlled provider test
+## Server configuration before a controlled provider test
 
 - `IRONWIFI_API_KEY`: existing server-side IronWiFi API key (never put in frontend code).
-- `IRONWIFI_WIFI_API_BASE_URL`: the exact API base URL for the IronWiFi tenant/region; select it from the IronWiFi console/documentation. Do not guess the region.
-- `IRONWIFI_WIFI_TABLE_ID`: the table/group ID that the tenant's voucher API requires.
+- `IRONWIFI_WIFI_API_BASE_URL`: exact API base URL for the tenant's region, ending in `/api`. IronWiFi lists region-specific hosts; select the correct one from the console. Do not guess.
+- `IRONWIFI_WIFI_COMPANY_ID`: optional company/tenant ID for parent/MSP accounts. Leave unset for a single-tenant account if the provider docs confirm that applies.
 
 Do not set the voucher base URL from a browser or user request. Keep the existing `IRONWIFI_API_BASE_URL` used by read-only diagnostics unchanged until the provider's region and endpoint are confirmed.
 
@@ -29,7 +29,8 @@ Do not set the voucher base URL from a browser or user request. Keep the existin
 
 ## References
 
-- IronWiFi REST API: https://www.ironwifi.com/api/
-- IronWiFi REST API help article: https://help.ironwifi.com/portal/en/kb/articles/rest-api/
+- IronWiFi API endpoint reference: https://help.ironwifi.com/api/endpoints
+- IronWiFi REST API and regional base URLs: https://help.ironwifi.com/portal/en/kb/articles/rest-api/
+- IronWiFi voucher guide: https://help.ironwifi.com/portal/en/kb/articles/vouchers/
 - IronWiFi supported devices: https://help.ironwifi.com/supported-devices
 - IronWiFi captive portal setup: https://help.ironwifi.com/user-guide/captive-portals
