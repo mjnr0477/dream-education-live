@@ -155,7 +155,7 @@
         const providerStatus = dashboard.querySelector("[data-wifi-provider-status]");
         if (providerStatus) {
           if (response.ok && result && result.success === true) {
-            providerStatus.textContent = "API connected — checking network setup";
+            providerStatus.textContent = "API connected · " + (result.network_configured ? "network configured" : "no network configured") + " · " + (result.captive_portal_configured ? "portal configured" : "no portal configured");
           } else if (result && result.code === "invalid_api_key") {
             providerStatus.textContent = "API key rejected";
           } else if (result && result.code === "insufficient_permissions") {
