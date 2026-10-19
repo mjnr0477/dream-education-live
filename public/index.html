@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="/teacher-workspace.css?v=20261012a">
   <link rel="stylesheet" href="/meetings-workspace.css?v=20261012a">
   <link rel="stylesheet" href="/dream-search.css?v=20261011d">
-  <link rel="stylesheet" href="/dream-wifi.css?v=20261019a">
+  <link rel="stylesheet" href="/dream-wifi.css?v=20261019b">
   <link rel="stylesheet" href="/nextgen-visual.css?v=20261011a">
   <link rel="stylesheet" href="/school-workspace.css?v=20261015a">
   <link rel="stylesheet" href="/parent-workspace.css?v=20261013b">
@@ -164,6 +164,15 @@
             <div class="dream-wifi-next">
               <strong>Next technical gate:</strong> identify a provider with an authorized API or SDK, participating hotspot coverage, and terms that require no upfront payment or minimum commitment. Then test authentication and session expiry before enabling packages.
             </div>
+            <div class="dream-wifi-provider-test">
+              <div>
+                <strong>Manual OpenRoaming profile test</strong>
+                <p>Use the provider's own setup page on a compatible phone to check whether a real participating Wi-Fi connection is available. This is an external provider test, not a Dream API integration, and it does not create paid packages.</p>
+              </div>
+              <button class="dream-wifi-open dream-wifi-provider-link" id="dream-wifi-provider-test" type="button">
+                Open provider setup ↗
+              </button>
+            </div>
             <p class="dream-wifi-footnote" id="dream-wifi-owner-status" aria-live="polite">Owner preview enabled for this signed-in browser.</p>
           </div>
         </div>
@@ -232,7 +241,7 @@
   </div>
 
   <script src="/app.js?v=20261019b"></script>
-  <script src="/dream-wifi.js?v=20261019b"></script>
+  <script src="/dream-wifi.js?v=20261019c"></script>
   <script src="/books-reading.js?v=20261018a"></script>
   <script src="/dream-search.js?v=20261011b"></script>
   <script src="/frontend-workspace.js?v=20261019a"></script>
