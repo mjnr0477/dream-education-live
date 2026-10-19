@@ -5739,26 +5739,21 @@ app.get("/api/dream-wifi/owner-status", async (req, res) => {
       });
     }
 
-    const providerConfigured = Boolean(
-      process.env.DREAM_WIFI_PROVIDER_API_URL &&
-      process.env.DREAM_WIFI_PROVIDER_API_KEY
-    );
+    const providerConfigured = Boolean(process.env.IRONWIFI_API_KEY);
 
     return res.json({
       success: true,
       owner: true,
       provider_configured: providerConfigured,
-      provider: providerConfigured
-        ? String(process.env.DREAM_WIFI_PROVIDER || "configured-provider")
-        : null,
+      provider: providerConfigured ? "IronWiFi" : null,
       live_access_enabled: false,
       packages_enabled: false,
       status: providerConfigured
-        ? "provider_configured_but_not_verified"
+        ? "provider_configured_pending_api_test"
         : "provider_not_configured",
       message: providerConfigured
-        ? "Provider credentials are present, but live access remains disabled until an end-to-end connection test passes."
-        : "No authorized Wi-Fi provider is configured yet. Live access and packages remain disabled."
+        ? "IronWiFi credentials are present. Run the server-side API test; live access and packages remain disabled until network authorization and an end-to-end session test pass."
+        : "IronWiFi API key is not configured on the server. Live access and packages remain disabled."
     });
   } catch (error) {
     console.error("Dream Wi-Fi owner-status check failed:", error);
@@ -5766,6 +5761,117 @@ app.get("/api/dream-wifi/owner-status", async (req, res) => {
       success: false,
       owner: false,
       error: "Dream Wi-Fi status is temporarily unavailable."
+    });
+  }
+});
+
+// Owner-only, read-only IronWiFi API connectivity test.
+// This checks API authentication and user-list permission without returning provider data,
+// creating users, changing network configuration, or enabling customer access.
+app.get("/api/dream-wifi/provider-test", async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  const authorization = String(req.get("authorization") || "");
+  const match = authorization.match(/^Bearer\s+(.+)$/i);
+
+  if (!match) {
+    return res.status(401).json({
+      success: false,
+      error: "A valid Dream Education session is required."
+    });
+  }
+
+  try {
+    const { data, error } = await supabaseAuth.auth.getUser(match[1].trim());
+    const user = data && data.user ? data.user : null;
+    if (error || !user) {
+      return res.status(401).json({
+        success: false,
+        error: "Your Dream Education session is invalid or expired."
+      });
+    }
+    if (!isOwnerAccount({ email: user.email })) {
+      return res.status(403).json({
+        success: false,
+        error: "Owner access is required."
+      });
+    }
+
+    const apiKey = String(process.env.IRONWIFI_API_KEY || "").trim();
+    if (!apiKey) {
+      return res.status(503).json({
+        success: false,
+        provider: "IronWiFi",
+        code: "provider_not_configured",
+        message: "IRONWIFI_API_KEY is missing from the server environment."
+      });
+    }
+
+    const baseUrl = String(
+      process.env.IRONWIFI_API_BASE_URL || "https://console.ironwifi.com/api"
+    ).trim().replace(/\/+$/, "");
+    let upstream;
+    try {
+      upstream = await fetch(baseUrl + "/users?page=1&page_size=1", {
+        method: "GET",
+        headers: {
+          Authorization: "Bearer " + apiKey,
+          Accept: "application/hal+json, application/json"
+        },
+        cache: "no-store",
+        signal: AbortSignal.timeout(10000)
+      });
+    } catch (_) {
+      return res.status(502).json({
+        success: false,
+        provider: "IronWiFi",
+        code: "provider_unreachable",
+        message: "Dream could not reach IronWiFi. Check the API base URL and try again."
+      });
+    }
+
+    if (upstream.body && typeof upstream.body.cancel === "function") {
+      await upstream.body.cancel().catch(() => {});
+    }
+
+    if (upstream.status === 401) {
+      return res.status(502).json({
+        success: false,
+        provider: "IronWiFi",
+        code: "invalid_api_key",
+        message: "IronWiFi rejected the API key. Check the key in Render without sharing it."
+      });
+    }
+    if (upstream.status === 403) {
+      return res.status(502).json({
+        success: false,
+        provider: "IronWiFi",
+        code: "insufficient_permissions",
+        message: "The key was recognized, but its role does not have permission to list users."
+      });
+    }
+    if (!upstream.ok) {
+      return res.status(502).json({
+        success: false,
+        provider: "IronWiFi",
+        code: "provider_api_error",
+        message: "IronWiFi returned HTTP " + upstream.status + ". Check the account region and API documentation."
+      });
+    }
+
+    return res.json({
+      success: true,
+      provider: "IronWiFi",
+      authenticated: true,
+      user_list_permission: true,
+      live_access_enabled: false,
+      packages_enabled: false,
+      message: "IronWiFi API authentication succeeded. This read-only test does not confirm hotspot coverage, network authorization, captive portal configuration, or package/payment readiness."
+    });
+  } catch (error) {
+    console.error("Dream Wi-Fi provider test failed:", error);
+    return res.status(503).json({
+      success: false,
+      error: "Dream Wi-Fi provider test is temporarily unavailable."
     });
   }
 });

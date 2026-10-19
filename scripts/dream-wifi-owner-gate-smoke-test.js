@@ -16,6 +16,16 @@ assert.match(server, /status\(401\)\.json/);
 assert.match(server, /status\(403\)\.json/);
 assert.match(server, /live_access_enabled:\s*false/);
 assert.match(server, /packages_enabled:\s*false/);
+assert.match(server, /app\.get\(["']\/api\/dream-wifi\/provider-test["']/);
+assert.match(server, /process\.env\.IRONWIFI_API_KEY/);
+assert.match(server, /https:\/\/console\.ironwifi\.com\/api/);
+assert.match(server, /Authorization:\s*"Bearer " \+ apiKey/);
+assert.match(server, /insufficient_permissions/);
+assert.match(server, /invalid_api_key/);
+assert.match(server, /user_list_permission:\s*true/);
+assert.match(client, /fetch\(["']\/api\/dream-wifi\/provider-test["']/);
+assert.match(client, /Test(ing)? API/);
+
 assert.match(client, /fetch\(["']\/api\/dream-wifi\/owner-status["']/);
 assert.match(client, /Authorization:\s*["']Bearer ["']\s*\+\s*token/);
 assert.doesNotMatch(client, /mathiassimiyu52@gmail\.com/i);
