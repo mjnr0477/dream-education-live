@@ -11,6 +11,7 @@
     } catch (_) { return ""; }
   }
   function show(id, value) { const node = el(id); if (node) node.textContent = value; }
+  function recordCheckTime() { show("wifi-last-check", "Last provider check: " + new Date().toLocaleString()); }
   async function ownerCheck() {
     const accessToken = token();
     if (!accessToken) {
@@ -37,6 +38,7 @@
   async function runCheck() {
     if (!button) return;
     button.disabled = true;
+    recordCheckTime();
     const original = "Check provider setup";
     button.textContent = "Checking…";
     try {
@@ -47,11 +49,15 @@
       if (!response.ok || !result || result.success !== true) {
         show("wifi-api-state", result && result.code === "invalid_api_key" ? "API key rejected" : result && result.code === "insufficient_permissions" ? "Permissions required" : result && result.code === "provider_not_configured" ? "API key missing" : "Provider check failed");
         show("wifi-api-check", result && result.code === "invalid_api_key" ? "Key rejected" : result && result.code === "insufficient_permissions" ? "Permissions required" : result && result.code === "provider_not_configured" ? "Server key missing" : "Not verified");
+        show("wifi-network-count", "Not available");
+        show("wifi-portal-count", "Not available");
         show("wifi-message", result && result.message ? result.message : "Provider check failed. Review server-side provider configuration.");
         return;
       }
       show("wifi-api-state", "API connected");
       show("wifi-api-check", "Connected");
+      show("wifi-network-count", result.network_count === null || result.network_count === undefined ? "Unknown" : String(result.network_count));
+      show("wifi-portal-count", result.captive_portal_count === null || result.captive_portal_count === undefined ? "Unknown" : String(result.captive_portal_count));
       show("wifi-network-check", result.network_configured ? "Configured" : "Create network in IronWiFi");
       show("wifi-portal-check", result.captive_portal_configured ? "Configured" : "Create captive portal in IronWiFi");
       show("wifi-network-state", result.network_configured && result.captive_portal_configured ? "Network and portal configured" : "Configuration incomplete");
@@ -61,6 +67,8 @@
     } catch (_) {
       show("wifi-api-state", "Provider unreachable");
       show("wifi-api-check", "Connection failed");
+      show("wifi-network-count", "Not available");
+      show("wifi-portal-count", "Not available");
       show("wifi-message", "Could not reach the Dream Wi-Fi provider check. Please try again.");
     } finally {
       button.disabled = false;
