@@ -74,4 +74,11 @@ assert.match(client, /Ready for authorized device test/);
 assert.match(page, /data-wifi-access-status/);
 assert.match(page, /data-wifi-package-status/);
 
+assert.match(server, /registerDreamWifiPackageRoutes\(app\)/);
+assert.match(server, /\.\/product\/dream_wifi_packages/);
+assert.match(standalone, /id="wifi-package-grid"/);
+assert.match(standalone, /id="wifi-package-message"/);
+assert.match(standaloneClient, /fetch\("\/api\/dream-wifi\/packages"/);
+assert.match(standaloneClient, /Not available yet/);
+
 console.log("Dream Wi-Fi owner-gate smoke test passed.");

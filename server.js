@@ -5927,6 +5927,9 @@ app.get("/api/dream-wifi/provider-test", async (req, res) => {
   }
 });
 
+const { registerDreamWifiPackageRoutes } = require("./product/dream_wifi_packages");
+registerDreamWifiPackageRoutes(app);
+
 registerDreamInvestAccessRoutes(app, { getAuthenticatedAccount });
 registerDreamInvestRoutes(app, { getAuthenticatedAccount });
 registerDreamSearchRoutes(app, { getAuthenticatedAccount, isOwnerAccount });
