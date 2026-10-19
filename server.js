@@ -54,7 +54,7 @@ const { createClient } = require("@supabase/supabase-js");
 const app = express();
 // Render runs behind one trusted reverse proxy in production. Do not trust
 // forwarded client-IP headers in local/development mode.
-app.set("trust proxy", process.env.NODE_ENV === "production" ? 1 : false);
+app.set("trust proxy", process.env.RENDER === "true" || process.env.NODE_ENV === "production" ? 1 : false);
 // Register API-wide controls before any route handlers so every /api/v1
 // route receives the same request ID, rate limit, and request-size checks.
 app.use("/api/v1", requestId, rateLimit({ windowMs: 60_000, max: 120, prefix: "gli" }));
