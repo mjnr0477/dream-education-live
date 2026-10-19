@@ -30,6 +30,7 @@ const { listLearnerEvidence } = require("./product/gli/evidence_ledger");
 const { recordAdaptiveDecision } = require("./product/gli/adaptive_decision_evidence");
 
 const express = require("express");
+const { rateLimit, requestId, validateBodySize } = require("./product/gli/production_security");
 const {
   getMetrics,
   addActivity,
@@ -54,6 +55,10 @@ const app = express();
 // Render runs behind one trusted reverse proxy in production. Do not trust
 // forwarded client-IP headers in local/development mode.
 app.set("trust proxy", process.env.NODE_ENV === "production" ? 1 : false);
+// Register API-wide controls before any route handlers so every /api/v1
+// route receives the same request ID, rate limit, and request-size checks.
+app.use("/api/v1", requestId, rateLimit({ windowMs: 60_000, max: 120, prefix: "gli" }));
+app.use("/api/v1", validateBodySize(768 * 1024));
 const PORT = process.env.PORT || 3000;
 
 const AI_MODE = process.env.AI_MODE || "live";
@@ -10326,7 +10331,6 @@ const {
   buildLearnerIntelligenceFromEvidence,
   getLearnerDecisionHistory
 } = require("./product/gli/gli_intelligence_service");
-const { rateLimit, requestId, validateBodySize } = require("./product/gli/production_security");
 const { accountId, requireTenantRole } = require("./product/gli/tenant_access");
 const { recordLearningEvent, getLearningEvaluation } = require("./product/gli/telemetry_engine");
 const { createApiKey, authenticateApiKey, revokeApiKey } = require("./product/gli/developer_api");
@@ -10364,9 +10368,6 @@ async function getLearnerIntelligenceData(learnerId) {
   const profile = buildLearningProfile({ learner, history, assessments });
   return { learner, history, assessments, profile };
 }
-
-app.use("/api/v1", requestId, rateLimit({ windowMs: 60_000, max: 120, prefix: "gli" }));
-app.use("/api/v1", validateBodySize(768 * 1024));
 
 app.get("/api/v1/platform/manifest", (req, res) => {
   res.json({ success: true, platform: getPlatformManifest() });
