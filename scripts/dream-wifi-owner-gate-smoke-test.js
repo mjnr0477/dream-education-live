@@ -40,7 +40,7 @@ assert.match(standalone, /Internet access,/);
 assert.match(standalone, /id="wifi-test"/);
 assert.match(standalone, /id="wifi-connect"/);
 assert.match(standalone, />Connect<\/button>/);
-assert.match(standaloneClient, /id\("wifi-connect"\)/);
+assert.match(standaloneClient, /el\("wifi-connect"\)/);
 assert.match(standaloneClient, /android\.settings\.WIFI_SETTINGS/);
 assert.match(standaloneClient, /If no network appears/);
 assert.match(standalone, /id="wifi-network-count"/);
