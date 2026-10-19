@@ -33,6 +33,8 @@ assert.match(client, /fetch\(["']\/api\/dream-wifi\/provider-test["']/);
 assert.match(page, /Check network setup/);
 assert.match(page, /class="dream-wifi-nav-setup"/);
 assert.match(page, /Open setup \/ sign in/);
+assert.equal((page.match(/class="dream-wifi-nav-popover"/g) || []).length, 2, "Desktop and mobile Dream Wi-Fi actions must share a contained popover.");
+assert.match(fs.readFileSync(path.join(root, "public", "dream-wifi.css"), "utf8"), /\.dream-wifi-nav-popover/);
 assert.match(client, /querySelectorAll\("\.dream-wifi-nav-setup"\)/);
 assert.match(client, /section\.scrollIntoView\(\{ behavior: "smooth", block: "start" \}\)/);
 assert.match(client, /data-panel="signin"/);
