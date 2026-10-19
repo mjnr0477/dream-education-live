@@ -28,7 +28,7 @@ assert.match(server, /network_configured:\s*hasNetwork/);
 assert.match(server, /captive_portal_configured:\s*hasPortal/);
 assert.match(server, /ready_for_hardware_test:\s*readyForHardwareTest/);
 assert.match(client, /fetch\(["']\/api\/dream-wifi\/provider-test["']/);
-assert.match(client, /Check network setup/);
+assert.match(page, /Check network setup/);
 
 assert.match(client, /fetch\(["']\/api\/dream-wifi\/owner-status["']/);
 assert.match(client, /Authorization:\s*["']Bearer ["']\s*\+\s*token/);
