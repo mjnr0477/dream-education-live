@@ -33,4 +33,12 @@ assert.match(landingCss, /body\.menu-open\s+\.mobile-drawer/, "tablet navigation
 assert.match(landingCss, /:where\(button, a, input, textarea, select, summary, \[tabindex\]\):focus-visible/, "site-wide keyboard focus must be visible.");
 assert.match(landingCss, /prefers-reduced-motion:\s*reduce/, "the whole application must honor reduced-motion preferences.");
 
+
+const landingIndex = fs.readFileSync(path.join(root, "public/index.html"), "utf8");
+const landingApp = fs.readFileSync(path.join(root, "public/app.js"), "utf8");
+assert.match(landingIndex, /class="mobile-menu"[^>]*aria-controls="mobile-drawer"[^>]*aria-expanded="false"/, "mobile menu button must expose its controlled drawer and initial state.");
+assert.match(landingIndex, /id="mobile-drawer"[^>]*aria-hidden="true"[^>]*inert/, "closed mobile drawer must be hidden from assistive technology and keyboard focus.");
+assert.match(landingApp, /function setMenuOpen\(isOpen\)[\s\S]*?mobileDrawer\.inert = !open[\s\S]*?mobileMenu\.setAttribute\("aria-expanded", String\(open\)\)/, "mobile drawer state must synchronize inert and aria-expanded when opened and closed.");
+assert.match(landingApp, /function toggleMenu\(\)\s*\{\s*setMenuOpen\(!document\.body\.classList\.contains\("menu-open"\)\);\s*\}/, "mobile menu toggling must use the synchronized state helper.");
+
 console.log("Workspace accessibility smoke test passed.");
