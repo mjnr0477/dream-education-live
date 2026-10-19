@@ -38,6 +38,10 @@ const standaloneClient = fs.readFileSync(path.join(root, "public", "dream-wifi-p
 assert.match(standalone, /Internet access,/);
 assert.match(standalone, /id="wifi-test"/);
 assert.match(standalone, /id="wifi-hardware-check"/);
+assert.match(standalone, /Connect a real existing hotspot/);
+assert.match(standalone, /https:\/\/help\.ironwifi\.com\/supported-devices/);
+assert.match(standalone, /https:\/\/help\.ironwifi\.com\/user-guide\/captive-portals/);
+assert.match(standalone, /network owner must approve Dream/);
 assert.match(standaloneClient, /fetch\("\/api\/dream-wifi\/provider-test"/);
 assert.match(standaloneClient, /fetch\("\/api\/dream-wifi\/owner-status"/);
 assert.match(standaloneClient, /live internet access/);
