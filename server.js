@@ -5938,6 +5938,44 @@ app.get("/api/dream-wifi/provider-test", async (req, res) => {
   }
 });
 
+// Owner-only, read-only Cisco Meraki API check. Never changes network settings or activates access.
+app.get("/api/dream-wifi/meraki-test", async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  const authorization = String(req.get("authorization") || "");
+  const match = authorization.match(/^Bearer\\s+(.+)$/i);
+  if (!match) {
+    return res.status(401).json({ success: false, error: "A valid Dream Education session is required." });
+  }
+  try {
+    const { data, error } = await supabaseAuth.auth.getUser(match[1].trim());
+    const user = data && data.user ? data.user : null;
+    if (error || !user) {
+      return res.status(401).json({ success: false, error: "Your Dream Education session is invalid or expired." });
+    }
+    if (!isOwnerAccount({ email: user.email })) {
+      return res.status(403).json({ success: false, error: "Owner access is required." });
+    }
+    const { checkMerakiReadiness } = require("./product/dream_wifi_meraki");
+    const result = await checkMerakiReadiness();
+    if (!result.success) {
+      const status = result.code === "provider_not_configured" ? 503
+        : result.code === "provider_unreachable" ? 502
+        : result.code === "insufficient_permissions" ? 502
+        : 502;
+      return res.status(status).json(result);
+    }
+    return res.json(result);
+  } catch (error) {
+    console.error("Dream Wi-Fi Meraki readiness check failed:", error);
+    return res.status(503).json({
+      success: false,
+      provider: "Cisco Meraki",
+      code: "provider_check_unavailable",
+      message: "Dream could not complete the Meraki API check. Live access and packages remain disabled."
+    });
+  }
+});
+
 const { registerDreamWifiPackageRoutes } = require("./product/dream_wifi_packages");
 registerDreamWifiPackageRoutes(app);
 
