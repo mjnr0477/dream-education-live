@@ -51,6 +51,9 @@ const { buildLearningOutcomeSummary } = require("./product/gli/outcome_intellige
 const { createClient } = require("@supabase/supabase-js");
 
 const app = express();
+// Render runs behind one trusted reverse proxy in production. Do not trust
+// forwarded client-IP headers in local/development mode.
+app.set("trust proxy", process.env.NODE_ENV === "production" ? 1 : false);
 const PORT = process.env.PORT || 3000;
 
 const AI_MODE = process.env.AI_MODE || "live";
@@ -60,8 +63,9 @@ const AI_MODE = process.env.AI_MODE || "live";
 const authRateLimitStore = new Map();
 
 function getClientAddress(req) {
-  const forwarded = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim();
-  return forwarded || req.socket?.remoteAddress || "unknown";
+  // Use Express's resolved address so raw, user-supplied forwarding headers
+  // cannot be used to rotate the authentication rate-limit key.
+  return String(req.ip || req.socket?.remoteAddress || "unknown");
 }
 
 function checkAuthRateLimit(req, action) {
