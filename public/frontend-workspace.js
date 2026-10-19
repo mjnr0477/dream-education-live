@@ -169,7 +169,7 @@
     } else if (type === "video" && embedUrl) {
       media = '<div class="de-feed-media"><iframe src="' + escapeHTML(embedUrl) + '" title="' + escapeHTML(title) + '" loading="lazy" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>';
     } else if (type === "video" && mediaUrl) {
-      media = '<div class="de-feed-media"><video controls playsinline preload="metadata" src="' + escapeHTML(mediaUrl) + '" data-resource-media="video"></video></div>';
+      media = '<div class="de-feed-media"><video controls muted playsinline preload="metadata" src="' + escapeHTML(mediaUrl) + '" data-resource-media="video" aria-label="' + escapeHTML(title) + '"></video></div>';
     } else if (type === "experiment" && embedUrl) {
       media = '<div class="de-feed-media de-feed-experiment"><iframe src="' + escapeHTML(embedUrl) + '" title="' + escapeHTML(title) + '" loading="lazy" allow="fullscreen; accelerometer; clipboard-write" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>';
     }
@@ -198,6 +198,39 @@
         const complete = card.querySelector("[data-resource-complete]");
         if (complete) { complete.disabled = true; complete.textContent = "Completed ✓"; }
       }, { once: true });
+    });
+  }
+
+  function wireFeedPlayback(container) {
+    if (!container) return;
+    const feed = container.querySelector(".de-learning-feed");
+    if (!feed) return;
+
+    if (window.__dreamFeedObserver) window.__dreamFeedObserver.disconnect();
+    const videos = feed.querySelectorAll('video[data-resource-media="video"]');
+    if (!("IntersectionObserver" in window)) return;
+
+    window.__dreamFeedObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        const video = entry.target.querySelector('video[data-resource-media="video"]');
+        if (!video) return;
+        if (entry.isIntersecting && entry.intersectionRatio >= 0.65) {
+          feed.querySelectorAll('video[data-resource-media="video"]').forEach(function (other) {
+            if (other !== video) other.pause();
+          });
+          video.muted = true;
+          const playback = video.play();
+          if (playback && typeof playback.catch === "function") playback.catch(function () {});
+          entry.target.setAttribute("data-feed-active", "true");
+        } else {
+          video.pause();
+          entry.target.removeAttribute("data-feed-active");
+        }
+      });
+    }, { root: feed, threshold: [0, 0.35, 0.65, 0.9] });
+
+    feed.querySelectorAll(".de-feed-card").forEach(function (card) {
+      window.__dreamFeedObserver.observe(card);
     });
   }
 
@@ -360,6 +393,7 @@
         if (sequence !== searchSequence) return;
         results.innerHTML = renderResourceResults(data);
         wireResourceMediaCompletion(results);
+        wireFeedPlayback(results);
       } catch (error) {
         if (sequence !== searchSequence) return;
         results.innerHTML = '<div class="de-error"><strong>Feed search failed.</strong><p>' +
