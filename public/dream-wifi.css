@@ -103,52 +103,12 @@
 }
 
 
-/* Public Dream Wi-Fi entry point: small green, accessible to every visitor. */
-.dream-wifi-public-cta {
-  display: flex;
-  justify-content: center;
-  padding: 0 16px 18px;
-}
-.dream-wifi-public-cta details {
-  width: fit-content;
-  max-width: min(100%, 420px);
-}
-.dream-wifi-public-cta summary {
-  list-style: none;
-  cursor: pointer;
+/* Dream WiFi is available from the navigation beside Sign in, not as a landing-page section. */
+.dream-wifi-nav-details {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  padding: 8px 14px;
-  border: 1px solid rgba(134, 239, 172, .45);
-  border-radius: 999px;
-  background: #16a34a;
-  color: #fff;
-  font-size: .82rem;
-  font-weight: 750;
-  line-height: 1.2;
-  box-shadow: 0 5px 16px rgba(22, 163, 74, .18);
 }
-.dream-wifi-public-cta summary::-webkit-details-marker { display: none; }
-.dream-wifi-public-cta summary:hover { background: #15803d; }
-.dream-wifi-public-cta summary:focus-visible {
-  outline: 3px solid #86efac;
-  outline-offset: 3px;
-}
-.dream-wifi-public-cta details[open] summary { margin-bottom: 10px; }
-.dream-wifi-public-cta p {
-  max-width: 420px;
-  margin: 0;
-  padding: 12px 14px;
-  border: 1px solid rgba(134, 239, 172, .25);
-  border-radius: 12px;
-  background: rgba(20, 83, 45, .18);
-  color: #d1fae5;
-  font-size: .85rem;
-  line-height: 1.55;
-}
-
-/* Keep Dream WiFi discoverable from the primary desktop and mobile navigation. */
 .dream-wifi-nav-link {
   display: inline-flex;
   align-items: center;
@@ -166,16 +126,48 @@
   text-decoration: none;
   white-space: nowrap;
   box-shadow: 0 4px 14px rgba(22, 163, 74, .18);
+  list-style: none;
+  cursor: pointer;
 }
+.dream-wifi-nav-link::-webkit-details-marker { display: none; }
 .dream-wifi-nav-link:hover { background: #15803d; }
 .dream-wifi-nav-link:focus-visible {
   outline: 3px solid #86efac;
   outline-offset: 3px;
 }
-.dream-wifi-mobile-link {
-  align-self: stretch;
-  justify-content: flex-start;
-  min-height: 44px;
+.dream-wifi-nav-details > p {
+  position: absolute;
+  z-index: 1000;
+  top: calc(100% + 10px);
+  right: 0;
+  width: min(300px, calc(100vw - 32px));
+  margin: 0;
   padding: 12px 14px;
+  border: 1px solid rgba(134, 239, 172, .3);
   border-radius: 12px;
+  background: #101b17;
+  color: #d1fae5;
+  font-size: .85rem;
+  line-height: 1.55;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .35);
+}
+.dream-wifi-mobile-details { display: none; }
+@media (max-width: 700px) {
+  .dream-wifi-mobile-details {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    align-self: stretch;
+  }
+  .dream-wifi-mobile-details .dream-wifi-nav-link {
+    justify-content: flex-start;
+    min-height: 44px;
+    padding: 12px 14px;
+    border-radius: 12px;
+  }
+  .dream-wifi-mobile-details > p {
+    position: static;
+    width: auto;
+    margin-top: 8px;
+  }
 }
