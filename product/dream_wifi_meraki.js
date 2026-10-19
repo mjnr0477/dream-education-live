@@ -26,7 +26,8 @@ async function checkMerakiReadiness({
     return { success: false, code: "fetch_unavailable", message: "HTTP fetch is unavailable on this server." };
   }
 
-  const baseUrl = String(env.MERAKI_DASHBOARD_API_BASE_URL || "https://api.meraki.com/api/v1").trim().replace(/\\/+$/, "");
+  let baseUrl = String(env.MERAKI_DASHBOARD_API_BASE_URL || "https://api.meraki.com/api/v1").trim();
+  while (baseUrl.endsWith("/")) baseUrl = baseUrl.slice(0, -1);
   if (!/^https:\/\/(api\.meraki\.com|api\.meraki\.ca|api\.meraki\.cn|api\.meraki\.in|api\.gov-meraki\.com)\/api\/v1$/i.test(baseUrl)) {
     return { success: false, code: "invalid_api_base_url", message: "The Meraki API base URL must be an official Cisco Meraki Dashboard API v1 endpoint." };
   }
