@@ -3117,3 +3117,68 @@ body.panel-open .experience-panel{
 @media (prefers-reduced-motion: reduce) {
   .de-learning-feed { scroll-behavior: auto; }
 }
+
+
+/* Responsive navigation and site-wide accessibility polish. */
+@media (min-width: 651px) and (max-width: 900px) {
+  .navbar { padding-left: 28px; padding-right: 28px; }
+  .nav-right { display: none; }
+  .mobile-menu { display: flex; flex: 0 0 42px; }
+  .mobile-drawer {
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    top: 74px;
+    right: 24px;
+    left: auto;
+    width: min(340px, calc(100vw - 48px));
+    z-index: 70;
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: rgba(15,17,25,.97);
+    backdrop-filter: blur(20px);
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+    transition: opacity .25s ease, transform .25s ease;
+  }
+  body.menu-open .mobile-drawer {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  .mobile-drawer button {
+    min-height: 48px;
+    padding: 13px 15px;
+    border-radius: 13px;
+    background: transparent;
+    color: white;
+    text-align: left;
+  }
+  .mobile-drawer button:hover { background: rgba(255,255,255,.06); }
+  .mobile-drawer .drawer-start {
+    margin-top: 4px;
+    background: var(--accent);
+    color: #08090d;
+    font-weight: 800;
+  }
+}
+
+/* Keep keyboard navigation visible across the landing page and all workspaces. */
+:where(button, a, input, textarea, select, summary, [tabindex]):focus-visible {
+  outline: 3px solid var(--accent, #dfff63);
+  outline-offset: 3px;
+}
+
+/* Honor the visitor's motion preference across the full application. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto !important; }
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}
