@@ -5809,9 +5809,11 @@ app.get("/api/dream-wifi/provider-test", async (req, res) => {
     const baseUrl = String(
       process.env.IRONWIFI_API_BASE_URL || "https://console.ironwifi.com/api"
     ).trim().replace(/\/+$/, "");
-    let upstream;
-    try {
-      upstream = await fetch(baseUrl + "/users?page=1&page_size=1", {
+
+    // Read only network and captive-portal metadata. These are the two
+    // configuration objects required before an actual hotspot can be tested.
+    async function readCollection(pathname, collectionName) {
+      const upstream = await fetch(baseUrl + pathname, {
         method: "GET",
         headers: {
           Authorization: "Bearer " + apiKey,
@@ -5820,6 +5822,41 @@ app.get("/api/dream-wifi/provider-test", async (req, res) => {
         cache: "no-store",
         signal: AbortSignal.timeout(10000)
       });
+
+      if (!upstream.ok) {
+        if (upstream.body && typeof upstream.body.cancel === "function") {
+          await upstream.body.cancel().catch(() => {});
+        }
+        return { ok: false, status: upstream.status };
+      }
+
+      let payload = null;
+      try {
+        payload = await upstream.json();
+      } catch (_) {
+        return { ok: false, status: 502 };
+      }
+
+      const embedded = payload && payload._embedded;
+      const values = embedded && Array.isArray(embedded[collectionName])
+        ? embedded[collectionName]
+        : Array.isArray(payload) ? payload : null;
+      const total = payload && Number.isFinite(Number(payload.total_items))
+        ? Number(payload.total_items)
+        : payload && payload.page && Number.isFinite(Number(payload.page.totalElements))
+          ? Number(payload.page.totalElements)
+          : values ? values.length : null;
+
+      return { ok: true, count: total };
+    }
+
+    let networkResult;
+    let portalResult;
+    try {
+      [networkResult, portalResult] = await Promise.all([
+        readCollection("/networks?page=1&page_size=1", "networks"),
+        readCollection("/captive-portals?page=1&page_size=1", "captive-portals")
+      ]);
     } catch (_) {
       return res.status(502).json({
         success: false,
@@ -5829,43 +5866,52 @@ app.get("/api/dream-wifi/provider-test", async (req, res) => {
       });
     }
 
-    if (upstream.body && typeof upstream.body.cancel === "function") {
-      await upstream.body.cancel().catch(() => {});
-    }
-
-    if (upstream.status === 401) {
-      return res.status(502).json({
-        success: false,
-        provider: "IronWiFi",
-        code: "invalid_api_key",
-        message: "IronWiFi rejected the API key. Check the key in Render without sharing it."
-      });
-    }
-    if (upstream.status === 403) {
-      return res.status(502).json({
-        success: false,
-        provider: "IronWiFi",
-        code: "insufficient_permissions",
-        message: "The key was recognized, but its role does not have permission to list users."
-      });
-    }
-    if (!upstream.ok) {
+    const failed = [networkResult, portalResult].find((item) => !item.ok);
+    if (failed) {
+      if (failed.status === 401) {
+        return res.status(502).json({
+          success: false,
+          provider: "IronWiFi",
+          code: "invalid_api_key",
+          message: "IronWiFi rejected the API key. Check the key in Render without sharing it."
+        });
+      }
+      if (failed.status === 403) {
+        return res.status(502).json({
+          success: false,
+          provider: "IronWiFi",
+          code: "insufficient_permissions",
+          message: "The key was recognized, but its role needs read permission for networks and captive portals."
+        });
+      }
       return res.status(502).json({
         success: false,
         provider: "IronWiFi",
         code: "provider_api_error",
-        message: "IronWiFi returned HTTP " + upstream.status + ". Check the account region and API documentation."
+        message: "IronWiFi returned an error while checking network configuration (HTTP " + failed.status + "). Check the account region and API permissions."
       });
     }
+
+    const hasNetwork = networkResult.count === null || networkResult.count > 0;
+    const hasPortal = portalResult.count === null || portalResult.count > 0;
+    const readyForHardwareTest = hasNetwork && hasPortal;
 
     return res.json({
       success: true,
       provider: "IronWiFi",
       authenticated: true,
-      user_list_permission: true,
+      network_count: networkResult.count,
+      captive_portal_count: portalResult.count,
+      network_configured: hasNetwork,
+      captive_portal_configured: hasPortal,
+      ready_for_hardware_test: readyForHardwareTest,
       live_access_enabled: false,
       packages_enabled: false,
-      message: "IronWiFi API authentication succeeded. This read-only test does not confirm hotspot coverage, network authorization, captive portal configuration, or package/payment readiness."
+      message: !hasNetwork
+        ? "IronWiFi API access works, but no network is configured yet. Create a network in IronWiFi, then connect an authorized hotspot/controller before testing a real device."
+        : !hasPortal
+          ? "An IronWiFi network exists, but no captive portal is configured. Create a portal and link it to the network, then configure an authorized hotspot/controller."
+          : "IronWiFi has network and captive-portal configuration. This still does not prove a physical hotspot is connected or authorized; test a device on the actual access point before enabling packages."
     });
   } catch (error) {
     console.error("Dream Wi-Fi provider test failed:", error);
