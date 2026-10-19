@@ -117,6 +117,14 @@
     });
   }
 
+  const providerTestButton = document.getElementById("dream-wifi-provider-test");
+  if (providerTestButton) {
+    providerTestButton.addEventListener("click", function () {
+      // Open the provider's public profile setup from a direct user gesture.
+      window.open("https://osu.ironwifi.com/onlinesignup", "_blank", "noopener,noreferrer");
+    });
+  }
+
   window.addEventListener("storage", syncVisibility);
   window.addEventListener("dream-education-auth-changed", syncVisibility);
   syncVisibility();
