@@ -4,6 +4,7 @@
   const el = (id) => document.getElementById(id);
   const button = el("wifi-test");
   const connectButton = el("wifi-connect");
+  const merakiButton = el("wifi-meraki-test");
   let ownerVerified = false;
 
   function token() {
@@ -142,7 +143,45 @@
     }
   }
 
+  async function runMerakiCheck() {
+    if (!merakiButton) return;
+    merakiButton.disabled = true;
+    const original = "Check Meraki API";
+    merakiButton.textContent = "Checking…";
+    try {
+      if (!ownerVerified && !(await ownerCheck())) {
+        show("wifi-meraki-api-state", "Owner sign-in required");
+        show("wifi-meraki-check", "Sign in required");
+        return;
+      }
+      const accessToken = token();
+      const response = await fetch("/api/dream-wifi/meraki-test", {
+        headers: {Accept:"application/json", Authorization:"Bearer " + accessToken},
+        cache: "no-store"
+      });
+      const result = await response.json().catch(() => null);
+      if (!response.ok || !result || result.success !== true) {
+        const code = result && result.code;
+        show("wifi-meraki-api-state", code === "provider_not_configured" ? "Server key missing" : code === "insufficient_permissions" ? "Permissions required" : code === "invalid_api_key_or_dashboard_access" ? "Key/access rejected" : "Not verified");
+        show("wifi-meraki-check", "Not verified");
+        show("wifi-message", result && result.message ? result.message : "Meraki API check failed. Confirm MERAKI_DASHBOARD_API_KEY is set as a server-side environment variable.");
+        return;
+      }
+      show("wifi-meraki-api-state", "Connected");
+      show("wifi-meraki-check", result.device_found ? "API + device inventory found" : result.network_found ? "API connected; device not found" : "API connected; network not found");
+      show("wifi-message", result.message || "Meraki read-only check completed. Live access and packages remain disabled.");
+    } catch (_) {
+      show("wifi-meraki-api-state", "Connection failed");
+      show("wifi-meraki-check", "Not verified");
+      show("wifi-message", "Could not reach Dream's Meraki check. Try again and confirm the server-side API key is configured.");
+    } finally {
+      merakiButton.disabled = false;
+      merakiButton.textContent = original;
+    }
+  }
+
   if (button) button.addEventListener("click", runCheck);
+  if (merakiButton) merakiButton.addEventListener("click", runMerakiCheck);
 
   // Android browsers can hand off to system Wi-Fi settings via an intent URL.
   // The operating system controls Wi-Fi discovery; this page never claims to
