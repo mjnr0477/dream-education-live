@@ -22,9 +22,15 @@ assert.match(server, /https:\/\/console\.ironwifi\.com\/api/);
 assert.match(server, /Authorization:\s*"Bearer " \+ apiKey/);
 assert.match(server, /insufficient_permissions/);
 assert.match(server, /invalid_api_key/);
-assert.match(server, /user_list_permission:\s*true/);
+assert.match(server, /readCollection\("\/networks\?page=1&page_size=1", "networks"\)/);
+assert.match(server, /readCollection\("\/captive-portals\?page=1&page_size=1", "captive-portals"\)/);
+assert.match(server, /network_configured:\s*hasNetwork/);
+assert.match(server, /captive_portal_configured:\s*hasPortal/);
+assert.match(server, /ready_for_hardware_test:\s*readyForHardwareTest/);
+assert.match(server, /networkResult\.count !== null && networkResult\.count > 0/);
+assert.match(server, /portalResult\.count !== null && portalResult\.count > 0/);
 assert.match(client, /fetch\(["']\/api\/dream-wifi\/provider-test["']/);
-assert.match(client, /Test(ing)? API/);
+assert.match(page, /Check network setup/);
 
 assert.match(client, /fetch\(["']\/api\/dream-wifi\/owner-status["']/);
 assert.match(client, /Authorization:\s*["']Bearer ["']\s*\+\s*token/);
