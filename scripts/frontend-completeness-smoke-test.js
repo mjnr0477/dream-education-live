@@ -28,7 +28,7 @@ for (const file of requiredFiles) {
 
 // Every locally referenced stylesheet and script in the landing HTML must exist.
 // This catches broken asset URLs before they reach the deployed page.
-const declaredLocalAssets = [...index.matchAll(/(?:src|href)=["'](\\/[^"']+\\.(?:css|js))(?:\\?[^"']*)?["']/g)]
+const declaredLocalAssets = [...index.matchAll(/(?:src|href)=["'](\/[^"']+\.(?:css|js))(?:\?[^"']*)?["']/g)]
   .map(match => match[1]);
 for (const asset of declaredLocalAssets) {
   const localPath = "public/" + asset.slice(1);
