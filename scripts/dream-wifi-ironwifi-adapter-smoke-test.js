@@ -24,8 +24,7 @@ const {
       durationSeconds,
       env: {
         IRONWIFI_API_KEY: "test-secret",
-        IRONWIFI_WIFI_API_BASE_URL: "https://example.invalid",
-        IRONWIFI_WIFI_TABLE_ID: "test-group"
+        IRONWIFI_WIFI_API_BASE_URL: "https://example.invalid/api"
       },
       fetchImpl: async () => { throw new Error("invalid duration must not call provider"); }
     });
@@ -36,43 +35,55 @@ const {
   let request;
   const created = await createDreamWifiVoucher({
     durationSeconds: 3600,
-    comment: "smoke test",
     env: {
       IRONWIFI_API_KEY: "test-secret",
-      IRONWIFI_WIFI_API_BASE_URL: "https://wifi.example.test/",
-      IRONWIFI_WIFI_TABLE_ID: "group-123"
+      IRONWIFI_WIFI_API_BASE_URL: "https://wifi.example.test/api/"
     },
     fetchImpl: async (url, options) => {
       request = { url, options };
       return {
         ok: true,
         status: 201,
-        json: async () => ({ id: "voucher-1", code: "TEST-1234" })
+        json: async () => ({ id: 123, voucher_code: "TEST-1234" })
       };
     }
   });
   assert.equal(created.success, true);
   assert.deepEqual(created.voucher, {
     code: "TEST-1234",
-    id: "voucher-1",
+    id: "123",
     duration_seconds: 3600
   });
-  assert.equal(request.url, "https://wifi.example.test/vouchers");
+  assert.equal(request.url, "https://wifi.example.test/api/vouchers");
   assert.equal(request.options.method, "POST");
   assert.equal(request.options.headers.Authorization, "Bearer test-secret");
   assert.deepEqual(JSON.parse(request.options.body), {
-    table_id: "group-123",
-    duration: 3600,
-    count: 1,
-    comment: "smoke test"
+    voucher_duration: 3600,
+    voucher_redemption_limit: 1,
+    voucher_devices: 1
   });
+
+  let tenantRequest;
+  const tenantCreated = await createDreamWifiVoucher({
+    durationSeconds: 7200,
+    env: {
+      IRONWIFI_API_KEY: "test-secret",
+      IRONWIFI_WIFI_API_BASE_URL: "https://wifi.example.test/api",
+      IRONWIFI_WIFI_COMPANY_ID: "company 123"
+    },
+    fetchImpl: async (url) => {
+      tenantRequest = url;
+      return { ok: true, status: 201, json: async () => ({ code: "TENANT-123" }) };
+    }
+  });
+  assert.equal(tenantCreated.success, true);
+  assert.equal(tenantRequest, "https://wifi.example.test/api/company%20123/vouchers");
 
   const denied = await createDreamWifiVoucher({
     durationSeconds: 3600,
     env: {
       IRONWIFI_API_KEY: "test-secret",
-      IRONWIFI_WIFI_API_BASE_URL: "https://wifi.example.test",
-      IRONWIFI_WIFI_TABLE_ID: "group-123"
+      IRONWIFI_WIFI_API_BASE_URL: "https://wifi.example.test/api"
     },
     fetchImpl: async () => ({ ok: false, status: 403 })
   });
@@ -84,8 +95,7 @@ const {
     durationSeconds: 3600,
     env: {
       IRONWIFI_API_KEY: "test-secret",
-      IRONWIFI_WIFI_API_BASE_URL: "https://wifi.example.test",
-      IRONWIFI_WIFI_TABLE_ID: "group-123"
+      IRONWIFI_WIFI_API_BASE_URL: "https://wifi.example.test/api"
     },
     fetchImpl: async () => ({ ok: true, status: 201, json: async () => ({ id: "no-code" }) })
   });
