@@ -5807,7 +5807,7 @@ app.get("/api/dream-wifi/provider-test", async (req, res) => {
     }
 
     const baseUrl = String(
-      process.env.IRONWIFI_API_BASE_URL || "https://console.ironwifi.com/api"
+      process.env.IRONWIFI_WIFI_API_BASE_URL || process.env.IRONWIFI_API_BASE_URL || "https://console.ironwifi.com/api"
     ).trim().replace(/\/+$/, "");
 
     // Read only network and captive-portal metadata. These are the two

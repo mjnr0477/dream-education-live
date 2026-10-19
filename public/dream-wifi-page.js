@@ -3,6 +3,7 @@
   const AUTH_KEY = "dream_education_auth";
   const el = (id) => document.getElementById(id);
   const button = el("wifi-test");
+  const connectButton = el("wifi-connect");
   let ownerVerified = false;
 
   function token() {
@@ -138,6 +139,22 @@
   }
 
   if (button) button.addEventListener("click", runCheck);
+
+  // Android browsers can hand off to system Wi-Fi settings via an intent URL.
+  // The operating system controls Wi-Fi discovery; this page never claims to
+  // create a hotspot or force the phone to join a network.
+  if (connectButton) {
+    connectButton.addEventListener("click", function () {
+      show("wifi-message", "Opening phone Wi-Fi settings. Select the authorized Dream Wi-Fi network if it is visible. If no network appears, a participating hotspot must be broadcasting nearby.");
+      const intentUrl = "intent:#Intent;action=android.settings.WIFI_SETTINGS;end";
+      try {
+        window.location.href = intentUrl;
+      } catch (_) {
+        show("wifi-message", "Open your phone Settings, choose Wi-Fi, and look for the authorized network. If it is not listed, the hotspot is not broadcasting nearby.");
+      }
+    });
+  }
+
   ownerCheck();
   loadPackages();
 })();
