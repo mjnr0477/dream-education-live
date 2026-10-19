@@ -48,7 +48,8 @@
     <section class="wifi-card" aria-labelledby="wifi-state-title">
       <span class="wifi-status" id="wifi-state-title">● Setup and access status</span>
       <div class="wifi-grid">
-        <div class="wifi-tile"><span>Provider API</span><strong id="wifi-api-state">Checking owner access…</strong></div>
+        <div class="wifi-tile"><span>IronWiFi API</span><strong id="wifi-api-state">Checking owner access…</strong></div>
+        <div class="wifi-tile"><span>Cisco Meraki API</span><strong id="wifi-meraki-api-state">Not checked</strong></div>
         <div class="wifi-tile"><span>Network and captive portal</span><strong id="wifi-network-state">Not verified</strong></div>
         <div class="wifi-tile"><span>Provider networks configured</span><strong id="wifi-network-count">Not checked</strong></div>
         <div class="wifi-tile"><span>Access points seen by IronWiFi</span><strong id="wifi-access-point-count">Not checked</strong></div>
@@ -60,6 +61,7 @@
         <ul>
           <li><span>Owner access verified</span><strong id="wifi-owner-check">Checking…</strong></li>
           <li><span>IronWiFi API reachable</span><strong id="wifi-api-check">Not checked</strong></li>
+          <li><span>Meraki API and authorized inventory</span><strong id="wifi-meraki-check">Not checked</strong></li>
           <li><span>Network configured</span><strong id="wifi-network-check">Not checked</strong></li>
           <li><span>Access point discovered by provider</span><strong id="wifi-access-point-check">Not checked</strong></li>
           <li><span>Captive portal configured</span><strong id="wifi-portal-check">Not checked</strong></li>
@@ -68,7 +70,8 @@
       </div>
       <div class="wifi-actions">
         <button class="wifi-button" id="wifi-connect" type="button">Connect</button>
-        <button class="wifi-button secondary" id="wifi-test" type="button">Check provider setup</button>
+        <button class="wifi-button secondary" id="wifi-test" type="button">Check IronWiFi setup</button>
+        <button class="wifi-button secondary" id="wifi-meraki-test" type="button">Check Meraki API</button>
         <a class="wifi-button secondary" href="/">Sign in / return to Dream</a>
       </div>
       <p class="wifi-note">Tap Connect to open your phone's Wi-Fi settings. Choose the participating Dream Wi-Fi network if it is broadcasting nearby. The provider network count below is not a scan of nearby Wi-Fi names. If the SSID is missing, the authorized physical access point may not be broadcasting or may not be configured yet; this page cannot create a Wi-Fi signal by itself.</p>
@@ -107,6 +110,6 @@
     </section>
     <p class="wifi-note">Important: a successful API check does not itself provide internet. To finish the real connection, Dream still needs a participating network owner/provider, a configured captive portal, and an authorized access point or controller for end-to-end device testing. Packages and payments stay disabled until those steps are verified.</p>
   </main>
-  <script src="/dream-wifi-page.js?v=20261019b"></script>
+  <script src="/dream-wifi-page.js?v=20261020b"></script>
 </body>
 </html>
