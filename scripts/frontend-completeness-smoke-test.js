@@ -78,6 +78,20 @@ for (const [asset, version] of [["style.css", "20261019a"], ["frontend-workspace
 
 if (!index.includes("/app.js?v=20261019b")) throw new Error("Updated app.js cache-busting version missing.");
 
+for (const token of [
+  '<link rel="canonical" href="https://dream-education-live-4.onrender.com/">',
+  '<meta property="og:type" content="website">',
+  '<meta property="og:site_name" content="Dream Education">',
+  '<meta property="og:title" content="Dream Education — Learn without limits">',
+  '<meta property="og:description" content="One intelligent space for learners, teachers, parents and schools. Discover knowledge, build mastery and create your future.">',
+  '<meta property="og:url" content="https://dream-education-live-4.onrender.com/">',
+  '<meta name="twitter:card" content="summary">',
+  '<meta name="twitter:title" content="Dream Education — Learn without limits">',
+  '<meta name="twitter:description" content="One intelligent space for learners, teachers, parents and schools. Discover knowledge, build mastery and create your future.">'
+]) {
+  if (!index.includes(token)) throw new Error("Social sharing metadata missing: " + token);
+}
+
 const requiredCompactDestinations = [
   'data-panel="learn"', 'data-panel="teach"', 'data-panel="connect"',
   'data-panel="tools"', 'data-panel="school"', 'data-panel="about"',
