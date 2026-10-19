@@ -8,7 +8,8 @@ const MAX_DURATION_SECONDS = 365 * 24 * 60 * 60;
 function getProviderConfig(env = process.env) {
   const apiKey = String(env.IRONWIFI_API_KEY || "").trim();
   // Set this to the API base URL for the IronWiFi tenant's region, ending in /api.
-  const baseUrl = String(env.IRONWIFI_WIFI_API_BASE_URL || "").trim().replace(/\\/+$/, "");
+  let baseUrl = String(env.IRONWIFI_WIFI_API_BASE_URL || "").trim();
+  while (baseUrl.endsWith("/")) baseUrl = baseUrl.slice(0, -1);
   // Optional for MSP/parent accounts managing a specific company tenant.
   const companyId = String(env.IRONWIFI_WIFI_COMPANY_ID || "").trim();
 
