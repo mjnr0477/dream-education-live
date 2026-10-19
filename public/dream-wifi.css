@@ -245,3 +245,11 @@
   .dream-wifi-checklist li { flex-direction: column; gap: 4px; }
   .dream-wifi-checklist li strong { text-align: left; }
 }
+
+
+/* Standalone Dream Wi-Fi page navigation link. */
+.dream-wifi-nav-link[href] { text-decoration: none; }
+.dream-wifi-mobile-link { display: none; }
+@media (max-width: 700px) {
+  .dream-wifi-mobile-link { display: flex; align-self: stretch; justify-content: flex-start; min-height: 44px; padding: 12px 14px; border-radius: 12px; }
+}
