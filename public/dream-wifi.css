@@ -135,21 +135,29 @@
   outline: 3px solid #86efac;
   outline-offset: 3px;
 }
-.dream-wifi-nav-details > p {
+.dream-wifi-nav-popover {
   position: absolute;
   z-index: 1000;
   top: calc(100% + 10px);
   right: 0;
   width: min(300px, calc(100vw - 32px));
-  margin: 0;
   padding: 12px 14px;
   border: 1px solid rgba(134, 239, 172, .3);
   border-radius: 12px;
   background: #101b17;
   color: #d1fae5;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .35);
+}
+.dream-wifi-nav-popover > p {
+  position: static;
+  width: auto;
+  margin: 0 0 10px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #d1fae5;
   font-size: .85rem;
   line-height: 1.55;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, .35);
 }
 .dream-wifi-nav-setup {
   display: inline-flex;
@@ -185,7 +193,7 @@
     padding: 12px 14px;
     border-radius: 12px;
   }
-  .dream-wifi-mobile-details > p {
+  .dream-wifi-mobile-details > .dream-wifi-nav-popover {
     position: static;
     width: auto;
     margin-top: 8px;
