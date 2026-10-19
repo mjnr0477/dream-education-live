@@ -18,6 +18,7 @@ function escapeHTML(value) {
   const panelDescription = document.getElementById("panel-description");
   const panelBody = document.getElementById("panel-body");
   const mobileDrawer = document.getElementById("mobile-drawer");
+  const mobileMenu = document.querySelector(".mobile-menu");
   const year = document.getElementById("year");
 
   const AUTH_KEY = "dream_education_auth";
@@ -1272,7 +1273,7 @@ function escapeHTML(value) {
 
     panelBody.innerHTML = body;
 
-    document.body.classList.remove("menu-open");
+    setMenuOpen(false);
     document.body.classList.add("panel-open");
     panel.setAttribute("aria-hidden", "false");
 
@@ -1325,8 +1326,21 @@ function escapeHTML(value) {
     panel.setAttribute("aria-hidden", "true");
   }
 
+  function setMenuOpen(isOpen) {
+    const open = Boolean(isOpen);
+    document.body.classList.toggle("menu-open", open);
+    if (mobileDrawer) {
+      mobileDrawer.setAttribute("aria-hidden", String(!open));
+      mobileDrawer.inert = !open;
+    }
+    if (mobileMenu) {
+      mobileMenu.setAttribute("aria-expanded", String(open));
+      mobileMenu.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+    }
+  }
+
   function toggleMenu() {
-    document.body.classList.toggle("menu-open");
+    setMenuOpen(!document.body.classList.contains("menu-open"));
   }
 
   function setAuthMessage(form, message, error) {
@@ -1940,7 +1954,7 @@ if (action === "chat") {
   document.addEventListener("keydown", function (event) {
     if (event.key === "Escape") {
       closePanel();
-      document.body.classList.remove("menu-open");
+      setMenuOpen(false);
     }
   });
 
@@ -1949,7 +1963,7 @@ if (action === "chat") {
       const trigger = event.target.closest("[data-action]");
       if (!trigger) return;
 
-      document.body.classList.remove("menu-open");
+      setMenuOpen(false);
 
       if (trigger.dataset.action === "open") {
         const targetPanel = trigger.dataset.panel || "learn";
@@ -4099,7 +4113,7 @@ async function openGeneralConnections() {
       "Find people across Dream Education and build connections with them.";
   }
 
-  document.body.classList.remove("menu-open");
+  setMenuOpen(false);
   document.body.classList.add("panel-open");
   panelElement.setAttribute("aria-hidden", "false");
 
@@ -4773,7 +4787,7 @@ async function openMeetings() {
       "Create and manage meetings with people connected to your Dream Education account.";
   }
 
-  document.body.classList.remove("menu-open");
+  setMenuOpen(false);
   document.body.classList.add("panel-open");
   panelElement.setAttribute("aria-hidden", "false");
 
@@ -5928,7 +5942,7 @@ async function openParentSpace() {
       "Follow your children's learning, progress and results from one connected space.";
   }
 
-  document.body.classList.remove("menu-open");
+  setMenuOpen(false);
   document.body.classList.add("panel-open");
   panelElement.setAttribute("aria-hidden", "false");
 
