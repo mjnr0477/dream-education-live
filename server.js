@@ -5771,7 +5771,7 @@ app.get("/api/dream-wifi/owner-status", async (req, res) => {
 app.get("/api/dream-wifi/provider-test", async (req, res) => {
   res.set("Cache-Control", "no-store");
   const authorization = String(req.get("authorization") || "");
-  const match = authorization.match(/^Bearer\\s+(.+)$/i);
+  const match = authorization.match(/^Bearer\s+(.+)$/i);
 
   if (!match) {
     return res.status(401).json({
@@ -5808,7 +5808,7 @@ app.get("/api/dream-wifi/provider-test", async (req, res) => {
 
     const baseUrl = String(
       process.env.IRONWIFI_API_BASE_URL || "https://console.ironwifi.com/api"
-    ).trim().replace(/\\/+$/, "");
+    ).trim().replace(/\/+$/, "");
     let upstream;
     try {
       upstream = await fetch(baseUrl + "/users?page=1&page_size=1", {
