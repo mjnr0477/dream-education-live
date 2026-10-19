@@ -27,4 +27,10 @@ for (const [name, relativePath] of workspaces) {
   assert.match(css, /@media\s*\(max-width:/, name + " workspace must include responsive mobile styling.");
 }
 
+const landingCss = fs.readFileSync(path.join(root, "public/style.css"), "utf8");
+assert.match(landingCss, /@media\s*\(min-width:\s*651px\)\s*and\s*\(max-width:\s*900px\)/, "tablet widths must have an explicit responsive navigation layout.");
+assert.match(landingCss, /body\.menu-open\s+\.mobile-drawer/, "tablet navigation drawer must have an open state.");
+assert.match(landingCss, /:where\(button, a, input, textarea, select, summary, \[tabindex\]\):focus-visible/, "site-wide keyboard focus must be visible.");
+assert.match(landingCss, /prefers-reduced-motion:\s*reduce/, "the whole application must honor reduced-motion preferences.");
+
 console.log("Workspace accessibility smoke test passed.");
