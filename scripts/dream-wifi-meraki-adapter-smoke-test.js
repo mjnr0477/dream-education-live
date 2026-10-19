@@ -50,10 +50,17 @@ const { checkMerakiReadiness } = require("../product/dream_wifi_meraki");
 
   const denied = await checkMerakiReadiness({
     env: { MERAKI_DASHBOARD_API_KEY: "test-key" },
-    fetchImpl: async () => ({ ok: false, status: 403, body: { cancel: async () => {} } })
+    fetchImpl: async (url) => url.endsWith("/organizations")
+      ? ({ ok: true, status: 200, json: async () => [{ id: "org-test" }] })
+      : ({ ok: false, status: 403, body: { cancel: async () => {} } })
   });
   assert.equal(denied.success, false);
   assert.equal(denied.code, "insufficient_permissions");
+  assert.equal(denied.failed_endpoint, "networks");
+  assert.equal(denied.http_status, 403);
+  assert.equal(denied.network_http_status, 403);
+  assert.equal(denied.device_http_status, 403);
+  assert.match(denied.message, /networks inventory request was denied/);
 
   console.log("Dream Wi-Fi Meraki adapter smoke test passed");
 })().catch((error) => {

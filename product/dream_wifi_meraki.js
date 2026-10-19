@@ -100,16 +100,31 @@ async function checkMerakiReadiness({
     get("/organizations/" + orgId + "/networks?perPage=1"),
     get("/organizations/" + orgId + "/devices?perPage=1")
   ]);
-  const failed = [networks, devices].find((item) => !item.ok);
-  if (failed) {
+  const failedEntry = [
+    { name: "networks", result: networks },
+    { name: "devices", result: devices }
+  ].find((entry) => !entry.result.ok);
+  if (failedEntry) {
+    const failed = failedEntry.result;
+    const statusLabel = failed.status ? " (HTTP " + failed.status + ")" : "";
+    const message = failed.code === "insufficient_permissions"
+      ? "Meraki organization access works, but the " + failedEntry.name + " inventory request was denied (HTTP 403). Check the API key's dashboard general configuration read permission and the organization's access policy."
+      : failed.code === "invalid_api_key_or_dashboard_access"
+        ? "Meraki organization access works, but the " + failedEntry.name + " inventory request returned HTTP " + failed.status + ". Confirm the selected organization is accessible and retry."
+        : failed.code === "provider_unreachable"
+          ? "Meraki organization access worked, but Dream could not reach the " + failedEntry.name + " inventory endpoint."
+          : failed.code === "provider_rate_limited"
+            ? "Meraki rate-limited the " + failedEntry.name + " inventory request. Wait briefly and retry."
+            : "Meraki organization access worked, but the " + failedEntry.name + " inventory request failed" + statusLabel + ".";
     return {
       success: false,
       provider: "Cisco Meraki",
       code: failed.code,
+      failed_endpoint: failedEntry.name,
       http_status: failed.status || null,
-      message: failed.code === "insufficient_permissions"
-        ? "Meraki authentication works, but the key needs read permission for networks and devices."
-        : "Meraki organization access worked, but Dream could not verify network/device inventory. Check API permissions and try again."
+      network_http_status: networks.ok ? 200 : networks.status || null,
+      device_http_status: devices.ok ? 200 : devices.status || null,
+      message
     };
   }
   const networkFound = Array.isArray(networks.payload) && networks.payload.length > 0;
