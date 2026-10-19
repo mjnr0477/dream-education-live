@@ -33,6 +33,8 @@ assert.match(client, /fetch\(["']\/api\/dream-wifi\/provider-test["']/);
 assert.match(page, /Check network setup/);
 assert.match(page, /class="dream-wifi-nav-setup"/);
 assert.match(page, /Open setup \/ sign in/);
+assert.equal((page.match(/class="dream-wifi-nav-popover"/g) || []).length, 2, "Desktop and mobile Dream Wi-Fi actions must share a contained popover.");
+assert.match(fs.readFileSync(path.join(root, "public", "dream-wifi.css"), "utf8"), /\.dream-wifi-nav-popover/);
 assert.match(client, /querySelectorAll\("\.dream-wifi-nav-setup"\)/);
 assert.match(client, /section\.scrollIntoView\(\{ behavior: "smooth", block: "start" \}\)/);
 assert.match(client, /data-panel="signin"/);
@@ -45,6 +47,8 @@ assert.match(page, /id=["']dream-wifi-section["']/);
 assert.ok(page.indexOf('id="dream-wifi-section"') < page.indexOf('id="dream-search"'),
   "Dream Wi-Fi must appear above Public Search in the landing page.");
 assert.match(page, /data-wifi-provider-status/);
+assert.match(page, /dream-wifi\.css\?v=20261019g/);
+assert.match(page, /dream-wifi\.js\?v=20261019d/);
 assert.match(page, /data-wifi-access-status/);
 assert.match(page, /data-wifi-package-status/);
 
