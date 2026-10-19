@@ -119,9 +119,59 @@
 
   const providerTestButton = document.getElementById("dream-wifi-provider-test");
   if (providerTestButton) {
-    providerTestButton.addEventListener("click", function () {
-      // Open the provider's public profile setup from a direct user gesture.
-      window.open("https://osu.ironwifi.com/onlinesignup", "_blank", "noopener,noreferrer");
+    providerTestButton.addEventListener("click", async function () {
+      if (!verifiedOwner) {
+        await syncVisibility();
+        if (!verifiedOwner) return;
+      }
+
+      const token = getAccessToken();
+      if (!token) {
+        if (status) status.textContent = "Sign in again before testing the provider.";
+        return;
+      }
+
+      const originalLabel = providerTestButton.textContent;
+      providerTestButton.disabled = true;
+      providerTestButton.textContent = "Testing API…";
+      if (status) status.textContent = "Checking IronWiFi securely from Dream's server…";
+
+      try {
+        const response = await fetch("/api/dream-wifi/provider-test", {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            Authorization: "Bearer " + token
+          },
+          cache: "no-store"
+        });
+        const result = await response.json().catch(function () { return null; });
+        if (status) {
+          status.textContent = result && result.message
+            ? result.message
+            : "The IronWiFi API test did not return a readable result.";
+        }
+
+        const providerStatus = dashboard.querySelector("[data-wifi-provider-status]");
+        if (providerStatus) {
+          if (response.ok && result && result.success === true) {
+            providerStatus.textContent = "API authenticated — network test still required";
+          } else if (result && result.code === "invalid_api_key") {
+            providerStatus.textContent = "API key rejected";
+          } else if (result && result.code === "insufficient_permissions") {
+            providerStatus.textContent = "API key needs permissions";
+          } else if (result && result.code === "provider_not_configured") {
+            providerStatus.textContent = "API key not configured on server";
+          } else {
+            providerStatus.textContent = "API test unsuccessful";
+          }
+        }
+      } catch (_) {
+        if (status) status.textContent = "Could not complete the IronWiFi API test. Check Dream's connection and try again.";
+      } finally {
+        providerTestButton.disabled = false;
+        providerTestButton.textContent = originalLabel;
+      }
     });
   }
 
