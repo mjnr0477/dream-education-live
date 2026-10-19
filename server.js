@@ -5852,10 +5852,14 @@ app.get("/api/dream-wifi/provider-test", async (req, res) => {
 
     let networkResult;
     let portalResult;
+    let accessPointResult;
     try {
-      [networkResult, portalResult] = await Promise.all([
+      [networkResult, portalResult, accessPointResult] = await Promise.all([
         readCollection("/networks?page=1&page_size=1", "networks"),
-        readCollection("/captive-portals?page=1&page_size=1", "captive-portals")
+        readCollection("/captive-portals?page=1&page_size=1", "captive-portals"),
+        // IronWiFi discovers an access point only after it sends RADIUS traffic.
+        // This inventory check does not claim the AP is broadcasting an SSID nearby.
+        readCollection("/nodes?page=1&page_size=1", "nodes")
       ]);
     } catch (_) {
       return res.status(502).json({
@@ -5866,7 +5870,7 @@ app.get("/api/dream-wifi/provider-test", async (req, res) => {
       });
     }
 
-    const failed = [networkResult, portalResult].find((item) => !item.ok);
+    const failed = [networkResult, portalResult, accessPointResult].find((item) => !item.ok);
     if (failed) {
       if (failed.status === 401) {
         return res.status(502).json({
@@ -5881,7 +5885,7 @@ app.get("/api/dream-wifi/provider-test", async (req, res) => {
           success: false,
           provider: "IronWiFi",
           code: "insufficient_permissions",
-          message: "The key was recognized, but its role needs read permission for networks and captive portals."
+          message: "The key was recognized, but its role needs read permission for networks, captive portals, and access points (nodes). Ask the IronWiFi account owner to grant the required read permissions."
         });
       }
       return res.status(502).json({
@@ -5895,7 +5899,8 @@ app.get("/api/dream-wifi/provider-test", async (req, res) => {
     // Unknown counts must never be treated as proof of a configured network.
     const hasNetwork = networkResult.count !== null && networkResult.count > 0;
     const hasPortal = portalResult.count !== null && portalResult.count > 0;
-    const readyForHardwareTest = hasNetwork && hasPortal;
+    const hasAccessPoint = accessPointResult.count !== null && accessPointResult.count > 0;
+    const readyForHardwareTest = hasNetwork && hasPortal && hasAccessPoint;
 
     return res.json({
       success: true,
@@ -5903,8 +5908,10 @@ app.get("/api/dream-wifi/provider-test", async (req, res) => {
       authenticated: true,
       network_count: networkResult.count,
       captive_portal_count: portalResult.count,
+      access_point_count: accessPointResult.count,
       network_configured: hasNetwork,
       captive_portal_configured: hasPortal,
+      access_point_discovered: hasAccessPoint,
       ready_for_hardware_test: readyForHardwareTest,
       live_access_enabled: false,
       packages_enabled: false,
@@ -5916,7 +5923,11 @@ app.get("/api/dream-wifi/provider-test", async (req, res) => {
             ? "Dream could not confirm the captive-portal count from the API response. Check the API response format and permissions before continuing."
             : !hasPortal
               ? "An IronWiFi network exists, but no captive portal is configured. Create a portal and link it to the network, then configure an authorized hotspot/controller."
-              : "IronWiFi has network and captive-portal configuration. This still does not prove a physical hotspot is connected or authorized; test a device on the actual access point before enabling packages."
+              : accessPointResult.count === null
+                ? "Dream could not confirm the access-point inventory. Check IronWiFi access_points.read permission and API response format."
+                : !hasAccessPoint
+                  ? "The network and captive portal exist, but IronWiFi has not discovered an access point yet. An authorized AP/controller must be powered, connected to an internet uplink, and configured to send RADIUS requests to IronWiFi. This page cannot create or broadcast a Wi-Fi signal."
+                  : "IronWiFi has network, captive-portal, and access-point inventory records. Inventory does not prove an SSID is broadcasting at your location; test the physical AP and phone connection before enabling packages."
     });
   } catch (error) {
     console.error("Dream Wi-Fi provider test failed:", error);

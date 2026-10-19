@@ -50,7 +50,8 @@
       <div class="wifi-grid">
         <div class="wifi-tile"><span>Provider API</span><strong id="wifi-api-state">Checking owner access…</strong></div>
         <div class="wifi-tile"><span>Network and captive portal</span><strong id="wifi-network-state">Not verified</strong></div>
-        <div class="wifi-tile"><span>Networks found</span><strong id="wifi-network-count">Not checked</strong></div>
+        <div class="wifi-tile"><span>Provider networks configured</span><strong id="wifi-network-count">Not checked</strong></div>
+        <div class="wifi-tile"><span>Access points seen by IronWiFi</span><strong id="wifi-access-point-count">Not checked</strong></div>
         <div class="wifi-tile"><span>Captive portals found</span><strong id="wifi-portal-count">Not checked</strong></div>
         <div class="wifi-tile"><span>Live internet and packages</span><strong id="wifi-live-state">Not enabled</strong></div>
       </div>
@@ -60,6 +61,7 @@
           <li><span>Owner access verified</span><strong id="wifi-owner-check">Checking…</strong></li>
           <li><span>IronWiFi API reachable</span><strong id="wifi-api-check">Not checked</strong></li>
           <li><span>Network configured</span><strong id="wifi-network-check">Not checked</strong></li>
+          <li><span>Access point discovered by provider</span><strong id="wifi-access-point-check">Not checked</strong></li>
           <li><span>Captive portal configured</span><strong id="wifi-portal-check">Not checked</strong></li>
           <li><span>Authorized hotspot/controller tested</span><strong id="wifi-hardware-check">Not tested</strong></li>
         </ul>
@@ -69,7 +71,7 @@
         <button class="wifi-button secondary" id="wifi-test" type="button">Check provider setup</button>
         <a class="wifi-button secondary" href="/">Sign in / return to Dream</a>
       </div>
-      <p class="wifi-note">Tap Connect to open your phone's Wi-Fi settings. Choose the participating Dream Wi-Fi network if it is broadcasting nearby. If it is not listed, a real authorized hotspot is not currently visible at your location; this page cannot create a Wi-Fi signal by itself.</p>
+      <p class="wifi-note">Tap Connect to open your phone's Wi-Fi settings. Choose the participating Dream Wi-Fi network if it is broadcasting nearby. The provider network count below is not a scan of nearby Wi-Fi names. If the SSID is missing, the authorized physical access point may not be broadcasting or may not be configured yet; this page cannot create a Wi-Fi signal by itself.</p>
       <p id="wifi-last-check" class="wifi-note">Last provider check: not run</p>
       <p id="wifi-message" role="status" aria-live="polite">Live access is kept disabled until a real authorized device connection has been tested.</p>
     </section>
