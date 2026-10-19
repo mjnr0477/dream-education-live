@@ -5829,6 +5829,10 @@ app.get("/api/dream-wifi/provider-test", async (req, res) => {
       });
     }
 
+    if (upstream.body && typeof upstream.body.cancel === "function") {
+      await upstream.body.cancel().catch(() => {});
+    }
+
     if (upstream.status === 401) {
       return res.status(502).json({
         success: false,
