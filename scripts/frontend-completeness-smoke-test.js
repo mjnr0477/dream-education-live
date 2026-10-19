@@ -26,6 +26,20 @@ for (const file of requiredFiles) {
   if (!fs.existsSync(file)) throw new Error("Missing frontend file: " + file);
 }
 
+// Every locally referenced stylesheet and script in the landing HTML must exist.
+// This catches broken asset URLs before they reach the deployed page.
+const declaredLocalAssets = [...index.matchAll(/(?:src|href)=["'](\/[^"']+\.(?:css|js))(?:\?[^"']*)?["']/g)]
+  .map(match => match[1]);
+for (const asset of declaredLocalAssets) {
+  const localPath = "public/" + asset.slice(1);
+  if (!fs.existsSync(localPath)) {
+    throw new Error("Landing page references a missing local asset: " + asset);
+  }
+}
+if (declaredLocalAssets.length === 0) {
+  throw new Error("No local stylesheet or script assets were discovered in the landing HTML.");
+}
+
 const robots = read("public/robots.txt");
 const sitemap = read("public/sitemap.xml");
 if (!robots.includes("User-agent: *") || !robots.includes("Sitemap: https://dream-education-live-4.onrender.com/sitemap.xml")) {
