@@ -47,6 +47,8 @@ assert.match(page, /id=["']dream-wifi-section["']/);
 assert.ok(page.indexOf('id="dream-wifi-section"') < page.indexOf('id="dream-search"'),
   "Dream Wi-Fi must appear above Public Search in the landing page.");
 assert.match(page, /data-wifi-provider-status/);
+assert.match(page, /dream-wifi\.css\?v=20261019g/);
+assert.match(page, /dream-wifi\.js\?v=20261019d/);
 assert.match(page, /data-wifi-access-status/);
 assert.match(page, /data-wifi-package-status/);
 
