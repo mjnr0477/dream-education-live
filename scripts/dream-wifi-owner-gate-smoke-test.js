@@ -19,6 +19,7 @@ assert.match(server, /packages_enabled:\s*false/);
 assert.match(server, /app\.get\(["']\/api\/dream-wifi\/provider-test["']/);
 assert.match(server, /process\.env\.IRONWIFI_API_KEY/);
 assert.match(server, /https:\/\/console\.ironwifi\.com\/api/);
+assert.match(server, /process\.env\.IRONWIFI_WIFI_API_BASE_URL \|\| process\.env\.IRONWIFI_API_BASE_URL/);
 assert.match(server, /Authorization:\s*"Bearer " \+ apiKey/);
 assert.match(server, /insufficient_permissions/);
 assert.match(server, /invalid_api_key/);
