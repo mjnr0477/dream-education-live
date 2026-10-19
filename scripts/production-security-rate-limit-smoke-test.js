@@ -1,7 +1,16 @@
 "use strict";
 
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
 const { rateLimit, requestId } = require("../product/gli/production_security");
+
+const serverSource = fs.readFileSync(path.join(__dirname, "..", "server.js"), "utf8");
+const apiControlsIndex = serverSource.indexOf('app.use("/api/v1", requestId, rateLimit');
+const firstApiV1RouteIndex = serverSource.search(/app\.(?:get|post|put|patch|delete)\(\s*["']\/api\/v1/);
+assert.ok(apiControlsIndex >= 0, "API-wide rate limiting middleware must exist");
+assert.ok(firstApiV1RouteIndex >= 0, "at least one /api/v1 route should exist");
+assert.ok(apiControlsIndex < firstApiV1RouteIndex, "API-wide security middleware must be registered before every /api/v1 route");
 
 function invokeRateLimit(middleware, ip, forwardedFor) {
   const req = {
