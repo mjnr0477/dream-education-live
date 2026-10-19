@@ -5,6 +5,12 @@ const routes = { get: {} };
 const app = { get(path, handler) { routes.get[path] = handler; } };
 const oldKey = process.env.ODDSPAPI_API_KEY;
 const oldFetch = global.fetch;
+const oldDate = global.Date;
+const fixedNow = new oldDate("2026-10-19T09:00:00.000Z");
+global.Date = class FixedDate extends oldDate {
+  constructor(...args) { super(...(args.length ? args : [fixedNow.toISOString()])); }
+  static now() { return fixedNow.getTime(); }
+};
 process.env.ODDSPAPI_API_KEY = "test-key";
 let requested = "";
 let oddsPapiRequests = 0;
@@ -176,5 +182,6 @@ function res() { return { statusCode: 200, body: null, status(n) { this.statusCo
 
   if (oldKey === undefined) delete process.env.ODDSPAPI_API_KEY; else process.env.ODDSPAPI_API_KEY = oldKey;
   global.fetch = oldFetch;
+  global.Date = oldDate;
   console.log("OddsPapi betting engine smoke test passed.");
 })().catch(error => { console.error(error); process.exitCode = 1; });
