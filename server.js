@@ -5746,27 +5746,78 @@ app.get("/api/dream-wifi/owner-status", async (req, res) => {
       });
     }
 
-    const providerConfigured = Boolean(
-      process.env.DREAM_WIFI_PROVIDER_API_URL &&
-      process.env.DREAM_WIFI_PROVIDER_API_KEY
-    );
+    const providerName = String(process.env.DREAM_WIFI_PROVIDER || "ironwifi").trim().toLowerCase();
+    const providerBaseUrl = String(
+      process.env.DREAM_WIFI_PROVIDER_API_URL ||
+      (providerName === "ironwifi" ? "https://console.ironwifi.io" : "")
+    ).trim().replace(/\\/+$/, "");
+    const providerApiKey = String(process.env.DREAM_WIFI_PROVIDER_API_KEY || "").trim();
+    const providerConfigured = Boolean(providerBaseUrl && providerApiKey);
+    let providerApiReachable = false;
+    let providerAuthValid = null;
+    let providerNetworkCount = null;
+
+    // Read-only provider check: this verifies API access, not a live Wi-Fi session or purchase.
+    if (providerConfigured) {
+      try {
+        const base = new URL(providerBaseUrl);
+        if (base.protocol === "https:" && !base.username && !base.password) {
+          for (const path of ["/api/networks", "/networks"]) {
+            const response = await fetch(base.origin + path, {
+              method: "GET",
+              headers: {
+                Accept: "application/json",
+                Authorization: "Bearer " + providerApiKey
+              },
+              cache: "no-store",
+              signal: AbortSignal.timeout(5000)
+            });
+            providerApiReachable = true;
+            if (response.status === 404 && path === "/api/networks") continue;
+            if (response.status === 401 || response.status === 403) {
+              providerAuthValid = false;
+              break;
+            }
+            if (response.ok) {
+              providerAuthValid = true;
+              const payload = await response.json().catch(() => null);
+              if (payload && Number.isFinite(Number(payload.total_items))) {
+                providerNetworkCount = Number(payload.total_items);
+              } else if (payload && payload._embedded) {
+                const collection = payload._embedded.networks || payload._embedded.items;
+                if (Array.isArray(collection)) providerNetworkCount = collection.length;
+              }
+            }
+            break;
+          }
+        }
+      } catch (_) {
+        // Keep provider failures diagnostic-only; never log or return credentials.
+      }
+    }
+    const providerVerified = providerApiReachable && providerAuthValid === true;
 
     return res.json({
       success: true,
       owner: true,
       provider_configured: providerConfigured,
+      provider_api_reachable: providerApiReachable,
+      provider_auth_valid: providerAuthValid,
+      provider_network_count: providerNetworkCount,
       source_endpoint_configured: Boolean(process.env.DREAM_WIFI_SOURCE_TOKEN),
-      provider: providerConfigured
-        ? String(process.env.DREAM_WIFI_PROVIDER || "configured-provider")
-        : null,
+      provider: providerConfigured ? providerName : null,
       live_access_enabled: false,
       packages_enabled: false,
-      status: providerConfigured
-        ? "provider_configured_but_not_verified"
-        : "provider_not_configured",
-      message: providerConfigured
-        ? "Provider credentials are present, but live access remains disabled until an end-to-end connection test passes."
-        : "No authorized Wi-Fi provider is configured yet. Live access and packages remain disabled."
+      status: providerVerified
+        ? "provider_api_verified"
+        : providerConfigured
+          ? "provider_configured_but_not_verified"
+          : "provider_not_configured",
+      message: providerVerified
+        ? "Provider API credentials were accepted. A usable Wi-Fi network, package, payment flow, and end-to-end phone connection still require separate verification."
+        : providerConfigured
+          ? "Provider settings are present, but the provider API or credentials could not be verified."
+          : "No authorized Wi-Fi provider is configured yet. Live access and packages remain disabled."
     });
   } catch (error) {
     console.error("Dream Wi-Fi status check failed:", error);
