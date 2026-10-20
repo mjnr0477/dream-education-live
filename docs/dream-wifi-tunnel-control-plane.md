@@ -29,6 +29,20 @@ npm run dream-wifi:source
 
 Run the agent only on a device/network you are authorized to use. It opens public HTTP/HTTPS TCP streams and blocks private/reserved destinations and ports other than 80/443. The source network/provider must permit this forwarding.
 
+## Start the remote phone's SOCKS5 client
+
+On the remote Android phone, install Node.js and npm in Termux, clone the Dream Education repository, and install dependencies. Then use a current owner Supabase access token from your own signed-in session:
+
+```sh
+DREAM_WIFI_TUNNEL_URL=wss://dream-education-live-4.onrender.com/api/dream-education/dream-wifi/tunnel \
+DREAM_WIFI_OWNER_ACCESS_TOKEN='your-current-owner-session-token' \
+npm run dream-wifi:proxy
+```
+
+The client binds only to `127.0.0.1:1080`. Configure a compatible browser/application to use SOCKS5 at that address. Keep the token private; Supabase access tokens expire, so re-authenticate and restart the client when needed.
+
+This is a bounded web TCP proxy, not full-device routing. It has not yet passed a live test from a Quant-connected source device. Do not enable provider sharing unless the network provider permits this use.
+
 ## What remains before remote internet can work
 
 - Run the source agent on a device connected to an authorized Quant network and verify it can reach the deployed Dream server.
