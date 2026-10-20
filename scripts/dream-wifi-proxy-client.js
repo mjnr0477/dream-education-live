@@ -1,6 +1,6 @@
 "use strict";
 
-// Local SOCKS5 client for owner-authorized HTTP/HTTPS traffic through the source endpoint.
+// Local SOCKS5 client for owner-authorized HTTP/HTTPS TCP and bounded public UDP through the source endpoint.
 // This is not an Android VPNService and does not automatically route all device traffic.
 const net = require("node:net");
 const dgram = require("node:dgram");
@@ -205,7 +205,7 @@ function startProxy() {
   });
   proxyServer.listen(port, "127.0.0.1", () => {
     console.log("Dream Tunnel SOCKS5 proxy listening on 127.0.0.1:" + port);
-    console.log("Only HTTP/HTTPS destinations on TCP ports 80 and 443 are allowed.");
+    console.log("TCP is limited to ports 80/443; UDP datagrams are capped at 8 KiB and public destinations only.");
   });
 }
 
