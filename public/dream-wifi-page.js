@@ -67,6 +67,9 @@
         if (dnsButton) dnsButton.disabled = false;
         set("wifi-source-endpoint", "Owner control channel authenticated");
       } else if (message.type === "source-state") {
+        set("wifi-source", message.connected
+          ? "Connected; source network identity unverified"
+          : "Not connected");
         set("wifi-source-endpoint", message.connected ? "Source agent connected" : "Source agent not connected");
       } else if (message.type === "ping-result") {
         set("wifi-source-endpoint", message.success
@@ -145,7 +148,7 @@
         return;
       }
       set("wifi-owner", "Verified");
-      set("wifi-source", "Not connected");
+      set("wifi-source", "Checking source agent…");
       set("wifi-tunnel", "TCP 80/443 + bounded UDP relay; live tests pending");
       set("wifi-provider", !result.provider_configured
         ? "Not configured"

@@ -27,4 +27,8 @@ const tunnelClient = fs.readFileSync(path.join(root, "public", "dream-wifi-page.
 assert.match(tunnelClient, /Quant-to-Dream-to-public-internet test passed/);
 assert.match(tunnelClient, /lastProbeResult/);
 assert.match(tunnelClient, /function renderProbeResult/);
+assert.match(tunnelClient, /set\("wifi-source", message\.connected/);
+assert.match(tunnelClient, /source network identity unverified/);
+assert.match(tunnelPage, /<span>Source agent<\/span>/);
+assert.doesNotMatch(tunnelPage, /<span>Quant source<\/span>/);
 console.log("Dream Wi-Fi owner-gate smoke test passed.");
