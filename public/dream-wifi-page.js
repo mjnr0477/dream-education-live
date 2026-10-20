@@ -10,6 +10,7 @@
   let tunnelSocket = null;
   let ownerChannelReady = false;
   let activeProbe = null;
+  let lastProbeResult = null;
 
   function token() {
     try {
@@ -128,15 +129,17 @@
       set("wifi-owner", "Verified");
       set("wifi-source", "Not connected");
       set("wifi-tunnel", "HTTP/HTTPS TCP relay implemented; live test pending");
-      set("wifi-live", "No live access");
       set("wifi-provider", result.provider_configured ? "Configured; verification pending" : "Not configured");
       set("wifi-source-endpoint", result.source_endpoint_configured
         ? "Configured; waiting for source agent"
         : "Not configured — source token required");
-      set("wifi-transport", "Control channel not yet measured");
       set("wifi-phone", "SOCKS5 proxy only; no full-device VPN");
       if (testButton) testButton.disabled = true;
-      set("wifi-message", "Owner verified. The source agent and SOCKS5 relay can carry HTTP/HTTPS TCP streams when both endpoints are configured; live Quant routing has not yet been verified.");
+      if (!renderProbeResult()) {
+        set("wifi-live", "Not tested in this page session");
+        set("wifi-transport", "Run the end-to-end internet test");
+        set("wifi-message", "Owner verified. Test the source route to confirm that a real public-internet HTTP response returns through Dream Tunnel.");
+      }
       connectTunnel(accessToken);
     } catch (_) {
       if (current === version) {
@@ -149,6 +152,23 @@
     }
   }
 
+  function renderProbeResult() {
+    if (!lastProbeResult) return false;
+    const result = lastProbeResult;
+    if (result.success) {
+      set("wifi-tunnel", "HTTP/HTTPS relay live test passed");
+      set("wifi-live", "HTTP response received (status " + result.statusCode + ")");
+      set("wifi-transport", "Quant-to-Dream-to-public-internet test passed (" + result.elapsedMs + " ms)");
+      set("wifi-message", "Live path verified for this test: the source reached example.com and its HTTP response returned through Dream Tunnel. This does not measure Wi-Fi signal strength or enable full-device VPN routing.");
+    } else {
+      set("wifi-tunnel", "HTTP/HTTPS relay test failed");
+      set("wifi-live", "Internet path not verified");
+      set("wifi-transport", "Test failed after " + result.elapsedMs + " ms");
+      set("wifi-message", String(result.error || "No HTTP response received through the source tunnel."));
+    }
+    return true;
+  }
+
   function finishProbe(success, statusCode, elapsedMs, error) {
     if (!activeProbe) return;
     const probe = activeProbe;
@@ -158,15 +178,8 @@
       tunnelSocket.send(JSON.stringify({ type: "tcp-close", id: probe.id }));
     }
     if (testButton) testButton.disabled = !ownerChannelReady;
-    if (success) {
-      set("wifi-live", "HTTP response received (status " + statusCode + ")");
-      set("wifi-transport", "Quant-to-Dream-to-public-internet test passed (" + elapsedMs + " ms)");
-      set("wifi-message", "Live path verified for this test: the source reached example.com and its HTTP response returned through Dream Tunnel. This does not measure Wi-Fi signal strength or enable full-device VPN routing.");
-    } else {
-      set("wifi-live", "Internet path not verified");
-      set("wifi-transport", "Test failed after " + elapsedMs + " ms");
-      set("wifi-message", String(error || "No HTTP response received through the source tunnel."));
-    }
+    lastProbeResult = { success, statusCode, elapsedMs, error: error || "" };
+    renderProbeResult();
   }
 
   if (button) button.addEventListener("click", refresh);
