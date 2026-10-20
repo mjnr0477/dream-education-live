@@ -4,69 +4,72 @@
   const el = (id) => document.getElementById(id);
   const button = el("wifi-test");
   let ownerVerified = false;
+
   function token() {
     try {
       const auth = JSON.parse(localStorage.getItem(AUTH_KEY) || "null");
-      return auth && auth.session && typeof auth.session.access_token === "string" ? auth.session.access_token : "";
+      return auth && auth.session && typeof auth.session.access_token === "string"
+        ? auth.session.access_token : "";
     } catch (_) { return ""; }
   }
-  function show(id, value) { const node = el(id); if (node) node.textContent = value; }
+
+  function show(id, value) {
+    const node = el(id);
+    if (node) node.textContent = value;
+  }
+
   async function ownerCheck() {
     const accessToken = token();
     if (!accessToken) {
       ownerVerified = false;
       show("wifi-owner-check", "Sign in required");
       show("wifi-api-state", "Owner sign-in required");
-      show("wifi-message", "Sign in to Dream Education with the owner account, then return to this Dream Wi-Fi page and run the provider check.");
+      show("wifi-message", "Sign in to Dream Education with the owner account to view this private prototype.");
+      if (button) button.disabled = true;
       return false;
     }
     try {
-      const response = await fetch("/api/dream-wifi/owner-status", {headers:{Accept:"application/json",Authorization:"Bearer "+accessToken},cache:"no-store"});
+      const response = await fetch("/api/dream-wifi/owner-status", {
+        headers: { Accept: "application/json", Authorization: "Bearer " + accessToken },
+        cache: "no-store"
+      });
       const result = await response.json().catch(() => null);
       ownerVerified = !!(response.ok && result && result.success === true && result.owner === true);
       show("wifi-owner-check", ownerVerified ? "Verified" : "Owner access denied");
-      if (!ownerVerified) show("wifi-message", "This setup check is private. Sign in using the Dream Education owner account.");
-      return ownerVerified;
+      if (!ownerVerified) {
+        show("wifi-api-state", "Owner access required");
+        show("wifi-message", "This prototype is private. Sign in with the Dream Education owner account.");
+        if (button) button.disabled = true;
+        return false;
+      }
+      show("wifi-api-state", "Prototype only — source not connected");
+      show("wifi-network-state", "Tunnel not yet implemented");
+      show("wifi-live-state", "No live access");
+      show("wifi-api-check", "Awaiting authorized Quant connection");
+      show("wifi-network-check", "Not built or tested");
+      show("wifi-portal-check", "Transport path not tested");
+      show("wifi-hardware-check", "Remote phone test pending");
+      show("wifi-message", "Owner verified. The dashboard is ready for prototype work; it does not yet connect to Quant or provide internet.");
+      if (button) button.disabled = false;
+      return true;
     } catch (_) {
       ownerVerified = false;
       show("wifi-owner-check", "Could not verify");
       show("wifi-message", "Could not verify owner access. Check your connection and try again.");
+      if (button) button.disabled = true;
       return false;
     }
   }
-  async function runCheck() {
-    if (!button) return;
-    button.disabled = true;
-    const original = "Check provider setup";
-    button.textContent = "Checking…";
-    try {
-      if (!ownerVerified && !(await ownerCheck())) return;
-      const accessToken = token();
-      const response = await fetch("/api/dream-wifi/provider-test", {headers:{Accept:"application/json",Authorization:"Bearer "+accessToken},cache:"no-store"});
-      const result = await response.json().catch(() => null);
-      if (!response.ok || !result || result.success !== true) {
-        show("wifi-api-state", result && result.code === "invalid_api_key" ? "API key rejected" : result && result.code === "insufficient_permissions" ? "Permissions required" : result && result.code === "provider_not_configured" ? "API key missing" : "Provider check failed");
-        show("wifi-api-check", result && result.code === "invalid_api_key" ? "Key rejected" : result && result.code === "insufficient_permissions" ? "Permissions required" : result && result.code === "provider_not_configured" ? "Server key missing" : "Not verified");
-        show("wifi-message", result && result.message ? result.message : "Provider check failed. Review server-side provider configuration.");
-        return;
-      }
-      show("wifi-api-state", "API connected");
-      show("wifi-api-check", "Connected");
-      show("wifi-network-check", result.network_configured ? "Configured" : "Create network in IronWiFi");
-      show("wifi-portal-check", result.captive_portal_configured ? "Configured" : "Create captive portal in IronWiFi");
-      show("wifi-network-state", result.network_configured && result.captive_portal_configured ? "Network and portal configured" : "Configuration incomplete");
-      show("wifi-hardware-check", result.ready_for_hardware_test ? "Ready for authorized test" : "Waiting for network and portal");
-      show("wifi-live-state", result.live_access_enabled === true && result.packages_enabled === true ? "Server reports enabled" : "Not enabled");
-      show("wifi-message", result.message || "Provider configuration checked. A successful API check is not proof of live internet access.");
-    } catch (_) {
-      show("wifi-api-state", "Provider unreachable");
-      show("wifi-api-check", "Connection failed");
-      show("wifi-message", "Could not reach the Dream Wi-Fi provider check. Please try again.");
-    } finally {
-      button.disabled = false;
-      button.textContent = original;
-    }
+
+  if (button) {
+    button.addEventListener("click", async function () {
+      button.disabled = true;
+      button.textContent = "Refreshing…";
+      await ownerCheck();
+      button.textContent = "Refresh readiness";
+    });
   }
-  if (button) button.addEventListener("click", runCheck);
+  window.addEventListener("storage", ownerCheck);
+  window.addEventListener("dream-education-auth-changed", ownerCheck);
   ownerCheck();
 })();
