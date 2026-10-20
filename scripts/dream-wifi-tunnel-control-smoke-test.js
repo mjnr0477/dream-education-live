@@ -85,7 +85,7 @@ async function main() {
 
     const rejectedPort = waitMessage(owner, m => m.type === "tcp-error" && m.id === "blocked-port");
     owner.send(JSON.stringify({ type: "tcp-open", id: "blocked-port", host: "example.com", port: 22 }));
-    assert.match((await rejectedPort).error, /HTTP\\/HTTPS/);
+    assert.match((await rejectedPort).error, /HTTP.HTTPS/);
     const sourceClosed = waitMessage(source, m => m.type === "tcp-close" && m.id === "test-stream-1");
     owner.send(JSON.stringify({ type: "tcp-close", id: "test-stream-1" }));
     await sourceClosed;
