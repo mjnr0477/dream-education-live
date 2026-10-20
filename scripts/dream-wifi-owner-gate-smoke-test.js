@@ -20,7 +20,7 @@ assert.match(client, /Authorization:\s*"Bearer "\s*\+\s*token/);
 assert.doesNotMatch(client, /mathiassimiyu52@gmail\.com/i);
 assert.match(page, /class=["\x27]dream-wifi-nav-link/);
 assert.match(page, /class=["\x27]dream-wifi-nav-link/);
-assert.match(tunnelPage, /full-device Android routing and provider packages are still separate, unfinished milestones/i);
+assert.match(tunnelPage, /full-device Android routing and provider package access still require separate validation/i);
 assert.match(tunnelPage, /id="wifi-test-internet"/);
 assert.match(fs.readFileSync(path.join(root, "public", "dream-wifi-page.js"), "utf8"), /host: "example.com", port: 80/);
 const tunnelClient = fs.readFileSync(path.join(root, "public", "dream-wifi-page.js"), "utf8");
