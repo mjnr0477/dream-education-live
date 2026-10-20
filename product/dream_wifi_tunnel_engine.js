@@ -167,7 +167,7 @@ function attachDreamWifiTunnel(server, options = {}) {
         const host = typeof message.host === "string" ? message.host.trim() : "";
         const port = Number(message.port);
         const activeForOwner = [...streams.values()].filter(entry => entry.owner === socket).length;
-        if (!validStreamId(id) || !host || host.length > 253 || /[\s/\\]/.test(host) ||
+        if (!validStreamId(id) || !host || host.length > 253 || /\s/.test(host) || host.includes("/") || host.includes("\\") ||
             ![80, 443].includes(port)) {
           send(socket, { type: "tcp-error", id: validStreamId(id) ? id : "", error: "Only public HTTP/HTTPS TCP destinations are allowed." });
           return;
