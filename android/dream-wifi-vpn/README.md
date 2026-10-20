@@ -1,6 +1,6 @@
 # Dream Wi-Fi Android VPN prototype
 
-Native Android `VpnService` plus the upstream HevSocks5Tunnel native TUN-to-SOCKS engine. It routes IPv4/IPv6 packets to the local owner SOCKS5 proxy at `127.0.0.1:1080`; the proxy must already be running in Termux on this same phone.
+Native Android `VpnService` plus the upstream HevSocks5Tunnel native TUN-to-SOCKS engine. It routes IPv4/IPv6 packets to the local owner SOCKS5 proxy at `127.0.0.1:1080`; the proxy must already be running in Termux on this same phone. The app excludes the Termux package from VPN routing so the source agent's WebSocket cannot recurse back into the tunnel.
 
 ## Current limitations
 - The GitHub workflow fetches HevSocks5Tunnel at build time and configures its JNI class for this app. Retain upstream license notices.
