@@ -30,6 +30,7 @@ let socket = null;
 let ownerReady = false;
 let stopped = false;
 let reconnectTimer = null;
+let heartbeatTimer = null;
 let proxyServer = null;
 
 function send(payload) {
@@ -179,10 +180,20 @@ function closeAllStreams() {
 function connect() {
   if (stopped) return;
   socket = new WebSocket(tunnelUrl, { perMessageDeflate: false, maxPayload: 24 * 1024 });
-  socket.on("open", () => {
-    socket.send(JSON.stringify({ type: "register", role: "owner", accessToken }));
+  const currentSocket = socket;
+  currentSocket.on("open", () => {
+    // Keep intermediary proxies from expiring an otherwise healthy idle WebSocket.
+    heartbeatTimer = setInterval(() => {
+      if (currentSocket.readyState !== WebSocket.OPEN) return;
+      try {
+        currentSocket.ping();
+      } catch (error) {
+        console.error("Dream Tunnel heartbeat failed:", error.message);
+      }
+    }, 25000);
+    currentSocket.send(JSON.stringify({ type: "register", role: "owner", accessToken }));
   });
-  socket.on("message", raw => {
+  currentSocket.on("message", raw => {
     let message;
     try { message = JSON.parse(raw.toString("utf8")); } catch (_) { return; }
     if (message.type === "registered" && message.role === "owner") {
@@ -222,18 +233,26 @@ function connect() {
       }
     } else if (message.type === "error") {
       console.error("Dream Tunnel client rejected:", String(message.error || "unknown error"));
-      socket.close(1008, "Owner rejected");
+      currentSocket.close(1008, "Owner rejected");
     }
   });
-  socket.on("close", () => {
+  currentSocket.on("close", (code, reason) => {
+    if (heartbeatTimer) clearInterval(heartbeatTimer);
+    heartbeatTimer = null;
+    // Ignore stale close events if a newer socket has already replaced this one.
+    if (socket !== currentSocket) return;
     ownerReady = false;
     closeAllStreams();
     if (!stopped) {
+      const detail = reason && reason.length ? reason.toString("utf8") : "no reason supplied";
+      console.error("Dream Tunnel WebSocket closed (code " + code + "; " + detail + ").");
       console.log("Dream Tunnel disconnected; reconnecting in 5 seconds.");
       reconnectTimer = setTimeout(connect, 5000);
     }
   });
-  socket.on("error", () => {});
+  currentSocket.on("error", error => {
+    console.error("Dream Tunnel WebSocket error:", error.message);
+  });
 }
 
 function shutdown() {
