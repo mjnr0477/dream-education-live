@@ -6,6 +6,9 @@ const { WebSocket, WebSocketServer } = require("ws");
 const MAX_MESSAGE_BYTES = 24 * 1024;
 const MAX_TCP_CHUNK_BYTES = 12 * 1024;
 const MAX_STREAMS_PER_OWNER = 8;
+const MAX_UDP_ASSOCIATIONS_PER_OWNER = 8;
+const MAX_UDP_DATAGRAM_BYTES = 8192;
+const UDP_IDLE_TIMEOUT_MS = 60000;
 const MAX_WS_BUFFERED_BYTES = 1024 * 1024;
 const PING_TIMEOUT_MS = 5000;
 
@@ -36,6 +39,7 @@ function attachDreamWifiTunnel(server, options = {}) {
   const owners = new Set();
   const pendingPings = new Map();
   const streams = new Map();
+  const udpAssociations = new Map();
   let sourceSocket = null;
 
   const wss = new WebSocketServer({
@@ -67,6 +71,13 @@ function attachDreamWifiTunnel(server, options = {}) {
     for (const [id, entry] of streams.entries()) {
       if (entry.owner === socket || entry.source === socket) {
         closeStream(id, reason, entry.owner !== socket, entry.source !== socket);
+      }
+    }
+    for (const [id, entry] of udpAssociations.entries()) {
+      if (entry.owner === socket || entry.source === socket) {
+        udpAssociations.delete(id); clearTimeout(entry.timeout);
+        if (entry.owner !== socket) send(entry.owner, { type: 'udp-close', id, reason });
+        if (entry.source !== socket) send(entry.source, { type: 'udp-close', id, reason });
       }
     }
   }
@@ -162,6 +173,30 @@ function attachDreamWifiTunnel(server, options = {}) {
         return;
       }
 
+      if (socket.dreamRole === 'owner' && message.type === 'udp-send') {
+        const id = message.id, host = typeof message.host === 'string' ? message.host.trim() : '', port = Number(message.port);
+        const chunk = decodeChunk(message.data);
+        if (!validStreamId(id) || !host || host.length > 253 || host.includes('/') || host.includes(' ') || !Number.isInteger(port) || port < 1 || port > 65535 || !chunk || chunk.length > MAX_UDP_DATAGRAM_BYTES) {
+          send(socket, { type: 'udp-error', id: validStreamId(id) ? id : '', error: 'Invalid UDP destination or datagram.' }); return;
+        }
+        let entry = udpAssociations.get(id);
+        if (!entry) {
+          if ([...udpAssociations.values()].filter(item => item.owner === socket).length >= MAX_UDP_ASSOCIATIONS_PER_OWNER) { send(socket, { type: 'udp-error', id, error: 'Too many UDP associations.' }); return; }
+          if (!sourceConnected()) { send(socket, { type: 'udp-error', id, error: 'Source endpoint is not connected.' }); return; }
+          entry = { owner: socket, source: sourceSocket, timeout: null }; udpAssociations.set(id, entry);
+        }
+        if (entry.owner !== socket || entry.source !== sourceSocket) { send(socket, { type: 'udp-error', id, error: 'UDP association is not owned by this session.' }); return; }
+        clearTimeout(entry.timeout); entry.timeout = setTimeout(() => {
+          if (udpAssociations.get(id) === entry) { udpAssociations.delete(id); send(entry.source, { type: 'udp-close', id, reason: 'idle-timeout' }); send(entry.owner, { type: 'udp-close', id, reason: 'idle-timeout' }); }
+        }, UDP_IDLE_TIMEOUT_MS);
+        if (entry.source.bufferedAmount > MAX_WS_BUFFERED_BYTES) { udpAssociations.delete(id); clearTimeout(entry.timeout); send(socket, { type: 'udp-error', id, error: 'Source relay is backpressured.' }); return; }
+        send(entry.source, { type: 'udp-send', id, host, port, data: chunk.toString('base64') }); return;
+      }
+      if (socket.dreamRole === 'owner' && message.type === 'udp-close') {
+        const entry = udpAssociations.get(message.id);
+        if (entry && entry.owner === socket) { udpAssociations.delete(message.id); clearTimeout(entry.timeout); send(entry.source, { type: 'udp-close', id: message.id, reason: 'owner-closed' }); }
+        return;
+      }
       if (socket.dreamRole === "owner" && message.type === "tcp-open") {
         const id = message.id;
         const host = typeof message.host === "string" ? message.host.trim() : "";
@@ -219,6 +254,14 @@ function attachDreamWifiTunnel(server, options = {}) {
         return;
       }
 
+      if (socket.dreamRole === 'source' && message.type === 'udp-data') {
+        const entry = udpAssociations.get(message.id), host = typeof message.host === 'string' ? message.host : '', port = Number(message.port), chunk = decodeChunk(message.data);
+        if (!entry || entry.source !== socket || !host || host.length > 253 || !Number.isInteger(port) || port < 1 || port > 65535 || !chunk || chunk.length > MAX_UDP_DATAGRAM_BYTES) return;
+        if (entry.owner.bufferedAmount > MAX_WS_BUFFERED_BYTES) { udpAssociations.delete(message.id); clearTimeout(entry.timeout); send(entry.owner, { type: 'udp-close', id: message.id, reason: 'owner-backpressure-limit' }); send(socket, { type: 'udp-close', id: message.id, reason: 'owner-backpressure-limit' }); return; }
+        clearTimeout(entry.timeout); entry.timeout = setTimeout(() => { if (udpAssociations.get(message.id) === entry) { udpAssociations.delete(message.id); send(entry.source, { type: 'udp-close', id: message.id, reason: 'idle-timeout' }); send(entry.owner, { type: 'udp-close', id: message.id, reason: 'idle-timeout' }); } }, UDP_IDLE_TIMEOUT_MS);
+        send(entry.owner, { type: 'udp-data', id: message.id, host, port, data: chunk.toString('base64') }); return;
+      }
+      if (socket.dreamRole === 'source' && message.type === 'udp-error') { const entry = udpAssociations.get(message.id); if (entry && entry.source === socket) send(entry.owner, { type: 'udp-error', id: message.id, error: String(message.error || 'UDP relay failed').slice(0, 180) }); return; }
       if (socket.dreamRole === "source" && ["tcp-opened", "tcp-error", "tcp-data", "tcp-close"].includes(message.type)) {
         if (!validStreamId(message.id)) return;
         const entry = streams.get(message.id);
