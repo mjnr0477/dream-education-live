@@ -156,10 +156,12 @@
     if (!lastProbeResult) return false;
     const result = lastProbeResult;
     if (result.success) {
+      set("wifi-tunnel", "HTTP/HTTPS relay live test passed");
       set("wifi-live", "HTTP response received (status " + result.statusCode + ")");
       set("wifi-transport", "Quant-to-Dream-to-public-internet test passed (" + result.elapsedMs + " ms)");
       set("wifi-message", "Live path verified for this test: the source reached example.com and its HTTP response returned through Dream Tunnel. This does not measure Wi-Fi signal strength or enable full-device VPN routing.");
     } else {
+      set("wifi-tunnel", "HTTP/HTTPS relay test failed");
       set("wifi-live", "Internet path not verified");
       set("wifi-transport", "Test failed after " + result.elapsedMs + " ms");
       set("wifi-message", String(result.error || "No HTTP response received through the source tunnel."));
