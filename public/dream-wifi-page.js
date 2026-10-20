@@ -73,7 +73,7 @@
         try { decoded = atob(message.data); } catch (_) {}
         activeProbe.response += decoded;
         if (activeProbe.response.length > 16384) activeProbe.response = activeProbe.response.slice(0, 16384);
-        const match = activeProbe.response.match(/^HTTP\\/\\d(?:\\.\\d)?\\s+(\\d{3})/);
+        const match = activeProbe.response.match(/^HTTP\/\d(?:\.\d)?\s+(\d{3})/);
         if (match) finishProbe(true, Number(match[1]), Date.now() - activeProbe.startedAt);
       } else if (activeProbe && message.id === activeProbe.id && (message.type === "tcp-error" || message.type === "tcp-close")) {
         finishProbe(false, 0, Date.now() - activeProbe.startedAt, message.error || "Source closed the internet test before an HTTP response arrived.");
