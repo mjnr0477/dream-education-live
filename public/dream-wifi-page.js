@@ -103,15 +103,15 @@
       }
       set("wifi-owner", "Verified");
       set("wifi-source", "Not connected");
-      set("wifi-tunnel", "Control plane implemented; traffic forwarding not implemented");
+      set("wifi-tunnel", "HTTP/HTTPS TCP relay implemented; live test pending");
       set("wifi-live", "No live access");
       set("wifi-provider", result.provider_configured ? "Configured; verification pending" : "Not configured");
       set("wifi-source-endpoint", result.source_endpoint_configured
         ? "Configured; waiting for source agent"
         : "Not configured — source token required");
       set("wifi-transport", "Control channel not yet measured");
-      set("wifi-phone", "Full traffic routing not implemented");
-      set("wifi-message", "Owner verified. The control plane can check whether a source agent is reachable; it does not yet route internet traffic.");
+      set("wifi-phone", "SOCKS5 proxy only; no full-device VPN");
+      set("wifi-message", "Owner verified. The source agent and SOCKS5 relay can carry HTTP/HTTPS TCP streams when both endpoints are configured; live Quant routing has not yet been verified.");
       connectTunnel(accessToken);
     } catch (_) {
       if (current === version) {
