@@ -1,0 +1,16 @@
+.dream-wifi-nav-link {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid rgba(74, 222, 128, .42);
+  border-radius: 12px;
+  color: #bbf7d0 !important;
+  background: rgba(20, 83, 45, .22);
+  text-decoration: none;
+  font-weight: 800;
+}
+.dream-wifi-nav-link:hover { background: rgba(20, 83, 45, .42); }
+.dream-wifi-nav-link { display: none !important; }
+.dream-wifi-nav-link.is-visible { display: inline-flex !important; }
