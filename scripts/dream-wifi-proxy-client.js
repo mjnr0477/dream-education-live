@@ -237,12 +237,22 @@ function connect() {
     }
   });
   currentSocket.on("close", (code, reason) => {
+    // A late close event from an older socket must not affect the current connection.
+    if (socket !== currentSocket) return;
     if (heartbeatTimer) clearInterval(heartbeatTimer);
     heartbeatTimer = null;
-    // Ignore stale close events if a newer socket has already replaced this one.
-    if (socket !== currentSocket) return;
     ownerReady = false;
     closeAllStreams();
+
+    // Stop accepting local SOCKS connections while the relay is disconnected.
+    // Drop the server reference immediately so the next successful registration
+    // can create a fresh listener instead of retaining a stale Server object.
+    const previousProxyServer = proxyServer;
+    proxyServer = null;
+    if (previousProxyServer) {
+      try { previousProxyServer.close(); } catch (_) {}
+    }
+
     if (!stopped) {
       const detail = reason && reason.length ? reason.toString("utf8") : "no reason supplied";
       console.error("Dream Tunnel WebSocket closed (code " + code + "; " + detail + ").");
@@ -258,8 +268,15 @@ function connect() {
 function shutdown() {
   stopped = true;
   if (reconnectTimer) clearTimeout(reconnectTimer);
+  if (heartbeatTimer) clearInterval(heartbeatTimer);
+  heartbeatTimer = null;
+  ownerReady = false;
   closeAllStreams();
-  if (proxyServer) proxyServer.close();
+  const previousProxyServer = proxyServer;
+  proxyServer = null;
+  if (previousProxyServer) {
+    try { previousProxyServer.close(); } catch (_) {}
+  }
   if (socket) socket.close();
 }
 process.on("SIGINT", shutdown);
