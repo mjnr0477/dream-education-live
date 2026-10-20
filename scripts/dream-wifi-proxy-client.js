@@ -129,7 +129,7 @@ function handleLocalSocket(local) {
           return;
         }
         const id = crypto.randomUUID();
-        entry = { id, local, state: "connecting", pending: buffer, finished: false };
+        entry = { id, local, state: "connecting", pending: buffer, finished: false, setState: value => { state = value; } };
         streams.set(id, entry);
         state = "connecting";
         buffer = Buffer.alloc(0);
@@ -193,6 +193,7 @@ function connect() {
       const entry = streams.get(message.id);
       if (!entry || entry.state !== "connecting") return;
       entry.state = "connected";
+      entry.setState("connected");
       entry.local.write(Buffer.from([5, 0, 0, 1, 0, 0, 0, 0, 0, 0]));
       entry.local.resume();
       if (entry.pending.length) {
