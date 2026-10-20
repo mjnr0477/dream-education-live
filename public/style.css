@@ -1087,6 +1087,24 @@ body.panel-open .experience-panel{
     background:rgba(255,255,255,.06);
   }
 
+  .mobile-drawer .drawer-wifi{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:15px;
+    margin:2px 0;
+    border:1px solid rgba(74,222,128,.48);
+    border-radius:13px;
+    background:rgba(20,83,45,.28);
+    color:#bbf7d0;
+    font-weight:800;
+    text-decoration:none;
+  }
+
+  .mobile-drawer .drawer-wifi:hover{
+    background:rgba(20,83,45,.48);
+  }
+
   .mobile-drawer .drawer-start{
     margin-top:4px;
     background:var(--accent);
