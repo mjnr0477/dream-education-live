@@ -115,6 +115,10 @@ function handleLocalSocket(local) {
           if (buffer.length < 7 + length) return;
           host = buffer.subarray(5, 5 + length).toString("utf8");
           consumed = 7 + length;
+        } else if (atyp === 4) {
+          if (buffer.length < 22) return;
+          host = Array.from({ length: 8 }, (_, index) => buffer.readUInt16BE(4 + index * 2).toString(16)).join(":");
+          consumed = 22;
         } else {
           local.end(Buffer.from([5, 8, 0, 1, 0, 0, 0, 0, 0, 0]));
           return;
