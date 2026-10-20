@@ -20,5 +20,5 @@ assert.match(client, /Authorization:\s*"Bearer "\s*\+\s*token/);
 assert.doesNotMatch(client, /mathiassimiyu52@gmail\.com/i);
 assert.match(page, /id=["']dream-wifi-nav["']/);
 assert.match(page, /href=["']\/dream-wifi\.html["']/);
-assert.match(tunnelPage, /No remote tunnel or live internet connection has been verified/);
+assert.match(tunnelPage, /no remote tunnel or live internet connection has been verified/i);
 console.log("Dream Wi-Fi owner-gate smoke test passed.");
