@@ -25,7 +25,7 @@ assert.match(readme, /not yet validated on a physical device/);
 assert.match(proxy, /atyp === 4/);
 assert.match(proxy, /buffer.readUInt16BE\(4 \+ index \* 2\)/);
 assert.match(proxy, /message.type === "udp-data"/);
-assert.match(proxy, /type: "udp-send"/);
+assert.match(proxy, /type: ['"]udp-send['"]/);
 assert.match(source, /dgram.createSocket/);
 assert.match(source, /resolvePublicHost\(host\)/);
 assert.match(relay, /MAX_UDP_ASSOCIATIONS_PER_OWNER/);
