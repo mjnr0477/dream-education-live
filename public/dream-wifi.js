@@ -1,7 +1,7 @@
 /* Dream Wi-Fi nav visibility is based on server-verified ownership, not local profile flags. */
 (function () {
   "use strict";
-  const link = document.getElementById("dream-wifi-nav");
+  const link = document.querySelector(".dream-wifi-nav-link");
   if (!link) return;
   const AUTH_KEY = "dream_education_auth";
   let requestVersion = 0;
