@@ -21,7 +21,6 @@
   <link rel="stylesheet" href="/teacher-workspace.css?v=20261012a">
   <link rel="stylesheet" href="/meetings-workspace.css?v=20261012a">
   <link rel="stylesheet" href="/dream-search.css?v=20261011d">
-  <link rel="stylesheet" href="/dream-wifi.css?v=20261019i">
   <link rel="stylesheet" href="/nextgen-visual.css?v=20261011a">
   <link rel="stylesheet" href="/school-workspace.css?v=20261015a">
   <link rel="stylesheet" href="/parent-workspace.css?v=20261013b">
@@ -50,7 +49,6 @@
       </div>
 
       <div class="nav-right">
-        <a class="dream-wifi-nav-link" href="/dream-wifi.html">Dream WiFi <span aria-hidden="true">↗</span></a>
         <button class="nav-login" data-action="open" data-panel="signin">Sign in</button>
         <button class="nav-join" data-action="open" data-panel="join">
           <span>Get started</span>
@@ -115,80 +113,6 @@
 
       </section>
 
-      <section class="dream-wifi-section" id="dream-wifi-section" hidden aria-labelledby="dream-wifi-title">
-        <div class="dream-wifi-shell">
-          <span class="dream-wifi-kicker">PRIVATE OWNER PREVIEW</span>
-          <h2 class="dream-wifi-heading" id="dream-wifi-title">Dream Wi-Fi</h2>
-          <p class="dream-wifi-copy">
-            A private workspace to prepare Dream's connection to existing Wi-Fi providers.
-            Dream will not operate routers. Real hotspot access stays disabled until an authorized provider is connected and tested.
-          </p>
-
-          <article class="dream-wifi-card">
-            <div>
-              <h3>Global Wi-Fi connection project</h3>
-              <p>Prepare the provider integration, verify access, and test the user experience before enabling it for anyone else.</p>
-              <span class="dream-wifi-private"><span aria-hidden="true">🔒</span> Owner only · Not available to the public</span>
-            </div>
-            <button class="dream-wifi-open" id="dream-wifi-open" type="button" aria-expanded="false" aria-controls="dream-wifi-dashboard">
-              Open private preview <span aria-hidden="true">→</span>
-            </button>
-          </article>
-
-          <div class="dream-wifi-dashboard" id="dream-wifi-dashboard" hidden aria-labelledby="dream-wifi-dashboard-title">
-            <div class="dream-wifi-dashboard-header">
-              <div>
-                <h3 id="dream-wifi-dashboard-title">Dream Wi-Fi readiness</h3>
-                <p>Check whether an IronWiFi network and captive portal are configured. This does not activate hotspots, access sessions, or customer packages.</p>
-              </div>
-              <button class="dream-wifi-close" id="dream-wifi-close" type="button">Close</button>
-            </div>
-
-            <div class="dream-wifi-grid">
-              <div class="dream-wifi-status">
-                <span class="dream-wifi-status-label">IronWiFi API</span>
-                <strong data-wifi-provider-status>Not configured</strong>
-                <small>Server-side API authentication can be checked without exposing the secret key or changing provider data.</small>
-              </div>
-              <div class="dream-wifi-status">
-                <span class="dream-wifi-status-label">Live Wi-Fi access</span>
-                <strong data-wifi-access-status>Not yet verified</strong>
-                <small>No network credentials or live access have been connected to Dream.</small>
-              </div>
-              <div class="dream-wifi-status">
-                <span class="dream-wifi-status-label">Packages and payments</span>
-                <strong data-wifi-package-status>Disabled</strong>
-                <small>No package prices are invented and no customer payments can be taken here.</small>
-              </div>
-            </div>
-
-            <div class="dream-wifi-checklist" aria-labelledby="dream-wifi-checklist-title">
-              <h4 id="dream-wifi-checklist-title">Setup checklist</h4>
-              <ul>
-                <li><span>IronWiFi API access</span><strong data-wifi-check-api>Not checked</strong></li>
-                <li><span>Network created in IronWiFi</span><strong data-wifi-check-network>Not checked</strong></li>
-                <li><span>Captive portal configured</span><strong data-wifi-check-portal>Not checked</strong></li>
-                <li><span>Authorized access point/controller test</span><strong data-wifi-check-hardware>Not verified</strong></li>
-              </ul>
-              <p>These checks report setup readiness only. Live internet access and paid packages remain disabled until a real authorized device connection is tested.</p>
-            </div>
-
-            <div class="dream-wifi-next">
-              <strong>Next technical gate:</strong> identify a provider with an authorized API or SDK, participating hotspot coverage, and terms that require no upfront payment or minimum commitment. Then test authentication and session expiry before enabling packages.
-            </div>
-            <div class="dream-wifi-provider-test">
-              <div>
-                <strong>IronWiFi network readiness check</strong>
-                <p>Check whether Dream's server can read network and captive-portal configuration. This read-only check does not configure hardware, create users, expose provider data, or enable customer access.</p>
-              </div>
-              <button class="dream-wifi-open dream-wifi-provider-link" id="dream-wifi-provider-test" type="button">
-                Check network setup
-              </button>
-            </div>
-            <p class="dream-wifi-footnote" id="dream-wifi-owner-status" aria-live="polite">Owner preview enabled for this signed-in browser.</p>
-          </div>
-        </div>
-      </section>
 
       <section class="dream-search-section" id="dream-search">
         <div class="dream-search-shell">
@@ -247,14 +171,12 @@
     <button data-action="open" data-panel="explore">Explore</button>
     <button data-action="open" data-panel="about">About</button>
     <button data-action="open" data-panel="books">Books & Reading</button>
-    <a class="dream-wifi-nav-link dream-wifi-mobile-link" href="/dream-wifi.html">Dream WiFi <span aria-hidden="true">↗</span></a>
     <button type="button" data-dream-invest-open hidden>Dream Invest ↗</button>
     <button data-action="open" data-panel="signin">Sign in</button>
     <button class="drawer-start" data-action="open" data-panel="join">Get started →</button>
   </div>
 
   <script src="/app.js?v=20261019b"></script>
-  <script src="/dream-wifi.js?v=20261019f"></script>
   <script src="/books-reading.js?v=20261018a"></script>
   <script src="/dream-search.js?v=20261011b"></script>
   <script src="/frontend-workspace.js?v=20261019a"></script>
