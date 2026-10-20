@@ -65,7 +65,7 @@
           : String(message.error || "Source did not respond"));
       } else if (activeProbe && message.id === activeProbe.id && message.type === "tcp-opened") {
         activeProbe.opened = true;
-        const request = "GET / HTTP/1.1\\r\\nHost: example.com\\r\\nConnection: close\\r\\nUser-Agent: Dream-WiFi-Diagnostic/1.0\\r\\n\\r\\n";
+        const request = "GET / HTTP/1.1\r\nHost: example.com\r\nConnection: close\r\nUser-Agent: Dream-WiFi-Diagnostic/1.0\r\n\r\n";
         socket.send(JSON.stringify({ type: "tcp-data", id: activeProbe.id, data: btoa(request) }));
         set("wifi-message", "Source connected to example.com; waiting for the HTTP response through Dream Tunnel…");
       } else if (activeProbe && message.id === activeProbe.id && message.type === "tcp-data" && typeof message.data === "string") {
