@@ -215,6 +215,7 @@ function closeAllStreams() {
     entry.state = "closed";
     try { entry.local.destroy(); } catch (_) {}
   }
+  for (const id of [...udpAssociations.keys()]) closeUdpAssociation(id, false);
 }
 function connect() {
   if (stopped) return;
