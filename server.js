@@ -5750,7 +5750,7 @@ app.get("/api/dream-wifi/owner-status", async (req, res) => {
     const providerBaseUrl = String(
       process.env.DREAM_WIFI_PROVIDER_API_URL ||
       (providerName === "ironwifi" ? "https://console.ironwifi.io" : "")
-    ).trim().replace(/\\/+$/, "");
+    ).trim().replace(/\/+$/, "");
     const providerApiKey = String(process.env.DREAM_WIFI_PROVIDER_API_KEY || "").trim();
     const providerConfigured = Boolean(providerBaseUrl && providerApiKey);
     let providerApiReachable = false;
