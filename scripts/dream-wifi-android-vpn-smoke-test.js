@@ -14,7 +14,7 @@ assert.match(manifest, /BIND_VPN_SERVICE/);
 assert.match(service, /TProxyStartService/);
 assert.match(service, /addRoute\("0\.0\.0\.0",0\)/);
 assert.match(service, /addRoute\("::",0\)/);
-assert.match(service, /addDisallowedApplication\("com\\.termux"\)/);
+assert.match(service, /addDisallowedApplication\("com\.termux"\)/);
 assert.match(service, /addDnsServer\("198\.18\.0\.2"\)/);
 assert.match(service, /127\.0\.0\.1:1080/);
 assert.match(activity, /VpnService\.prepare/);
