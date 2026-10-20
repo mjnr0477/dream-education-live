@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#07080d">
-  <meta name="description" content="Dream Wi-Fi — connect through participating, authorized existing hotspot networks.">
+  <meta name="description" content="Dream Wi-Fi — private owner prototype for a remote internet tunnel.">
   <title>Dream Wi-Fi | Dream Education</title>
   <link rel="stylesheet" href="/dream-wifi.css?v=20261019i">
   <style>
@@ -38,32 +38,32 @@
   </header>
   <main class="wifi-main">
     <span class="wifi-eyebrow">Dream Wi-Fi · Network access</span>
-    <h1>Internet access,<br>through existing networks.</h1>
-    <p class="wifi-lead">Dream Wi-Fi is being built to connect people to participating hotspot providers, without Dream buying or owning physical routers. Availability depends on an authorized network partner and compatible hotspot hardware.</p>
+    <h1>Dream Tunnel,<br>remote internet access.</h1>
+    <p class="wifi-lead">Dream Wi-Fi is being developed around a new idea: carry an authorized Quant internet connection to a distant phone through a secure tunnel and an available transport network such as mobile data. This owner-only page tracks prototype readiness; no remote tunnel or live internet connection has been verified yet.</p>
     <section class="wifi-card" aria-labelledby="wifi-state-title">
       <span class="wifi-status" id="wifi-state-title">● Setup and access status</span>
       <div class="wifi-grid">
-        <div class="wifi-tile"><span>Provider API</span><strong id="wifi-api-state">Checking owner access…</strong></div>
-        <div class="wifi-tile"><span>Network and captive portal</span><strong id="wifi-network-state">Not verified</strong></div>
-        <div class="wifi-tile"><span>Live internet and packages</span><strong id="wifi-live-state">Not enabled</strong></div>
+        <div class="wifi-tile"><span>Quant source connection</span><strong id="wifi-api-state">Not connected</strong></div>
+        <div class="wifi-tile"><span>Dream Tunnel</span><strong id="wifi-network-state">Not built / tested</strong></div>
+        <div class="wifi-tile"><span>Remote phone internet</span><strong id="wifi-live-state">Not verified</strong></div>
       </div>
       <div class="wifi-checklist">
         <h2>Connection readiness</h2>
         <ul>
           <li><span>Owner access verified</span><strong id="wifi-owner-check">Checking…</strong></li>
-          <li><span>IronWiFi API reachable</span><strong id="wifi-api-check">Not checked</strong></li>
-          <li><span>Network configured</span><strong id="wifi-network-check">Not checked</strong></li>
-          <li><span>Captive portal configured</span><strong id="wifi-portal-check">Not checked</strong></li>
-          <li><span>Authorized hotspot/controller tested</span><strong id="wifi-hardware-check">Not tested</strong></li>
+          <li><span>Authorized Quant source</span><strong id="wifi-api-check">Not connected</strong></li>
+          <li><span>Tunnel endpoints</span><strong id="wifi-network-check">Not built</strong></li>
+          <li><span>Transport path</span><strong id="wifi-portal-check">Not tested</strong></li>
+          <li><span>Phone in another town</span><strong id="wifi-hardware-check">Not tested</strong></li>
         </ul>
       </div>
       <div class="wifi-actions">
-        <button class="wifi-button" id="wifi-test" type="button">Check provider setup</button>
+        <button class="wifi-button" id="wifi-test" type="button">Refresh readiness</button>
         <a class="wifi-button secondary" href="/">Sign in / return to Dream</a>
       </div>
-      <p id="wifi-message" role="status" aria-live="polite">Live access is kept disabled until a real authorized device connection has been tested.</p>
+      <p id="wifi-message" role="status" aria-live="polite">This prototype does not yet establish a tunnel, create Wi-Fi, or provide internet access.</p>
     </section>
-    <p class="wifi-note">Important: a successful API check does not itself provide internet. To finish the real connection, Dream still needs a participating network owner/provider, a configured captive portal, and an authorized access point or controller for end-to-end device testing. Packages and payments stay disabled until those steps are verified.</p>
+    <p class="wifi-note">The tunnel must have an authorized Quant source endpoint and a reachable remote endpoint. Mobile data or another network can carry the encrypted tunnel, but may incur charges. Software cannot remove the need for a real transport path. No package sales or live access are enabled.</p>
   </main>
   <script src="/dream-wifi-page.js?v=20261020a"></script>
 </body>
