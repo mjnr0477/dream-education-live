@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#07080d">
+  <meta name="description" content="Dream Wi-Fi — connect through participating, authorized existing hotspot networks.">
+  <title>Dream Wi-Fi | Dream Education</title>
+  <link rel="stylesheet" href="/dream-wifi.css?v=20261019i">
+  <style>
+    *{box-sizing:border-box} body{margin:0;min-height:100vh;background:#07080d;color:#f8fafc;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    .wifi-top{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px clamp(18px,5vw,64px);border-bottom:1px solid #1e293b}
+    .wifi-brand{font-weight:900;letter-spacing:.06em;color:#f8fafc;text-decoration:none}.wifi-brand span{color:#86efac}
+    .wifi-back{color:#bbf7d0;text-decoration:none;font-weight:700}.wifi-main{width:min(960px,calc(100% - 32px));margin:clamp(28px,6vw,70px) auto}
+    .wifi-eyebrow{color:#86efac;font-size:.75rem;letter-spacing:.17em;font-weight:900;text-transform:uppercase}
+    h1{font-size:clamp(2.3rem,7vw,4.8rem);line-height:1.02;letter-spacing:-.055em;margin:14px 0}
+    .wifi-lead{max-width:700px;color:#b6c2d4;font-size:1.08rem;line-height:1.75}
+    .wifi-card{margin-top:26px;padding:clamp(18px,4vw,32px);border:1px solid #29423a;border-radius:22px;background:linear-gradient(145deg,#101d19,#0c111c)}
+    .wifi-status{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:7px 12px;background:#183b2b;color:#bbf7d0;font-size:.82rem;font-weight:800}
+    .wifi-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:20px}
+    .wifi-tile{padding:16px;border:1px solid #293548;border-radius:14px;background:#0c1220;min-width:0}
+    .wifi-tile span{display:block;color:#94a3b8;font-size:.78rem;margin-bottom:8px}.wifi-tile strong{line-height:1.4;overflow-wrap:anywhere}
+    .wifi-checklist{margin-top:20px}.wifi-checklist h2{font-size:1.2rem}.wifi-checklist ul{padding:0;list-style:none}
+    .wifi-checklist li{display:flex;justify-content:space-between;gap:16px;padding:13px 0;border-top:1px solid #293548;color:#cbd5e1}
+    .wifi-checklist li strong{text-align:right;color:#86efac;font-size:.88rem}
+    .wifi-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:20px}
+    .wifi-button{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:12px 16px;border:0;border-radius:12px;background:#4ade80;color:#052e16;font:inherit;font-weight:900;text-decoration:none;cursor:pointer}
+    .wifi-button.secondary{border:1px solid #475569;background:#111827;color:#e2e8f0}.wifi-button:disabled{opacity:.65;cursor:wait}
+    #wifi-message{color:#cbd5e1;line-height:1.6;min-height:1.6em;margin-top:16px}
+    .wifi-note{color:#94a3b8;font-size:.86rem;line-height:1.7;margin-top:22px}
+    @media(max-width:680px){.wifi-grid{grid-template-columns:1fr}.wifi-checklist li{flex-direction:column;gap:5px}.wifi-checklist li strong{text-align:left}.wifi-top{align-items:flex-start}}
+  </style>
+</head>
+<body>
+  <header class="wifi-top">
+    <a class="wifi-brand" href="/">DREAM <span>WI-FI</span></a>
+    <a class="wifi-back" href="/">← Dream Education</a>
+  </header>
+  <main class="wifi-main">
+    <span class="wifi-eyebrow">Dream Wi-Fi · Network access</span>
+    <h1>Internet access,<br>through existing networks.</h1>
+    <p class="wifi-lead">Dream Wi-Fi is being built to connect people to participating hotspot providers, without Dream buying or owning physical routers. Availability depends on an authorized network partner and compatible hotspot hardware.</p>
+    <section class="wifi-card" aria-labelledby="wifi-state-title">
+      <span class="wifi-status" id="wifi-state-title">● Setup and access status</span>
+      <div class="wifi-grid">
+        <div class="wifi-tile"><span>Provider API</span><strong id="wifi-api-state">Checking owner access…</strong></div>
+        <div class="wifi-tile"><span>Network and captive portal</span><strong id="wifi-network-state">Not verified</strong></div>
+        <div class="wifi-tile"><span>Live internet and packages</span><strong id="wifi-live-state">Not enabled</strong></div>
+      </div>
+      <div class="wifi-checklist">
+        <h2>Connection readiness</h2>
+        <ul>
+          <li><span>Owner access verified</span><strong id="wifi-owner-check">Checking…</strong></li>
+          <li><span>IronWiFi API reachable</span><strong id="wifi-api-check">Not checked</strong></li>
+          <li><span>Network configured</span><strong id="wifi-network-check">Not checked</strong></li>
+          <li><span>Captive portal configured</span><strong id="wifi-portal-check">Not checked</strong></li>
+          <li><span>Authorized hotspot/controller tested</span><strong id="wifi-hardware-check">Not tested</strong></li>
+        </ul>
+      </div>
+      <div class="wifi-actions">
+        <button class="wifi-button" id="wifi-test" type="button">Check provider setup</button>
+        <a class="wifi-button secondary" href="/">Sign in / return to Dream</a>
+      </div>
+      <p id="wifi-message" role="status" aria-live="polite">Live access is kept disabled until a real authorized device connection has been tested.</p>
+    </section>
+    <p class="wifi-note">Important: a successful API check does not itself provide internet. To finish the real connection, Dream still needs a participating network owner/provider, a configured captive portal, and an authorized access point or controller for end-to-end device testing. Packages and payments stay disabled until those steps are verified.</p>
+  </main>
+  <script src="/dream-wifi-page.js?v=20261020a"></script>
+</body>
+</html>
