@@ -55,7 +55,6 @@ public final class MainActivity extends Activity {
         switch (reason) {
           case ERROR_INCOMPATIBLE_MODE: message = "Hotspot could not start because this device is in an incompatible Wi-Fi mode."; break;
           case ERROR_NO_CHANNEL: message = "Android could not find an available Wi-Fi channel."; break;
-          case ERROR_TETHERING_DISALLOWED: message = "This device or administrator disallows local hotspots."; break;
           default: message = "Android could not start the local hotspot (error " + reason + ").";
         }
         clearHotspotUi(message);
