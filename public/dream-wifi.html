@@ -39,10 +39,11 @@
       <ul>
         <li><span>Owner access</span><strong id="wifi-owner">Checking…</strong></li>
         <li><span>Provider configuration</span><strong id="wifi-provider">Checking…</strong></li>
+        <li><span>Source-side control endpoint</span><strong id="wifi-source-endpoint">Not connected</strong></li>
         <li><span>Transport path</span><strong id="wifi-transport">Not tested</strong></li>
         <li><span>Remote phone test</span><strong id="wifi-phone">Not tested</strong></li>
       </ul>
-      <button id="wifi-refresh" type="button">Refresh readiness</button>
+      <div style="display:flex;gap:10px;flex-wrap:wrap"><button id="wifi-refresh" type="button">Refresh readiness</button><button id="wifi-ping-source" type="button" disabled>Ping source endpoint</button></div>
       <p id="wifi-message" role="status" aria-live="polite">Verifying owner access…</p>
     </section>
     <p class="note">A tunnel requires an authorized source endpoint and a reachable remote endpoint. Mobile data or another network can carry the encrypted tunnel but may incur charges. Software cannot create a radio link or internet access without a real transport path. Live access and package sales remain disabled.</p>

@@ -5679,10 +5679,15 @@ console.log("STATE-AWARE TEACHING ANALYSIS:", teachingAnalysis);
 
 // Server starts after the persistent product store has hydrated.
 function startDreamEducationServer() {
-  app.listen(PORT, () => {
+  const httpServer = app.listen(PORT, () => {
     console.log("Dream Education running on http://localhost:" + PORT);
     console.log("AI mode:", process.env.AI_MODE || "development");
     console.log("Product store persistence: ready");
+  });
+  require("./product/dream_wifi_tunnel_engine").attachDreamWifiTunnel(httpServer, {
+    supabaseAuth,
+    isOwnerAccount,
+    sourceToken: process.env.DREAM_WIFI_SOURCE_TOKEN
   });
 }
 
@@ -5750,6 +5755,7 @@ app.get("/api/dream-wifi/owner-status", async (req, res) => {
       success: true,
       owner: true,
       provider_configured: providerConfigured,
+      source_endpoint_configured: Boolean(process.env.DREAM_WIFI_SOURCE_TOKEN),
       provider: providerConfigured
         ? String(process.env.DREAM_WIFI_PROVIDER || "configured-provider")
         : null,
