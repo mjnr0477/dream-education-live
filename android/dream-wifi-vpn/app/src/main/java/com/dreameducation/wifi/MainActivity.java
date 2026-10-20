@@ -14,7 +14,7 @@ public final class MainActivity extends Activity {
     super.onCreate(saved);
     LinearLayout box = new LinearLayout(this); box.setOrientation(1); box.setGravity(Gravity.CENTER_HORIZONTAL); box.setPadding(28,40,28,28);
     TextView title = new TextView(this); title.setText("Dream Wi-Fi"); title.setTextSize(28); box.addView(title);
-    TextView note = new TextView(this); note.setText("The Dream Tunnel owner SOCKS5 proxy must already be running in Termux on 127.0.0.1:1080. This prototype routes compatible web traffic; arbitrary UDP and non-web TCP destinations are not yet supported by the relay."); note.setTextSize(16); note.setPadding(0,24,0,24); box.addView(note);
+    TextView note = new TextView(this); note.setText("The Dream Tunnel owner SOCKS5 proxy must already be running in Termux on 127.0.0.1:1080. Termux is excluded from VPN routing to prevent the source tunnel looping. This prototype routes compatible web traffic; arbitrary UDP and non-web TCP destinations are not yet supported by the relay."); note.setTextSize(16); note.setPadding(0,24,0,24); box.addView(note);
     status = new TextView(this); status.setText("Disconnected. Start and verify the owner proxy first."); box.addView(status);
     Button on = new Button(this); on.setText("Connect Dream VPN"); on.setOnClickListener(v->{ Intent p=VpnService.prepare(this); if(p!=null) startActivityForResult(p,1001); else startVpn(); }); box.addView(on);
     Button off = new Button(this); off.setText("Disconnect"); off.setOnClickListener(v->{ Intent i=new Intent(this,DreamVpnService.class); i.setAction(DreamVpnService.ACTION_STOP); startService(i); status.setText("Disconnect requested."); }); box.addView(off);
