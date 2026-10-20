@@ -120,7 +120,7 @@ function handleLocalSocket(local) {
         }
         const targetPort = buffer.readUInt16BE(consumed - 2);
         buffer = buffer.subarray(consumed);
-        if (!host || /[\s/\\]/.test(host) || ![80, 443].includes(targetPort)) {
+        if (!host || /\s/.test(host) || host.includes("/") || host.includes("\\") || ![80, 443].includes(targetPort)) {
           local.end(Buffer.from([5, 2, 0, 1, 0, 0, 0, 0, 0, 0]));
           return;
         }
