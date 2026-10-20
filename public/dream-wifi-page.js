@@ -4,12 +4,14 @@
   const button = document.getElementById("wifi-refresh");
   const pingButton = document.getElementById("wifi-ping-source");
   const testButton = document.getElementById("wifi-test-internet");
+  const dnsButton = document.getElementById("wifi-test-dns");
   const get = (id) => document.getElementById(id);
   let version = 0;
   let socketVersion = 0;
   let tunnelSocket = null;
   let ownerChannelReady = false;
   let activeProbe = null;
+  let activeUdpProbe = null;
   let lastProbeResult = null;
 
   function token() {
@@ -25,9 +27,14 @@
     ownerChannelReady = false;
     if (pingButton) pingButton.disabled = true;
     if (testButton) testButton.disabled = true;
+    if (dnsButton) dnsButton.disabled = true;
     if (activeProbe) {
       clearTimeout(activeProbe.timer);
       activeProbe = null;
+    }
+    if (activeUdpProbe) {
+      clearTimeout(activeUdpProbe.timer);
+      activeUdpProbe = null;
     }
     if (tunnelSocket) {
       const old = tunnelSocket;
@@ -57,6 +64,7 @@
         ownerChannelReady = true;
         if (pingButton) pingButton.disabled = false;
         if (testButton) testButton.disabled = false;
+        if (dnsButton) dnsButton.disabled = false;
         set("wifi-source-endpoint", "Owner control channel authenticated");
       } else if (message.type === "source-state") {
         set("wifi-source-endpoint", message.connected ? "Source agent connected" : "Source agent not connected");
@@ -64,6 +72,14 @@
         set("wifi-source-endpoint", message.success
           ? "Source responds (" + Number(message.latency_ms) + " ms)"
           : String(message.error || "Source did not respond"));
+      } else if (activeUdpProbe && message.id === activeUdpProbe.id && message.type === "udp-data" && typeof message.data === "string") {
+        let bytes = [];
+        try { bytes = Array.from(atob(message.data), function (character) { return character.charCodeAt(0); }); } catch (_) {}
+        const elapsed = Date.now() - activeUdpProbe.startedAt;
+        const validDns = bytes.length >= 12 && bytes[0] === activeUdpProbe.idBytes[0] && bytes[1] === activeUdpProbe.idBytes[1] && (bytes[2] & 0x80) !== 0 && (bytes[3] & 0x0f) === 0;
+        finishUdpProbe(validDns, elapsed, validDns ? "" : "A UDP response arrived, but it was not a valid successful DNS reply.");
+      } else if (activeUdpProbe && message.id === activeUdpProbe.id && message.type === "udp-error") {
+        finishUdpProbe(false, Date.now() - activeUdpProbe.startedAt, String(message.error || "DNS/UDP relay failed"));
       } else if (activeProbe && message.id === activeProbe.id && message.type === "tcp-opened") {
         activeProbe.opened = true;
         const request = "GET / HTTP/1.1\r\nHost: example.com\r\nConnection: close\r\nUser-Agent: Dream-WiFi-Diagnostic/1.0\r\n\r\n";
@@ -87,7 +103,9 @@
       ownerChannelReady = false;
       if (pingButton) pingButton.disabled = true;
       if (testButton) testButton.disabled = true;
+      if (dnsButton) dnsButton.disabled = true;
       if (activeProbe) finishProbe(false, 0, Date.now() - activeProbe.startedAt, "Control channel disconnected.");
+      if (activeUdpProbe) finishUdpProbe(false, Date.now() - activeUdpProbe.startedAt, "Control channel disconnected.");
       set("wifi-source-endpoint", "Control channel disconnected");
     });
     socket.addEventListener("error", function () {
@@ -128,17 +146,25 @@
       }
       set("wifi-owner", "Verified");
       set("wifi-source", "Not connected");
-      set("wifi-tunnel", "HTTP/HTTPS TCP relay implemented; live test pending");
-      set("wifi-provider", result.provider_configured ? "Configured; verification pending" : "Not configured");
+      set("wifi-tunnel", "TCP 80/443 + bounded UDP relay; live tests pending");
+      set("wifi-provider", !result.provider_configured
+        ? "Not configured"
+        : result.provider_auth_valid === true
+          ? "Provider API verified; network/package pending"
+          : result.provider_auth_valid === false
+            ? "Provider API rejected credentials"
+            : result.provider_api_reachable
+              ? "Provider API reachable; auth unverified"
+              : "Configured; API check failed");
       set("wifi-source-endpoint", result.source_endpoint_configured
         ? "Configured; waiting for source agent"
         : "Not configured — source token required");
-      set("wifi-phone", "SOCKS5 proxy only; no full-device VPN");
+      set("wifi-phone", "Android VPN prototype; physical-device test pending");
       if (testButton) testButton.disabled = true;
       if (!renderProbeResult()) {
         set("wifi-live", "Not tested in this page session");
         set("wifi-transport", "Run the end-to-end internet test");
-        set("wifi-message", "Owner verified. Test the source route to confirm that a real public-internet HTTP response returns through Dream Tunnel.");
+        set("wifi-message", "Owner verified. Run the HTTP and DNS/UDP probes to test real public-internet responses through Dream Tunnel. These probes do not prove the Android phone is routing all app traffic.");
       }
       connectTunnel(accessToken);
     } catch (_) {
@@ -182,7 +208,42 @@
     renderProbeResult();
   }
 
+  function finishUdpProbe(success, elapsedMs, error) {
+    if (!activeUdpProbe) return;
+    const probe = activeUdpProbe;
+    activeUdpProbe = null;
+    clearTimeout(probe.timer);
+    if (tunnelSocket && tunnelSocket.readyState === WebSocket.OPEN) tunnelSocket.send(JSON.stringify({ type: "udp-close", id: probe.id }));
+    if (dnsButton) dnsButton.disabled = !ownerChannelReady;
+    set("wifi-transport", success ? "HTTP + DNS/UDP relay probes passed" : "DNS/UDP test failed after " + elapsedMs + " ms");
+    set("wifi-message", success
+      ? "A valid DNS response for example.com returned from 1.1.1.1 through the authorized source, Dream Tunnel, and this dashboard. This verifies a DNS/UDP path, not all phone traffic or provider package access."
+      : String(error || "No valid DNS response returned through the UDP relay."));
+  }
+
   if (button) button.addEventListener("click", refresh);
+  if (dnsButton) dnsButton.addEventListener("click", function () {
+    if (!ownerChannelReady || !tunnelSocket || tunnelSocket.readyState !== WebSocket.OPEN || activeUdpProbe) return;
+    const id = "dream-wifi-dns-" + Date.now().toString(36);
+    const idBytes = [0x44, 0x57];
+    const labels = ["example", "com"];
+    const bytes = idBytes.concat([0x01, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
+    labels.forEach(function (label) {
+      const labelBytes = Array.from(label, function (character) { return character.charCodeAt(0); });
+      bytes.push(labelBytes.length);
+      bytes.push.apply(bytes, labelBytes);
+    });
+    bytes.push(0, 0, 1, 0, 1);
+    const payload = btoa(String.fromCharCode.apply(null, bytes));
+    activeUdpProbe = { id, idBytes, startedAt: Date.now(), timer: null };
+    activeUdpProbe.timer = window.setTimeout(function () {
+      finishUdpProbe(false, Date.now() - activeUdpProbe.startedAt, "Timed out waiting for a DNS/UDP response from 1.1.1.1:53.");
+    }, 7000);
+    dnsButton.disabled = true;
+    set("wifi-transport", "Sending DNS query through Dream Tunnel…");
+    set("wifi-message", "Testing DNS/UDP by resolving example.com through public resolver 1.1.1.1.");
+    tunnelSocket.send(JSON.stringify({ type: "udp-send", id, host: "1.1.1.1", port: 53, data: payload }));
+  });
   if (testButton) testButton.addEventListener("click", function () {
     if (!ownerChannelReady || !tunnelSocket || tunnelSocket.readyState !== WebSocket.OPEN || activeProbe) return;
     const id = "dream-wifi-probe-" + Date.now().toString(36);

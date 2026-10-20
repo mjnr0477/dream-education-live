@@ -28,12 +28,12 @@
   <main>
     <span class="eyebrow">Private owner prototype</span>
     <h1>Dream Tunnel,<br>remote internet access.</h1>
-    <p class="lead">Dream Tunnel can relay an authorized source connection to public HTTP/HTTPS destinations. Use the live test below to verify the source-to-internet path; full-device Android routing and provider packages are still separate, unfinished milestones.</p>
+    <p class="lead">Dream Tunnel relays an authorized source connection through Dream to public HTTP/HTTPS and bounded UDP destinations. Run both the HTTP and DNS/UDP probes below. These tests verify the source path only; full-device Android routing and provider package access still require separate validation.</p>
     <section class="card" aria-labelledby="status-title">
       <h2 id="status-title">Connection readiness</h2>
       <div class="grid">
         <div class="tile"><span>Quant source</span><strong id="wifi-source">Checking…</strong></div>
-        <div class="tile"><span>Dream Tunnel</span><strong id="wifi-tunnel">Not implemented</strong></div>
+        <div class="tile"><span>Dream Tunnel</span><strong id="wifi-tunnel">Relay in code; live tests pending</strong></div>
         <div class="tile"><span>Remote phone internet</span><strong id="wifi-live">Not verified</strong></div>
       </div>
       <ul>
@@ -43,11 +43,11 @@
         <li><span>Transport path</span><strong id="wifi-transport">Not tested</strong></li>
         <li><span>Remote phone test</span><strong id="wifi-phone">Not tested</strong></li>
       </ul>
-      <div style="display:flex;gap:10px;flex-wrap:wrap"><button id="wifi-refresh" type="button">Refresh readiness</button><button id="wifi-ping-source" type="button" disabled>Ping source endpoint</button><button id="wifi-test-internet" type="button" disabled>Test internet through Quant</button></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap"><button id="wifi-refresh" type="button">Refresh readiness</button><button id="wifi-ping-source" type="button" disabled>Ping source endpoint</button><button id="wifi-test-internet" type="button" disabled>Test HTTP internet</button><button id="wifi-test-dns" type="button" disabled>Test DNS / UDP</button></div>
       <p id="wifi-message" role="status" aria-live="polite">Verifying owner access…</p>
     </section>
-    <p class="note">A tunnel requires an authorized source endpoint and a reachable remote endpoint. Mobile data or another network can carry the encrypted tunnel but may incur charges. Software cannot create a radio link or internet access without a real transport path. Live access and package sales remain disabled.</p>
+    <p class="note">A tunnel requires an authorized source endpoint and a reachable remote endpoint. Mobile data or another network can carry the encrypted tunnel but may incur charges. Software cannot create a radio link or internet access without a real transport path. Live package sales remain disabled until a real provider API and purchase flow are verified.</p>
   </main>
-  <script src="/dream-wifi-page.js?v=20261020c"></script>
+  <script src="/dream-wifi-page.js?v=20261020d"></script>
 </body>
 </html>
