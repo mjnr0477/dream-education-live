@@ -13,7 +13,6 @@
   let activeProbe = null;
   let activeUdpProbe = null;
   let lastProbeResult = null;
-  let lastUdpResult = null;
 
   function token() {
     try {
@@ -148,7 +147,15 @@
       set("wifi-owner", "Verified");
       set("wifi-source", "Not connected");
       set("wifi-tunnel", "TCP 80/443 + bounded UDP relay; live tests pending");
-      set("wifi-provider", result.provider_configured ? "Configured; verification pending" : "Not configured");
+      set("wifi-provider", !result.provider_configured
+        ? "Not configured"
+        : result.provider_auth_valid === true
+          ? "Provider API verified; network/package pending"
+          : result.provider_auth_valid === false
+            ? "Provider API rejected credentials"
+            : result.provider_api_reachable
+              ? "Provider API reachable; auth unverified"
+              : "Configured; API check failed");
       set("wifi-source-endpoint", result.source_endpoint_configured
         ? "Configured; waiting for source agent"
         : "Not configured — source token required");
@@ -208,7 +215,6 @@
     clearTimeout(probe.timer);
     if (tunnelSocket && tunnelSocket.readyState === WebSocket.OPEN) tunnelSocket.send(JSON.stringify({ type: "udp-close", id: probe.id }));
     if (dnsButton) dnsButton.disabled = !ownerChannelReady;
-    lastUdpResult = { success, elapsedMs, error: error || "" };
     set("wifi-transport", success ? "HTTP + DNS/UDP relay probes passed" : "DNS/UDP test failed after " + elapsedMs + " ms");
     set("wifi-message", success
       ? "A valid DNS response for example.com returned from 1.1.1.1 through the authorized source, Dream Tunnel, and this dashboard. This verifies a DNS/UDP path, not all phone traffic or provider package access."
