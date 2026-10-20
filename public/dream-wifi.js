@@ -11,6 +11,7 @@
   const dashboard = document.getElementById("dream-wifi-dashboard");
   const closeButton = document.getElementById("dream-wifi-close");
   const status = document.getElementById("dream-wifi-owner-status");
+  const navLink = document.getElementById("dream-wifi-nav");
   let verifiedOwner = false;
   let requestVersion = 0;
 
@@ -35,6 +36,7 @@
   function setHidden() {
     verifiedOwner = false;
     section.hidden = true;
+    if (navLink) navLink.hidden = true;
     dashboard.hidden = true;
     openButton.setAttribute("aria-expanded", "false");
   }
@@ -71,6 +73,7 @@
 
       verifiedOwner = true;
       section.hidden = false;
+      if (navLink) navLink.hidden = false;
       if (status) {
         status.textContent = result.message ||
           "Owner verified. Provider access and packages remain disabled until tested.";
