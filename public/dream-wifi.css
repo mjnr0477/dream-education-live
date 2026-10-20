@@ -1,4 +1,4 @@
-.dream-wifi-nav {
+.dream-wifi-nav-link {
   display: inline-flex !important;
   align-items: center;
   justify-content: center;
@@ -11,5 +11,6 @@
   text-decoration: none;
   font-weight: 800;
 }
-.dream-wifi-nav:hover { background: rgba(20, 83, 45, .42); }
-.dream-wifi-nav[hidden] { display: none !important; }
+.dream-wifi-nav-link:hover { background: rgba(20, 83, 45, .42); }
+.dream-wifi-nav-link { display: none !important; }
+.dream-wifi-nav-link.is-visible { display: inline-flex !important; }
