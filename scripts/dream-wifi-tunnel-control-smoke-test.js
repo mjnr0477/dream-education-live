@@ -69,6 +69,27 @@ async function main() {
     assert.equal(result.success, true);
     assert.equal(typeof result.latency_ms, "number");
 
+    const opened = waitMessage(owner, m => m.type === "tcp-opened" && m.id === "test-stream-1");
+    const sourceOpen = waitMessage(source, m => m.type === "tcp-open" && m.id === "test-stream-1");
+    owner.send(JSON.stringify({ type: "tcp-open", id: "test-stream-1", host: "example.com", port: 443 }));
+    assert.equal((await sourceOpen).host, "example.com");
+    source.send(JSON.stringify({ type: "tcp-opened", id: "test-stream-1" }));
+    assert.equal((await opened).id, "test-stream-1");
+
+    const sourceData = waitMessage(source, m => m.type === "tcp-data" && m.id === "test-stream-1");
+    owner.send(JSON.stringify({ type: "tcp-data", id: "test-stream-1", data: "aGVsbG8=" }));
+    assert.equal((await sourceData).data, "aGVsbG8=");
+    const ownerData = waitMessage(owner, m => m.type === "tcp-data" && m.id === "test-stream-1");
+    source.send(JSON.stringify({ type: "tcp-data", id: "test-stream-1", data: "d29ybGQ=" }));
+    assert.equal((await ownerData).data, "d29ybGQ=");
+
+    const rejectedPort = waitMessage(owner, m => m.type === "tcp-error" && m.id === "blocked-port");
+    owner.send(JSON.stringify({ type: "tcp-open", id: "blocked-port", host: "example.com", port: 22 }));
+    assert.match((await rejectedPort).error, /HTTP\\/HTTPS/);
+    const sourceClosed = waitMessage(source, m => m.type === "tcp-close" && m.id === "test-stream-1");
+    owner.send(JSON.stringify({ type: "tcp-close", id: "test-stream-1" }));
+    await sourceClosed;
+
     nonOwner = new WebSocket(url);
     await waitOpen(nonOwner);
     const denied = waitMessage(nonOwner, m => m.type === "error");
