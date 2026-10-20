@@ -4,6 +4,7 @@
 // This is not a general LAN proxy: private, loopback and link-local destinations are blocked.
 const dns = require("node:dns").promises;
 const net = require("node:net");
+const dgram = require("node:dgram");
 const { WebSocket } = require("ws");
 
 const tunnelUrl = String(process.env.DREAM_WIFI_TUNNEL_URL || "").trim();
@@ -12,6 +13,10 @@ const MAX_CHUNK = 12 * 1024;
 const MAX_WS_BUFFERED_BYTES = 1024 * 1024;
 const streams = new Map();
 const pendingOpens = new Set();
+const udpSockets = new Map();
+const MAX_UDP_DATAGRAM_BYTES = 8192;
+const MAX_UDP_FLOWS = 32;
+const UDP_IDLE_TIMEOUT_MS = 60000;
 
 if (!tunnelUrl || !sourceToken) {
   console.error("Set DREAM_WIFI_TUNNEL_URL and DREAM_WIFI_SOURCE_TOKEN before starting the source agent.");
@@ -66,6 +71,29 @@ async function resolvePublicHost(host) {
     throw new Error("Destination did not resolve exclusively to public IP addresses.");
   }
   return answers[0];
+}
+function closeUdpFlow(key) {
+  const entry = udpSockets.get(key); if (!entry) return; udpSockets.delete(key);
+  if (entry.timer) clearTimeout(entry.timer); try { entry.socket.close(); } catch (_) {}
+}
+function closeUdpAssociation(id) { for (const [key, entry] of udpSockets.entries()) if (entry.id === id) closeUdpFlow(key); }
+function refreshUdpTimer(key) { const entry = udpSockets.get(key); if (!entry) return; if (entry.timer) clearTimeout(entry.timer); entry.timer = setTimeout(() => closeUdpFlow(key), UDP_IDLE_TIMEOUT_MS); }
+async function relayUdp(message) {
+  const id = message.id, host = typeof message.host === 'string' ? message.host.trim() : '', port = Number(message.port);
+  if (!validId(id) || !host || host.length > 253 || !Number.isInteger(port) || port < 1 || port > 65535 || typeof message.data !== 'string' || message.data.length > 10930) { send({ type: 'udp-error', id: validId(id) ? id : '', error: 'Invalid UDP datagram.' }); return; }
+  const data = Buffer.from(message.data, 'base64'); if (!data.length || data.length > MAX_UDP_DATAGRAM_BYTES) { send({ type: 'udp-error', id, error: 'UDP datagram size is not supported.' }); return; }
+  const key = id + '|' + host.toLowerCase() + '|' + port;
+  try {
+    let entry = udpSockets.get(key);
+    if (!entry) {
+      if (udpSockets.size >= MAX_UDP_FLOWS) { send({ type: 'udp-error', id, error: 'Source UDP flow limit reached.' }); return; }
+      const target = await resolvePublicHost(host); if (!socket || socket.readyState !== WebSocket.OPEN) return;
+      const udp = dgram.createSocket(target.family === 6 ? 'udp6' : 'udp4'); entry = { id, host, port, socket: udp, timer: null, target }; udpSockets.set(key, entry);
+      udp.on('message', response => { if (response.length > MAX_UDP_DATAGRAM_BYTES || !socket || socket.readyState !== WebSocket.OPEN) return; if (socket.bufferedAmount > MAX_WS_BUFFERED_BYTES) return closeUdpFlow(key); send({ type: 'udp-data', id, host, port, data: response.toString('base64') }); refreshUdpTimer(key); });
+      udp.on('error', error => { send({ type: 'udp-error', id, error: String(error.message || 'UDP socket failed').slice(0, 160) }); closeUdpFlow(key); });
+    }
+    refreshUdpTimer(key); entry.socket.send(data, port, entry.target.address, error => { if (error) send({ type: 'udp-error', id, error: String(error.message || 'UDP send failed').slice(0, 160) }); });
+  } catch (error) { send({ type: 'udp-error', id, error: String(error.message || 'UDP destination rejected').slice(0, 160) }); }
 }
 function closeStream(id, sendClose) {
   const entry = streams.get(id);
@@ -149,6 +177,10 @@ function connect() {
       send({ type: "pong", id: message.id });
     } else if (message.type === "tcp-open") {
       openStream(message);
+    } else if (message.type === "udp-send") {
+      relayUdp(message);
+    } else if (message.type === "udp-close" && validId(message.id)) {
+      closeUdpAssociation(message.id);
     } else if (message.type === "tcp-data" && validId(message.id)) {
       const entry = streams.get(message.id);
       if (!entry || entry.finished || typeof message.data !== "string") return;
@@ -168,6 +200,7 @@ function connect() {
   socket.on("close", () => {
     pendingOpens.clear();
     for (const id of [...streams.keys()]) closeStream(id, false);
+    for (const key of [...udpSockets.keys()]) closeUdpFlow(key);
     if (!stopped) {
       console.log("Dream Tunnel source disconnected; retrying in 5 seconds.");
       reconnectTimer = setTimeout(connect, 5000);
@@ -180,6 +213,7 @@ function shutdown() {
   stopped = true;
   if (reconnectTimer) clearTimeout(reconnectTimer);
   for (const id of [...streams.keys()]) closeStream(id, false);
+  for (const key of [...udpSockets.keys()]) closeUdpFlow(key);
   if (socket) socket.close();
 }
 process.on("SIGINT", shutdown);
