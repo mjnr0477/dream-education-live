@@ -11,6 +11,7 @@ const sourceToken = String(process.env.DREAM_WIFI_SOURCE_TOKEN || "");
 const MAX_CHUNK = 12 * 1024;
 const MAX_WS_BUFFERED_BYTES = 1024 * 1024;
 const streams = new Map();
+const pendingOpens = new Set();
 
 if (!tunnelUrl || !sourceToken) {
   console.error("Set DREAM_WIFI_TUNNEL_URL and DREAM_WIFI_SOURCE_TOKEN before starting the source agent.");
@@ -40,7 +41,7 @@ function isPublicAddress(address) {
     if (a === 0 || a === 10 || a === 127 || a >= 224) return false;
     if (a === 169 && b === 254) return false;
     if (a === 172 && b >= 16 && b <= 31) return false;
-    if (a === 192 && (b === 168 || (b === 0 && c === 0))) return false;
+    if (a === 192 && (b === 168 || (b === 0 && (c === 0 || c === 2)))) return false;
     if (a === 100 && b >= 64 && b <= 127) return false;
     if (a === 198 && (b === 18 || b === 19 || (b === 51 && c === 100))) return false;
     if (a === 203 && b === 0 && c === 113) return false;
@@ -87,9 +88,11 @@ async function openStream(message) {
     return;
   }
 
+  pendingOpens.add(id);
   try {
     const target = await resolvePublicHost(host);
-    if (!socket || socket.readyState !== WebSocket.OPEN) return;
+    if (!pendingOpens.has(id) || !socket || socket.readyState !== WebSocket.OPEN) return;
+    pendingOpens.delete(id);
     const tcp = net.connect({ host: target.address, family: target.family, port });
     const entry = { socket: tcp, opened: false, finished: false };
     streams.set(id, entry);
@@ -98,11 +101,12 @@ async function openStream(message) {
     tcp.once("connect", () => {
       if (entry.finished) return;
       entry.opened = true;
-      tcp.setTimeout(0);
+      tcp.setTimeout(5 * 60 * 1000, () => tcp.destroy(new Error("TCP stream idle timeout.")));
       send({ type: "tcp-opened", id });
     });
     tcp.on("data", chunk => {
       if (entry.finished) return;
+      tcp.setTimeout(5 * 60 * 1000, () => tcp.destroy(new Error("TCP stream idle timeout.")));
       if (socket && socket.bufferedAmount > MAX_WS_BUFFERED_BYTES) {
         closeStream(id, true);
         return;
@@ -125,6 +129,7 @@ async function openStream(message) {
       if (entry.opened) send({ type: "tcp-close", id });
     });
   } catch (error) {
+    pendingOpens.delete(id);
     send({ type: "tcp-error", id, error: String(error.message || "Destination rejected").slice(0, 180) });
   }
 }
@@ -151,7 +156,9 @@ function connect() {
       if (data.length > MAX_CHUNK) return closeStream(message.id, true);
       if (entry.socket.writableLength > MAX_WS_BUFFERED_BYTES) return closeStream(message.id, true);
       entry.socket.write(data);
+      entry.socket.setTimeout(5 * 60 * 1000, () => entry.socket.destroy(new Error("TCP stream idle timeout.")));
     } else if (message.type === "tcp-close" && validId(message.id)) {
+      pendingOpens.delete(message.id);
       closeStream(message.id, false);
     } else if (message.type === "error") {
       console.error("Dream Tunnel source rejected:", String(message.error || "unknown error"));
@@ -159,6 +166,7 @@ function connect() {
     }
   });
   socket.on("close", () => {
+    pendingOpens.clear();
     for (const id of [...streams.keys()]) closeStream(id, false);
     if (!stopped) {
       console.log("Dream Tunnel source disconnected; retrying in 5 seconds.");
