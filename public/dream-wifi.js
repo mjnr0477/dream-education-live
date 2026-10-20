@@ -18,7 +18,7 @@
 
   async function verifyOwner() {
     const version = ++requestVersion;
-    link.hidden = true;
+    link.classList.remove("is-visible");
     const token = accessToken();
     if (!token) return;
     try {
@@ -29,9 +29,9 @@
       });
       const result = await response.json().catch(function () { return null; });
       if (version !== requestVersion) return;
-      link.hidden = !(response.ok && result && result.success === true && result.owner === true);
+      link.classList.toggle("is-visible", response.ok && result && result.success === true && result.owner === true);
     } catch (_) {
-      if (version === requestVersion) link.hidden = true;
+      if (version === requestVersion) link.classList.remove("is-visible");
     }
   }
 
