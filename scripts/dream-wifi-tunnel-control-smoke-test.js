@@ -83,6 +83,20 @@ async function main() {
     source.send(JSON.stringify({ type: "tcp-data", id: "test-stream-1", data: "d29ybGQ=" }));
     assert.equal((await ownerData).data, "d29ybGQ=");
 
+    const udpForward = waitMessage(source, m => m.type === "udp-send" && m.id === "test-udp-1");
+    const udpReturn = waitMessage(owner, m => m.type === "udp-data" && m.id === "test-udp-1");
+    owner.send(JSON.stringify({ type: "udp-send", id: "test-udp-1", host: "1.1.1.1", port: 53, data: "AQIDBA==" }));
+    const udpRequest = await udpForward;
+    assert.equal(udpRequest.host, "1.1.1.1");
+    assert.equal(udpRequest.port, 53);
+    assert.equal(udpRequest.data, "AQIDBA==");
+    source.send(JSON.stringify({ type: "udp-data", id: "test-udp-1", host: "1.1.1.1", port: 53, data: "BQYHCA==" }));
+    const udpResponse = await udpReturn;
+    assert.equal(udpResponse.data, "BQYHCA==");
+    const udpClosed = waitMessage(source, m => m.type === "udp-close" && m.id === "test-udp-1");
+    owner.send(JSON.stringify({ type: "udp-close", id: "test-udp-1" }));
+    await udpClosed;
+
     const rejectedPort = waitMessage(owner, m => m.type === "tcp-error" && m.id === "blocked-port");
     owner.send(JSON.stringify({ type: "tcp-open", id: "blocked-port", host: "example.com", port: 22 }));
     assert.match((await rejectedPort).error, /HTTP.HTTPS/);
