@@ -13,7 +13,7 @@ android {
     externalNativeBuild {
         ndkBuild {
             path file("hev-socks5-tunnel/Android.mk")
-            arguments "APP_PLATFORM=android-26"
+            arguments += ["APP_PLATFORM=android-26"]
         }
     }
     ndkVersion "27.2.12479018"
