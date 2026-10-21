@@ -158,9 +158,11 @@
             : result.provider_api_reachable
               ? "Provider API reachable; auth unverified"
               : "Configured; API check failed");
-      set("wifi-source-endpoint", result.source_endpoint_configured
-        ? "Configured; waiting for source agent"
-        : "Not configured — source token required");
+      set("wifi-source-endpoint", result.source_connected
+        ? "Source connected to Dream Tunnel"
+        : result.source_endpoint_configured
+          ? "Configured; source agent not connected"
+          : "Not configured — source token required");
       set("wifi-phone", "Android VPN prototype; physical-device test pending");
       if (testButton) testButton.disabled = true;
       if (!renderProbeResult()) {
