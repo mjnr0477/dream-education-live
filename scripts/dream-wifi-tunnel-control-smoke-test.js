@@ -110,6 +110,17 @@ async function main() {
     nonOwner.send(JSON.stringify({ type: "register", role: "owner", accessToken: "valid-user-token" }));
     assert.match((await denied).error, /Owner access is required/);
 
+    const ticket = wss.issueSourceTicket("owner-user-id");
+    assert.equal(typeof ticket.token, "string");
+    assert.equal(ticket.token.length >= 40, true);
+    assert.ok(Date.parse(ticket.expires_at) > Date.now());
+
+    source = new WebSocket(url);
+    await waitOpen(source);
+    const ticketRegistered = waitMessage(source, m => m.type === "registered");
+    source.send(JSON.stringify({ type: "register", role: "source", sourceToken: ticket.token }));
+    assert.equal((await ticketRegistered).role, "source");
+
     console.log("Dream Tunnel control-plane smoke test passed.");
   } finally {
     for (const socket of [source, owner, nonOwner]) {

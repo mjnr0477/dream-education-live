@@ -5677,6 +5677,8 @@ console.log("STATE-AWARE TEACHING ANALYSIS:", teachingAnalysis);
 });
 
 
+let dreamWifiTunnel = null;
+
 // Server starts after the persistent product store has hydrated.
 function startDreamEducationServer() {
   const httpServer = app.listen(PORT, () => {
@@ -5684,7 +5686,7 @@ function startDreamEducationServer() {
     console.log("AI mode:", process.env.AI_MODE || "development");
     console.log("Product store persistence: ready");
   });
-  require("./product/dream_wifi_tunnel_engine").attachDreamWifiTunnel(httpServer, {
+  dreamWifiTunnel = require("./product/dream_wifi_tunnel_engine").attachDreamWifiTunnel(httpServer, {
     supabaseAuth,
     isOwnerAccount,
     sourceToken: process.env.DREAM_WIFI_SOURCE_TOKEN
@@ -5711,6 +5713,34 @@ const {
 } = require("./product/payment_engine");
 
 
+
+// Issue a short-lived source credential to the authenticated owner for the native Android client.
+app.post("/api/dream-wifi/source-ticket", async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  const authorization = String(req.get("authorization") || "");
+  const match = authorization.match(/^Bearer\s+(.+)$/i);
+  if (!match) {
+    return res.status(401).json({ success: false, error: "A valid Dream Education session is required." });
+  }
+  if (!dreamWifiTunnel || typeof dreamWifiTunnel.issueSourceTicket !== "function") {
+    return res.status(503).json({ success: false, error: "Dream Wi-Fi source-ticket service is unavailable." });
+  }
+  try {
+    const { data, error } = await supabaseAuth.auth.getUser(match[1].trim());
+    const user = data && data.user ? data.user : null;
+    if (error || !user) {
+      return res.status(401).json({ success: false, error: "Your session is invalid or expired." });
+    }
+    if (!isOwnerAccount({ email: user.email })) {
+      return res.status(403).json({ success: false, error: "Owner access is required." });
+    }
+    const ticket = dreamWifiTunnel.issueSourceTicket(user.id);
+    return res.json({ success: true, token: ticket.token, expires_at: ticket.expires_at });
+  } catch (error) {
+    console.error("Dream Wi-Fi source ticket issue failed:", error && error.message ? error.message : "unknown error");
+    return res.status(500).json({ success: false, error: "Could not issue a source ticket." });
+  }
+});
 
 // Dream Wi-Fi owner-only readiness endpoint. Never trust client-side owner flags.
 app.get("/api/dream-wifi/owner-status", async (req, res) => {
@@ -5804,7 +5834,7 @@ app.get("/api/dream-wifi/owner-status", async (req, res) => {
       provider_api_reachable: providerApiReachable,
       provider_auth_valid: providerAuthValid,
       provider_network_count: providerNetworkCount,
-      source_endpoint_configured: Boolean(process.env.DREAM_WIFI_SOURCE_TOKEN),
+      source_endpoint_configured: Boolean(process.env.DREAM_WIFI_SOURCE_TOKEN || dreamWifiTunnel),
       provider: providerConfigured ? providerName : null,
       live_access_enabled: false,
       packages_enabled: false,
