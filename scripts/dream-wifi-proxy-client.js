@@ -46,23 +46,23 @@ async function readHiddenPassword() {
     const cleanup = () => {
       stdin.off("data", onData);
       stdin.setRawMode(false);
-      process.stdout.write("\\n");
+      process.stdout.write("\n");
     };
     const onData = chunk => {
       for (const char of chunk) {
-        if (char === "\\u0003") {
+        if (char === "\u0003") {
           cleanup();
           reject(new Error("Login cancelled."));
           return;
         }
-        if (char === "\\r" || char === "\\n") {
+        if (char === "\r" || char === "\n") {
           cleanup();
           resolve(password);
           return;
         }
-        if (char === "\\u007f" || char === "\\b") {
+        if (char === "\u007f" || char === "\b") {
           password = password.slice(0, -1);
-        } else if (char >= " " && char !== "\\u007f") {
+        } else if (char >= " " && char !== "\u007f") {
           password += char;
         }
       }
