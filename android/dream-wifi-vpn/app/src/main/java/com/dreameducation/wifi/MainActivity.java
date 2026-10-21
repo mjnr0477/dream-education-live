@@ -1,6 +1,9 @@
 package com.dreameducation.wifi;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.IntentFilter;
 import android.content.Intent;
 import android.net.VpnService;
 import android.os.Build;
@@ -26,6 +29,7 @@ import java.util.concurrent.Executors;
 
 public final class MainActivity extends Activity {
     private static final int VPN_PERMISSION_REQUEST = 1001;
+    static final String ACTION_STATUS = "com.dreameducation.wifi.STATUS";
     private final ExecutorService authWorker = Executors.newSingleThreadExecutor();
     private EditText emailInput;
     private EditText passwordInput;
@@ -34,6 +38,12 @@ public final class MainActivity extends Activity {
     private String pendingAccessToken;
     private String pendingRefreshToken;
     private String pendingSourceTicket;
+    private boolean statusReceiverRegistered = false;
+    private final BroadcastReceiver statusReceiver = new BroadcastReceiver() {
+        @Override public void onReceive(Context context, Intent intent) {
+            if (status != null) status.setText(intent.getStringExtra("message"));
+        }
+    };
 
     @Override public void onCreate(Bundle saved) {
         super.onCreate(saved);
@@ -200,6 +210,24 @@ public final class MainActivity extends Activity {
         if (message == null || message.trim().isEmpty()) return "unknown error";
         String clean = message.replace('\n', ' ').replace('\r', ' ');
         return clean.substring(0, Math.min(180, clean.length()));
+    }
+
+    @Override protected void onResume() {
+        super.onResume();
+        if (!statusReceiverRegistered) {
+            IntentFilter filter = new IntentFilter(ACTION_STATUS);
+            if (Build.VERSION.SDK_INT >= 33) registerReceiver(statusReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+            else registerReceiver(statusReceiver, filter);
+            statusReceiverRegistered = true;
+        }
+    }
+
+    @Override protected void onPause() {
+        if (statusReceiverRegistered) {
+            unregisterReceiver(statusReceiver);
+            statusReceiverRegistered = false;
+        }
+        super.onPause();
     }
 
     @Override protected void onDestroy() {
