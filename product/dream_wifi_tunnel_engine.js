@@ -64,22 +64,31 @@ function attachDreamWifiTunnel(server, options = {}) {
     const token = crypto.randomBytes(32).toString("base64url");
     const expiresAt = now + SOURCE_TICKET_TTL_MS;
     sourceTickets.set(token, { ownerId: owner, expiresAt });
+    if (sourceSocket && sourceSocket.dreamSourceAuth === "static") {
+      try { sourceSocket.close(1012, "Native source ticket issued"); } catch (_) {}
+    }
     return { token, expires_at: new Date(expiresAt).toISOString() };
   }
-  function isAuthorizedSourceToken(candidate) {
-    if (sourceToken && safeEqual(candidate, sourceToken)) return true;
+  function sourceAuthKind(candidate) {
     const supplied = String(candidate || "");
-    if (!supplied) return false;
+    if (!supplied) return null;
     const now = Date.now();
-    let accepted = false;
+    let ticketMatch = false;
+    let activeTicket = false;
     for (const [token, entry] of sourceTickets.entries()) {
       if (entry.expiresAt <= now) {
         sourceTickets.delete(token);
         continue;
       }
-      if (safeEqual(supplied, token)) accepted = true;
+      activeTicket = true;
+      if (safeEqual(supplied, token)) ticketMatch = true;
     }
-    return accepted;
+    if (ticketMatch) return "ticket";
+    // Once a native ticket is issued, the older static source credential is
+    // intentionally suspended so a background legacy agent cannot replace
+    // the native app's source socket every few seconds.
+    if (activeTicket) return null;
+    return sourceToken && safeEqual(supplied, sourceToken) ? "static" : null;
   }
   function broadcastSourceState() {
     const payload = { type: "source-state", connected: sourceConnected() };
@@ -144,7 +153,8 @@ function attachDreamWifiTunnel(server, options = {}) {
         socket.registering = true;
 
         if (message.role === "source") {
-          if (!isAuthorizedSourceToken(message.sourceToken)) {
+          const sourceAuth = sourceAuthKind(message.sourceToken);
+          if (!sourceAuth) {
             reject(socket, "Source endpoint is not authorized or not configured.");
             return;
           }
@@ -152,6 +162,7 @@ function attachDreamWifiTunnel(server, options = {}) {
             try { sourceSocket.close(1012, "Source endpoint replaced"); } catch (_) {}
           }
           sourceSocket = socket;
+          socket.dreamSourceAuth = sourceAuth;
           socket.dreamRole = "source";
           send(socket, { type: "registered", role: "source" });
           broadcastSourceState();
