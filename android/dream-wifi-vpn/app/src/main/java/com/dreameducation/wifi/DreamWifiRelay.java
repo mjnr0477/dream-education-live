@@ -168,6 +168,7 @@ final class DreamWifiRelay {
                 ownerSocket = null;
                 ownerReady = false;
                 closeAllOwnerStreams();
+                notifyReadyIfPossible();
                 status("Owner channel closed (" + code + "): " + safeReason(reason));
                 scheduleOwnerReconnect();
             }
@@ -176,6 +177,7 @@ final class DreamWifiRelay {
                 ownerSocket = null;
                 ownerReady = false;
                 closeAllOwnerStreams();
+                notifyReadyIfPossible();
                 status("Owner channel failed: " + safeReason(error.getMessage()));
                 scheduleOwnerReconnect();
             }
@@ -230,6 +232,7 @@ final class DreamWifiRelay {
                 sourceSocket = null;
                 sourceReady = false;
                 closeAllSourceStreams();
+                notifyReadyIfPossible();
                 status("Quant source disconnected (" + code + "): " + safeReason(reason));
                 scheduleSourceReconnect();
             }
@@ -238,6 +241,7 @@ final class DreamWifiRelay {
                 sourceSocket = null;
                 sourceReady = false;
                 closeAllSourceStreams();
+                notifyReadyIfPossible();
                 status("Quant source connection failed: " + safeReason(error.getMessage()));
                 scheduleSourceReconnect();
             }
