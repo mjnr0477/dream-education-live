@@ -56,6 +56,8 @@ assert.ok(dashboard.includes('message.type === "udp-data"'));
 assert.ok(dashboard.includes("Android VPN prototype; physical-device test pending"));
 assert.ok(dashboard.includes("DNS/UDP"));
 assert.match(serverSource, /provider_api_reachable/);
+assert.match(serverSource, /\/api\/auth\/refresh/);
+assert.match(serverSource, /\/api\/dream-wifi\/source-ticket/);
 assert.match(serverSource, /Authorization: "Bearer " \+ providerApiKey/);
 assert.match(serverSource, /packages_enabled: false/);
 assert.doesNotMatch(service, /DREAM_WIFI_SOURCE_TOKEN|DREAM_WIFI_OWNER_ACCESS_TOKEN/);
