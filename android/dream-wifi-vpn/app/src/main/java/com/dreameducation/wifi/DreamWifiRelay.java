@@ -144,9 +144,9 @@ final class DreamWifiRelay {
                 return;
             }
             String value = response.toString();
-            int headerEnd = value.indexOf("\\r\\n\\r\\n");
+            int headerEnd = value.indexOf("\r\n\r\n");
             if (headerEnd < 0) return;
-            String[] lines = value.substring(0, headerEnd).split("\\r\\n");
+            String[] lines = value.substring(0, headerEnd).split("\r\n");
             if (lines.length == 0) {
                 finishInternetProbe(id, false, "Invalid HTTP response from the public internet test.");
                 return;
