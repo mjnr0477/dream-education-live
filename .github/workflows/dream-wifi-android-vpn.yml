@@ -1,6 +1,12 @@
 name: Dream Wi-Fi Android VPN build
 
 on:
+  push:
+    branches:
+      - "feature/dream-wifi-broadcast-mvp"
+    paths:
+      - "android/dream-wifi-vpn/**"
+      - ".github/workflows/dream-wifi-android-vpn.yml"
   pull_request:
     paths:
       - "android/dream-wifi-vpn/**"
