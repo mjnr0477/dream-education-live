@@ -5,6 +5,12 @@ on:
     paths:
       - "android/dream-wifi-vpn/**"
       - ".github/workflows/dream-wifi-android-vpn.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "android/dream-wifi-vpn/**"
+      - ".github/workflows/dream-wifi-android-vpn.yml"
   workflow_dispatch:
 
 permissions:
