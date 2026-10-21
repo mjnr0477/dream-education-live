@@ -1,14 +1,186 @@
 package com.dreameducation.wifi;
-import android.app.Notification; import android.app.NotificationChannel; import android.app.NotificationManager; import android.app.PendingIntent; import android.content.Intent; import android.net.VpnService; import android.os.Build; import android.os.ParcelFileDescriptor; import android.content.pm.PackageManager; import java.io.File; import java.io.FileOutputStream; import java.io.IOException; import java.nio.charset.StandardCharsets; import java.net.Socket; import java.net.InetSocketAddress;
+
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.VpnService;
+import android.os.Build;
+import android.os.ParcelFileDescriptor;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.nio.charset.StandardCharsets;
+
 public final class DreamVpnService extends VpnService {
- public static final String ACTION_START="com.dreameducation.wifi.START", ACTION_STOP="com.dreameducation.wifi.STOP"; private static final int ID=7201; private static final String CHANNEL="dream_wifi_vpn"; private boolean running=false; private int tunFd=-1;
- static { System.loadLibrary("hev-socks5-tunnel"); }
- public native boolean TProxyStartService(String configPath,int fd); public native boolean TProxyStopService(); public native boolean TProxyIsRunning(); public native long[] TProxyGetStats();
- @Override public int onStartCommand(Intent intent,int flags,int startId){String action=intent==null?ACTION_START:intent.getAction(); if(ACTION_STOP.equals(action)){stopTunnel();stopForeground(true);stopSelf();return START_NOT_STICKY;} startForeground(ID,notification("Starting Dream VPN")); try{startTunnel();}catch(Exception e){stopTunnel();getSystemService(NotificationManager.class).notify(ID,notification("VPN failed: "+safe(e)));stopSelf();return START_NOT_STICKY;} return START_STICKY;}
- private void startTunnel() throws IOException {if(running&&TProxyIsRunning())return; try(Socket probe=new Socket()){probe.connect(new InetSocketAddress("127.0.0.1",1080),1200);} catch(IOException e){throw new IOException("Dream Tunnel proxy is not listening on 127.0.0.1:1080. Start the owner proxy in Termux first.");} File config=new File(getFilesDir(),"dream-wifi-tun.yml"); String yaml="tunnel:\n  name: tun0\n  mtu: 1500\n  ipv4: 198.18.0.1\n  ipv6: 'fd00::1'\n  icmp: 'off'\nsocks5:\n  address: 127.0.0.1\n  port: 1080\n  udp: 'udp'\nmapdns:\n  address: 198.18.0.2\n  port: 53\n  network: 100.64.0.0\n  netmask: 255.192.0.0\n  cache-size: 4096\nmisc:\n  connect-timeout: 10000\n  tcp-read-write-timeout: 120000\n  udp-read-write-timeout: 30000\n  log-level: warn\n"; try(FileOutputStream out=new FileOutputStream(config)){out.write(yaml.getBytes(StandardCharsets.UTF_8));}
- Builder builder=new Builder().setSession("Dream Wi-Fi").setMtu(1500).addAddress("198.18.0.1",32).addAddress("fd00::1",128).addDnsServer("198.18.0.2").addRoute("0.0.0.0",0).addRoute("::",0); try{builder.addDisallowedApplication("com.termux");}catch(PackageManager.NameNotFoundException ignored){} ParcelFileDescriptor tun=builder.establish(); if(tun==null)throw new IOException("Android did not establish the VPN interface."); tunFd=tun.detachFd(); if(!TProxyStartService(config.getAbsolutePath(),tunFd)){try(ParcelFileDescriptor close=ParcelFileDescriptor.adoptFd(tunFd)){} tunFd=-1;throw new IOException("Native TUN-to-SOCKS forwarder did not start.");} running=true;getSystemService(NotificationManager.class).notify(ID,notification("VPN connected to local SOCKS5 relay"));}
- private void stopTunnel(){if(running){try{TProxyStopService();}catch(Exception ignored){}running=false;}if(tunFd>=0){try(ParcelFileDescriptor close=ParcelFileDescriptor.adoptFd(tunFd)){}catch(Exception ignored){}tunFd=-1;}}
- private Notification notification(String text){NotificationManager m=getSystemService(NotificationManager.class);if(Build.VERSION.SDK_INT>=26)m.createNotificationChannel(new NotificationChannel(CHANNEL,"Dream Wi-Fi VPN",NotificationManager.IMPORTANCE_LOW));PendingIntent p=PendingIntent.getActivity(this,0,new Intent(this,MainActivity.class),PendingIntent.FLAG_UPDATE_CURRENT|(Build.VERSION.SDK_INT>=23?PendingIntent.FLAG_IMMUTABLE:0));Notification.Builder b=Build.VERSION.SDK_INT>=26?new Notification.Builder(this,CHANNEL):new Notification.Builder(this);return b.setContentTitle("Dream Wi-Fi").setContentText(text).setSmallIcon(android.R.drawable.stat_sys_download_done).setContentIntent(p).setOngoing(true).build();}
- private String safe(Exception e){String s=e.getMessage();if(s==null)return "unknown error";s=s.replaceAll("[\\\\r\n]"," ");return s.substring(0,Math.min(120,s.length()));}
- @Override public void onRevoke(){stopTunnel();stopForeground(true);stopSelf();super.onRevoke();} @Override public void onDestroy(){stopTunnel();super.onDestroy();}
+    public static final String ACTION_START = "com.dreameducation.wifi.START";
+    public static final String ACTION_STOP = "com.dreameducation.wifi.STOP";
+    public static final String EXTRA_ACCESS_TOKEN = "dream_wifi_access_token";
+    public static final String EXTRA_SOURCE_TICKET = "dream_wifi_source_ticket";
+    private static final int ID = 7201;
+    private static final String CHANNEL = "dream_wifi_vpn";
+
+    private volatile boolean running = false;
+    private volatile int tunFd = -1;
+    private DreamWifiRelay relay;
+
+    static { System.loadLibrary("hev-socks5-tunnel"); }
+    public native boolean TProxyStartService(String configPath, int fd);
+    public native boolean TProxyStopService();
+    public native boolean TProxyIsRunning();
+    public native long[] TProxyGetStats();
+
+    @Override public int onStartCommand(Intent intent, int flags, int startId) {
+        String action = intent == null ? ACTION_STOP : intent.getAction();
+        if (ACTION_STOP.equals(action)) {
+            stopTunnel();
+            stopForeground(true);
+            stopSelf();
+            return START_NOT_STICKY;
+        }
+        startForeground(ID, notification("Connecting to Dream Tunnel and Quant…"));
+        if (relay != null) {
+            updateNotification("Dream Wi-Fi is already connecting or running.");
+            return START_NOT_STICKY;
+        }
+        String accessToken = intent == null ? null : intent.getStringExtra(EXTRA_ACCESS_TOKEN);
+        String sourceTicket = intent == null ? null : intent.getStringExtra(EXTRA_SOURCE_TICKET);
+        if (accessToken == null || accessToken.isEmpty() || sourceTicket == null || sourceTicket.isEmpty()) {
+            updateNotification("Sign in again to authorize Dream Wi-Fi.");
+            stopSelf();
+            return START_NOT_STICKY;
+        }
+
+        relay = new DreamWifiRelay(accessToken, sourceTicket, new DreamWifiRelay.Listener() {
+            @Override public void onStatus(String message) {
+                updateNotification(message);
+            }
+            @Override public void onReady() {
+                try {
+                    startTunnel();
+                } catch (Exception error) {
+                    stopTunnelInterfaceOnly();
+                    updateNotification("VPN start failed: " + safe(error.getMessage()));
+                }
+            }
+        });
+        relay.start();
+        return START_NOT_STICKY;
+    }
+
+    private synchronized void startTunnel() throws IOException {
+        if (running && TProxyIsRunning()) return;
+        try (Socket probe = new Socket()) {
+            probe.connect(new InetSocketAddress(InetAddress.getByName("127.0.0.1"), DreamWifiRelay.LOCAL_PROXY_PORT), 1200);
+        } catch (IOException error) {
+            throw new IOException("The native SOCKS5 relay is not listening on loopback.");
+        }
+
+        File config = new File(getFilesDir(), "dream-wifi-tun.yml");
+        String yaml = "tunnel:\n" +
+                "  name: tun0\n" +
+                "  mtu: 1500\n" +
+                "  ipv4: 198.18.0.1\n" +
+                "  ipv6: 'fd00::1'\n" +
+                "  icmp: 'off'\n" +
+                "socks5:\n" +
+                "  address: 127.0.0.1\n" +
+                "  port: " + DreamWifiRelay.LOCAL_PROXY_PORT + "\n" +
+                "  udp: 'udp'\n" +
+                "mapdns:\n" +
+                "  address: 198.18.0.2\n" +
+                "  port: 53\n" +
+                "  network: 100.64.0.0\n" +
+                "  netmask: 255.192.0.0\n" +
+                "  cache-size: 4096\n" +
+                "misc:\n" +
+                "  connect-timeout: 10000\n" +
+                "  tcp-read-write-timeout: 120000\n" +
+                "  udp-read-write-timeout: 30000\n" +
+                "  log-level: warn\n";
+        try (FileOutputStream output = new FileOutputStream(config)) {
+            output.write(yaml.getBytes(StandardCharsets.UTF_8));
+        }
+
+        Builder builder = new Builder().setSession("Dream Wi-Fi").setMtu(1500)
+                .addAddress("198.18.0.1", 32).addAddress("fd00::1", 128)
+                .addDnsServer("198.18.0.2").addRoute("0.0.0.0", 0).addRoute("::", 0);
+        try { builder.addDisallowedApplication(getPackageName()); }
+        catch (PackageManager.NameNotFoundException ignored) {}
+        try { builder.addDisallowedApplication("com.termux"); }
+        catch (PackageManager.NameNotFoundException ignored) {}
+
+        ParcelFileDescriptor tun = builder.establish();
+        if (tun == null) throw new IOException("Android did not establish the VPN interface.");
+        tunFd = tun.detachFd();
+        if (!TProxyStartService(config.getAbsolutePath(), tunFd)) {
+            try (ParcelFileDescriptor close = ParcelFileDescriptor.adoptFd(tunFd)) {}
+            tunFd = -1;
+            throw new IOException("Native TUN-to-SOCKS forwarder did not start.");
+        }
+        running = true;
+        updateNotification("Dream VPN connected. Testing actual internet access is still required.");
+    }
+
+    private synchronized void stopTunnelInterfaceOnly() {
+        if (running) {
+            try { TProxyStopService(); } catch (Exception ignored) {}
+            running = false;
+        }
+        if (tunFd >= 0) {
+            try (ParcelFileDescriptor close = ParcelFileDescriptor.adoptFd(tunFd)) {}
+            catch (Exception ignored) {}
+            tunFd = -1;
+        }
+    }
+
+    private synchronized void stopTunnel() {
+        stopTunnelInterfaceOnly();
+        DreamWifiRelay current = relay;
+        relay = null;
+        if (current != null) current.stop();
+    }
+
+    private void updateNotification(String text) {
+        try { getSystemService(NotificationManager.class).notify(ID, notification(text)); }
+        catch (Exception ignored) {}
+    }
+
+    private Notification notification(String text) {
+        NotificationManager manager = getSystemService(NotificationManager.class);
+        if (Build.VERSION.SDK_INT >= 26) {
+            manager.createNotificationChannel(new NotificationChannel(CHANNEL, "Dream Wi-Fi VPN", NotificationManager.IMPORTANCE_LOW));
+        }
+        PendingIntent pending = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class),
+                PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 23 ? PendingIntent.FLAG_IMMUTABLE : 0));
+        Notification.Builder builder = Build.VERSION.SDK_INT >= 26
+                ? new Notification.Builder(this, CHANNEL) : new Notification.Builder(this);
+        return builder.setContentTitle("Dream Wi-Fi").setContentText(text)
+                .setSmallIcon(android.R.drawable.stat_sys_download_done)
+                .setContentIntent(pending).setOngoing(true).build();
+    }
+
+    private String safe(String value) {
+        if (value == null || value.trim().isEmpty()) return "unknown error";
+        String clean = value.replace('\n', ' ').replace('\r', ' ');
+        return clean.substring(0, Math.min(160, clean.length()));
+    }
+
+    @Override public void onRevoke() {
+        stopTunnel();
+        stopForeground(true);
+        stopSelf();
+        super.onRevoke();
+    }
+
+    @Override public void onDestroy() {
+        stopTunnel();
+        super.onDestroy();
+    }
 }
