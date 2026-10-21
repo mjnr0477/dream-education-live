@@ -338,6 +338,7 @@ function attachDreamWifiTunnel(server, options = {}) {
   });
 
   wss.issueSourceTicket = issueSourceTicket;
+  wss.sourceConnected = sourceConnected;
   return wss;
 }
 
