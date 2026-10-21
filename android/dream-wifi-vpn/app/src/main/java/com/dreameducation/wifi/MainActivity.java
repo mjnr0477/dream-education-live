@@ -32,6 +32,7 @@ public final class MainActivity extends Activity {
     private Button connectButton;
     private TextView status;
     private String pendingAccessToken;
+    private String pendingRefreshToken;
     private String pendingSourceTicket;
 
     @Override public void onCreate(Bundle saved) {
@@ -116,7 +117,8 @@ public final class MainActivity extends Activity {
                 JSONObject login = postJson(DreamWifiRelay.BASE_URL + "/api/auth/login", credentials, null);
                 JSONObject session = login.optJSONObject("session");
                 String accessToken = session == null ? "" : session.optString("access_token", "");
-                if (!login.optBoolean("success") || accessToken.isEmpty()) {
+                String refreshToken = session == null ? "" : session.optString("refresh_token", "");
+                if (!login.optBoolean("success") || accessToken.isEmpty() || refreshToken.isEmpty()) {
                     throw new Exception(login.optString("error", "Login did not return a session."));
                 }
                 JSONObject ticket = postJson(DreamWifiRelay.BASE_URL + "/api/dream-wifi/source-ticket",
@@ -127,6 +129,7 @@ public final class MainActivity extends Activity {
                 }
                 runOnUiThread(() -> {
                     pendingAccessToken = accessToken;
+                    pendingRefreshToken = refreshToken;
                     pendingSourceTicket = sourceTicket;
                     passwordInput.setText("");
                     connectButton.setEnabled(true);
@@ -179,13 +182,14 @@ public final class MainActivity extends Activity {
     }
 
     private void startVpnService() {
-        if (pendingAccessToken == null || pendingSourceTicket == null) {
+        if (pendingAccessToken == null || pendingRefreshToken == null || pendingSourceTicket == null) {
             status.setText("Sign in again to create a secure tunnel session.");
             return;
         }
         Intent intent = new Intent(this, DreamVpnService.class);
         intent.setAction(DreamVpnService.ACTION_START);
         intent.putExtra(DreamVpnService.EXTRA_ACCESS_TOKEN, pendingAccessToken);
+        intent.putExtra(DreamVpnService.EXTRA_REFRESH_TOKEN, pendingRefreshToken);
         intent.putExtra(DreamVpnService.EXTRA_SOURCE_TICKET, pendingSourceTicket);
         if (Build.VERSION.SDK_INT >= 26) startForegroundService(intent);
         else startService(intent);
