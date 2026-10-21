@@ -63,6 +63,8 @@ assert.ok(dashboard.includes("finishUdpProbe(validDns, elapsed"));
 assert.ok(dashboard.includes('message.type === "udp-data"'));
 assert.ok(dashboard.includes("Android VPN prototype; physical-device test pending"));
 assert.ok(dashboard.includes("DNS/UDP"));
+assert.match(dashboard, /inspectHttpProbeResponse/);
+assert.match(dashboard, /Quant captive portal redirect detected/);
 assert.match(serverSource, /provider_api_reachable/);
 assert.match(serverSource, /\/api\/auth\/refresh/);
 assert.match(serverSource, /\/api\/dream-wifi\/source-ticket/);
