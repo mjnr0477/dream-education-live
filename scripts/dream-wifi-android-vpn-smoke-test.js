@@ -18,8 +18,8 @@ const serverSource = fs.readFileSync(path.join(__dirname, "..", "server.js"), "u
 assert.match(manifest, /android\.net\.VpnService/);
 assert.match(manifest, /BIND_VPN_SERVICE/);
 assert.match(service, /TProxyStartService/);
-assert.match(service, /addRoute\("0\.0\.0\.0",0\)/);
-assert.match(service, /addRoute\("::",0\)/);
+assert.match(service, /addRoute\("0\.0\.0\.0",\s*0\)/);
+assert.match(service, /addRoute\("::",\s*0\)/);
 assert.match(service, /addDisallowedApplication\("com\.termux"\)/);
 assert.match(service, /addDnsServer\("198\.18\.0\.2"\)/);
 assert.match(service, /InetAddress\.getByName\("127\.0\.0\.1"\)/);
