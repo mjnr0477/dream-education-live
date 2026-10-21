@@ -817,6 +817,9 @@ final class DreamWifiRelay {
     void stop() {
         if (!running.compareAndSet(true, false)) return;
         readyNotified.set(false);
+        probeInProgress.set(false);
+        activeProbeId = null;
+        activeProbeResponse = null;
         ownerReady = false;
         sourceReady = false;
         WebSocket owner = ownerSocket; ownerSocket = null;
