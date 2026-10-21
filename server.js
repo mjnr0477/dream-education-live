@@ -5718,7 +5718,7 @@ const {
 app.post("/api/dream-wifi/source-ticket", async (req, res) => {
   res.set("Cache-Control", "no-store");
   const authorization = String(req.get("authorization") || "");
-  const match = authorization.match(/^Bearer\\s+(.+)$/i);
+  const match = authorization.match(/^Bearer\s+(.+)$/i);
   if (!match) {
     return res.status(401).json({ success: false, error: "A valid Dream Education session is required." });
   }
