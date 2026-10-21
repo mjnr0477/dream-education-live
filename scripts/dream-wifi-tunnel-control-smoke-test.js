@@ -47,7 +47,7 @@ async function main() {
   });
 
   const url = "ws://127.0.0.1:" + address.port + "/api/dream-education/dream-wifi/tunnel";
-  let source, owner, nonOwner;
+  let source, owner, nonOwner, legacy;
   try {
     source = new WebSocket(url);
     await waitOpen(source);
@@ -121,9 +121,15 @@ async function main() {
     source.send(JSON.stringify({ type: "register", role: "source", sourceToken: ticket.token }));
     assert.equal((await ticketRegistered).role, "source");
 
+    legacy = new WebSocket(url);
+    await waitOpen(legacy);
+    const legacyDenied = waitMessage(legacy, m => m.type === "error");
+    legacy.send(JSON.stringify({ type: "register", role: "source", sourceToken: "test-source-secret" }));
+    assert.match((await legacyDenied).error, /not authorized|not configured/i);
+
     console.log("Dream Tunnel control-plane smoke test passed.");
   } finally {
-    for (const socket of [source, owner, nonOwner]) {
+    for (const socket of [source, owner, nonOwner, legacy]) {
       if (socket && socket.readyState < WebSocket.CLOSING) socket.close();
     }
     await new Promise(resolve => wss.close(resolve));

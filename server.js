@@ -5714,6 +5714,39 @@ const {
 
 
 
+// Refresh a Supabase session using its rotating refresh token for native clients.
+app.post("/api/auth/refresh", async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  const rateLimit = checkAuthRateLimit(req, "refresh");
+  if (!rateLimit.allowed) {
+    return res.status(429).json({
+      success: false,
+      error: "Too many refresh attempts. Please try again later.",
+      retry_after_seconds: rateLimit.retryAfterSeconds
+    });
+  }
+  const refreshToken = String(req.body && req.body.refresh_token || "").trim();
+  if (!refreshToken) {
+    return res.status(400).json({ success: false, error: "A refresh token is required." });
+  }
+  try {
+    const { data, error } = await supabaseAuth.auth.refreshSession({ refresh_token: refreshToken });
+    const session = data && data.session;
+    if (error || !session || !session.access_token || !session.refresh_token) {
+      return res.status(401).json({ success: false, error: "Session refresh failed. Please sign in again." });
+    }
+    return res.json({
+      success: true,
+      session: {
+        access_token: session.access_token,
+        refresh_token: session.refresh_token
+      }
+    });
+  } catch (_) {
+    return res.status(401).json({ success: false, error: "Session refresh failed. Please sign in again." });
+  }
+});
+
 // Issue a short-lived source credential to the authenticated owner for the native Android client.
 app.post("/api/dream-wifi/source-ticket", async (req, res) => {
   res.set("Cache-Control", "no-store");
