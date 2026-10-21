@@ -157,11 +157,13 @@ final class DreamWifiRelay {
             for (String line : lines) {
                 if (line.toLowerCase().startsWith("location:")) location = line.substring(9).trim();
             }
+            boolean allowedRedirect = false;
             if (!location.isEmpty()) {
                 try {
                     java.net.URI uri = new java.net.URI(location);
                     String host = uri.getHost();
-                    if (host != null && !host.equalsIgnoreCase("example.com") && !host.equalsIgnoreCase("www.example.com")) {
+                    allowedRedirect = host != null && (host.equalsIgnoreCase("example.com") || host.equalsIgnoreCase("www.example.com"));
+                    if (!allowedRedirect) {
                         finishInternetProbe(id, false, "Quant captive portal redirect detected. Open the Quant portal and complete its package/payment flow.");
                         return;
                     }
@@ -170,9 +172,16 @@ final class DreamWifiRelay {
                     return;
                 }
             }
-            if (code >= 200 && code < 400) {
+            if (code >= 300 && code < 400 && allowedRedirect) {
                 finishInternetProbe(id, true, "Public internet verified through Quant. Starting the VPN…");
-            } else {
+            } else if (code == 200) {
+                String body = value.substring(headerEnd + 4).toLowerCase();
+                if (body.contains("example domain")) {
+                    finishInternetProbe(id, true, "Public internet verified through Quant. Starting the VPN…");
+                } else if (body.length() > 1024) {
+                    finishInternetProbe(id, false, "Unexpected HTTP content received. A Quant captive portal may still be active.");
+                }
+            } else if (code < 300 || code >= 400) {
                 finishInternetProbe(id, false, "Public internet test returned HTTP " + code + ". Complete the Quant portal/package step and retry.");
             }
         } catch (Exception error) {
