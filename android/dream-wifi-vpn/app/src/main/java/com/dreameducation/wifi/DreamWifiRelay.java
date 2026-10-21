@@ -223,7 +223,11 @@ final class DreamWifiRelay {
                 } else if ("udp-send".equals(type)) {
                     workers.execute(() -> relayUdp(message));
                 } else if ("error".equals(type)) {
-                    status("Source channel rejected: " + message.optString("error", "authorization failed"));
+                    String reason = message.optString("error", "authorization failed");
+                    status("Source channel rejected: " + reason);
+                    if (reason.toLowerCase().contains("not authorized") || reason.toLowerCase().contains("not configured")) {
+                        workers.execute(DreamWifiRelay.this::renewSourceTicket);
+                    }
                     webSocket.close(1008, "source authorization rejected");
                 }
             }
@@ -462,6 +466,40 @@ final class DreamWifiRelay {
         } catch (Exception error) {
             sendSource(new SafeJson().putSafe("type", "udp-error").putSafe("id", id)
                     .putSafe("error", safeReason(error.getMessage())).toString());
+        }
+    }
+
+    private void renewSourceTicket() {
+        HttpURLConnection connection = null;
+        try {
+            connection = (HttpURLConnection) new java.net.URL(BASE_URL + "/api/dream-wifi/source-ticket").openConnection();
+            connection.setRequestMethod("POST");
+            connection.setConnectTimeout(10000);
+            connection.setReadTimeout(10000);
+            connection.setDoOutput(true);
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setRequestProperty("Authorization", "Bearer " + accessToken);
+            try (OutputStream output = connection.getOutputStream()) { output.write(new byte[0]); }
+            int code = connection.getResponseCode();
+            InputStream response = code >= 200 && code < 300 ? connection.getInputStream() : connection.getErrorStream();
+            if (response == null) throw new IOException("No source-ticket response.");
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            try (InputStream input = response) {
+                byte[] buffer = new byte[2048]; int count;
+                while ((count = input.read(buffer)) != -1) bytes.write(buffer, 0, count);
+            }
+            JSONObject result = new JSONObject(new String(bytes.toByteArray(), StandardCharsets.UTF_8));
+            String fresh = result.optString("token", "");
+            if (code < 200 || code >= 300 || !result.optBoolean("success") || fresh.isEmpty()) {
+                status("Could not renew the Quant source ticket. Sign in again if the session has expired.");
+                return;
+            }
+            sourceTicket = fresh;
+            status("Source ticket renewed; reconnecting to Quant source…");
+        } catch (Exception error) {
+            status("Source ticket renewal failed: " + safeReason(error.getMessage()));
+        } finally {
+            if (connection != null) connection.disconnect();
         }
     }
 
