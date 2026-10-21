@@ -152,6 +152,10 @@ public final class DreamVpnService extends VpnService {
     private void updateNotification(String text) {
         try { getSystemService(NotificationManager.class).notify(ID, notification(text)); }
         catch (Exception ignored) {}
+        Intent update = new Intent(MainActivity.ACTION_STATUS);
+        update.setPackage(getPackageName());
+        update.putExtra("message", text);
+        sendBroadcast(update);
     }
 
     private Notification notification(String text) {
