@@ -5869,6 +5869,7 @@ app.get("/api/dream-wifi/owner-status", async (req, res) => {
       provider_network_count: providerNetworkCount,
       source_endpoint_configured: Boolean(process.env.DREAM_WIFI_SOURCE_TOKEN),
       source_connected: Boolean(dreamWifiTunnel && typeof dreamWifiTunnel.sourceConnected === "function" && dreamWifiTunnel.sourceConnected()),
+      source_auth_available: Boolean(dreamWifiTunnel && typeof dreamWifiTunnel.issueSourceTicket === "function"),
       provider: providerConfigured ? providerName : null,
       live_access_enabled: false,
       packages_enabled: false,
