@@ -222,7 +222,7 @@ final class DreamWifiRelay {
                 } else if ("tcp-opened".equals(type)) {
                     String id = message.optString("id", "");
                     if (id.equals(activeProbeId)) {
-                        String requestText = "GET / HTTP/1.1\\r\\nHost: example.com\\r\\nConnection: close\\r\\nUser-Agent: Dream-WiFi-Native-Probe/1.0\\r\\n\\r\\n";
+                        String requestText = "GET / HTTP/1.1\r\nHost: example.com\r\nConnection: close\r\nUser-Agent: Dream-WiFi-Native-Probe/1.0\r\n\r\n";
                         sendOwner(new SafeJson().putSafe("type", "tcp-data").putSafe("id", id)
                                 .putSafe("data", Base64.encodeToString(requestText.getBytes(StandardCharsets.US_ASCII), Base64.NO_WRAP)).toString());
                         return;
