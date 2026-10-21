@@ -65,6 +65,7 @@ final class DreamWifiRelay {
     private final AtomicBoolean ownerRetryScheduled = new AtomicBoolean(false);
     private final AtomicBoolean sourceRetryScheduled = new AtomicBoolean(false);
     private final AtomicBoolean sessionRefreshRunning = new AtomicBoolean(false);
+    private final AtomicBoolean probeInProgress = new AtomicBoolean(false);
 
     private volatile String accessToken;
     private volatile String refreshToken;
@@ -77,6 +78,8 @@ final class DreamWifiRelay {
     private volatile Listener listener;
     private volatile int ownerRetrySeconds = 3;
     private volatile int sourceRetrySeconds = 3;
+    private volatile String activeProbeId;
+    private volatile StringBuilder activeProbeResponse;
 
     DreamWifiRelay(String accessToken, String refreshToken, String sourceTicket, Listener listener) {
         this.accessToken = accessToken;
@@ -104,12 +107,94 @@ final class DreamWifiRelay {
     }
 
     private void notifyReadyIfPossible() {
-        if (isReady() && readyNotified.compareAndSet(false, true)) {
-            status("Dream Tunnel connected. Internet access still depends on the Quant package being active.");
+        if (!isReady()) {
+            readyNotified.set(false);
+            return;
+        }
+        if (readyNotified.get()) return;
+        if (probeInProgress.compareAndSet(false, true)) startInternetProbe();
+    }
+
+    private void startInternetProbe() {
+        String id = "dream-probe-" + UUID.randomUUID().toString().replace("-", "");
+        activeProbeId = id;
+        activeProbeResponse = new StringBuilder();
+        boolean sent = sendOwner(new SafeJson().putSafe("type", "tcp-open").putSafe("id", id)
+                .putSafe("host", "example.com").putSafe("port", 80).toString());
+        if (!sent) {
+            finishInternetProbe(id, false, "Could not start the public internet test.");
+            return;
+        }
+        status("Checking public internet through Quant before enabling the VPN…");
+        scheduler.schedule(() -> {
+            if (id.equals(activeProbeId)) finishInternetProbe(id, false,
+                    "No public HTTP response. Complete the Quant package/login portal, then the test will retry.");
+        }, 12, TimeUnit.SECONDS);
+    }
+
+    private void handleInternetProbeData(String id, String encoded) {
+        if (!id.equals(activeProbeId)) return;
+        try {
+            byte[] bytes = Base64.decode(encoded, Base64.DEFAULT);
+            StringBuilder response = activeProbeResponse;
+            if (response == null) return;
+            response.append(new String(bytes, StandardCharsets.ISO_8859_1));
+            if (response.length() > 16384) {
+                finishInternetProbe(id, false, "The public internet test returned an oversized response.");
+                return;
+            }
+            String value = response.toString();
+            int headerEnd = value.indexOf("\\r\\n\\r\\n");
+            if (headerEnd < 0) return;
+            String[] lines = value.substring(0, headerEnd).split("\\r\\n");
+            if (lines.length == 0) {
+                finishInternetProbe(id, false, "Invalid HTTP response from the public internet test.");
+                return;
+            }
+            String[] statusParts = lines[0].split(" ");
+            int code = statusParts.length > 1 ? Integer.parseInt(statusParts[1]) : 0;
+            String location = "";
+            for (String line : lines) {
+                if (line.toLowerCase().startsWith("location:")) location = line.substring(9).trim();
+            }
+            if (!location.isEmpty()) {
+                try {
+                    java.net.URI uri = new java.net.URI(location);
+                    String host = uri.getHost();
+                    if (host != null && !host.equalsIgnoreCase("example.com") && !host.equalsIgnoreCase("www.example.com")) {
+                        finishInternetProbe(id, false, "Quant captive portal redirect detected. Open the Quant portal and complete its package/payment flow.");
+                        return;
+                    }
+                } catch (Exception ignored) {
+                    finishInternetProbe(id, false, "Unexpected redirect during the public internet test.");
+                    return;
+                }
+            }
+            if (code >= 200 && code < 400) {
+                finishInternetProbe(id, true, "Public internet verified through Quant. Starting the VPN…");
+            } else {
+                finishInternetProbe(id, false, "Public internet test returned HTTP " + code + ". Complete the Quant portal/package step and retry.");
+            }
+        } catch (Exception error) {
+            finishInternetProbe(id, false, "Could not validate the public HTTP response.");
+        }
+    }
+
+    private void finishInternetProbe(String id, boolean success, String message) {
+        if (id == null || !id.equals(activeProbeId)) return;
+        activeProbeId = null;
+        activeProbeResponse = null;
+        probeInProgress.set(false);
+        sendOwner(new SafeJson().putSafe("type", "tcp-close").putSafe("id", id).toString());
+        if (success && isReady()) {
+            readyNotified.set(true);
+            status(message);
             Listener current = listener;
             if (current != null) current.onReady();
-        } else if (!isReady()) {
+        } else {
             readyNotified.set(false);
+            status(message);
+            if (running.get()) scheduler.schedule(() -> workers.execute(this::notifyReadyIfPossible), 20, TimeUnit.SECONDS);
         }
     }
 
