@@ -1,6 +1,6 @@
 # Dream Wi-Fi Android VPN prototype
 
-Native Android `VpnService` plus the upstream HevSocks5Tunnel native TUN-to-SOCKS engine. The app signs in through Dream Education, obtains a short-lived source ticket, starts its own loopback SOCKS5 relay on `127.0.0.1:1080`, and opens owner/source WebSocket roles to the hosted tunnel. Termux is no longer required by this native prototype. The app package is excluded from VPN routing so its own source WebSocket and Quant-side sockets use the underlying Wi-Fi connection instead of looping back into the VPN.
+Native Android `VpnService` plus the upstream HevSocks5Tunnel native TUN-to-SOCKS engine. The app signs in through Dream Education, obtains a short-lived source ticket, starts its own loopback SOCKS5 relay on `127.0.0.1:1081`, and opens owner/source WebSocket roles to the hosted tunnel. Termux is no longer required by this native prototype. The app package is excluded from VPN routing so its own source WebSocket and Quant-side sockets use the underlying Wi-Fi connection instead of looping back into the VPN.
 
 ## Current limitations
 - The GitHub workflow fetches HevSocks5Tunnel at build time and configures its JNI class for this app. Retain upstream license notices.
