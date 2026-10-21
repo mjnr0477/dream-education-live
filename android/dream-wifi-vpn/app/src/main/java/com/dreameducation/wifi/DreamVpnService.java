@@ -22,6 +22,7 @@ public final class DreamVpnService extends VpnService {
     public static final String ACTION_START = "com.dreameducation.wifi.START";
     public static final String ACTION_STOP = "com.dreameducation.wifi.STOP";
     public static final String EXTRA_ACCESS_TOKEN = "dream_wifi_access_token";
+    public static final String EXTRA_REFRESH_TOKEN = "dream_wifi_refresh_token";
     public static final String EXTRA_SOURCE_TICKET = "dream_wifi_source_ticket";
     private static final int ID = 7201;
     private static final String CHANNEL = "dream_wifi_vpn";
@@ -50,14 +51,15 @@ public final class DreamVpnService extends VpnService {
             return START_NOT_STICKY;
         }
         String accessToken = intent == null ? null : intent.getStringExtra(EXTRA_ACCESS_TOKEN);
+        String refreshToken = intent == null ? null : intent.getStringExtra(EXTRA_REFRESH_TOKEN);
         String sourceTicket = intent == null ? null : intent.getStringExtra(EXTRA_SOURCE_TICKET);
-        if (accessToken == null || accessToken.isEmpty() || sourceTicket == null || sourceTicket.isEmpty()) {
+        if (accessToken == null || accessToken.isEmpty() || refreshToken == null || refreshToken.isEmpty() || sourceTicket == null || sourceTicket.isEmpty()) {
             updateNotification("Sign in again to authorize Dream Wi-Fi.");
             stopSelf();
             return START_NOT_STICKY;
         }
 
-        relay = new DreamWifiRelay(accessToken, sourceTicket, new DreamWifiRelay.Listener() {
+        relay = new DreamWifiRelay(accessToken, refreshToken, sourceTicket, new DreamWifiRelay.Listener() {
             @Override public void onStatus(String message) {
                 updateNotification(message);
             }
