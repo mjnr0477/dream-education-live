@@ -30,6 +30,8 @@ if (!/^wss:\/\//i.test(tunnelUrl)) {
 let stopped = false;
 let socket = null;
 let reconnectTimer = null;
+let heartbeatTimer = null;
+let reconnectDelayMs = 5000;
 
 function send(payload) {
   if (socket && socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify(payload));
@@ -165,13 +167,32 @@ async function openStream(message) {
 function connect() {
   if (stopped) return;
   socket = new WebSocket(tunnelUrl, { perMessageDeflate: false, maxPayload: 24 * 1024 });
-  socket.on("open", () => {
-    socket.send(JSON.stringify({ type: "register", role: "source", sourceToken }));
+  const currentSocket = socket;
+  let heartbeatAlive = true;
+  currentSocket.on("pong", () => { heartbeatAlive = true; });
+  currentSocket.on("open", () => {
+    heartbeatTimer = setInterval(() => {
+      if (currentSocket.readyState !== WebSocket.OPEN) return;
+      if (!heartbeatAlive) {
+        console.error("Dream Tunnel heartbeat timed out; reconnecting.");
+        currentSocket.terminate();
+        return;
+      }
+      heartbeatAlive = false;
+      try {
+        currentSocket.ping();
+      } catch (error) {
+        console.error("Dream Tunnel heartbeat failed:", error.message);
+        currentSocket.terminate();
+      }
+    }, 25000);
+    currentSocket.send(JSON.stringify({ type: "register", role: "source", sourceToken }));
   });
-  socket.on("message", raw => {
+  currentSocket.on("message", raw => {
     let message;
     try { message = JSON.parse(raw.toString("utf8")); } catch (_) { return; }
     if (message.type === "registered" && message.role === "source") {
+      reconnectDelayMs = 5000;
       console.log("Dream Tunnel source authenticated; public HTTP/HTTPS relay is ready for owner-authorized tests.");
     } else if (message.type === "ping" && typeof message.id === "string") {
       send({ type: "pong", id: message.id });
@@ -194,24 +215,35 @@ function connect() {
       closeStream(message.id, false);
     } else if (message.type === "error") {
       console.error("Dream Tunnel source rejected:", String(message.error || "unknown error"));
-      socket.close(1008, "Source rejected");
+      currentSocket.close(1008, "Source rejected");
     }
   });
-  socket.on("close", () => {
+  currentSocket.on("close", (code, reason) => {
+    if (socket !== currentSocket) return;
+    if (heartbeatTimer) clearInterval(heartbeatTimer);
+    heartbeatTimer = null;
     pendingOpens.clear();
     for (const id of [...streams.keys()]) closeStream(id, false);
     for (const key of [...udpSockets.keys()]) closeUdpFlow(key);
     if (!stopped) {
-      console.log("Dream Tunnel source disconnected; retrying in 5 seconds.");
-      reconnectTimer = setTimeout(connect, 5000);
+      const delay = reconnectDelayMs;
+      reconnectDelayMs = Math.min(reconnectDelayMs * 2, 60000);
+      const detail = reason && reason.length ? reason.toString("utf8") : "no reason supplied";
+      console.error("Dream Tunnel source WebSocket closed (code " + code + "; " + detail + ").");
+      console.log("Dream Tunnel source reconnecting in " + Math.ceil(delay / 1000) + " seconds.");
+      reconnectTimer = setTimeout(connect, delay);
     }
   });
-  socket.on("error", () => {});
+  currentSocket.on("error", error => {
+    console.error("Dream Tunnel source WebSocket error:", error.message);
+  });
 }
 
 function shutdown() {
   stopped = true;
   if (reconnectTimer) clearTimeout(reconnectTimer);
+  if (heartbeatTimer) clearInterval(heartbeatTimer);
+  heartbeatTimer = null;
   for (const id of [...streams.keys()]) closeStream(id, false);
   for (const key of [...udpSockets.keys()]) closeUdpFlow(key);
   if (socket) socket.close();
