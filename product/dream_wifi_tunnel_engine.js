@@ -36,6 +36,8 @@ function attachDreamWifiTunnel(server, options = {}) {
   const supabaseAuth = options.supabaseAuth;
   const isOwnerAccount = options.isOwnerAccount;
   const sourceToken = String(options.sourceToken || "");
+  const sourceTickets = new Map();
+  const SOURCE_TICKET_TTL_MS = 12 * 60 * 60 * 1000;
   const owners = new Set();
   const pendingPings = new Map();
   const streams = new Map();
@@ -51,6 +53,33 @@ function attachDreamWifiTunnel(server, options = {}) {
 
   function sourceConnected() {
     return Boolean(sourceSocket && sourceSocket.readyState === WebSocket.OPEN);
+  }
+  function issueSourceTicket(ownerId) {
+    const owner = String(ownerId || "").trim();
+    if (!owner) throw new Error("A verified owner identity is required.");
+    const now = Date.now();
+    for (const [token, entry] of sourceTickets.entries()) {
+      if (entry.expiresAt <= now || entry.ownerId === owner) sourceTickets.delete(token);
+    }
+    const token = crypto.randomBytes(32).toString("base64url");
+    const expiresAt = now + SOURCE_TICKET_TTL_MS;
+    sourceTickets.set(token, { ownerId: owner, expiresAt });
+    return { token, expires_at: new Date(expiresAt).toISOString() };
+  }
+  function isAuthorizedSourceToken(candidate) {
+    if (sourceToken && safeEqual(candidate, sourceToken)) return true;
+    const supplied = String(candidate || "");
+    if (!supplied) return false;
+    const now = Date.now();
+    let accepted = false;
+    for (const [token, entry] of sourceTickets.entries()) {
+      if (entry.expiresAt <= now) {
+        sourceTickets.delete(token);
+        continue;
+      }
+      if (safeEqual(supplied, token)) accepted = true;
+    }
+    return accepted;
   }
   function broadcastSourceState() {
     const payload = { type: "source-state", connected: sourceConnected() };
@@ -115,7 +144,7 @@ function attachDreamWifiTunnel(server, options = {}) {
         socket.registering = true;
 
         if (message.role === "source") {
-          if (!sourceToken || !safeEqual(message.sourceToken, sourceToken)) {
+          if (!isAuthorizedSourceToken(message.sourceToken)) {
             reject(socket, "Source endpoint is not authorized or not configured.");
             return;
           }
@@ -297,6 +326,7 @@ function attachDreamWifiTunnel(server, options = {}) {
     socket.on("error", () => {});
   });
 
+  wss.issueSourceTicket = issueSourceTicket;
   return wss;
 }
 
