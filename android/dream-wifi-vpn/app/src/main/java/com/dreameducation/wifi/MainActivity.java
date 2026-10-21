@@ -110,8 +110,10 @@ public final class MainActivity extends Activity {
         status.setText("Signing in securely and requesting a short-lived source ticket…");
         authWorker.execute(() -> {
             try {
-                JSONObject login = postJson(DreamWifiRelay.BASE_URL + "/api/auth/login",
-                        new JSONObject().put("email", email).put("password", password), null);
+                JSONObject credentials = new JSONObject();
+                credentials.put("email", email);
+                credentials.put("password", password);
+                JSONObject login = postJson(DreamWifiRelay.BASE_URL + "/api/auth/login", credentials, null);
                 JSONObject session = login.optJSONObject("session");
                 String accessToken = session == null ? "" : session.optString("access_token", "");
                 if (!login.optBoolean("success") || accessToken.isEmpty()) {
