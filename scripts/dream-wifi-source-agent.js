@@ -225,6 +225,11 @@ function connect() {
     pendingOpens.clear();
     for (const id of [...streams.keys()]) closeStream(id, false);
     for (const key of [...udpSockets.keys()]) closeUdpFlow(key);
+    if (code === 1008) {
+      stopped = true;
+      console.error("Dream Tunnel source authorization was rejected; automatic retries stopped.");
+      return;
+    }
     if (!stopped) {
       const delay = reconnectDelayMs;
       reconnectDelayMs = Math.min(reconnectDelayMs * 2, 60000);
