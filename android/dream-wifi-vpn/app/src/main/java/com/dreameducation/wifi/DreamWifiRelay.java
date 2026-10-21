@@ -41,7 +41,7 @@ import okhttp3.WebSocketListener;
 final class DreamWifiRelay {
     static final String BASE_URL = "https://dream-education-live-4.onrender.com";
     static final String TUNNEL_URL = "wss://dream-education-live-4.onrender.com/api/dream-education/dream-wifi/tunnel";
-    static final int LOCAL_PROXY_PORT = 1080;
+    static final int LOCAL_PROXY_PORT = 1081;
     private static final int MAX_CHUNK = 12 * 1024;
     private static final int MAX_UDP_BYTES = 8192;
     private static final int MAX_STREAMS = 8;
