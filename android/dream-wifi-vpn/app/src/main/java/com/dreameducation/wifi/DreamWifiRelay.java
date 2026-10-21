@@ -220,26 +220,48 @@ final class DreamWifiRelay {
                     status("Owner authenticated; waiting for Quant source…");
                     notifyReadyIfPossible();
                 } else if ("tcp-opened".equals(type)) {
-                    Stream stream = ownerStreams.get(message.optString("id", ""));
+                    String id = message.optString("id", "");
+                    if (id.equals(activeProbeId)) {
+                        String requestText = "GET / HTTP/1.1\\r\\nHost: example.com\\r\\nConnection: close\\r\\nUser-Agent: Dream-WiFi-Native-Probe/1.0\\r\\n\\r\\n";
+                        sendOwner(new SafeJson().putSafe("type", "tcp-data").putSafe("id", id)
+                                .putSafe("data", Base64.encodeToString(requestText.getBytes(StandardCharsets.US_ASCII), Base64.NO_WRAP)).toString());
+                        return;
+                    }
+                    Stream stream = ownerStreams.get(id);
                     if (stream != null) { stream.openedSuccessfully = true; stream.opened.countDown(); }
                 } else if ("tcp-error".equals(type)) {
-                    Stream stream = ownerStreams.get(message.optString("id", ""));
+                    String id = message.optString("id", "");
+                    if (id.equals(activeProbeId)) {
+                        finishInternetProbe(id, false, "Quant source could not reach the public internet. Complete the provider portal/package step and retry.");
+                        return;
+                    }
+                    Stream stream = ownerStreams.get(id);
                     if (stream != null) {
                         stream.error = message.optString("error", "Destination connection failed");
                         stream.opened.countDown();
                     }
                 } else if ("tcp-data".equals(type)) {
-                    Stream stream = ownerStreams.get(message.optString("id", ""));
+                    String id = message.optString("id", "");
+                    if (id.equals(activeProbeId)) {
+                        handleInternetProbeData(id, message.optString("data", ""));
+                        return;
+                    }
+                    Stream stream = ownerStreams.get(id);
                     if (stream != null) {
                         try {
                             byte[] data = Base64.decode(message.optString("data", ""), Base64.DEFAULT);
                             if (data.length <= MAX_CHUNK && stream.socket != null && !stream.socket.isClosed()) {
                                 synchronized (stream.output) { stream.output.write(data); stream.output.flush(); }
-                            } else closeOwnerStream(message.optString("id", ""), true);
-                        } catch (Exception error) { closeOwnerStream(message.optString("id", ""), true); }
+                            } else closeOwnerStream(id, true);
+                        } catch (Exception error) { closeOwnerStream(id, true); }
                     }
                 } else if ("tcp-close".equals(type)) {
-                    closeOwnerStream(message.optString("id", ""), false);
+                    String id = message.optString("id", "");
+                    if (id.equals(activeProbeId)) {
+                        finishInternetProbe(id, false, "Public internet test closed before a valid response arrived.");
+                        return;
+                    }
+                    closeOwnerStream(id, false);
                 } else if ("udp-data".equals(type)) {
                     handleUdpResponse(message);
                 } else if ("udp-error".equals(type) || "udp-close".equals(type)) {
