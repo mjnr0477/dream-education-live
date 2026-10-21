@@ -37,6 +37,8 @@ assert.match(source, /source WebSocket closed \(code /);
 assert.match(relay, /MAX_UDP_ASSOCIATIONS_PER_OWNER/);
 assert.ok(relay.includes("message.type === 'udp-send'"));
 assert.ok(dashboardHtml.includes('id="wifi-test-dns"'));
+assert.ok(dashboardHtml.includes('href="http://quant.com/status"'));
+assert.ok(dashboardHtml.includes("complete the provider’s own login/package/payment flow"));
 assert.ok(dashboard.includes('type: "udp-send", id, host: "1.1.1.1", port: 53'));
 assert.ok(dashboard.includes("finishUdpProbe(validDns, elapsed"));
 assert.ok(dashboard.includes('message.type === "udp-data"'));
