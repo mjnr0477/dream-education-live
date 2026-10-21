@@ -93,8 +93,7 @@
         try { decoded = atob(message.data); } catch (_) {}
         activeProbe.response += decoded;
         if (activeProbe.response.length > 16384) activeProbe.response = activeProbe.response.slice(0, 16384);
-        const match = activeProbe.response.match(/^HTTP\/\d(?:\.\d)?\s+(\d{3})/);
-        if (match) finishProbe(true, Number(match[1]), Date.now() - activeProbe.startedAt);
+        inspectHttpProbeResponse();
       } else if (activeProbe && message.id === activeProbe.id && (message.type === "tcp-error" || message.type === "tcp-close")) {
         finishProbe(false, 0, Date.now() - activeProbe.startedAt, message.error || "Source closed the internet test before an HTTP response arrived.");
       } else if (message.type === "error") {
@@ -196,6 +195,51 @@
       set("wifi-message", String(result.error || "No HTTP response received through the source tunnel."));
     }
     return true;
+  }
+
+  function inspectHttpProbeResponse() {
+    if (!activeProbe) return;
+    const response = activeProbe.response;
+    const headerEnd = response.indexOf("\r\n\r\n");
+    if (headerEnd < 0) return;
+    const headers = response.slice(0, headerEnd);
+    const lines = headers.split("\r\n");
+    const statusMatch = lines[0] && lines[0].match(/^HTTP\/\d(?:\.\d)?\s+(\d{3})/);
+    if (!statusMatch) return;
+    const statusCode = Number(statusMatch[1]);
+    let location = "";
+    lines.forEach(function (line) {
+      if (/^location:/i.test(line)) location = line.slice(9).trim();
+    });
+    if (location) {
+      try {
+        const target = new URL(location, "http://example.com");
+        if (target.hostname !== "example.com" && target.hostname !== "www.example.com") {
+          finishProbe(false, statusCode, Date.now() - activeProbe.startedAt,
+            "Quant captive portal redirect detected. Open the Quant portal and complete its package/payment flow.");
+          return;
+        }
+        if (statusCode >= 300 && statusCode < 400) {
+          finishProbe(true, statusCode, Date.now() - activeProbe.startedAt);
+          return;
+        }
+      } catch (_) {
+        finishProbe(false, statusCode, Date.now() - activeProbe.startedAt, "Unexpected redirect during the public internet test.");
+        return;
+      }
+    }
+    if (statusCode === 200) {
+      const body = response.slice(headerEnd + 4);
+      if (/example domain/i.test(body)) {
+        finishProbe(true, statusCode, Date.now() - activeProbe.startedAt);
+      } else if (body.length > 1024) {
+        finishProbe(false, statusCode, Date.now() - activeProbe.startedAt,
+          "Unexpected HTTP content received. A Quant captive portal may still be active.");
+      }
+    } else if (statusCode >= 400) {
+      finishProbe(false, statusCode, Date.now() - activeProbe.startedAt,
+        "Public internet test returned HTTP " + statusCode + ".");
+    }
   }
 
   function finishProbe(success, statusCode, elapsedMs, error) {
