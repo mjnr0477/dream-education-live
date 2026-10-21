@@ -64,8 +64,10 @@ final class DreamWifiRelay {
     private final AtomicBoolean readyNotified = new AtomicBoolean(false);
     private final AtomicBoolean ownerRetryScheduled = new AtomicBoolean(false);
     private final AtomicBoolean sourceRetryScheduled = new AtomicBoolean(false);
+    private final AtomicBoolean sessionRefreshRunning = new AtomicBoolean(false);
 
     private volatile String accessToken;
+    private volatile String refreshToken;
     private volatile String sourceTicket;
     private volatile WebSocket ownerSocket;
     private volatile WebSocket sourceSocket;
@@ -76,8 +78,9 @@ final class DreamWifiRelay {
     private volatile int ownerRetrySeconds = 3;
     private volatile int sourceRetrySeconds = 3;
 
-    DreamWifiRelay(String accessToken, String sourceTicket, Listener listener) {
+    DreamWifiRelay(String accessToken, String refreshToken, String sourceTicket, Listener listener) {
         this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
         this.sourceTicket = sourceTicket;
         this.listener = listener;
     }
@@ -87,6 +90,7 @@ final class DreamWifiRelay {
         workers.execute(this::serveSocks);
         connectOwner();
         connectSource();
+        scheduler.scheduleAtFixedRate(() -> workers.execute(this::renewOwnerSession), 40, 40, TimeUnit.MINUTES);
         status("Connecting to Dream Tunnel and Quant-side source…");
     }
 
@@ -159,7 +163,11 @@ final class DreamWifiRelay {
                 } else if ("source-state".equals(type)) {
                     status(message.optBoolean("connected") ? "Quant source is connected; checking relay…" : "Quant source is disconnected.");
                 } else if ("error".equals(type)) {
-                    status("Owner channel rejected: " + message.optString("error", "authorization failed"));
+                    String reason = message.optString("error", "authorization failed");
+                    status("Owner channel rejected: " + reason);
+                    if (reason.toLowerCase().contains("owner access") || reason.toLowerCase().contains("authentication failed")) {
+                        workers.execute(DreamWifiRelay.this::renewOwnerSession);
+                    }
                     webSocket.close(1008, "owner authorization rejected");
                 }
             }
@@ -466,6 +474,45 @@ final class DreamWifiRelay {
         } catch (Exception error) {
             sendSource(new SafeJson().putSafe("type", "udp-error").putSafe("id", id)
                     .putSafe("error", safeReason(error.getMessage())).toString());
+        }
+    }
+
+    private void renewOwnerSession() {
+        if (!running.get() || refreshToken == null || refreshToken.isEmpty()
+                || !sessionRefreshRunning.compareAndSet(false, true)) return;
+        HttpURLConnection connection = null;
+        try {
+            connection = (HttpURLConnection) new java.net.URL(BASE_URL + "/api/auth/refresh").openConnection();
+            connection.setRequestMethod("POST");
+            connection.setConnectTimeout(10000);
+            connection.setReadTimeout(10000);
+            connection.setDoOutput(true);
+            connection.setRequestProperty("Content-Type", "application/json");
+            byte[] body = new SafeJson().putSafe("refresh_token", refreshToken).toString().getBytes(StandardCharsets.UTF_8);
+            try (OutputStream output = connection.getOutputStream()) { output.write(body); }
+            int code = connection.getResponseCode();
+            InputStream response = code >= 200 && code < 300 ? connection.getInputStream() : connection.getErrorStream();
+            if (response == null) throw new IOException("No session-refresh response.");
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            try (InputStream input = response) {
+                byte[] buffer = new byte[2048]; int count;
+                while ((count = input.read(buffer)) != -1) bytes.write(buffer, 0, count);
+            }
+            JSONObject result = new JSONObject(new String(bytes.toByteArray(), StandardCharsets.UTF_8));
+            JSONObject session = result.optJSONObject("session");
+            String newAccess = session == null ? "" : session.optString("access_token", "");
+            String newRefresh = session == null ? "" : session.optString("refresh_token", "");
+            if (code < 200 || code >= 300 || !result.optBoolean("success") || newAccess.isEmpty() || newRefresh.isEmpty()) {
+                status("Dream Education session needs a fresh sign-in before reconnecting.");
+                return;
+            }
+            accessToken = newAccess;
+            refreshToken = newRefresh;
+        } catch (Exception error) {
+            status("Dream Education session refresh failed: " + safeReason(error.getMessage()));
+        } finally {
+            if (connection != null) connection.disconnect();
+            sessionRefreshRunning.set(false);
         }
     }
 
