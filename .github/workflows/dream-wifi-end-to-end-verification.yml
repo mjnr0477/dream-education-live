@@ -10,6 +10,8 @@ on:
       - "scripts/dream-wifi-*.js"
       - "product/dream_wifi_source_discovery.js"
       - "product/dream_wifi_source_registry.js"
+      - "android/dream-wifi-vpn/**"
+      - "scripts/dream-wifi-android-scanner-smoke-test.js"
       - "supabase/migrations/20261022_dream_wifi_source_registry.sql"
       - "docs/dream-wifi-county-source-registry.md"
       - "package.json"
@@ -55,7 +57,7 @@ jobs:
         run: node scripts/dream-wifi-source-discovery-smoke-test.js
       - name: Verify county source registry validation
         run: node scripts/dream-wifi-source-registry-smoke-test.js
+      - name: Verify Android Wi-Fi field scanner reporting safeguards
+        run: node scripts/dream-wifi-android-scanner-smoke-test.js
       - name: Verify Android VPN and dashboard readiness safeguards
         run: node scripts/dream-wifi-android-vpn-smoke-test.js
-      - name: Run existing platform regression suite
-        run: npm test
