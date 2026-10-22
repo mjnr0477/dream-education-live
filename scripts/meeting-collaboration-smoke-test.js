@@ -10,6 +10,11 @@ const app = read("public/app.js");
 const parent = read("public/parent-workspace.js");
 const css = read("public/meetings-workspace.css");
 const pkg = JSON.parse(read("package.json"));
+const mediaProviderPath = path.join(root, "meeting-server", "media", "provider.js");
+assert.equal(fs.existsSync(mediaProviderPath), true, "Meeting join must have its required media provider adapter.");
+const mediaProvider = require(mediaProviderPath);
+assert.equal(mediaProvider.getMediaProvider(), "jitsi", "The configured external meeting provider must be explicit.");
+assert.equal(mediaProvider.createRoomToken({ meetingId: "smoke", participantId: "participant", role: "learner" }), null, "External Jitsi rooms must not claim an application-generated token is valid.");
 
 assert.match(server, /agenda: String\(agenda \|\| ""\)\.trim\(\)\.slice\(0, 2000\)/, "Meeting agenda must be bounded and stored.");
 assert.match(server, /parsedScheduledDate\.toISOString\(\)\.slice\(0, 10\) === scheduledDateText/, "Meeting creation must reject impossible calendar dates.");
