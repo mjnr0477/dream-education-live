@@ -32,6 +32,8 @@ assert.ok(html.includes('id="county-center"'), "County tracker search center sel
 assert.ok(html.includes('id="county-latitude"'), "County tracker custom latitude input is missing.");
 assert.ok(html.includes('id="county-longitude"'), "County tracker custom longitude input is missing.");
 assert.ok(html.includes('value="kibabii">Kibabii area'), "County tracker Kibabii preset is missing.");
+assert.ok(!html.includes('href="http://quant.com/status"'), "Do not invent a provider portal URL.");
+assert.ok(html.includes('Open Wi-Fi portal'), "Explain how to open the portal through the native VPN.");
 assert.ok(html.includes('id="county-results"'), "County tracker results list is missing.");
 assert.ok(!page.includes('list.innerHTML'), "Registry SSIDs must not be inserted as HTML.");
 console.log("Dream Wi-Fi county tracker UI smoke test passed.");
