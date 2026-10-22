@@ -37,7 +37,9 @@ function attachDreamWifiTunnel(server, options = {}) {
   const isOwnerAccount = options.isOwnerAccount;
   const sourceToken = String(options.sourceToken || "");
   const sourceTickets = new Map();
-  const SOURCE_TICKET_TTL_MS = 12 * 60 * 60 * 1000;
+  const SOURCE_TICKET_TTL_MS = Number.isFinite(options.sourceTicketTtlMs) && options.sourceTicketTtlMs > 0
+    ? Math.min(options.sourceTicketTtlMs, 12 * 60 * 60 * 1000)
+    : 12 * 60 * 60 * 1000;
   const owners = new Set();
   const sources = new Map();
   const pendingPings = new Map();
@@ -107,7 +109,7 @@ function attachDreamWifiTunnel(server, options = {}) {
         sourceTickets.delete(token);
         continue;
       }
-      if (safeEqual(supplied, token)) return { kind: "ticket", ownerId: entry.ownerId };
+      if (safeEqual(supplied, token)) return { kind: "ticket", ownerId: entry.ownerId, expiresAt: entry.expiresAt };
     }
     // Static source agents and ticket-authenticated native sources may coexist.
     return sourceToken && safeEqual(supplied, sourceToken) ? { kind: "static", ownerId: null } : null;
@@ -202,6 +204,15 @@ function attachDreamWifiTunnel(server, options = {}) {
           socket.dreamSourceAuth = sourceAuth.kind;
           socket.dreamSourceOwnerId = sourceAuth.ownerId;
           socket.dreamSourceConnectedAt = new Date().toISOString();
+          if (sourceAuth.kind === "ticket" && Number.isFinite(sourceAuth.expiresAt)) {
+            const remainingMs = Math.max(0, sourceAuth.expiresAt - Date.now());
+            socket.dreamSourceTicketTimer = setTimeout(() => {
+              if (socket.readyState === WebSocket.OPEN) {
+                reject(socket, "Source ticket expired. Generate a new ticket and reconnect.");
+              }
+            }, remainingMs);
+            if (typeof socket.dreamSourceTicketTimer.unref === "function") socket.dreamSourceTicketTimer.unref();
+          }
           socket.dreamRole = "source";
           sources.set(sourceId, socket);
           send(socket, { type: "registered", role: "source", sourceId, sourceName });
@@ -373,6 +384,7 @@ function attachDreamWifiTunnel(server, options = {}) {
     });
 
     socket.on("close", () => {
+      if (socket.dreamSourceTicketTimer) clearTimeout(socket.dreamSourceTicketTimer);
       clearPingsFor(socket);
       closeStreamsFor(socket, "endpoint-disconnected");
       owners.delete(socket);
