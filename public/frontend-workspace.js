@@ -94,6 +94,11 @@
         throw new Error(data.error || "Request failed.");
       }
       return data;
+    } catch (error) {
+      if (error && error.name === "AbortError") {
+        throw new Error("Learning request timed out after 8 seconds. Check your connection and try again.");
+      }
+      throw error;
     } finally {
       clearTimeout(timeout);
     }
