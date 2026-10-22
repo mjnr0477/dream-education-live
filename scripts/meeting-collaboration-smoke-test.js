@@ -35,7 +35,10 @@ assert.match(followUpRoute, /dataEngine\.saveStore\(store\)/, "Follow-up notes m
 assert.match(app, /window\.DreamEducationMeetings = \{/, "Meetings workspace must be exposed to the main navigation dispatcher.");
 assert.match(app, /window\.DreamEducationMeetings\?\.open/, "Stay Connected Open Meetings action must call the exported workspace handler.");
 assert.match(app, /Meetings could not open/, "Missing Meetings workspace handler must show visible feedback instead of silently doing nothing.");
-assert.match(read("public/index.html"), /app\.js\?v=20261022d/, "Stay Connected navigation fix must use a refreshed app script asset.");
+assert.match(app, /window\.DreamEducationConnections = \{/, "General Connections workspace must be exposed to the main navigation dispatcher.");
+assert.match(app, /window\.DreamEducationConnections\?\.open/, "Stay Connected General Connections action must call the exported workspace handler.");
+assert.match(app, /General Connections could not open/, "Missing General Connections handler must show visible feedback instead of silently doing nothing.");
+assert.match(read("public/index.html"), /app\.js\?v=20261022e/, "Workspace navigation fix must use a refreshed app script asset.");
 assert.match(app, /id="meeting-agenda"/, "Meeting creation must include an optional agenda.");
 assert.match(app, /agenda: document\.getElementById\("meeting-agenda"\)/, "Meeting creation must send the agenda.");
 assert.match(app, /data-meeting-action="save-follow-up"/, "Past meetings must expose shared follow-up editing.");
