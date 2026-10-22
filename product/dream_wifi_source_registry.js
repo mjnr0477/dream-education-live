@@ -109,6 +109,7 @@ function registerDreamWifiSourceRegistryRoutes(app, { supabaseAuth, supabase }) 
     res.set("Cache-Control", "no-store");
     const user = await authenticatedUser(req, res);
     if (!user) return;
+    if (!allowRate(user.id)) return res.status(429).json({ success: false, error: "Observation query rate limit reached." });
 
     const latitude = Number(req.query.latitude);
     const longitude = Number(req.query.longitude);
