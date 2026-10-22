@@ -15,6 +15,7 @@
   let currentInfo = null;
   let requestSequence = 0;
   let pollTimer = null;
+  let pollInFlight = false;
 
   function escapeHTML(value) {
     return String(value == null ? "" : value)
@@ -46,10 +47,23 @@
   }
 
   async function api(url, options) {
-    const response = await fetch(url, Object.assign({
-      credentials: "same-origin",
-      headers: authHeaders(Boolean(options && options.body))
-    }, options || {}));
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(function () { controller.abort(); }, 15000);
+    let response;
+    try {
+      response = await fetch(url, Object.assign({
+        credentials: "same-origin",
+        headers: authHeaders(Boolean(options && options.body)),
+        signal: controller.signal
+      }, options || {}));
+    } catch (error) {
+      if (error && error.name === "AbortError") {
+        throw new Error("Chat request timed out. Check your connection and try again.");
+      }
+      throw error;
+    } finally {
+      window.clearTimeout(timeoutId);
+    }
     const data = await response.json().catch(function () { return {}; });
     if (!response.ok || data.success === false) throw new Error(data.message || data.error || "Chat request failed.");
     return data;
@@ -500,9 +514,13 @@
       status(error.message, true);
     }
     pollTimer = setInterval(function () {
-      if (!isCurrentChat() || document.visibilityState === "hidden") return;
-      if (selectedGroup) loadGroupMessages().catch(function (error) { status(error.message, true); });
-      else if (selectedUser) loadMessages().catch(function (error) { status(error.message, true); });
+      if (!isCurrentChat() || document.visibilityState === "hidden" || pollInFlight) return;
+      if (!selectedGroup && !selectedUser) return;
+      pollInFlight = true;
+      const pending = selectedGroup ? loadGroupMessages() : loadMessages();
+      Promise.resolve(pending)
+        .catch(function (error) { status(error.message, true); })
+        .finally(function () { pollInFlight = false; });
     }, 3500);
   }
 
