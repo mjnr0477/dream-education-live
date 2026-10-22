@@ -4905,7 +4905,7 @@ async function openMeetings() {
         ${meeting.agenda ? '<p class="de-meeting-agenda"><strong>Agenda</strong><br>' + escapeText(meeting.agenda) + '</p>' : ''}
         ${showFollowUp ? '<div class="de-meeting-follow-up"><label for="meeting-follow-up-' + escapeText(meeting.meeting_id) + '">Meeting notes / decisions</label><textarea class="panel-input" id="meeting-follow-up-' + escapeText(meeting.meeting_id) + '" maxlength="4000" rows="3" placeholder="What was discussed? What did participants agree?">' + escapeText(meeting.follow_up || '') + '</textarea><label for="meeting-action-items-' + escapeText(meeting.meeting_id) + '">Next actions</label><textarea class="panel-input" id="meeting-action-items-' + escapeText(meeting.meeting_id) + '" maxlength="2000" rows="2" placeholder="Action — person responsible — due date">' + escapeText(meeting.action_items || '') + '</textarea><p class="de-meeting-message" data-meeting-follow-up-status="' + escapeText(meeting.meeting_id) + '" role="status" aria-live="polite"></p><button class="panel-action" type="button" data-meeting-action="save-follow-up" data-meeting-id="' + escapeText(meeting.meeting_id) + '">Save notes & actions</button></div>' : ''}
         <div class="de-meeting-card-actions">
-          <button class="panel-action" type="button" data-meeting-action="join" data-meeting-id="${escapeText(meeting.meeting_id)}">Join meeting <span aria-hidden="true">→</span></button>
+          <button class="panel-action" type="button" data-meeting-action="join" data-meeting-id="${escapeText(meeting.meeting_id)}" data-meeting-provider="${escapeText(meeting.provider || "dream")}">Join meeting <span aria-hidden="true">→</span></button>
         </div>
       </article>
     `;
@@ -4955,6 +4955,23 @@ async function openMeetings() {
 
         if (!meetingId) return;
 
+        // Open external meeting tabs synchronously from the click gesture so
+        // browsers are less likely to block navigation after the API request.
+        const provider = button.dataset.meetingProvider || "dream";
+        const externalProvider = ["jitsi", "google-meet", "teams"].includes(provider);
+        let externalMeetingWindow = null;
+        if (externalProvider) {
+          try {
+            externalMeetingWindow = window.open("about:blank", "_blank");
+            if (externalMeetingWindow) {
+              externalMeetingWindow.document.title = "Opening meeting…";
+              externalMeetingWindow.document.body.textContent = "Connecting to your meeting…";
+            }
+          } catch {
+            externalMeetingWindow = null;
+          }
+        }
+
         button.disabled = true;
         button.textContent = "Joining...";
 
@@ -4985,8 +5002,16 @@ async function openMeetings() {
             if (!safeMeetingUrl) {
               throw new Error("This meeting link is missing or is not from a supported secure meeting provider.");
             }
-            window.open(safeMeetingUrl, "_blank", "noopener,noreferrer");
+            if (externalMeetingWindow && !externalMeetingWindow.closed) {
+              externalMeetingWindow.location.replace(safeMeetingUrl);
+            } else {
+              window.open(safeMeetingUrl, "_blank", "noopener,noreferrer");
+            }
             return;
+          }
+
+          if (externalMeetingWindow && !externalMeetingWindow.closed) {
+            externalMeetingWindow.close();
           }
 
           if (typeof window.openMeetingRoom === "function") {
@@ -5014,6 +5039,9 @@ async function openMeetings() {
             `;
           }
         } catch (error) {
+          if (externalMeetingWindow && !externalMeetingWindow.closed) {
+            externalMeetingWindow.close();
+          }
           console.error("Meeting join error:", error);
           button.disabled = false;
           button.textContent = "Join Meeting";
