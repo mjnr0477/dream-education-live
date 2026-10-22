@@ -1769,8 +1769,18 @@ document.addEventListener("click", function (event) {
     }
 
     if (action === "meetings") {
-      if (typeof openMeetings === "function") {
-        openMeetings();
+      const openMeetingsWorkspace = window.DreamEducationMeetings?.open;
+      if (typeof openMeetingsWorkspace === "function") {
+        openMeetingsWorkspace();
+      } else {
+        console.error("Dream Education Meetings workspace is not available.");
+        const panelTitle = document.getElementById("panel-title");
+        const panelBody = document.getElementById("panel-body");
+        if (panelTitle && panelBody) {
+          panelTitle.textContent = "Meetings unavailable";
+          panelBody.innerHTML = '<section class="panel-card"><h3>Meetings could not open</h3><p>Please refresh Dream Education and try again.</p></section>';
+          document.body.classList.add("panel-open");
+        }
       }
       return;
     }
@@ -5347,6 +5357,13 @@ async function openMeetings() {
     `;
   }
 }
+// Expose the workspace explicitly because the main navigation dispatcher
+// lives in a separate IIFE and cannot see this function's local binding.
+window.DreamEducationMeetings = {
+  ...(window.DreamEducationMeetings || {}),
+  open: openMeetings
+};
+
 async function openTeacherAnalytics() {
   const panelElement = document.getElementById("experience-panel");
   const panelBodyElement = document.getElementById("panel-body");

@@ -32,6 +32,10 @@ assert.match(followUpRoute, /authorizeAccountForConnection\(auth\.account, conne
 assert.match(followUpRoute, /followUp\.length > 4000 \|\| actionItems\.length > 2000/, "Follow-up text must be size-limited.");
 assert.match(followUpRoute, /dataEngine\.saveStore\(store\)/, "Follow-up notes must persist.");
 
+assert.match(app, /window\.DreamEducationMeetings = \{/, "Meetings workspace must be exposed to the main navigation dispatcher.");
+assert.match(app, /window\.DreamEducationMeetings\?\.open/, "Stay Connected Open Meetings action must call the exported workspace handler.");
+assert.match(app, /Meetings could not open/, "Missing Meetings workspace handler must show visible feedback instead of silently doing nothing.");
+assert.match(read("public/index.html"), /app\.js\?v=20261022d/, "Stay Connected navigation fix must use a refreshed app script asset.");
 assert.match(app, /id="meeting-agenda"/, "Meeting creation must include an optional agenda.");
 assert.match(app, /agenda: document\.getElementById\("meeting-agenda"\)/, "Meeting creation must send the agenda.");
 assert.match(app, /data-meeting-action="save-follow-up"/, "Past meetings must expose shared follow-up editing.");
