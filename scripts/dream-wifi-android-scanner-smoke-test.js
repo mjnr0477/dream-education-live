@@ -41,6 +41,11 @@ assert.ok(!activity.includes('observation.put("bssid"'),
 
 const relay = fs.readFileSync(path.join(root, "android/dream-wifi-vpn/app/src/main/java/com/dreameducation/wifi/DreamWifiRelay.java"), "utf8");
 const service = fs.readFileSync(path.join(root, "android/dream-wifi-vpn/app/src/main/java/com/dreameducation/wifi/DreamVpnService.java"), "utf8");
+assert.ok(activity.includes("Sign in for county Wi-Fi scanning"), "Field reporters need a sign-in path that does not require owner-only source tickets.");
+assert.ok(activity.includes("private void signInForScanning()"), "County scanning must authenticate without requesting an owner source ticket.");
+const scanSignIn = activity.slice(activity.indexOf("private void signInForScanning()"), activity.indexOf("private void signInAndConnect(boolean sourceOnly)"));
+assert.ok(scanSignIn.includes("/api/auth/login"), "County scanning must authenticate through the normal Dream Education login.");
+assert.ok(!scanSignIn.includes("/api/dream-wifi/source-ticket"), "Ordinary field reporters must not need owner-only source-ticket permission.");
 assert.ok(activity.includes("Publish this Wi-Fi as a remote source"), "Android app needs an explicit source-publishing mode.");
 assert.ok(activity.includes("EXTRA_SOURCE_ONLY"), "Source-only mode must be passed to the foreground service.");
 assert.ok(service.includes("findConnectedWifiNetwork()"), "Source mode must select a Wi-Fi network.");
