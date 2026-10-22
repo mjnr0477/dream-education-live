@@ -50,12 +50,14 @@
     const controller = new AbortController();
     const timeoutId = window.setTimeout(function () { controller.abort(); }, 15000);
     let response;
+    let data;
     try {
       response = await fetch(url, Object.assign({
         credentials: "same-origin",
         headers: authHeaders(Boolean(options && options.body)),
         signal: controller.signal
       }, options || {}));
+      data = await response.json().catch(function () { return {}; });
     } catch (error) {
       if (error && error.name === "AbortError") {
         throw new Error("Chat request timed out. Check your connection and try again.");
@@ -64,7 +66,6 @@
     } finally {
       window.clearTimeout(timeoutId);
     }
-    const data = await response.json().catch(function () { return {}; });
     if (!response.ok || data.success === false) throw new Error(data.message || data.error || "Chat request failed.");
     return data;
   }
