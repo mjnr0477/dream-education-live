@@ -63,6 +63,13 @@ const PORT = process.env.PORT || 3000;
 
 const AI_MODE = process.env.AI_MODE || "live";
 
+// Detailed learner diagnostics can include learner identifiers, questions, and
+// adaptive decisions. Keep them off in production unless explicitly enabled.
+const DEBUG_LEARNING = process.env.DREAM_DEBUG_LEARNING === "true";
+function debugLearning(...args) {
+  if (DEBUG_LEARNING) console.log(...args);
+}
+
 // Lightweight authentication abuse protection.
 // Uses only Node.js built-ins; no extra dependency required.
 const authRateLimitStore = new Map();
@@ -1176,7 +1183,7 @@ app.get("/api/health", (req, res) => {
 });
 
 app.post("/api/learn", async (req, res) => {
-  console.log("=== LEARN REQUEST START ===");
+  debugLearning("=== LEARN REQUEST START ===");
 
   // This fallback is intentionally outside the try block so the final
   // error handler can access it even when an earlier pipeline step fails.
@@ -1187,12 +1194,12 @@ app.post("/api/learn", async (req, res) => {
       : null;
 
   try {
-    console.log("0. Authenticating learning request...");
+    debugLearning("0. Authenticating learning request...");
     const auth = await getAuthenticatedAccount(req);
-    console.log(
+    debugLearning(
       "0. Authentication result:",
       auth.success,
-      auth.success ? auth.account?.email : auth.error
+      auth.success ? auth.account?.role : auth.error
     );
 
     if (!auth.success) {
@@ -1209,9 +1216,9 @@ app.post("/api/learn", async (req, res) => {
       });
     }
 
-    console.log("0. Checking account access...");
+    debugLearning("0. Checking account access...");
     const learningAccess = enforceLearningAccess(auth.account);
-    console.log(
+    debugLearning(
       "0. Access result:",
       learningAccess.allowed,
       learningAccess.status,
@@ -1248,17 +1255,17 @@ app.post("/api/learn", async (req, res) => {
       difficulty_reason
     } = req.body;
 
-    console.log("1. Request received");
+    debugLearning("1. Request received");
 
     if (!question || !question.trim()) {
-      console.log("2. Question missing");
+      debugLearning("2. Question missing");
       return res.status(400).json({
         success: false,
         message: "Please enter a question."
       });
     }
 
-    console.log("2. Question received");
+    debugLearning("2. Question received");
 
     const queryInfo = queryEngine.analyzeQuery(question, {
       subject,
@@ -1266,7 +1273,7 @@ app.post("/api/learn", async (req, res) => {
       level
     });
 
-    console.log(
+    debugLearning(
       "2.1 Question understanding:",
       JSON.stringify(queryInfo)
     );
@@ -1280,12 +1287,12 @@ app.post("/api/learn", async (req, res) => {
       );
 
       if (specialistResult.routed) {
-        console.log(
+        debugLearning(
           "2.2 Specialist result:",
           JSON.stringify(specialistResult)
         );
       } else {
-        console.log("2.2 No specialist solver selected");
+        debugLearning("2.2 No specialist solver selected");
       }
     } catch (specialistError) {
       console.error(
@@ -1306,7 +1313,7 @@ app.post("/api/learn", async (req, res) => {
      * existing adaptive decision or teaching engines.
      */
 
-    console.log("2.3 Starting intelligence routing");
+    debugLearning("2.3 Starting intelligence routing");
 
     const withTimeout = (promise, ms, label) =>
       Promise.race([
@@ -1334,7 +1341,7 @@ app.post("/api/learn", async (req, res) => {
       });
     });
 
-    console.log(
+    debugLearning(
       "2.5 Curriculum content:",
       curriculumContent ? "FOUND" : "NOT FOUND"
     );
@@ -1359,7 +1366,7 @@ app.post("/api/learn", async (req, res) => {
         error: "Skipped because structured curriculum content is available."
       };
     } else {
-      console.log("2.6 No local curriculum match; using external knowledge.");
+      debugLearning("2.6 No local curriculum match; using external knowledge.");
 
       const [knowledge, trusted, publicSearchResult] = await Promise.all([
         withTimeout(
@@ -1498,7 +1505,7 @@ app.post("/api/learn", async (req, res) => {
         knowledgeResult.trusted_sources.length
       ) {
 
-        console.log(
+        debugLearning(
           "2.7 Trusted information sources:",
           knowledgeResult.trusted_sources
             .map(source => source.source)
@@ -1506,7 +1513,7 @@ app.post("/api/learn", async (req, res) => {
         );
       }
 
-      console.log(
+      debugLearning(
         "2.7 External knowledge retrieved:",
         retrievedKnowledge?.concept ||
         (knowledgeResult.trusted_sources?.length
@@ -1514,7 +1521,7 @@ app.post("/api/learn", async (req, res) => {
           : "knowledge")
       );
     } else {
-      console.log(
+      debugLearning(
         "2.7 External knowledge unavailable:",
         knowledgeResult?.error ||
         "No information source returned usable information."
@@ -1539,12 +1546,12 @@ app.post("/api/learn", async (req, res) => {
             ? "external_knowledge"
             : "teaching_only";
 
-    console.log(
+    debugLearning(
       "2.8 Intelligence route:",
       intelligenceRoute
     );
 
-    console.log(
+    debugLearning(
       "2.9 Intelligence sources:",
       JSON.stringify({
         specialist: !!(
@@ -1564,7 +1571,7 @@ app.post("/api/learn", async (req, res) => {
     );
 
     const cache = loadCache();
-    console.log("3. Cache loaded");
+    debugLearning("3. Cache loaded");
 
     const cacheKey = createCacheKey(
       question,
@@ -1585,7 +1592,7 @@ app.post("/api/learn", async (req, res) => {
         difficulty_direction
       }
     );
-    console.log("4. Cache key created");
+    debugLearning("4. Cache key created");
 
     let answer;
     let cached = false;
@@ -1595,24 +1602,24 @@ app.post("/api/learn", async (req, res) => {
       cache[cacheKey].createdAt &&
       Date.now() - new Date(cache[cacheKey].createdAt).getTime() < DEFAULT_CACHE_TTL_MS
     ) {
-      console.log("5. CACHE HIT (< 60 seconds)");
+      debugLearning("5. CACHE HIT (< 60 seconds)");
       if (cache[cacheKey].answer_contract === "verified-v1") {
         answer = cache[cacheKey].answer;
         cached = true;
       } else {
-        console.log("5. CACHE ENTRY REJECTED: missing verified answer contract");
+        debugLearning("5. CACHE ENTRY REJECTED: missing verified answer contract");
         delete cache[cacheKey];
         saveCache(cache);
       }
     } else {
       if (cache[cacheKey]) {
-        console.log("5. CACHE EXPIRED");
+        debugLearning("5. CACHE EXPIRED");
         delete cache[cacheKey];
         saveCache(cache);
       }
 
-      console.log("5. CACHE MISS");
-      console.log("5. CACHE MISS");
+      debugLearning("5. CACHE MISS");
+      debugLearning("5. CACHE MISS");
 
       const specialistVerified =
         specialistResult &&
@@ -1620,7 +1627,7 @@ app.post("/api/learn", async (req, res) => {
         specialistResult.verified === true;
 
       if (specialistVerified || curriculumContent || retrievedKnowledge) {
-        console.log(
+        debugLearning(
           specialistVerified
             ? "6. VERIFIED SOLVER TEACHING MODE"
             : "6. DEVELOPMENT MODE"
@@ -1677,12 +1684,12 @@ app.post("/api/learn", async (req, res) => {
           );
         }
 
-        console.log(
+        debugLearning(
           "7. Development answer created:",
           answer ? "YES" : "NO"
         );
       } else {
-        console.log("6. LIVE MODE");
+        debugLearning("6. LIVE MODE");
 
         if (!hasVerifiedAnswerAuthority({ specialistVerified, curriculumContent, retrievedKnowledge, fallbackAnswer: guaranteedFallbackAnswer })) {
           throw new Error("No verified evidence is available for this learner question.");
@@ -1819,7 +1826,7 @@ Return a learner-facing teaching response only.
           );
         } catch (err) {
           primaryAIError = err;
-          console.log(
+          debugLearning(
             "Primary AI unavailable within the fast response window; trying configured free AI providers..."
           );
         }
@@ -1913,7 +1920,7 @@ Return a learner-facing teaching response only.
               ]
             };
 
-            console.log(`7. Free AI answer created (${freeAI.provider})`);
+            debugLearning(`7. Free AI answer created (${freeAI.provider})`);
           }
         }
 
@@ -1967,7 +1974,7 @@ Return a learner-facing teaching response only.
 
       try {
         saveCache(cache);
-        console.log("8. Answer cached");
+        debugLearning("8. Answer cached");
       } catch (cacheError) {
         console.error(
           "8. CACHE SAVE ERROR (answer preserved):",
@@ -1977,7 +1984,7 @@ Return a learner-facing teaching response only.
     }
 
     if (learner_id) {
-      console.log("9. Saving learner");
+      debugLearning("9. Saving learner");
 
       const learnerSave = supabase
         .from("dream_learners")
@@ -2006,10 +2013,10 @@ Return a learner-facing teaching response only.
       if (learnerError) {
         console.error("LEARNER SAVE ERROR:", learnerError);
       } else {
-        console.log("10. Learner saved");
+        debugLearning("10. Learner saved");
       }
 
-      console.log("11. Saving learning history");
+      debugLearning("11. Saving learning history");
 
       const historySave = supabase
         .from("learning_history")
@@ -2038,7 +2045,7 @@ Return a learner-facing teaching response only.
       if (historyError) {
         console.error("HISTORY SAVE ERROR:", historyError);
       } else {
-        console.log("12. Learning history saved");
+        debugLearning("12. Learning history saved");
       }
 
       /*
@@ -2076,7 +2083,7 @@ Return a learner-facing teaching response only.
 
         learnerStore.saveLearner(learnerRecord);
 
-        console.log("12.1 Dream Core learning activity recorded");
+        debugLearning("12.1 Dream Core learning activity recorded");
       } catch (dreamObserverError) {
         console.error(
           "Dream Core activity save error:",
@@ -2090,7 +2097,7 @@ Return a learner-facing teaching response only.
       return res.status(503).json({ success: false, message: "No verified evidence is available for this learner question.", retryable: true, answer_contract: "verified-v1" });
     }
 
-    console.log("13. Preparing visible learning resources");
+    debugLearning("13. Preparing visible learning resources");
 
     // Resource discovery is a teaching companion to the verified answer.
     // It must never replace factual verification or prevent the learner
@@ -2118,7 +2125,7 @@ Return a learner-facing teaching response only.
       );
     }
 
-    console.log("14. Sending successful response");
+    debugLearning("14. Sending successful response");
 
     const answerSources = [];
 
@@ -2612,11 +2619,11 @@ rather than a partial example.
 Return valid JSON only.
 `;
 
-    console.log("=== CODE GENERATOR REQUEST ===");
-    console.log("Project type:", projectType);
-    console.log("Language:", language);
-    console.log("Mode:", mode);
-    console.log("Request length:", generation.request.length);
+    debugLearning("=== CODE GENERATOR REQUEST ===");
+    debugLearning("Project type:", projectType);
+    debugLearning("Language:", language);
+    debugLearning("Mode:", mode);
+    debugLearning("Request length:", generation.request.length);
 
     const response = await client.chat.completions.create({
       model: process.env.AI_MODEL || "gemini-3.8-flash",
@@ -2737,7 +2744,7 @@ Return valid JSON only.
       );
     }
 
-    console.log(
+    debugLearning(
       "Code generator generated",
       project.files.length,
       "file(s)."
@@ -3509,7 +3516,7 @@ app.get("/api/profile/:learner_id", async (req, res) => {
       });
     }
 
-    console.log("PROFILE: Loading learner", learnerId);
+    debugLearning("PROFILE: Loading learner", learnerId);
 
     const { data: learner, error: learnerError } = await supabase
       .from("dream_learners")
@@ -3615,8 +3622,8 @@ app.get("/api/adaptive/:learner_id", async (req, res) => {
   try {
     const learnerId = req.params.learner_id;
 
-    console.log("=== ADAPTIVE REQUEST ===");
-    console.log("Learner:", learnerId);
+    debugLearning("=== ADAPTIVE REQUEST ===");
+    debugLearning("Learner:", learnerId);
 
     const { data: history, error } = await supabase
       .from("learning_history")
@@ -3688,8 +3695,8 @@ app.get("/api/next-question/:learner_id", async (req, res) => {
   try {
     const learnerId = req.params.learner_id;
 
-    console.log("=== NEXT QUESTION REQUEST ===");
-    console.log("Learner:", learnerId);
+    debugLearning("=== NEXT QUESTION REQUEST ===");
+    debugLearning("Learner:", learnerId);
 
     const { data: history, error } = await supabase
       .from("learning_history")
@@ -3778,8 +3785,8 @@ app.post("/api/assess", async (req, res) => {
       custom_learning_method
     } = req.body;
 
-    console.log("=== ASSESSMENT REQUEST ===");
-    console.log("Learner:", learner_id);
+    debugLearning("=== ASSESSMENT REQUEST ===");
+    debugLearning("Learner:", learner_id);
 
     if (!learner_id || !question || !learner_answer) {
       return res.status(400).json({
@@ -3889,8 +3896,8 @@ app.get("/api/difficulty/:learner_id", async (req, res) => {
   try {
     const learnerId = req.params.learner_id;
 
-    console.log("=== DIFFICULTY REQUEST ===");
-    console.log("Learner:", learnerId);
+    debugLearning("=== DIFFICULTY REQUEST ===");
+    debugLearning("Learner:", learnerId);
 
     const { data: assessments, error } = await supabase
       .from("learning_assessments")
@@ -3981,7 +3988,7 @@ app.post("/api/learning-cycle", async (req, res) => {
       });
     }
 
-    console.log("=== LEARNING CYCLE START ===");
+    debugLearning("=== LEARNING CYCLE START ===");
 
     // 1. Ensure learner exists
     const { error: learnerError } = await supabase
@@ -4129,7 +4136,7 @@ app.post("/api/learning-cycle", async (req, res) => {
       }
     });
 
-    console.log("=== LEARNING CYCLE COMPLETE ===");
+    debugLearning("=== LEARNING CYCLE COMPLETE ===");
 
     // Record genuine learner activity for business traction metrics.
     // This does not affect the learning decision or response.
@@ -4542,7 +4549,7 @@ app.get("/api/intelligence/:learner_id", async (req, res) => {
       });
     }
 
-    console.log("=== LEARNER INTELLIGENCE START ===");
+    debugLearning("=== LEARNER INTELLIGENCE START ===");
 
     // Get learner profile
     const { data: learner, error: learnerError } = await supabase
@@ -4611,14 +4618,14 @@ app.get("/api/intelligence/:learner_id", async (req, res) => {
     const nextTopicSelection =
       selectNextTopic(topicPerformance);
 
-    console.log("NEXT TOPIC SELECTION:", nextTopicSelection);
+    debugLearning("NEXT TOPIC SELECTION:", nextTopicSelection);
 
     const nextDecision = decideNextAction({
       profile,
       nextTopic: nextTopicSelection
     });
 
-    console.log("NEXT DECISION:", nextDecision);
+    debugLearning("NEXT DECISION:", nextDecision);
 
     const action = nextDecision.action || "continue";
 
@@ -4632,7 +4639,7 @@ app.get("/api/intelligence/:learner_id", async (req, res) => {
       nextDecision.reason ||
       "Continue building the learner's understanding.";
 
-    console.log("=== LEARNER INTELLIGENCE COMPLETE ===");
+    debugLearning("=== LEARNER INTELLIGENCE COMPLETE ===");
 
     return res.json({
       success: true,
@@ -4688,7 +4695,7 @@ app.get("/api/adaptive-question/:learner_id", async (req, res) => {
       });
     }
 
-    console.log("=== ADAPTIVE QUESTION SELECTION START ===");
+    debugLearning("=== ADAPTIVE QUESTION SELECTION START ===");
 
     // Get assessments
     const { data: assessments, error: assessmentError } = await supabase
@@ -4827,7 +4834,7 @@ app.get("/api/adaptive-question/:learner_id", async (req, res) => {
         "The learner is performing strongly and is ready for a more challenging task.";
     }
 
-    console.log("=== ADAPTIVE QUESTION SELECTION COMPLETE ===");
+    debugLearning("=== ADAPTIVE QUESTION SELECTION COMPLETE ===");
 
     return res.json({
       success: true,
@@ -4879,8 +4886,8 @@ app.post("/api/teach", async (req, res) => {
       assessment
     } = req.body;
 
-    console.log("=== TEACHING REQUEST ===");
-    console.log("Learner:", learner_id);
+    debugLearning("=== TEACHING REQUEST ===");
+    debugLearning("Learner:", learner_id);
 
     if (!learner_id || !question || !assessment) {
       return res.status(400).json({
@@ -4988,9 +4995,9 @@ app.get("/api/mastery/:learner_id/:topic", async (req, res) => {
   try {
     const { learner_id, topic } = req.params;
 
-    console.log("=== MASTERY REQUEST ===");
-    console.log("Learner:", learner_id);
-    console.log("Topic:", topic);
+    debugLearning("=== MASTERY REQUEST ===");
+    debugLearning("Learner:", learner_id);
+    debugLearning("Topic:", topic);
 
     if (!learner_id || !topic) {
       return res.status(400).json({
@@ -5121,9 +5128,9 @@ app.post("/api/session", async (req, res) => {
       custom_learning_method
     } = req.body;
 
-    console.log("=== LEARNING SESSION ===");
-    console.log("Learner:", learner_id);
-    console.log("Topic:", topic);
+    debugLearning("=== LEARNING SESSION ===");
+    debugLearning("Learner:", learner_id);
+    debugLearning("Topic:", topic);
 
     if (!learner_id || !question || !learner_answer) {
       return res.status(400).json({
@@ -5192,7 +5199,7 @@ app.post("/api/session", async (req, res) => {
     const misconceptions = assessment.misconceptions;
     const questionType = assessment.questionType;
 
-    console.log("ASSESSMENT ENGINE RESULT:", assessment);
+    debugLearning("ASSESSMENT ENGINE RESULT:", assessment);
 
     /*
       SAVE CURRENT ASSESSMENT
@@ -5395,7 +5402,7 @@ const learningState = determineLearningState({
   correctionAttempt
 });
 
-console.log("LEARNING STATE TRANSITION:", {
+debugLearning("LEARNING STATE TRANSITION:", {
   previousState: previousLearningState,
   previousUnderstanding: previousStateUnderstanding,
   previousScore: previousStateScore,
@@ -5453,8 +5460,8 @@ const sessionDecision = decideNextAction({
   nextTopic: sessionNextTopic
 });
 
-console.log("SESSION LEARNING PROFILE:", sessionProfile);
-console.log("SESSION DECISION:", sessionDecision);
+debugLearning("SESSION LEARNING PROFILE:", sessionProfile);
+debugLearning("SESSION DECISION:", sessionDecision);
 
 /*
   STATE-AWARE EVIDENCE TEACHING
@@ -5496,7 +5503,7 @@ const teachingAnalysis = generateEvidenceTeaching(
   }
 );
 
-console.log("STATE-AWARE TEACHING ANALYSIS:", teachingAnalysis);
+debugLearning("STATE-AWARE TEACHING ANALYSIS:", teachingAnalysis);
 
     const difficultyAnalysis = determineDifficulty({
       learningState,
@@ -5509,7 +5516,7 @@ console.log("STATE-AWARE TEACHING ANALYSIS:", teachingAnalysis);
       strongAttempts
     });
 
-    console.log("DIFFICULTY ADAPTATION ANALYSIS:", difficultyAnalysis);
+    debugLearning("DIFFICULTY ADAPTATION ANALYSIS:", difficultyAnalysis);
 
     let explanation;
     let nextQuestion;
@@ -5532,7 +5539,7 @@ console.log("STATE-AWARE TEACHING ANALYSIS:", teachingAnalysis);
       (teachingAnalysis && teachingAnalysis.explanation) ||
       "Let's continue building your understanding step by step.";
 
-    console.log("ADAPTIVE QUESTION ENGINE:", adaptiveQuestion);
+    debugLearning("ADAPTIVE QUESTION ENGINE:", adaptiveQuestion);
 
     recordAdaptiveDecision({
       learnerId: learner_id,
@@ -5546,7 +5553,7 @@ console.log("STATE-AWARE TEACHING ANALYSIS:", teachingAnalysis);
       console.warn("Adaptive decision provenance skipped:", error.message);
     });
 
-    console.log("FINAL SESSION DEBUG:", {
+    debugLearning("FINAL SESSION DEBUG:", {
       understanding,
       misconceptions,
       explanation,

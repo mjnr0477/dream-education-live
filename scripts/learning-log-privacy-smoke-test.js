@@ -1,0 +1,17 @@
+"use strict";
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
+const server = fs.readFileSync(path.join(__dirname, "..", "server.js"), "utf8");
+const packageJson = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "package.json"), "utf8"));
+const start = server.indexOf('app.post("/api/learn"');
+const end = server.indexOf("// Server starts after the persistent product store has hydrated.", start);
+assert.ok(start >= 0 && end > start, "Learning route diagnostics region must be present.");
+const learningRoutes = server.slice(start, end);
+assert.match(server, /process\.env\.DREAM_DEBUG_LEARNING === "true"/, "Detailed learning logs must require explicit opt-in.");
+assert.match(server, /function debugLearning\(\.\.\.args\)/, "Learning diagnostics must use the guarded logger.");
+assert.doesNotMatch(learningRoutes, /console\.log\(/, "Learning routes must not emit detailed learner diagnostics by default.");
+assert.match(learningRoutes, /debugLearning\(/, "Guarded diagnostics should remain available for explicit troubleshooting.");
+assert.match(learningRoutes, /console\.error\(/, "Operational errors must remain logged.");
+assert.match(packageJson.scripts.test, /learning-log-privacy-smoke-test\.js/, "The privacy regression test must run in npm test.");
+console.log("learning-log-privacy-smoke-test: PASS");
