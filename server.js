@@ -7388,7 +7388,7 @@ app.post("/api/product/meetings", async (req, res) => {
 
     const scheduledDateText = String(scheduled_date);
     const scheduledTimeText = String(scheduled_time);
-    const dateFormatIsValid = /^\\d{4}-\\d{2}-\\d{2}$/.test(scheduledDateText);
+    const dateFormatIsValid = /^\d{4}-\d{2}-\d{2}$/.test(scheduledDateText);
     const parsedScheduledDate = dateFormatIsValid
       ? new Date(scheduledDateText + "T00:00:00.000Z")
       : null;
@@ -7397,7 +7397,7 @@ app.post("/api/product/meetings", async (req, res) => {
       !Number.isNaN(parsedScheduledDate.getTime()) &&
       parsedScheduledDate.toISOString().slice(0, 10) === scheduledDateText
     );
-    const timeFormatIsValid = /^(?:[01]\\d|2[0-3]):[0-5]\\d$/.test(scheduledTimeText);
+    const timeFormatIsValid = /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(scheduledTimeText);
     if (!calendarDateIsValid || !timeFormatIsValid) {
       return res.status(400).json({
         success: false,
