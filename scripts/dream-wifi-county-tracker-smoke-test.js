@@ -35,5 +35,11 @@ assert.ok(html.includes('value="kibabii">Kibabii area'), "County tracker Kibabii
 assert.ok(!html.includes('href="http://quant.com/status"'), "Do not invent a provider portal URL.");
 assert.ok(html.includes('Open Wi-Fi portal'), "Explain how to open the portal through the native VPN.");
 assert.ok(html.includes('id="county-results"'), "County tracker results list is missing.");
+assert.ok(html.includes("cannot identify phones connected to a remote router"), "Tracker must not imply it can identify connected devices.");
+assert.ok(html.includes("/docs/dream-wifi-source-agent-without-app.md"), "Standalone source-agent limitations must be linked.");
+const sourceAgentDocs = fs.readFileSync("docs/dream-wifi-source-agent-without-app.md", "utf8");
+assert.ok(sourceAgentDocs.includes("informed opt-in"), "Source agent documentation must require informed opt-in.");
+assert.ok(sourceAgentDocs.includes("does not bind sockets to a specific Android Wi-Fi network"), "Standalone agent routing limitation must be documented.");
+
 assert.ok(!page.includes('list.innerHTML'), "Registry SSIDs must not be inserted as HTML.");
 console.log("Dream Wi-Fi county tracker UI smoke test passed.");
