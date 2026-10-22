@@ -24,7 +24,8 @@
       return data;
     } catch (error) {
       if (error && error.name === "AbortError") {
-        throw new Error("Dream did not respond within 30 seconds. Please try again; if this repeats, the lesson service needs investigation.");
+        const timeoutSeconds = Math.max(1, Math.round(timeoutMs / 1000));
+        throw new Error("Dream did not respond within " + timeoutSeconds + " seconds. Please try again; if this repeats, the lesson service needs investigation.");
       }
       throw error;
     } finally {
