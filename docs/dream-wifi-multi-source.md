@@ -8,10 +8,10 @@ On an authorized source device connected to the intended internet network, confi
 
 - `DREAM_WIFI_TUNNEL_URL=wss://dream-education-live-4.onrender.com/api/dream-education/dream-wifi/tunnel`
 - `DREAM_WIFI_SOURCE_TOKEN` to the source credential configured for the hosted service
-- `DREAM_WIFI_SOURCE_NAME` to a friendly name shown in the app
+- `DREAM_WIFI_SOURCE_NAME` to optionally override the friendly name shown in the app
 - `DREAM_WIFI_SOURCE_ID` to a stable, unique ID for that source (letters, digits, underscore and hyphen)
 
-Then run `npm run dream-wifi:source`. Multiple agents can be online at once; do not reuse a source ID for different active endpoints. The Android source app registers a per-session source ID automatically.
+Then run `npm run dream-wifi:source`. Multiple agents can be online at once; do not reuse a source ID for different active endpoints. When no source name is configured, the Node source agent tries Termux Wi-Fi connection info, `iwgetid`, and `nmcli` to discover the connected SSID; it falls back to the host name if those tools are unavailable. The Android source app registers a per-session source ID automatically and currently labels it with the Android device model.
 
 ## Select a source
 
