@@ -38,4 +38,13 @@ assert.ok(!activity.includes('observation.put("password"'),
 assert.ok(!activity.includes('observation.put("bssid"'),
   "Wi-Fi BSSIDs are intentionally not stored in the cloud registry.");
 
+const relay = fs.readFileSync(path.join(root, "android/dream-wifi-vpn/app/src/main/java/com/dreameducation/wifi/DreamWifiRelay.java"), "utf8");
+const service = fs.readFileSync(path.join(root, "android/dream-wifi-vpn/app/src/main/java/com/dreameducation/wifi/DreamVpnService.java"), "utf8");
+assert.ok(activity.includes("Publish this Wi-Fi as a remote source"), "Android app needs an explicit source-publishing mode.");
+assert.ok(activity.includes("EXTRA_SOURCE_ONLY"), "Source-only mode must be passed to the foreground service.");
+assert.ok(service.includes("findConnectedWifiNetwork()"), "Source mode must select a Wi-Fi network.");
+assert.ok(service.includes("sourceOnly ? findConnectedWifiNetwork() : null"), "Source-only mode must be bound to the Wi-Fi network.");
+assert.ok(relay.includes("sourceNetwork.bindSocket(socket)"), "Source TCP traffic must use the selected Wi-Fi network.");
+assert.ok(relay.includes("sourceNetwork.bindSocket(socket);"), "Source DNS/UDP traffic must use the selected Wi-Fi network.");
+assert.ok(relay.includes("if (!sourceOnly) {\n            workers.execute(this::serveSocks);\n            connectOwner();"), "A source-only phone must not start the owner VPN/SOCKS path.");
 console.log("Dream Wi-Fi Android field scanner smoke test passed.");
