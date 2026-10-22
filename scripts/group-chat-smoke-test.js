@@ -44,6 +44,7 @@ for (const feature of [
 ]) assert.ok(ui.includes(feature), "Missing group chat UI feature: " + feature);
 
 assert.match(ui, /selectedGroup/);
+assert.match(ui, /async function open\(\)[\s\S]*?selectedUser = null;\s*selectedGroup = null;/, "Reopening Chat must clear stale direct-message and group selections.");
 assert.match(ui, /setInterval\(function \(\)/);
 assert.match(ui, /new AbortController\(\)/, "Chat API requests must have an abortable timeout.");
 assert.match(ui, /window\.setTimeout\(function \(\) \{ controller\.abort\(\); \}, 15000\)/, "Chat API requests must time out instead of hanging indefinitely.");
