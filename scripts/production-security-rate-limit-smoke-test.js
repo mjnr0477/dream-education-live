@@ -42,6 +42,17 @@ assert.equal(second.statusCode, 429, "changing raw forwarded headers must not by
 assert.equal(second.body.success, false);
 assert.ok(Number(second.headers["Retry-After"]) > 0);
 
+// A flood of unique client addresses must not grow the in-memory store without bound.
+const boundedLimiter = rateLimit({ windowMs: 60_000, max: 1, prefix: "bounded-test", maxBuckets: 2 });
+assert.equal(invokeRateLimit(boundedLimiter, "192.0.2.1").nextCalled, true);
+assert.equal(invokeRateLimit(boundedLimiter, "192.0.2.2").nextCalled, true);
+assert.equal(invokeRateLimit(boundedLimiter, "192.0.2.3").nextCalled, true);
+assert.equal(
+  invokeRateLimit(boundedLimiter, "192.0.2.1").nextCalled,
+  true,
+  "oldest bucket should be evicted when the configured capacity is reached"
+);
+
 const request = { headers: { "x-request-id": "bad request\r\nInjected: yes" } };
 const responseHeaders = {};
 const response = { setHeader(name, value) { responseHeaders[name] = value; } };
