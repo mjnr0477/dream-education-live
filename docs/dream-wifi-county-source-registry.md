@@ -24,9 +24,9 @@ Apply `supabase/migrations/20261022_dream_wifi_source_registry.sql` in the Supab
 
 ## Android source publishing
 
-The Android app includes a **Publish this Wi-Fi as a remote source** mode. On a phone physically connected to a Wi-Fi network, sign in with the authorized Dream Wi-Fi owner account and start source publishing. The app obtains a short-lived source ticket and binds the source WebSocket and relayed public TCP/DNS sockets to the phone's selected Wi-Fi network. It does not start the phone's owner VPN in source-only mode.
+The Android app includes a **Publish this Wi-Fi as a remote source** mode. On a phone physically connected to a Wi-Fi network, the authorized operator signs in and explicitly starts source publishing. The app obtains a short-lived source ticket and binds relayed TCP/DNS destination sockets to the selected Wi-Fi network. It does not start the phone's owner VPN in source-only mode.
 
-Keep the source phone powered, online, and connected to the intended Wi-Fi network. Complete the hotspot's normal captive-portal/package/payment flow first. The source ticket is refreshed periodically while the app remains signed in. To use the source from another place, the receiving phone signs in separately and selects the connected source in its Dream Wi-Fi owner client.
+When a separate validated cellular network is available, the tunnel control WebSocket and session refresh use that control route while destination sockets remain bound to the selected Wi-Fi. This can keep the control channel alive while the selected Wi-Fi is captive, but it does not itself complete the provider's payment flow or guarantee that the portal can be used remotely. Without a separate control route, the source network may need its package activated locally before the tunnel can connect. Source publishing is explicit; it must not be enabled on an unaware person's phone. The source ticket is refreshed periodically while the operator remains signed in.
 
 This provides a way to relay an ordinary router's connection without installing Dream Wi-Fi software on the router itself; it does require a participating phone or gateway at the source location.
 
