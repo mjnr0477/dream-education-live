@@ -85,7 +85,8 @@ public final class DreamVpnService extends VpnService {
             return START_NOT_STICKY;
         }
         String sourceName = sourceOnly ? getConnectedWifiName() : "Android " + Build.MODEL;
-        relay = new DreamWifiRelay(accessToken, refreshToken, sourceTicket, sourceOnly, sourceNetwork, sourceName, new DreamWifiRelay.Listener() {
+        Network controlNetwork = sourceOnly ? findAlternateControlNetwork(sourceNetwork) : null;
+        relay = new DreamWifiRelay(accessToken, refreshToken, sourceTicket, sourceOnly, sourceNetwork, controlNetwork, sourceName, new DreamWifiRelay.Listener() {
             @Override public void onStatus(String message) {
                 updateNotification(message);
             }
@@ -118,6 +119,23 @@ public final class DreamVpnService extends VpnService {
         if (active != null && isInternetWifi(manager, active)) return active;
         for (Network network : manager.getAllNetworks()) {
             if (isInternetWifi(manager, network)) return network;
+        }
+        return null;
+    }
+
+
+    private Network findAlternateControlNetwork(Network sourceNetwork) {
+        ConnectivityManager manager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+        if (manager == null) return null;
+        for (Network network : manager.getAllNetworks()) {
+            if (sourceNetwork != null && sourceNetwork.equals(network)) continue;
+            NetworkCapabilities capabilities = manager.getNetworkCapabilities(network);
+            if (capabilities != null
+                    && capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
+                    && capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                    && capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)) {
+                return network;
+            }
         }
         return null;
     }
