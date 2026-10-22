@@ -1798,11 +1798,21 @@ document.addEventListener("click", function (event) {
     }
 
     if (action === "general-connections") {
-  if (typeof openGeneralConnections === "function") {
-    openGeneralConnections();
-  }
-  return;
-}
+      const openConnectionsWorkspace = window.DreamEducationConnections?.open;
+      if (typeof openConnectionsWorkspace === "function") {
+        openConnectionsWorkspace();
+      } else {
+        console.error("Dream Education General Connections workspace is not available.");
+        const panelTitle = document.getElementById("panel-title");
+        const panelBody = document.getElementById("panel-body");
+        if (panelTitle && panelBody) {
+          panelTitle.textContent = "General Connections unavailable";
+          panelBody.innerHTML = '<section class="panel-card"><h3>General Connections could not open</h3><p>Please refresh Dream Education and try again.</p></section>';
+          document.body.classList.add("panel-open");
+        }
+      }
+      return;
+    }
 
 if (action === "chat") {
       if (
@@ -5362,6 +5372,10 @@ async function openMeetings() {
 window.DreamEducationMeetings = {
   ...(window.DreamEducationMeetings || {}),
   open: openMeetings
+};
+window.DreamEducationConnections = {
+  ...(window.DreamEducationConnections || {}),
+  open: openGeneralConnections
 };
 
 async function openTeacherAnalytics() {
