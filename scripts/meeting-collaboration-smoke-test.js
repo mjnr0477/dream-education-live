@@ -29,6 +29,9 @@ assert.match(app, /data-meeting-provider=\"\$\{escapeText\(meeting\.provider \|\
 assert.match(app, /window\.open\(\"about:blank\", \"_blank\"\)/, "External meeting tabs must be opened during the user click to reduce popup blocking.");
 assert.match(app, /externalMeetingWindow\.location\.replace\(safeMeetingUrl\)/, "The prepared tab must navigate only to the validated meeting URL.");
 assert.match(app, /externalMeetingWindow\.close\(\)/, "Unused external tabs must close after failures or internal joins.");
+assert.match(app, /supportedMeetingUrl\(button\.dataset\.externalUrl \|\| \"\"\)/, "A popup-blocked meeting URL must be revalidated on a follow-up click.");
+assert.match(app, /button\.dataset\.externalUrl = safeMeetingUrl/, "When popups are blocked, the join control must offer a direct follow-up click.");
+assert.match(app, /app\.js\\?v=20261022b/, "Meeting popup fallback must reference the refreshed app script.");
 assert.match(app, /\/api\/product\/meetings\/".*\/follow-up/, "UI must save notes through the authenticated API.");
 assert.match(parent, /m\.agenda/, "Parent workspace must show meeting agendas.");
 assert.match(parent, /m\.follow_up/, "Parent workspace must show saved meeting notes.");
