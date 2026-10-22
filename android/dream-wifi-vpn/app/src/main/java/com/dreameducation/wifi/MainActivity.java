@@ -1,10 +1,23 @@
 package com.dreameducation.wifi;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.LinkProperties;
+import android.net.Network;
+import android.net.NetworkCapabilities;
+import android.net.RouteInfo;
+import android.net.wifi.ScanResult;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
+import android.provider.Settings;
 import android.content.Intent;
 import android.net.VpnService;
 import android.os.Build;
@@ -24,12 +37,19 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public final class MainActivity extends Activity {
     private static final int VPN_PERMISSION_REQUEST = 1001;
+    private static final int WIFI_PERMISSION_REQUEST = 1002;
     static final String ACTION_STATUS = "com.dreameducation.wifi.STATUS";
     private final ExecutorService authWorker = Executors.newSingleThreadExecutor();
     private EditText emailInput;
@@ -44,6 +64,11 @@ public final class MainActivity extends Activity {
     private String pendingRefreshToken;
     private String pendingSourceTicket;
     private boolean statusReceiverRegistered = false;
+    private boolean scanReceiverRegistered = false;
+    private boolean scanInProgress = false;
+    private WifiManager wifiManager;
+    private TextView scanResultsText;
+    private Button scanButton;
     private final BroadcastReceiver statusReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
             if (DreamVpnService.ACTION_SOURCES.equals(intent.getAction())) {
@@ -89,13 +114,31 @@ public final class MainActivity extends Activity {
 
         connectButton = new Button(this);
         connectButton.setText("Sign in and connect");
-        connectButton.setOnClickListener(v -> signInAndConnect());
+        connectButton.setOnClickListener(v -> signInAndConnect(false));
         box.addView(connectButton);
+
+        Button publishSourceButton = new Button(this);
+        publishSourceButton.setText("Publish this Wi-Fi as a remote source");
+        publishSourceButton.setOnClickListener(v -> signInAndConnect(true));
+        box.addView(publishSourceButton);
 
         sourceButton = new Button(this);
         sourceButton.setText("Choose Wi-Fi source (automatic)");
         sourceButton.setOnClickListener(v -> showSourcePicker());
         box.addView(sourceButton);
+
+        scanButton = new Button(this);
+        scanButton.setText("Scan and report nearby Wi-Fi");
+        scanButton.setOnClickListener(v -> requestScanPermissionsAndScan());
+        box.addView(scanButton);
+
+        scanResultsText = new TextView(this);
+        scanResultsText.setText("County tracker: no field observations submitted yet.");
+        scanResultsText.setTextSize(13);
+        scanResultsText.setPadding(0, 10, 0, 10);
+        box.addView(scanResultsText);
+
+        wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
 
         Button portalButton = new Button(this);
         portalButton.setText("Open Quant Wi-Fi portal");
@@ -126,7 +169,7 @@ public final class MainActivity extends Activity {
         setContentView(box);
     }
 
-    private void signInAndConnect() {
+    private void signInAndConnect(boolean sourceOnly) {
         String email = emailInput.getText().toString().trim();
         String password = passwordInput.getText().toString();
         if (email.isEmpty() || password.isEmpty()) {
@@ -134,7 +177,9 @@ public final class MainActivity extends Activity {
             return;
         }
         connectButton.setEnabled(false);
-        status.setText("Signing in securely and requesting a short-lived source ticket…");
+        status.setText(sourceOnly
+                ? "Signing in and preparing this phone as a Wi-Fi source…"
+                : "Signing in securely and requesting a short-lived source ticket…");
         authWorker.execute(() -> {
             try {
                 JSONObject credentials = new JSONObject();
@@ -159,9 +204,13 @@ public final class MainActivity extends Activity {
                     pendingSourceTicket = sourceTicket;
                     passwordInput.setText("");
                     connectButton.setEnabled(true);
-                    Intent permission = VpnService.prepare(this);
-                    if (permission != null) startActivityForResult(permission, VPN_PERMISSION_REQUEST);
-                    else startVpnService();
+                    if (sourceOnly) {
+                        startSourceService();
+                    } else {
+                        Intent permission = VpnService.prepare(this);
+                        if (permission != null) startActivityForResult(permission, VPN_PERMISSION_REQUEST);
+                        else startVpnService();
+                    }
                 });
             } catch (Exception error) {
                 runOnUiThread(() -> {
@@ -203,6 +252,187 @@ public final class MainActivity extends Activity {
                 .show();
     }
 
+    private void requestScanPermissionsAndScan() {
+        List<String> missing = new ArrayList<>();
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            missing.add(Manifest.permission.ACCESS_FINE_LOCATION);
+        }
+        if (Build.VERSION.SDK_INT >= 33 &&
+                checkSelfPermission(Manifest.permission.NEARBY_WIFI_DEVICES) != PackageManager.PERMISSION_GRANTED) {
+            missing.add(Manifest.permission.NEARBY_WIFI_DEVICES);
+        }
+        if (!missing.isEmpty()) {
+            requestPermissions(missing.toArray(new String[0]), WIFI_PERMISSION_REQUEST);
+            return;
+        }
+        startWifiScan();
+    }
+
+    private void startWifiScan() {
+        if (pendingAccessToken == null || pendingAccessToken.isEmpty()) {
+            status.setText("Sign in to Dream Education first so scan observations can be submitted securely.");
+            return;
+        }
+        if (wifiManager == null || !wifiManager.isWifiEnabled()) {
+            status.setText("Turn on Wi-Fi before scanning nearby networks.");
+            return;
+        }
+        LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        boolean locationEnabled = false;
+        try {
+            locationEnabled = locationManager != null &&
+                    (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
+                     locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER));
+        } catch (Exception ignored) {}
+        if (!locationEnabled) {
+            status.setText("Turn on Android Location so Wi-Fi scan results can be associated with an approximate position.");
+            return;
+        }
+        scanButton.setEnabled(false);
+        scanInProgress = true;
+        status.setText("Scanning nearby Wi-Fi networks. Android may limit how often scans run.");
+        boolean started = false;
+        try { started = wifiManager.startScan(); } catch (SecurityException ignored) {}
+        if (!started) {
+            // Android throttles scans on some devices. Use the most recent OS-provided scan results.
+            status.setText("A fresh scan was throttled; checking the latest Wi-Fi scan results.");
+            authWorker.execute(this::processWifiScanResults);
+        }
+    }
+
+    private void processWifiScanResults() {
+        try {
+            if (wifiManager == null) throw new Exception("Wi-Fi scanner is unavailable.");
+            List<ScanResult> results = wifiManager.getScanResults();
+            if (results == null || results.isEmpty()) throw new Exception("No scan results. Move to a place with Wi-Fi, enable Location, and try again.");
+            Location location = getApproximateLocation();
+            if (location == null) throw new Exception("Android has no recent location yet. Keep Location enabled, open Maps once, then retry.");
+            String connectedSsid = getConnectedWifiSsid();
+            Network activeNetwork = null;
+            ConnectivityManager connectivity = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+            if (connectivity != null) activeNetwork = connectivity.getActiveNetwork();
+            NetworkCapabilities capabilities = connectivity == null || activeNetwork == null
+                    ? null : connectivity.getNetworkCapabilities(activeNetwork);
+            boolean activeWifi = capabilities != null && capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI);
+            boolean connectedGateway = activeWifi && hasDefaultRoute(connectivity, activeNetwork);
+
+            List<ScanResult> ordered = new ArrayList<>(results);
+            ordered.sort(Comparator.comparingInt((ScanResult item) -> item.level).reversed());
+            Set<String> seen = new HashSet<>();
+            List<String> lines = new ArrayList<>();
+            int submitted = 0;
+            int skipped = 0;
+            for (ScanResult result : ordered) {
+                String ssid = result == null ? "" : String.valueOf(result.SSID == null ? "" : result.SSID).trim();
+                if (ssid.isEmpty() || !seen.add(ssid)) continue;
+                if (submitted + skipped >= 12) break;
+                boolean currentNetwork = activeWifi && ssid.equals(connectedSsid);
+                boolean gatewayDetected = currentNetwork && connectedGateway;
+                boolean internetVerified = false;
+                String accessState = "unknown";
+                if (gatewayDetected) {
+                    internetVerified = probeInternetOnNetwork(activeNetwork);
+                    accessState = internetVerified ? "authorized" :
+                            (capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL) ? "captive_portal" : "unknown");
+                }
+
+                JSONObject observation = new JSONObject();
+                observation.put("ssid", ssid);
+                observation.put("latitude", location.getLatitude());
+                observation.put("longitude", location.getLongitude());
+                observation.put("gateway_detected", gatewayDetected);
+                observation.put("internet_verified", internetVerified);
+                observation.put("access_state", accessState);
+                observation.put("observed_at", java.time.Instant.now().toString());
+                try {
+                    postJson(DreamWifiRelay.BASE_URL + "/api/dream-wifi/registry/observations",
+                            observation, pendingAccessToken);
+                    submitted++;
+                    lines.add((internetVerified ? "INTERNET VERIFIED · " : gatewayDetected ? "GATEWAY · " : "DETECTED · ")
+                            + ssid + " (" + result.level + " dBm)");
+                } catch (Exception error) {
+                    skipped++;
+                    lines.add("NOT SAVED · " + ssid + " — " + safe(error.getMessage()));
+                }
+            }
+            final int savedCount = submitted;
+            final String report = "Nearby Wi-Fi observations\nSubmitted: " + savedCount + " · Not saved: " + skipped
+                    + "\nOnly the Wi-Fi currently connected to this phone can be checked for internet. Other networks are listed as detected, not verified.\n\n"
+                    + String.join("\n", lines);
+            runOnUiThread(() -> {
+                scanResultsText.setText(report);
+                status.setText(savedCount > 0
+                        ? "Reported " + savedCount + " nearby Wi-Fi observation(s) to the cloud registry."
+                        : "No observations were saved. Check sign-in, permissions, and database setup.");
+                scanButton.setEnabled(true);
+                scanInProgress = false;
+            });
+        } catch (Exception error) {
+            runOnUiThread(() -> {
+                status.setText("Wi-Fi scan failed: " + safe(error.getMessage()));
+                scanButton.setEnabled(true);
+                scanInProgress = false;
+            });
+        }
+    }
+
+    private Location getApproximateLocation() {
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) return null;
+        LocationManager manager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        if (manager == null) return null;
+        Location best = null;
+        String[] providers = {LocationManager.NETWORK_PROVIDER, LocationManager.GPS_PROVIDER, LocationManager.PASSIVE_PROVIDER};
+        for (String provider : providers) {
+            try {
+                Location candidate = manager.getLastKnownLocation(provider);
+                if (candidate != null
+                        && System.currentTimeMillis() - candidate.getTime() <= 30L * 60L * 1000L
+                        && (best == null || candidate.getTime() > best.getTime())) best = candidate;
+            } catch (Exception ignored) {}
+        }
+        return best;
+    }
+
+    private String getConnectedWifiSsid() {
+        if (wifiManager == null) return "";
+        try {
+            WifiInfo info = wifiManager.getConnectionInfo();
+            String ssid = info == null ? "" : info.getSSID();
+            if (ssid == null || ssid.equals("<unknown ssid>")) return "";
+            return ssid.replaceAll("^\\\"|\\\"$", "").trim();
+        } catch (Exception ignored) {
+            return "";
+        }
+    }
+
+    private boolean hasDefaultRoute(ConnectivityManager connectivity, Network network) {
+        try {
+            LinkProperties properties = connectivity.getLinkProperties(network);
+            if (properties == null) return false;
+            for (RouteInfo route : properties.getRoutes()) {
+                if (route != null && route.isDefaultRoute()) return true;
+            }
+        } catch (Exception ignored) {}
+        return false;
+    }
+
+    private boolean probeInternetOnNetwork(Network network) {
+        HttpURLConnection connection = null;
+        try {
+            URL url = new URL("https://connectivitycheck.gstatic.com/generate_204");
+            connection = (HttpURLConnection) network.openConnection(url);
+            connection.setConnectTimeout(5000);
+            connection.setReadTimeout(5000);
+            connection.setInstanceFollowRedirects(false);
+            connection.setRequestMethod("GET");
+            return connection.getResponseCode() == 204;
+        } catch (Exception ignored) {
+            return false;
+        } finally {
+            if (connection != null) connection.disconnect();
+        }
+    }
+
     private JSONObject postJson(String endpoint, JSONObject body, String bearer) throws Exception {
         HttpURLConnection connection = (HttpURLConnection) new URL(endpoint).openConnection();
         connection.setRequestMethod("POST");
@@ -230,12 +460,40 @@ public final class MainActivity extends Activity {
         return result;
     }
 
+    @Override public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == WIFI_PERMISSION_REQUEST) {
+            boolean granted = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+            if (Build.VERSION.SDK_INT >= 33) {
+                granted = granted && checkSelfPermission(Manifest.permission.NEARBY_WIFI_DEVICES) == PackageManager.PERMISSION_GRANTED;
+            }
+            if (granted) startWifiScan();
+            else status.setText("Wi-Fi scanning needs Location and nearby-device permission. You can still use Dream Tunnel without scanning.");
+        }
+    }
+
     @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == VPN_PERMISSION_REQUEST) {
             if (resultCode == RESULT_OK) startVpnService();
             else status.setText("VPN permission was not granted.");
         }
+    }
+
+    private void startSourceService() {
+        if (pendingAccessToken == null || pendingRefreshToken == null || pendingSourceTicket == null) {
+            status.setText("Sign in again to authorize this source.");
+            return;
+        }
+        Intent intent = new Intent(this, DreamVpnService.class);
+        intent.setAction(DreamVpnService.ACTION_START);
+        intent.putExtra(DreamVpnService.EXTRA_ACCESS_TOKEN, pendingAccessToken);
+        intent.putExtra(DreamVpnService.EXTRA_REFRESH_TOKEN, pendingRefreshToken);
+        intent.putExtra(DreamVpnService.EXTRA_SOURCE_TICKET, pendingSourceTicket);
+        intent.putExtra(DreamVpnService.EXTRA_SOURCE_ONLY, true);
+        if (Build.VERSION.SDK_INT >= 26) startForegroundService(intent);
+        else startService(intent);
+        status.setText("Publishing this phone's connected Wi-Fi as a remote Dream Wi-Fi source. Keep this phone powered and connected.");
     }
 
     private void startVpnService() {
@@ -269,12 +527,30 @@ public final class MainActivity extends Activity {
             else registerReceiver(statusReceiver, filter);
             statusReceiverRegistered = true;
         }
+        if (!scanReceiverRegistered) {
+            IntentFilter scanFilter = new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
+            if (Build.VERSION.SDK_INT >= 33) registerReceiver(scanReceiver, scanFilter, Context.RECEIVER_NOT_EXPORTED);
+            else registerReceiver(scanReceiver, scanFilter);
+            scanReceiverRegistered = true;
+        }
     }
+
+    private final BroadcastReceiver scanReceiver = new BroadcastReceiver() {
+        @Override public void onReceive(Context context, Intent intent) {
+            if (WifiManager.SCAN_RESULTS_AVAILABLE_ACTION.equals(intent.getAction()) && scanInProgress) {
+                authWorker.execute(MainActivity.this::processWifiScanResults);
+            }
+        }
+    };
 
     @Override protected void onPause() {
         if (statusReceiverRegistered) {
             unregisterReceiver(statusReceiver);
             statusReceiverRegistered = false;
+        }
+        if (scanReceiverRegistered) {
+            unregisterReceiver(scanReceiver);
+            scanReceiverRegistered = false;
         }
         super.onPause();
     }

@@ -47,8 +47,22 @@
       <div style="display:flex;gap:10px;flex-wrap:wrap"><button id="wifi-refresh" type="button">Refresh readiness</button><button id="wifi-ping-source" type="button" disabled>Ping source endpoint</button><button id="wifi-test-internet" type="button" disabled>Test HTTP internet</button><button id="wifi-test-dns" type="button" disabled>Test DNS / UDP</button><a class="portal-link" href="http://quant.com/status" target="_blank" rel="noopener noreferrer">Open Quant Wi-Fi portal</a></div>
       <p id="wifi-message" role="status" aria-live="polite">Verifying owner access…</p>
     </section>
+    <section class="card" aria-labelledby="county-tracker-title">
+      <h2 id="county-tracker-title">County Wi-Fi source tracker</h2>
+      <p class="lead">Browse Wi-Fi observations reported by Dream Wi-Fi field devices. A detected network is not automatically internet-ready or remotely usable.</p>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <label for="county-radius">Search radius</label>
+        <select id="county-radius" style="padding:10px;border-radius:8px;background:#0c1220;color:#f8fafc;border:1px solid #475569">
+          <option value="10">10 km</option><option value="25" selected>25 km</option><option value="50">50 km</option><option value="100">100 km</option>
+        </select>
+        <button id="county-search" type="button">Find reported sources near me</button>
+      </div>
+      <p id="county-status" role="status" aria-live="polite" class="note">Sign in and allow location access to search the cloud registry.</p>
+      <ul id="county-results" aria-label="Reported Wi-Fi source observations"></ul>
+      <p class="note">This searches observations already reported by devices in the field. It does not scan radio networks remotely or establish a tunnel to a source by itself.</p>
+    </section>
     <p class="note">For Quant Wi-Fi, connect to the network and complete the provider’s own login/package/payment flow in its portal before testing internet access. Dream Tunnel does not activate a package or bypass the provider’s access controls.</p><p class="note">A tunnel requires an authorized source endpoint and a reachable remote endpoint. Mobile data or another network can carry the encrypted tunnel but may incur charges. Software cannot create a radio link or internet access without a real transport path. Live package sales remain disabled until a real provider API and purchase flow are verified.</p>
   </main>
-  <script src="/dream-wifi-page.js?v=20261020e"></script>
+  <script src="/dream-wifi-page.js?v=20261022c"></script>
 </body>
 </html>

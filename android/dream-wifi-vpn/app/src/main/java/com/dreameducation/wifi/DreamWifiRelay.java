@@ -1,6 +1,7 @@
 package com.dreameducation.wifi;
 
 import android.util.Base64;
+import android.net.Network;
 
 import org.json.JSONObject;
 
@@ -52,11 +53,10 @@ final class DreamWifiRelay {
         void onSources(String[] ids, String[] names);
     }
 
-    private final OkHttpClient http = new OkHttpClient.Builder()
-            .pingInterval(25, TimeUnit.SECONDS)
-            .connectTimeout(15, TimeUnit.SECONDS)
-            .readTimeout(0, TimeUnit.MILLISECONDS)
-            .build();
+    private final OkHttpClient http;
+    private final boolean sourceOnly;
+    private final Network sourceNetwork;
+    private final String sourceName;
     private final ExecutorService workers = Executors.newCachedThreadPool();
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private final ConcurrentHashMap<String, Stream> ownerStreams = new ConcurrentHashMap<>();
@@ -85,20 +85,44 @@ final class DreamWifiRelay {
     private volatile String activeProbeId;
     private volatile StringBuilder activeProbeResponse;
 
-    DreamWifiRelay(String accessToken, String refreshToken, String sourceTicket, Listener listener) {
+    DreamWifiRelay(String accessToken, String refreshToken, String sourceTicket,
+                   boolean sourceOnly, Network sourceNetwork, String sourceName, Listener listener) {
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
         this.sourceTicket = sourceTicket;
+        this.sourceOnly = sourceOnly;
+        this.sourceNetwork = sourceNetwork;
+        this.sourceName = sourceName == null || sourceName.trim().isEmpty()
+                ? "Android " + android.os.Build.MODEL : sourceName.trim();
+        OkHttpClient.Builder builder = new OkHttpClient.Builder()
+                .pingInterval(25, TimeUnit.SECONDS)
+                .connectTimeout(15, TimeUnit.SECONDS)
+                .readTimeout(0, TimeUnit.MILLISECONDS);
+        if (sourceOnly && sourceNetwork != null) builder.socketFactory(sourceNetwork.getSocketFactory());
+        this.http = builder.build();
         this.listener = listener;
     }
 
     void start() {
         if (!running.compareAndSet(false, true)) return;
-        workers.execute(this::serveSocks);
-        connectOwner();
+        if (!sourceOnly) {
+            workers.execute(this::serveSocks);
+            connectOwner();
+        }
         connectSource();
         scheduler.scheduleAtFixedRate(() -> workers.execute(this::renewOwnerSession), 40, 40, TimeUnit.MINUTES);
-        status("Connecting to Dream Tunnel and Quant-side source…");
+        scheduler.scheduleAtFixedRate(() -> workers.execute(() -> {
+            if (!running.get()) return;
+            renewSourceTicket();
+            WebSocket current = sourceSocket;
+            if (current != null) {
+                sourceReady = false;
+                current.close(1000, "source ticket rotation");
+            }
+        }), 10, 10, TimeUnit.HOURS);
+        status(sourceOnly
+                ? "Publishing this phone's connected Wi-Fi as a Dream Tunnel source…"
+                : "Connecting to Dream Tunnel and remote Wi-Fi source…");
     }
 
     boolean isReady() {
@@ -347,8 +371,8 @@ final class DreamWifiRelay {
                 webSocket.send(new SafeJson().putSafe("type", "register")
                         .putSafe("role", "source").putSafe("sourceToken", sourceTicket)
                         .putSafe("sourceId", sourceId)
-                        .putSafe("sourceName", "Android " + android.os.Build.MODEL).toString());
-                status("Authenticating Quant-side source…");
+                        .putSafe("sourceName", sourceName).toString());
+                status(sourceOnly ? "Authenticating Wi-Fi source tunnel…" : "Authenticating remote Wi-Fi source…");
             }
             @Override public void onMessage(WebSocket webSocket, String text) {
                 if (webSocket != sourceSocket) return;
@@ -358,7 +382,7 @@ final class DreamWifiRelay {
                 if ("registered".equals(type) && "source".equals(message.optString("role"))) {
                     sourceReady = true;
                     sourceRetrySeconds = 3;
-                    status("Quant source authenticated; waiting for owner channel…");
+                    status(sourceOnly ? "This phone is now publishing its connected Wi-Fi source." : "Remote Wi-Fi source authenticated; waiting for owner channel…");
                     notifyReadyIfPossible();
                 } else if ("ping".equals(type)) {
                     sendSource(new SafeJson().putSafe("type", "pong").putSafe("id", message.optString("id", "")).toString());
@@ -570,6 +594,7 @@ final class DreamWifiRelay {
             if (sourceStreams.size() >= MAX_STREAMS) { sendSourceError(id, "Source stream limit reached."); return; }
             InetAddress target = resolvePublicAddress(host);
             socket = new Socket();
+            if (sourceOnly && sourceNetwork != null) sourceNetwork.bindSocket(socket);
             socket.connect(new InetSocketAddress(target, port), 12000);
             socket.setSoTimeout(5 * 60 * 1000);
             socket.setTcpNoDelay(true);
@@ -608,6 +633,7 @@ final class DreamWifiRelay {
             byte[] data = Base64.decode(message.optString("data", ""), Base64.DEFAULT);
             if (data.length == 0 || data.length > MAX_UDP_BYTES) throw new IOException("DNS datagram size is not supported.");
             try (DatagramSocket socket = new DatagramSocket()) {
+                if (sourceOnly && sourceNetwork != null) sourceNetwork.bindSocket(socket);
                 socket.setSoTimeout(3500);
                 socket.send(new DatagramPacket(data, data.length, target, port));
                 byte[] buffer = new byte[MAX_UDP_BYTES];
