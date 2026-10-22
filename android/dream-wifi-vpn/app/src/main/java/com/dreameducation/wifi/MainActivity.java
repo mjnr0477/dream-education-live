@@ -114,8 +114,13 @@ public final class MainActivity extends Activity {
 
         connectButton = new Button(this);
         connectButton.setText("Sign in and connect");
-        connectButton.setOnClickListener(v -> signInAndConnect());
+        connectButton.setOnClickListener(v -> signInAndConnect(false));
         box.addView(connectButton);
+
+        Button publishSourceButton = new Button(this);
+        publishSourceButton.setText("Publish this Wi-Fi as a remote source");
+        publishSourceButton.setOnClickListener(v -> signInAndConnect(true));
+        box.addView(publishSourceButton);
 
         sourceButton = new Button(this);
         sourceButton.setText("Choose Wi-Fi source (automatic)");
@@ -164,7 +169,7 @@ public final class MainActivity extends Activity {
         setContentView(box);
     }
 
-    private void signInAndConnect() {
+    private void signInAndConnect(boolean sourceOnly) {
         String email = emailInput.getText().toString().trim();
         String password = passwordInput.getText().toString();
         if (email.isEmpty() || password.isEmpty()) {
@@ -172,7 +177,9 @@ public final class MainActivity extends Activity {
             return;
         }
         connectButton.setEnabled(false);
-        status.setText("Signing in securely and requesting a short-lived source ticket…");
+        status.setText(sourceOnly
+                ? "Signing in and preparing this phone as a Wi-Fi source…"
+                : "Signing in securely and requesting a short-lived source ticket…");
         authWorker.execute(() -> {
             try {
                 JSONObject credentials = new JSONObject();
@@ -197,9 +204,13 @@ public final class MainActivity extends Activity {
                     pendingSourceTicket = sourceTicket;
                     passwordInput.setText("");
                     connectButton.setEnabled(true);
-                    Intent permission = VpnService.prepare(this);
-                    if (permission != null) startActivityForResult(permission, VPN_PERMISSION_REQUEST);
-                    else startVpnService();
+                    if (sourceOnly) {
+                        startSourceService();
+                    } else {
+                        Intent permission = VpnService.prepare(this);
+                        if (permission != null) startActivityForResult(permission, VPN_PERMISSION_REQUEST);
+                        else startVpnService();
+                    }
                 });
             } catch (Exception error) {
                 runOnUiThread(() -> {
@@ -465,6 +476,22 @@ public final class MainActivity extends Activity {
             if (resultCode == RESULT_OK) startVpnService();
             else status.setText("VPN permission was not granted.");
         }
+    }
+
+    private void startSourceService() {
+        if (pendingAccessToken == null || pendingRefreshToken == null || pendingSourceTicket == null) {
+            status.setText("Sign in again to authorize this source.");
+            return;
+        }
+        Intent intent = new Intent(this, DreamVpnService.class);
+        intent.setAction(DreamVpnService.ACTION_START);
+        intent.putExtra(DreamVpnService.EXTRA_ACCESS_TOKEN, pendingAccessToken);
+        intent.putExtra(DreamVpnService.EXTRA_REFRESH_TOKEN, pendingRefreshToken);
+        intent.putExtra(DreamVpnService.EXTRA_SOURCE_TICKET, pendingSourceTicket);
+        intent.putExtra(DreamVpnService.EXTRA_SOURCE_ONLY, true);
+        if (Build.VERSION.SDK_INT >= 26) startForegroundService(intent);
+        else startService(intent);
+        status.setText("Publishing this phone's connected Wi-Fi as a remote Dream Wi-Fi source. Keep this phone powered and connected.");
     }
 
     private void startVpnService() {
