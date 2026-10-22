@@ -144,7 +144,6 @@ const supabaseAuth = createClient(
   }
 );
 
-registerDreamWifiSourceRegistryRoutes(app, { supabaseAuth, supabase });
 
 const CACHE_FILE = path.join(__dirname, "data", "cache.json");
 
@@ -1125,6 +1124,7 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json({ limit: "1mb" }));
+registerDreamWifiSourceRegistryRoutes(app, { supabaseAuth, supabase });
 app.use(express.static(path.join(__dirname, "public")));
 // Dream Search routes are registered after payment helpers are initialized.\n// This avoids accessing the later-declared owner helper during module startup.\n
 
