@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.net.VpnService;
 import android.net.ConnectivityManager;
 import android.net.Network;
+import android.net.Uri;
 import android.net.NetworkCapabilities;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -37,6 +38,7 @@ public final class DreamVpnService extends VpnService {
     private static final String CHANNEL = "dream_wifi_vpn";
 
     private volatile boolean running = false;
+    private volatile boolean captivePortalMode = false;
     private volatile int tunFd = -1;
     private DreamWifiRelay relay;
 
@@ -88,6 +90,11 @@ public final class DreamVpnService extends VpnService {
         Network controlNetwork = sourceOnly ? findAlternateControlNetwork(sourceNetwork) : null;
         relay = new DreamWifiRelay(accessToken, refreshToken, sourceTicket, sourceOnly, sourceNetwork, controlNetwork, sourceName, new DreamWifiRelay.Listener() {
             @Override public void onStatus(String message) {
+                if (message != null && message.toLowerCase(java.util.Locale.ROOT).contains("captive portal redirect detected")) {
+                    captivePortalMode = true;
+                } else if (message != null && message.toLowerCase(java.util.Locale.ROOT).contains("public internet verified")) {
+                    captivePortalMode = false;
+                }
                 updateNotification(message);
             }
             @Override public void onSources(String[] ids, String[] names) {
@@ -250,9 +257,17 @@ public final class DreamVpnService extends VpnService {
                 PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 23 ? PendingIntent.FLAG_IMMUTABLE : 0));
         Notification.Builder builder = Build.VERSION.SDK_INT >= 26
                 ? new Notification.Builder(this, CHANNEL) : new Notification.Builder(this);
-        return builder.setContentTitle("Dream Wi-Fi").setContentText(text)
+        builder.setContentTitle("Dream Wi-Fi").setContentText(text)
                 .setSmallIcon(android.R.drawable.stat_sys_download_done)
-                .setContentIntent(pending).setOngoing(true).build();
+                .setContentIntent(pending).setOngoing(true);
+        if (captivePortalMode) {
+            Intent portalIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://example.com"));
+            portalIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            PendingIntent portalPending = PendingIntent.getActivity(this, 7202, portalIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 23 ? PendingIntent.FLAG_IMMUTABLE : 0));
+            builder.addAction(android.R.drawable.ic_menu_view, "Open Wi-Fi portal", portalPending);
+        }
+        return builder.build();
     }
 
     private String safe(String value) {
