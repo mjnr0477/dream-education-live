@@ -3,6 +3,7 @@
 const crypto = require("crypto");
 
 const buckets = new Map();
+const DEFAULT_MAX_BUCKETS = 50_000;
 
 function clientKey(req) {
   // req.ip is resolved by Express using the app's explicitly configured
@@ -10,13 +11,34 @@ function clientKey(req) {
   return String(req.ip || req.socket?.remoteAddress || "unknown");
 }
 
-function rateLimit({ windowMs = 60_000, max = 60, prefix = "gli" } = {}) {
+function cleanup(now = Date.now()) {
+  for (const [key, entry] of buckets) {
+    if (now - entry.startedAt >= 60_000) buckets.delete(key);
+  }
+}
+
+function makeRoom(maxBuckets, now) {
+  if (buckets.size < maxBuckets) return;
+  cleanup(now);
+  while (buckets.size >= maxBuckets) {
+    const oldestKey = buckets.keys().next().value;
+    if (oldestKey === undefined) break;
+    buckets.delete(oldestKey);
+  }
+}
+
+function rateLimit({ windowMs = 60_000, max = 60, prefix = "gli", maxBuckets = DEFAULT_MAX_BUCKETS } = {}) {
+  const bucketLimit = Number.isSafeInteger(maxBuckets) && maxBuckets > 0
+    ? maxBuckets
+    : DEFAULT_MAX_BUCKETS;
+
   return (req, res, next) => {
     const now = Date.now();
     const key = prefix + ":" + clientKey(req);
     const current = buckets.get(key);
 
     if (!current || now - current.startedAt >= windowMs) {
+      if (!current) makeRoom(bucketLimit, now);
       buckets.set(key, { startedAt: now, count: 1 });
       return next();
     }
@@ -56,13 +78,6 @@ function validateBodySize(maxBytes = 512 * 1024) {
   };
 }
 
-function cleanup() {
-  const now = Date.now();
-  for (const [key, entry] of buckets) {
-    if (now - entry.startedAt >= 60_000) buckets.delete(key);
-  }
-}
-
-setInterval(cleanup, 60_000).unref();
+setInterval(() => cleanup(), 60_000).unref();
 
 module.exports = { rateLimit, requestId, validateBodySize };

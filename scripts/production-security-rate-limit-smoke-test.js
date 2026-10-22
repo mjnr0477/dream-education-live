@@ -7,7 +7,7 @@ const { rateLimit, requestId } = require("../product/gli/production_security");
 
 const serverSource = fs.readFileSync(path.join(__dirname, "..", "server.js"), "utf8");
 const apiControlsIndex = serverSource.indexOf('app.use("/api/v1", requestId, rateLimit');
-const firstApiV1RouteIndex = serverSource.search(/app\.(?:get|post|put|patch|delete)\(\s*["']\/api\/v1/);
+const firstApiV1RouteIndex = ["app.get(\"/api/v1", "app.post(\"/api/v1", "app.put(\"/api/v1", "app.patch(\"/api/v1", "app.delete(\"/api/v1"].map(route => serverSource.indexOf(route)).filter(index => index >= 0).sort((a, b) => a - b)[0] ?? -1;
 assert.ok(apiControlsIndex >= 0, "API-wide rate limiting middleware must exist");
 assert.ok(firstApiV1RouteIndex >= 0, "at least one /api/v1 route should exist");
 assert.ok(apiControlsIndex < firstApiV1RouteIndex, "API-wide security middleware must be registered before every /api/v1 route");
@@ -41,6 +41,17 @@ assert.equal(first.nextCalled, true, "first request should pass");
 assert.equal(second.statusCode, 429, "changing raw forwarded headers must not bypass the IP rate limit");
 assert.equal(second.body.success, false);
 assert.ok(Number(second.headers["Retry-After"]) > 0);
+
+// A flood of unique client addresses must not grow the in-memory store without bound.
+const boundedLimiter = rateLimit({ windowMs: 60_000, max: 1, prefix: "bounded-test", maxBuckets: 2 });
+assert.equal(invokeRateLimit(boundedLimiter, "192.0.2.1").nextCalled, true);
+assert.equal(invokeRateLimit(boundedLimiter, "192.0.2.2").nextCalled, true);
+assert.equal(invokeRateLimit(boundedLimiter, "192.0.2.3").nextCalled, true);
+assert.equal(
+  invokeRateLimit(boundedLimiter, "192.0.2.1").nextCalled,
+  true,
+  "oldest bucket should be evicted when the configured capacity is reached"
+);
 
 const request = { headers: { "x-request-id": "bad request\r\nInjected: yes" } };
 const responseHeaders = {};
