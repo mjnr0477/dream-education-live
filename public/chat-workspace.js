@@ -504,6 +504,7 @@
     }
     if (pollTimer) clearInterval(pollTimer);
     selectedUser = null;
+    selectedGroup = null;
     showPanel();
     wire();
     try {

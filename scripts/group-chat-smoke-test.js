@@ -44,6 +44,7 @@ for (const feature of [
 ]) assert.ok(ui.includes(feature), "Missing group chat UI feature: " + feature);
 
 assert.match(ui, /selectedGroup/);
+assert.match(ui, /async function open\(\)[\s\S]*?selectedUser = null;\s*selectedGroup = null;/, "Reopening Chat must clear stale direct-message and group selections.");
 assert.match(ui, /setInterval\(function \(\)/);
 assert.match(ui, /new AbortController\(\)/, "Chat API requests must have an abortable timeout.");
 assert.match(ui, /window\.setTimeout\(function \(\) \{ controller\.abort\(\); \}, 15000\)/, "Chat API requests must time out instead of hanging indefinitely.");
@@ -55,7 +56,7 @@ assert.match(css, /de-chat-group-heading/);
 assert.match(ui, /data-panel-action="media-studio"/, "Chat should provide a direct Media Studio shortcut.");
 assert.match(ui, /data-panel-action="meetings"/, "Chat should provide a direct Meetings shortcut.");
 assert.match(css, /de-chat-quick-actions/, "Chat learning shortcuts must be styled responsively.");
-assert.match(index, /chat-workspace\.js\?v=20261022a/);
+assert.match(index, /chat-workspace\.js\?v=20261022b/);
 
 execFileSync(process.execPath, ["--check", serverPath]);
 execFileSync(process.execPath, ["--check", uiPath]);
