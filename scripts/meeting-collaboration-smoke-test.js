@@ -37,8 +37,10 @@ assert.match(app, /window\.DreamEducationMeetings\?\.open/, "Stay Connected Open
 assert.match(app, /Meetings could not open/, "Missing Meetings workspace handler must show visible feedback instead of silently doing nothing.");
 assert.match(app, /window\.DreamEducationConnections = \{/, "General Connections workspace must be exposed to the main navigation dispatcher.");
 assert.match(app, /window\.DreamEducationConnections\?\.open/, "Stay Connected General Connections action must call the exported workspace handler.");
+assert.match(app, /if \(action === "meetings"\) \{[\s\S]*?openMeetings\(\);/, "Connect Open Meetings must directly invoke the workspace function.");
+assert.match(app, /if \(action === "general-connections"\) \{[\s\S]*?openGeneralConnections\(\);/, "Connect Open General Connections must directly invoke the workspace function.");
 assert.match(app, /General Connections could not open/, "Missing General Connections handler must show visible feedback instead of silently doing nothing.");
-assert.match(read("public/index.html"), /app\.js\?v=20261022e/, "Workspace navigation fix must use a refreshed app script asset.");
+assert.match(read("public/index.html"), /app\.js\?v=20261022f/, "Workspace navigation fix must use a refreshed app script asset.");
 assert.match(app, /id="meeting-agenda"/, "Meeting creation must include an optional agenda.");
 assert.match(app, /agenda: document\.getElementById\("meeting-agenda"\)/, "Meeting creation must send the agenda.");
 assert.match(app, /data-meeting-action="save-follow-up"/, "Past meetings must expose shared follow-up editing.");
@@ -52,7 +54,7 @@ assert.match(app, /\["dream", "jitsi", "google-meet", "teams"\]\.includes\(provi
 assert.match(app, /window\.open\(directExternalUrl, "_blank"\)/, "The popup fallback must not use the noopener feature string that can make successful opens look blocked.");
 assert.match(app, /window\.open\(safeMeetingUrl, "_blank"\)/, "The first fallback attempt must reliably detect whether the meeting tab opened.");
 assert.match(app, /data-meeting-action="open-room"/, "The internal fallback must offer a direct action to open the live meeting.");
-assert.match(read("public/index.html"), /app\.js\?v=20261022e/, "Meeting popup fallback must reference the refreshed app script.");
+assert.match(read("public/index.html"), /app\.js\?v=20261022f/, "Meeting popup fallback must reference the refreshed app script.");
 assert.match(app, /\/api\/product\/meetings\/".*\/follow-up/, "UI must save notes through the authenticated API.");
 assert.match(parent, /m\.agenda/, "Parent workspace must show meeting agendas.");
 assert.match(parent, /m\.follow_up/, "Parent workspace must show saved meeting notes.");
