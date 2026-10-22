@@ -114,7 +114,7 @@ function attachDreamWifiTunnel(server, options = {}) {
   }
   function broadcastSourceState() {
     for (const owner of owners) {
-      send(owner, { type: "source-state", connected: sourceConnected() });
+      send(owner, { type: "source-state", connected: sourceListForOwner(owner).length > 0 });
       send(owner, { type: "source-list", sources: sourceListForOwner(owner) });
     }
   }
@@ -182,7 +182,7 @@ function attachDreamWifiTunnel(server, options = {}) {
             reject(socket, "Source endpoint is not authorized or not configured.");
             return;
           }
-          const sourceName = String(message.sourceName || "").trim().replace(/[<>\\x00-\\x1f]/g, "").slice(0, 80) || "Dream Wi-Fi source";
+          const sourceName = String(message.sourceName || "").trim().replace(/[<>\x00-\x1f]/g, "").slice(0, 80) || "Dream Wi-Fi source";
           const proposedId = String(message.sourceId || "").trim();
           const sourceId = /^[a-zA-Z0-9_-]{1,80}$/.test(proposedId)
             ? proposedId
