@@ -7513,8 +7513,10 @@ app.post("/api/product/meetings", async (req, res) => {
       status: "scheduled",
       provider: meetingProvider,
       external_url: externalMeetingUrl,
+      // Dream Education rooms currently use a dedicated Jitsi room for live audio/video.
+      // Keep the room name stable so every authorised participant joins the same space.
       external_room_name:
-        meetingProvider === "jitsi"
+        ["dream", "jitsi"].includes(meetingProvider)
           ? `DreamEducation-${meetingId}`
           : null,
       created_at: now,
@@ -7778,9 +7780,9 @@ app.get("/api/product/meetings/:meeting_id/join", async (req, res) => {
         provider: meeting.provider || "dream",
         external_room_name: meeting.external_room_name || null,
         external_url:
-          meeting.provider === "jitsi" && meeting.external_room_name
+          ["dream", "jitsi"].includes(meeting.provider || "dream")
             ? "https://meet.jit.si/" +
-              encodeURIComponent(meeting.external_room_name)
+              encodeURIComponent(meeting.external_room_name || `DreamEducation-${meeting.meeting_id}`)
             : (["google-meet", "teams"].includes(meeting.provider) && meeting.external_url
               ? meeting.external_url
               : null)
