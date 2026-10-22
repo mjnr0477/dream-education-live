@@ -227,7 +227,7 @@ function attachDreamWifiTunnel(server, options = {}) {
           socket.dreamOwnerId = ownerId;
           owners.add(socket);
           send(socket, { type: "registered", role: "owner" });
-          send(socket, { type: "source-state", connected: sourceConnected() });
+          send(socket, { type: "source-state", connected: sourceListForOwner(socket).length > 0 });
           send(socket, { type: "source-list", sources: sourceListForOwner(socket) });
           return;
         }
@@ -265,7 +265,7 @@ function attachDreamWifiTunnel(server, options = {}) {
           if (!selectedSource) { send(socket, { type: 'udp-error', id, error: 'No accessible source endpoint is connected.' }); return; }
           entry = { owner: socket, source: selectedSource, sourceId: selectedSource.dreamSourceId, timeout: null }; udpAssociations.set(id, entry);
         }
-        if (entry.owner !== socket || (message.sourceId && entry.sourceId !== message.sourceId)) { send(socket, { type: 'udp-error', id, error: 'UDP association is not owned by this session or selected source.' }); return; }
+        if (entry.owner !== socket) { send(socket, { type: 'udp-error', id, error: 'UDP association is not owned by this session.' }); return; }
         clearTimeout(entry.timeout); entry.timeout = setTimeout(() => {
           if (udpAssociations.get(id) === entry) { udpAssociations.delete(id); send(entry.source, { type: 'udp-close', id, reason: 'idle-timeout' }); send(entry.owner, { type: 'udp-close', id, reason: 'idle-timeout' }); }
         }, UDP_IDLE_TIMEOUT_MS);
