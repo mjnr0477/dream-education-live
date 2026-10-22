@@ -52,7 +52,7 @@ assert.match(app, /\["dream", "jitsi", "google-meet", "teams"\]\.includes\(provi
 assert.match(app, /window\.open\(directExternalUrl, "_blank"\)/, "The popup fallback must not use the noopener feature string that can make successful opens look blocked.");
 assert.match(app, /window\.open\(safeMeetingUrl, "_blank"\)/, "The first fallback attempt must reliably detect whether the meeting tab opened.");
 assert.match(app, /data-meeting-action="open-room"/, "The internal fallback must offer a direct action to open the live meeting.");
-assert.match(app, /app\.js\?v=20261022c/, "Meeting popup fallback must reference the refreshed app script.");
+assert.match(read("public/index.html"), /app\.js\?v=20261022e/, "Meeting popup fallback must reference the refreshed app script.");
 assert.match(app, /\/api\/product\/meetings\/".*\/follow-up/, "UI must save notes through the authenticated API.");
 assert.match(parent, /m\.agenda/, "Parent workspace must show meeting agendas.");
 assert.match(parent, /m\.follow_up/, "Parent workspace must show saved meeting notes.");
