@@ -71,6 +71,7 @@ final class DreamWifiRelay {
     private volatile String accessToken;
     private volatile String refreshToken;
     private volatile String sourceTicket;
+    private final String sourceId = "android-" + UUID.randomUUID().toString().replace("-", "");
     private volatile WebSocket ownerSocket;
     private volatile WebSocket sourceSocket;
     private volatile boolean ownerReady;
@@ -317,7 +318,9 @@ final class DreamWifiRelay {
                 if (!running.get()) { webSocket.close(1000, "stopped"); return; }
                 sourceSocket = webSocket;
                 webSocket.send(new SafeJson().putSafe("type", "register")
-                        .putSafe("role", "source").putSafe("sourceToken", sourceTicket).toString());
+                        .putSafe("role", "source").putSafe("sourceToken", sourceTicket)
+                        .putSafe("sourceId", sourceId)
+                        .putSafe("sourceName", "Android " + android.os.Build.MODEL).toString());
                 status("Authenticating Quant-side source…");
             }
             @Override public void onMessage(WebSocket webSocket, String text) {
