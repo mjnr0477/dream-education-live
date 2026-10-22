@@ -1,6 +1,7 @@
 package com.dreameducation.wifi;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.IntentFilter;
@@ -34,14 +35,24 @@ public final class MainActivity extends Activity {
     private EditText emailInput;
     private EditText passwordInput;
     private Button connectButton;
+    private Button sourceButton;
     private TextView status;
+    private String[] availableSourceIds = new String[0];
+    private String[] availableSourceNames = new String[0];
+    private String selectedSourceId = "";
     private String pendingAccessToken;
     private String pendingRefreshToken;
     private String pendingSourceTicket;
     private boolean statusReceiverRegistered = false;
     private final BroadcastReceiver statusReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
-            if (status != null) status.setText(intent.getStringExtra("message"));
+            if (DreamVpnService.ACTION_SOURCES.equals(intent.getAction())) {
+                String[] ids = intent.getStringArrayExtra("ids");
+                String[] names = intent.getStringArrayExtra("names");
+                availableSourceIds = ids == null ? new String[0] : ids;
+                availableSourceNames = names == null ? new String[0] : names;
+                if (sourceButton != null) sourceButton.setText(selectedSourceLabel());
+            } else if (status != null) status.setText(intent.getStringExtra("message"));
         }
     };
 
@@ -59,7 +70,7 @@ public final class MainActivity extends Activity {
         box.addView(title);
 
         TextView note = new TextView(this);
-        note.setText("Sign in with your existing Dream Education account. Connect to Quant Wi-Fi and complete its own package/payment portal first. This app does not bypass provider access controls.");
+        note.setText("Sign in with your Dream Education account, then choose an available local or remote Dream Wi-Fi source. Any source hotspot may still require its normal password or package/payment login.");
         note.setTextSize(15);
         note.setPadding(0, 18, 0, 18);
         box.addView(note);
@@ -80,6 +91,11 @@ public final class MainActivity extends Activity {
         connectButton.setText("Sign in and connect");
         connectButton.setOnClickListener(v -> signInAndConnect());
         box.addView(connectButton);
+
+        sourceButton = new Button(this);
+        sourceButton.setText("Choose Wi-Fi source (automatic)");
+        sourceButton.setOnClickListener(v -> showSourcePicker());
+        box.addView(sourceButton);
 
         Button portalButton = new Button(this);
         portalButton.setText("Open Quant Wi-Fi portal");
@@ -156,6 +172,37 @@ public final class MainActivity extends Activity {
         });
     }
 
+    private String selectedSourceLabel() {
+        if (selectedSourceId.isEmpty()) return "Choose Wi-Fi source (automatic)";
+        for (int i = 0; i < availableSourceIds.length; i++) {
+            if (selectedSourceId.equals(availableSourceIds[i])) {
+                return "Wi-Fi source: " + availableSourceNames[i];
+            }
+        }
+        return "Wi-Fi source selected";
+    }
+
+    private void showSourcePicker() {
+        String[] choices = new String[availableSourceNames.length + 1];
+        choices[0] = "Automatically select an available source";
+        System.arraycopy(availableSourceNames, 0, choices, 1, availableSourceNames.length);
+        new AlertDialog.Builder(this)
+                .setTitle("Available Dream Wi-Fi sources")
+                .setItems(choices, (dialog, which) -> {
+                    selectedSourceId = which == 0 ? "" : availableSourceIds[which - 1];
+                    if (sourceButton != null) sourceButton.setText(selectedSourceLabel());
+                    Intent intent = new Intent(this, DreamVpnService.class);
+                    intent.setAction(DreamVpnService.ACTION_SELECT_SOURCE);
+                    intent.putExtra(DreamVpnService.EXTRA_SELECTED_SOURCE_ID, selectedSourceId);
+                    startService(intent);
+                    if (status != null) status.setText(selectedSourceId.isEmpty()
+                            ? "Automatic source selection enabled."
+                            : "Selected source: " + availableSourceNames[which - 1]);
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
     private JSONObject postJson(String endpoint, JSONObject body, String bearer) throws Exception {
         HttpURLConnection connection = (HttpURLConnection) new URL(endpoint).openConnection();
         connection.setRequestMethod("POST");
@@ -201,9 +248,10 @@ public final class MainActivity extends Activity {
         intent.putExtra(DreamVpnService.EXTRA_ACCESS_TOKEN, pendingAccessToken);
         intent.putExtra(DreamVpnService.EXTRA_REFRESH_TOKEN, pendingRefreshToken);
         intent.putExtra(DreamVpnService.EXTRA_SOURCE_TICKET, pendingSourceTicket);
+        intent.putExtra(DreamVpnService.EXTRA_SELECTED_SOURCE_ID, selectedSourceId);
         if (Build.VERSION.SDK_INT >= 26) startForegroundService(intent);
         else startService(intent);
-        status.setText("Connecting to Dream Tunnel and Quant. Internet will work only if the Quant package is active.");
+        status.setText("Connecting to Dream Tunnel and discovering registered Wi-Fi sources.");
     }
 
     private String safe(String message) {
@@ -216,6 +264,7 @@ public final class MainActivity extends Activity {
         super.onResume();
         if (!statusReceiverRegistered) {
             IntentFilter filter = new IntentFilter(ACTION_STATUS);
+            filter.addAction(DreamVpnService.ACTION_SOURCES);
             if (Build.VERSION.SDK_INT >= 33) registerReceiver(statusReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
             else registerReceiver(statusReceiver, filter);
             statusReceiverRegistered = true;

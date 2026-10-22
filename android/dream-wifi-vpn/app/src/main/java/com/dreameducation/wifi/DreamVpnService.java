@@ -21,6 +21,9 @@ import java.nio.charset.StandardCharsets;
 public final class DreamVpnService extends VpnService {
     public static final String ACTION_START = "com.dreameducation.wifi.START";
     public static final String ACTION_STOP = "com.dreameducation.wifi.STOP";
+    public static final String ACTION_SELECT_SOURCE = "com.dreameducation.wifi.SELECT_SOURCE";
+    static final String ACTION_SOURCES = "com.dreameducation.wifi.SOURCES";
+    public static final String EXTRA_SELECTED_SOURCE_ID = "dream_wifi_selected_source_id";
     public static final String EXTRA_ACCESS_TOKEN = "dream_wifi_access_token";
     public static final String EXTRA_REFRESH_TOKEN = "dream_wifi_refresh_token";
     public static final String EXTRA_SOURCE_TICKET = "dream_wifi_source_ticket";
@@ -39,6 +42,15 @@ public final class DreamVpnService extends VpnService {
 
     @Override public int onStartCommand(Intent intent, int flags, int startId) {
         String action = intent == null ? ACTION_STOP : intent.getAction();
+        if (ACTION_SELECT_SOURCE.equals(action)) {
+            String selected = intent == null ? "" : intent.getStringExtra(EXTRA_SELECTED_SOURCE_ID);
+            DreamWifiRelay current = relay;
+            if (current != null) current.setSelectedSourceId(selected);
+            updateNotification(selected == null || selected.isEmpty()
+                    ? "Dream Wi-Fi will automatically choose an available source."
+                    : "Dream Wi-Fi source selected: " + selected);
+            return START_STICKY;
+        }
         if (ACTION_STOP.equals(action)) {
             stopTunnel();
             stopForeground(true);
@@ -63,6 +75,13 @@ public final class DreamVpnService extends VpnService {
             @Override public void onStatus(String message) {
                 updateNotification(message);
             }
+            @Override public void onSources(String[] ids, String[] names) {
+                Intent sources = new Intent(ACTION_SOURCES);
+                sources.setPackage(getPackageName());
+                sources.putExtra("ids", ids);
+                sources.putExtra("names", names);
+                sendBroadcast(sources);
+            }
             @Override public void onReady() {
                 try {
                     startTunnel();
@@ -72,6 +91,7 @@ public final class DreamVpnService extends VpnService {
                 }
             }
         });
+        relay.setSelectedSourceId(intent == null ? "" : intent.getStringExtra(EXTRA_SELECTED_SOURCE_ID));
         relay.start();
         return START_NOT_STICKY;
     }

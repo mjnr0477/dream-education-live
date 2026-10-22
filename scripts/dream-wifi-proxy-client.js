@@ -13,6 +13,7 @@ const { WebSocket } = require("ws");
 const tunnelUrl = String(process.env.DREAM_WIFI_TUNNEL_URL || "").trim();
 let accessToken = String(process.env.DREAM_WIFI_OWNER_ACCESS_TOKEN || "").trim();
 const port = Number(process.env.DREAM_WIFI_PROXY_PORT || 1080);
+const selectedSourceId = String(process.env.DREAM_WIFI_SELECTED_SOURCE_ID || "").trim();
 const MAX_CHUNK = 12 * 1024;
 const MAX_BUFFER_BYTES = 1024 * 1024;
 const streams = new Map();
@@ -239,7 +240,7 @@ function handleLocalSocket(local) {
           if (!ownerReady || !socket || socket.readyState !== WebSocket.OPEN || udpAssociations.size >= 8) { local.end(Buffer.from([5, 1, 0, 1, 0, 0, 0, 0, 0, 0])); return; }
           const id = crypto.randomUUID(); const udp = dgram.createSocket('udp4');
           const association = { id, local, udp, endpoint: null }; udpAssociations.set(id, association);
-          udp.on('message', (packet, remote) => { const parsed = parseUdpPacket(packet); if (!parsed || !ownerReady) return; association.endpoint = { address: remote.address, port: remote.port }; if (!send({ type: 'udp-send', id, host: parsed.host, port: parsed.port, data: parsed.data.toString('base64') })) closeUdpAssociation(id); });
+          udp.on('message', (packet, remote) => { const parsed = parseUdpPacket(packet); if (!parsed || !ownerReady) return; association.endpoint = { address: remote.address, port: remote.port }; if (!send({ type: 'udp-send', id, host: parsed.host, port: parsed.port, data: parsed.data.toString('base64'), sourceId: selectedSourceId || undefined })) closeUdpAssociation(id); });
           udp.on('error', () => closeUdpAssociation(id));
           udp.bind(0, '127.0.0.1', () => { const addr = udp.address(); local.write(Buffer.from([5, 0, 0, 1, 127, 0, 0, 1, (addr.port >> 8) & 255, addr.port & 255])); state = 'udp'; });
           return;
@@ -258,7 +259,7 @@ function handleLocalSocket(local) {
         state = "connecting";
         buffer = Buffer.alloc(0);
         local.pause();
-        if (!send({ type: "tcp-open", id, host, port: targetPort })) failSocks(entry, 1);
+        if (!send({ type: "tcp-open", id, host, port: targetPort, sourceId: selectedSourceId || undefined })) failSocks(entry, 1);
         return;
       }
       return;

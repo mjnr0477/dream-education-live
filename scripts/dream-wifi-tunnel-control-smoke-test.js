@@ -47,7 +47,7 @@ async function main() {
   });
 
   const url = "ws://127.0.0.1:" + address.port + "/api/dream-education/dream-wifi/tunnel";
-  let source, owner, nonOwner, legacy;
+  let source, owner, nonOwner, legacy, nativeSource;
   try {
     source = new WebSocket(url);
     await waitOpen(source);
@@ -115,21 +115,21 @@ async function main() {
     assert.equal(ticket.token.length >= 40, true);
     assert.ok(Date.parse(ticket.expires_at) > Date.now());
 
-    source = new WebSocket(url);
-    await waitOpen(source);
-    const ticketRegistered = waitMessage(source, m => m.type === "registered");
-    source.send(JSON.stringify({ type: "register", role: "source", sourceToken: ticket.token }));
+    nativeSource = new WebSocket(url);
+    await waitOpen(nativeSource);
+    const ticketRegistered = waitMessage(nativeSource, m => m.type === "registered");
+    nativeSource.send(JSON.stringify({ type: "register", role: "source", sourceToken: ticket.token }));
     assert.equal((await ticketRegistered).role, "source");
 
     legacy = new WebSocket(url);
     await waitOpen(legacy);
-    const legacyDenied = waitMessage(legacy, m => m.type === "error");
-    legacy.send(JSON.stringify({ type: "register", role: "source", sourceToken: "test-source-secret" }));
-    assert.match((await legacyDenied).error, /not authorized|not configured/i);
+    const legacyRegistered = waitMessage(legacy, m => m.type === "registered");
+    legacy.send(JSON.stringify({ type: "register", role: "source", sourceToken: "test-source-secret", sourceId: "legacy-source", sourceName: "Legacy source" }));
+    assert.equal((await legacyRegistered).role, "source");
 
     console.log("Dream Tunnel control-plane smoke test passed.");
   } finally {
-    for (const socket of [source, owner, nonOwner, legacy]) {
+    for (const socket of [source, nativeSource, owner, nonOwner, legacy]) {
       if (socket && socket.readyState < WebSocket.CLOSING) socket.close();
     }
     await new Promise(resolve => wss.close(resolve));

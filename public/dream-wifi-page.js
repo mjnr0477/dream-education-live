@@ -5,7 +5,29 @@
   const pingButton = document.getElementById("wifi-ping-source");
   const testButton = document.getElementById("wifi-test-internet");
   const dnsButton = document.getElementById("wifi-test-dns");
+  const sourceSelect = document.getElementById("wifi-source-select");
   const get = (id) => document.getElementById(id);
+  function selectedSourceId() {
+    return sourceSelect && sourceSelect.value ? sourceSelect.value : undefined;
+  }
+  function renderSources(sources) {
+    if (!sourceSelect) return;
+    const list = Array.isArray(sources) ? sources : [];
+    const previous = sourceSelect.value;
+    while (sourceSelect.options.length > 1) sourceSelect.remove(1);
+    list.forEach(function (source) {
+      if (!source || typeof source.id !== "string" || typeof source.name !== "string") return;
+      const option = document.createElement("option");
+      option.value = source.id;
+      option.textContent = source.name + (source.connected ? " — online" : " — offline");
+      sourceSelect.appendChild(option);
+    });
+    sourceSelect.value = list.some(function (source) { return source && source.id === previous; }) ? previous : "";
+    set("wifi-source-list-status", list.length
+      ? list.length + " registered source(s). Online status comes from the tunnel."
+      : "No registered source endpoints are currently visible. A router must have an authorized client or gateway connected to Dream Tunnel.");
+    if (list.length) set("wifi-source", list.filter(function (source) { return source && source.connected; }).length + " source(s) online");
+  }
   let version = 0;
   let socketVersion = 0;
   let tunnelSocket = null;
@@ -66,10 +88,12 @@
         if (testButton) testButton.disabled = false;
         if (dnsButton) dnsButton.disabled = false;
         set("wifi-source-endpoint", "Owner control channel authenticated");
+      } else if (message.type === "source-list") {
+        renderSources(message.sources);
       } else if (message.type === "source-state") {
         set("wifi-source", message.connected
-          ? "Connected; source network identity unverified"
-          : "Not connected");
+          ? "At least one source connected"
+          : "No source connected");
         set("wifi-source-endpoint", message.connected ? "Source agent connected" : "Source agent not connected");
       } else if (message.type === "ping-result") {
         set("wifi-source-endpoint", message.success
@@ -293,7 +317,7 @@
     dnsButton.disabled = true;
     set("wifi-transport", "Sending DNS query through Dream Tunnel…");
     set("wifi-message", "Testing DNS/UDP by resolving example.com through public resolver 1.1.1.1.");
-    tunnelSocket.send(JSON.stringify({ type: "udp-send", id, host: "1.1.1.1", port: 53, data: payload }));
+    tunnelSocket.send(JSON.stringify({ type: "udp-send", id, host: "1.1.1.1", port: 53, data: payload, sourceId: selectedSourceId() }));
   });
   if (testButton) testButton.addEventListener("click", function () {
     if (!ownerChannelReady || !tunnelSocket || tunnelSocket.readyState !== WebSocket.OPEN || activeProbe) return;
@@ -306,13 +330,13 @@
     set("wifi-live", "Testing…");
     set("wifi-transport", "Measuring end-to-end HTTP response…");
     set("wifi-message", "Sending a real HTTP request through the source endpoint to example.com.");
-    tunnelSocket.send(JSON.stringify({ type: "tcp-open", id, host: "example.com", port: 80 }));
+    tunnelSocket.send(JSON.stringify({ type: "tcp-open", id, host: "example.com", port: 80, sourceId: selectedSourceId() }));
   });
   if (pingButton) pingButton.addEventListener("click", function () {
     if (!ownerChannelReady || !tunnelSocket || tunnelSocket.readyState !== WebSocket.OPEN) return;
     pingButton.disabled = true;
     set("wifi-source-endpoint", "Pinging source agent…");
-    tunnelSocket.send(JSON.stringify({ type: "ping-source" }));
+    tunnelSocket.send(JSON.stringify({ type: "ping-source", sourceId: selectedSourceId() }));
     window.setTimeout(function () {
       if (ownerChannelReady && pingButton) pingButton.disabled = false;
     }, 5500);

@@ -49,6 +49,7 @@ final class DreamWifiRelay {
     interface Listener {
         void onStatus(String message);
         void onReady();
+        void onSources(String[] ids, String[] names);
     }
 
     private final OkHttpClient http = new OkHttpClient.Builder()
@@ -71,6 +72,8 @@ final class DreamWifiRelay {
     private volatile String accessToken;
     private volatile String refreshToken;
     private volatile String sourceTicket;
+    private volatile String selectedSourceId = "";
+    private final String sourceId = "android-" + UUID.randomUUID().toString().replace("-", "");
     private volatile WebSocket ownerSocket;
     private volatile WebSocket sourceSocket;
     private volatile boolean ownerReady;
@@ -99,7 +102,15 @@ final class DreamWifiRelay {
     }
 
     boolean isReady() {
-        return running.get() && ownerReady && sourceReady && proxyServer != null && !proxyServer.isClosed();
+        return running.get() && ownerReady && proxyServer != null && !proxyServer.isClosed();
+    }
+
+    void setSelectedSourceId(String sourceId) {
+        String value = sourceId == null ? "" : sourceId.trim();
+        selectedSourceId = value.matches("[a-zA-Z0-9_-]{1,80}") ? value : "";
+        status(selectedSourceId.isEmpty()
+                ? "Automatic source selection enabled."
+                : "Selected Dream Wi-Fi source: " + selectedSourceId);
     }
 
     private void status(String message) {
@@ -121,7 +132,7 @@ final class DreamWifiRelay {
         activeProbeId = id;
         activeProbeResponse = new StringBuilder();
         boolean sent = sendOwner(new SafeJson().putSafe("type", "tcp-open").putSafe("id", id)
-                .putSafe("host", "example.com").putSafe("port", 80).toString());
+                .putSafe("host", "example.com").putSafe("port", 80).putSafe("sourceId", selectedSourceId).toString());
         if (!sent) {
             finishInternetProbe(id, false, "Could not start the public internet test.");
             return;
@@ -227,7 +238,7 @@ final class DreamWifiRelay {
                 if ("registered".equals(type) && "owner".equals(message.optString("role"))) {
                     ownerReady = true;
                     ownerRetrySeconds = 3;
-                    status("Owner authenticated; waiting for Quant source…");
+                    status("Owner authenticated; discovering registered Wi-Fi sources…");
                     notifyReadyIfPossible();
                 } else if ("tcp-opened".equals(type)) {
                     String id = message.optString("id", "");
@@ -278,7 +289,24 @@ final class DreamWifiRelay {
                     UdpAssociation association = udpAssociations.get(message.optString("id", ""));
                     if (association != null && "udp-error".equals(type)) status("DNS/UDP relay error: " + message.optString("error", "unknown error"));
                 } else if ("source-state".equals(type)) {
-                    status(message.optBoolean("connected") ? "Quant source is connected; checking relay…" : "Quant source is disconnected.");
+                    status(message.optBoolean("connected") ? "At least one Dream Wi-Fi source is connected." : "No Dream Wi-Fi source is currently connected.");
+                } else if ("source-list".equals(type)) {
+                    org.json.JSONArray items = message.optJSONArray("sources");
+                    java.util.ArrayList<String> ids = new java.util.ArrayList<>();
+                    java.util.ArrayList<String> names = new java.util.ArrayList<>();
+                    if (items != null) {
+                        for (int i = 0; i < items.length(); i++) {
+                            JSONObject item = items.optJSONObject(i);
+                            if (item == null || !item.optBoolean("connected", true)) continue;
+                            String id = item.optString("id", "");
+                            if (id.isEmpty()) continue;
+                            ids.add(id);
+                            names.add(item.optString("name", id));
+                        }
+                    }
+                    Listener current = listener;
+                    if (current != null) current.onSources(ids.toArray(new String[0]), names.toArray(new String[0]));
+                    workers.execute(DreamWifiRelay.this::notifyReadyIfPossible);
                 } else if ("error".equals(type)) {
                     String reason = message.optString("error", "authorization failed");
                     status("Owner channel rejected: " + reason);
@@ -317,7 +345,9 @@ final class DreamWifiRelay {
                 if (!running.get()) { webSocket.close(1000, "stopped"); return; }
                 sourceSocket = webSocket;
                 webSocket.send(new SafeJson().putSafe("type", "register")
-                        .putSafe("role", "source").putSafe("sourceToken", sourceTicket).toString());
+                        .putSafe("role", "source").putSafe("sourceToken", sourceTicket)
+                        .putSafe("sourceId", sourceId)
+                        .putSafe("sourceName", "Android " + android.os.Build.MODEL).toString());
                 status("Authenticating Quant-side source…");
             }
             @Override public void onMessage(WebSocket webSocket, String text) {
@@ -456,7 +486,7 @@ final class DreamWifiRelay {
             Stream stream = new Stream(client, output);
             ownerStreams.put(streamId, stream);
             JSONObject open = new SafeJson().putSafe("type", "tcp-open").putSafe("id", streamId)
-                    .putSafe("host", host).putSafe("port", port);
+                    .putSafe("host", host).putSafe("port", port).putSafe("sourceId", selectedSourceId);
             if (!sendOwner(open.toString())) { ownerStreams.remove(streamId); socksReply(output, 1); return; }
             if (!stream.opened.await(15, TimeUnit.SECONDS) || !stream.openedSuccessfully) {
                 ownerStreams.remove(streamId);
@@ -509,7 +539,7 @@ final class DreamWifiRelay {
                 association.endpoint = new InetSocketAddress(packet.getAddress(), packet.getPort());
                 sendOwner(new SafeJson().putSafe("type", "udp-send").putSafe("id", association.id)
                         .putSafe("host", parsed.host).putSafe("port", parsed.port)
-                        .putSafe("data", Base64.encodeToString(parsed.data, Base64.NO_WRAP)).toString());
+                        .putSafe("data", Base64.encodeToString(parsed.data, Base64.NO_WRAP)).putSafe("sourceId", selectedSourceId).toString());
             } catch (IOException error) {
                 if (!association.socket.isClosed()) status("Local DNS relay error: " + safeReason(error.getMessage()));
                 break;
