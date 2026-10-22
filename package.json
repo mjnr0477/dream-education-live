@@ -17,7 +17,8 @@
     "dream-wifi:proxy": "node scripts/dream-wifi-proxy-client.js",
     "test:dream-wifi-multi-source": "node scripts/dream-wifi-multi-source-smoke-test.js",
     "test:dream-wifi-source-discovery": "node scripts/dream-wifi-source-discovery-smoke-test.js",
-    "test:dream-wifi-source-registry": "node scripts/dream-wifi-source-registry-smoke-test.js"
+    "test:dream-wifi-source-registry": "node scripts/dream-wifi-source-registry-smoke-test.js",
+    "test:dream-wifi-android-scanner": "node scripts/dream-wifi-android-scanner-smoke-test.js"
   },
   "keywords": [],
   "author": "",
