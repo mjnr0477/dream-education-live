@@ -1,0 +1,47 @@
+name: Dependency audit diagnosis
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/dependency-audit-diagnosis.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Report dependency audit findings
+        shell: bash
+        run: |
+          npm audit --json > audit-report.json || true
+          node <<'NODE'
+          const fs = require('node:fs');
+          const report = JSON.parse(fs.readFileSync('audit-report.json', 'utf8'));
+          const meta = report.metadata?.vulnerabilities || {};
+          console.log('Audit totals:', JSON.stringify(meta));
+          for (const [name, item] of Object.entries(report.vulnerabilities || {})) {
+            console.log(JSON.stringify({
+              package: name,
+              severity: item.severity,
+              direct: item.isDirect,
+              range: item.range,
+              fixAvailable: item.fixAvailable,
+              via: (item.via || []).map(v => typeof v === 'string' ? v : {
+                title: v.title, url: v.url, range: v.range, severity: v.severity
+              }),
+              effects: item.effects
+            }));
+          }
+          NODE
