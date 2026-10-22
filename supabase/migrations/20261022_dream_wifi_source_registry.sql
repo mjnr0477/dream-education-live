@@ -12,7 +12,7 @@ create table if not exists public.dream_wifi_source_observations (
   access_state text not null default 'unknown'
     check (access_state in ('unknown','authorized','captive_portal','payment_required','blocked')),
   observed_at timestamptz not null default now(),
-  remote_access_ready boolean not null default false check (remote_access_ready = false),
+  remote_access_ready boolean not null default false,
   created_at timestamptz not null default now()
 );
 
