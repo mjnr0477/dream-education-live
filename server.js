@@ -66,6 +66,24 @@ const AI_MODE = process.env.AI_MODE || "live";
 // Lightweight authentication abuse protection.
 // Uses only Node.js built-ins; no extra dependency required.
 const authRateLimitStore = new Map();
+const MAX_AUTH_RATE_LIMIT_ENTRIES = 20_000;
+
+function pruneAuthRateLimitStore(now = Date.now()) {
+  const windowMs = 15 * 60 * 1000;
+  for (const [key, entry] of authRateLimitStore.entries()) {
+    if (now - entry.startedAt >= windowMs) authRateLimitStore.delete(key);
+  }
+}
+
+function makeAuthRateLimitRoom(now = Date.now()) {
+  if (authRateLimitStore.size < MAX_AUTH_RATE_LIMIT_ENTRIES) return;
+  pruneAuthRateLimitStore(now);
+  while (authRateLimitStore.size >= MAX_AUTH_RATE_LIMIT_ENTRIES) {
+    const oldestKey = authRateLimitStore.keys().next().value;
+    if (oldestKey === undefined) break;
+    authRateLimitStore.delete(oldestKey);
+  }
+}
 
 function getClientAddress(req) {
   // Use Express's resolved address so raw, user-supplied forwarding headers
@@ -82,6 +100,7 @@ function checkAuthRateLimit(req, action) {
   const existing = authRateLimitStore.get(key);
 
   if (!existing || now - existing.startedAt >= windowMs) {
+    if (!existing) makeAuthRateLimitRoom(now);
     authRateLimitStore.set(key, {
       startedAt: now,
       attempts: 1
@@ -109,11 +128,7 @@ setInterval(() => {
   const now = Date.now();
   const windowMs = 15 * 60 * 1000;
 
-  for (const [key, entry] of authRateLimitStore.entries()) {
-    if (now - entry.startedAt >= windowMs) {
-      authRateLimitStore.delete(key);
-    }
-  }
+  pruneAuthRateLimitStore(now);
 }, 15 * 60 * 1000).unref();
 
 
