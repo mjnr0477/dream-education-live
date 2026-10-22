@@ -91,6 +91,7 @@ public final class DreamVpnService extends VpnService {
                 }
             }
         });
+        relay.setSelectedSourceId(intent == null ? "" : intent.getStringExtra(EXTRA_SELECTED_SOURCE_ID));
         relay.start();
         return START_NOT_STICKY;
     }
