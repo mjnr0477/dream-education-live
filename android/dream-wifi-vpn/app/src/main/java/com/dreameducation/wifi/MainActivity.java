@@ -385,7 +385,9 @@ public final class MainActivity extends Activity {
         for (String provider : providers) {
             try {
                 Location candidate = manager.getLastKnownLocation(provider);
-                if (candidate != null && (best == null || candidate.getTime() > best.getTime())) best = candidate;
+                if (candidate != null
+                        && System.currentTimeMillis() - candidate.getTime() <= 30L * 60L * 1000L
+                        && (best == null || candidate.getTime() > best.getTime())) best = candidate;
             } catch (Exception ignored) {}
         }
         return best;
