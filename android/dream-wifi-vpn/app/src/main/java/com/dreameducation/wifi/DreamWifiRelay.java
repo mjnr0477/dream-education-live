@@ -56,6 +56,7 @@ final class DreamWifiRelay {
     private final OkHttpClient http;
     private final boolean sourceOnly;
     private final Network sourceNetwork;
+    private final Network controlNetwork;
     private final String sourceName;
     private final ExecutorService workers = Executors.newCachedThreadPool();
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -86,19 +87,25 @@ final class DreamWifiRelay {
     private volatile StringBuilder activeProbeResponse;
 
     DreamWifiRelay(String accessToken, String refreshToken, String sourceTicket,
-                   boolean sourceOnly, Network sourceNetwork, String sourceName, Listener listener) {
+                   boolean sourceOnly, Network sourceNetwork, Network controlNetwork, String sourceName, Listener listener) {
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
         this.sourceTicket = sourceTicket;
         this.sourceOnly = sourceOnly;
         this.sourceNetwork = sourceNetwork;
+        this.controlNetwork = controlNetwork;
         this.sourceName = sourceName == null || sourceName.trim().isEmpty()
                 ? "Android " + android.os.Build.MODEL : sourceName.trim();
         OkHttpClient.Builder builder = new OkHttpClient.Builder()
                 .pingInterval(25, TimeUnit.SECONDS)
                 .connectTimeout(15, TimeUnit.SECONDS)
                 .readTimeout(0, TimeUnit.MILLISECONDS);
-        if (sourceOnly && sourceNetwork != null) builder.socketFactory(sourceNetwork.getSocketFactory());
+        // Keep the control WebSocket on validated cellular data when available, while
+        // individual destination sockets below remain bound to the Quant Wi-Fi network.
+        if (sourceOnly && controlNetwork != null) {
+            builder.socketFactory(controlNetwork.getSocketFactory());
+            builder.dns(hostname -> Arrays.asList(controlNetwork.getAllByName(hostname)));
+        }
         this.http = builder.build();
         this.listener = listener;
     }
@@ -121,7 +128,9 @@ final class DreamWifiRelay {
             }
         }), 10, 10, TimeUnit.HOURS);
         status(sourceOnly
-                ? "Publishing this phone's connected Wi-Fi as a Dream Tunnel source…"
+                ? controlNetwork == null
+                    ? "No separate validated cellular route found. If Quant blocks internet before payment, activate the package locally first."
+                    : "Publishing this Wi-Fi source; control traffic uses cellular data and destination traffic uses the selected Wi-Fi."
                 : "Connecting to Dream Tunnel and remote Wi-Fi source…");
     }
 
@@ -200,7 +209,12 @@ final class DreamWifiRelay {
                     String host = uri.getHost();
                     allowedRedirect = host != null && (host.equalsIgnoreCase("example.com") || host.equalsIgnoreCase("www.example.com"));
                     if (!allowedRedirect) {
-                        finishInternetProbe(id, false, "Quant captive portal redirect detected. Open the Quant portal and complete its package/payment flow.");
+                        // Keep the relay available in captive-portal mode so the receiving
+                        // phone can open the provider redirect through the selected source.
+                        // This is not a successful internet check; the package still needs
+                        // to be purchased and activated through the provider's normal flow.
+                        finishInternetProbe(id, false,
+                                "Captive portal redirect detected. VPN is starting so you can open the provider portal; public internet is not yet verified.", true);
                         return;
                     }
                 } catch (Exception ignored) {
@@ -226,16 +240,29 @@ final class DreamWifiRelay {
     }
 
     private void finishInternetProbe(String id, boolean success, String message) {
+        finishInternetProbe(id, success, message, false);
+    }
+
+    private void finishInternetProbe(String id, boolean success, String message, boolean captivePortalDetected) {
         if (id == null || !id.equals(activeProbeId)) return;
         activeProbeId = null;
         activeProbeResponse = null;
         probeInProgress.set(false);
         sendOwner(new SafeJson().putSafe("type", "tcp-close").putSafe("id", id).toString());
-        if (success && isReady()) {
+        if ((success || captivePortalDetected) && isReady()) {
             readyNotified.set(true);
             status(message);
             Listener current = listener;
             if (current != null) current.onReady();
+            if (captivePortalDetected && running.get()) {
+                // Re-test periodically so a package activation can transition the
+                // relay from portal mode to verified public internet without a restart.
+                scheduler.schedule(() -> {
+                    if (!running.get()) return;
+                    readyNotified.set(false);
+                    workers.execute(this::notifyReadyIfPossible);
+                }, 20, TimeUnit.SECONDS);
+            }
         } else {
             readyNotified.set(false);
             status(message);
@@ -650,12 +677,21 @@ final class DreamWifiRelay {
         }
     }
 
+
+    private HttpURLConnection openControlConnection(String address) throws IOException {
+        java.net.URL url = new java.net.URL(address);
+        if (sourceOnly && controlNetwork != null) {
+            return (HttpURLConnection) controlNetwork.openConnection(url);
+        }
+        return (HttpURLConnection) url.openConnection();
+    }
+
     private void renewOwnerSession() {
         if (!running.get() || refreshToken == null || refreshToken.isEmpty()
                 || !sessionRefreshRunning.compareAndSet(false, true)) return;
         HttpURLConnection connection = null;
         try {
-            connection = (HttpURLConnection) new java.net.URL(BASE_URL + "/api/auth/refresh").openConnection();
+            connection = openControlConnection(BASE_URL + "/api/auth/refresh");
             connection.setRequestMethod("POST");
             connection.setConnectTimeout(10000);
             connection.setReadTimeout(10000);
@@ -692,7 +728,7 @@ final class DreamWifiRelay {
     private void renewSourceTicket() {
         HttpURLConnection connection = null;
         try {
-            connection = (HttpURLConnection) new java.net.URL(BASE_URL + "/api/dream-wifi/source-ticket").openConnection();
+            connection = openControlConnection(BASE_URL + "/api/dream-wifi/source-ticket");
             connection.setRequestMethod("POST");
             connection.setConnectTimeout(10000);
             connection.setReadTimeout(10000);

@@ -24,7 +24,7 @@
     });
     sourceSelect.value = list.some(function (source) { return source && source.id === previous; }) ? previous : "";
     set("wifi-source-list-status", list.length
-      ? list.length + " registered source(s). Online status comes from the tunnel."
+      ? list.length + " registered source(s). Online status comes from the tunnel; source network identity unverified."
       : "No registered source endpoints are currently visible. A router must have an authorized client or gateway connected to Dream Tunnel.");
     if (list.length) set("wifi-source", list.filter(function (source) { return source && source.connected; }).length + " source(s) online");
   }
@@ -295,6 +295,157 @@
       ? "A valid DNS response for example.com returned from 1.1.1.1 through the authorized source, Dream Tunnel, and this dashboard. This verifies a DNS/UDP path, not all phone traffic or provider package access."
       : String(error || "No valid DNS response returned through the UDP relay."));
   }
+
+
+  function formatObservationAge(value) {
+    const observed = Date.parse(value || "");
+    if (!Number.isFinite(observed)) return "time unknown";
+    const minutes = Math.max(0, Math.floor((Date.now() - observed) / 60000));
+    if (minutes < 1) return "just now";
+    if (minutes < 60) return minutes + " min ago";
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return hours + " hr ago";
+    return Math.floor(hours / 24) + " day(s) ago";
+  }
+
+  function renderCountyObservations(observations) {
+    const list = get("county-results");
+    if (!list) return;
+    list.replaceChildren();
+    const rows = Array.isArray(observations) ? observations : [];
+    const seen = new Set();
+    rows.forEach(function (observation) {
+      if (!observation || typeof observation.ssid !== "string") return;
+      const key = observation.ssid + "|" + observation.latitude + "|" + observation.longitude;
+      if (seen.has(key)) return;
+      seen.add(key);
+      const item = document.createElement("li");
+      const details = document.createElement("span");
+      const name = document.createElement("strong");
+      const meta = document.createElement("span");
+      const state = document.createElement("strong");
+      name.textContent = observation.ssid;
+      const distance = Number(observation.distance_km);
+      const distanceText = Number.isFinite(distance) ? distance.toFixed(1) + " km away" : "distance unknown";
+      const networkState = observation.internet_verified
+        ? "Internet worked when reported"
+        : observation.gateway_detected
+          ? "Gateway detected; internet unverified"
+          : "Wi-Fi detected only";
+      meta.textContent = distanceText + " · " + networkState + " · last seen " + formatObservationAge(observation.observed_at);
+      state.textContent = observation.remote_access_ready === true
+        ? "Remote access marked ready"
+        : "Observation only — no remote tunnel";
+      details.appendChild(name);
+      details.appendChild(document.createTextNode(" "));
+      details.appendChild(meta);
+      item.appendChild(details);
+      item.appendChild(state);
+      list.appendChild(item);
+    });
+    if (!list.children.length) {
+      const empty = document.createElement("li");
+      empty.textContent = "No reported Wi-Fi observations were found within this radius.";
+      list.appendChild(empty);
+    }
+  }
+
+  function searchCountySources() {
+    const searchButton = get("county-search");
+    const radiusControl = get("county-radius");
+    const centerControl = get("county-center");
+    const latitudeControl = get("county-latitude");
+    const longitudeControl = get("county-longitude");
+    const status = get("county-status");
+    const accessToken = token();
+    if (!status) return;
+    if (!accessToken) {
+      status.textContent = "Sign in to Dream Education before searching reported county Wi-Fi sources.";
+      return;
+    }
+    const radius = Number(radiusControl && radiusControl.value || 25);
+    if (!Number.isFinite(radius) || radius < 1 || radius > 100) {
+      status.textContent = "Choose a search radius between 1 and 100 km.";
+      return;
+    }
+    if (searchButton) searchButton.disabled = true;
+
+    async function requestObservations(latitude, longitude, label) {
+      try {
+        status.textContent = "Searching reported Wi-Fi observations around " + label + "…";
+        const query = new URLSearchParams({
+          latitude: String(latitude),
+          longitude: String(longitude),
+          radius_km: String(radius)
+        });
+        const response = await fetch("/api/dream-wifi/registry/observations?" + query.toString(), {
+          headers: { Accept: "application/json", Authorization: "Bearer " + accessToken },
+          cache: "no-store"
+        });
+        const result = await response.json().catch(function () { return null; });
+        if (!response.ok || !result || result.success !== true) {
+          status.textContent = result && result.error
+            ? String(result.error)
+            : "Could not retrieve county Wi-Fi observations. Check your sign-in and try again.";
+          renderCountyObservations([]);
+          return;
+        }
+        renderCountyObservations(result.observations);
+        status.textContent = String(result.count || 0) + " reported observation(s) within " + radius +
+          " km of " + label + ". These are reports, not a live radio scan or proof of remote tunnel access.";
+      } catch (_) {
+        status.textContent = "County Wi-Fi search failed. Check your connection and try again.";
+      } finally {
+        if (searchButton) searchButton.disabled = false;
+      }
+    }
+
+    const center = centerControl && centerControl.value || "near-me";
+    if (center === "kibabii") {
+      // Approximate Kibabii University area; users can choose custom coordinates for another site.
+      requestObservations(0.5698, 34.5584, "the Kibabii area");
+      return;
+    }
+    if (center === "coordinates") {
+      const latitude = Number(latitudeControl && latitudeControl.value);
+      const longitude = Number(longitudeControl && longitudeControl.value);
+      if (!latitudeControl || !longitudeControl || latitudeControl.value.trim() === "" ||
+          longitudeControl.value.trim() === "" || !Number.isFinite(latitude) || latitude < -90 ||
+          latitude > 90 || !Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
+        if (searchButton) searchButton.disabled = false;
+        status.textContent = "Enter a valid latitude and longitude for the location you want to search.";
+        return;
+      }
+      requestObservations(latitude, longitude, "the selected coordinates");
+      return;
+    }
+    if (!window.navigator.geolocation || typeof window.navigator.geolocation.getCurrentPosition !== "function") {
+      if (searchButton) searchButton.disabled = false;
+      status.textContent = "This browser cannot provide location. Choose Kibabii or enter coordinates, or use a supported browser.";
+      return;
+    }
+    status.textContent = "Getting your location…";
+    window.navigator.geolocation.getCurrentPosition(function (position) {
+      requestObservations(Number(position.coords.latitude), Number(position.coords.longitude), "your current location");
+    }, function (error) {
+      if (searchButton) searchButton.disabled = false;
+      const reason = error && error.code === 1
+        ? "Location permission was denied. Allow location access and retry, or choose Kibabii/custom coordinates."
+        : error && error.code === 3
+          ? "Location lookup timed out. Retry or choose Kibabii/custom coordinates."
+          : "Could not get your location. Enable device location or choose Kibabii/custom coordinates.";
+      status.textContent = reason;
+    }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 120000 });
+  }
+
+  const countySearchButton = get("county-search");
+  if (countySearchButton) countySearchButton.addEventListener("click", searchCountySources);
+  window.addEventListener("dream-education-auth-changed", function () {
+    const status = get("county-status");
+    if (status) status.textContent = token()
+      ? "Signed in. Search for Wi-Fi observations reported by field devices."
+      : "Sign in and allow location access to search the cloud registry.";
+  });
 
   if (button) button.addEventListener("click", refresh);
   if (dnsButton) dnsButton.addEventListener("click", function () {

@@ -44,18 +44,28 @@
         <li><span>Remote phone test</span><strong id="wifi-phone">Not tested</strong></li>
       </ul>
       <div style="margin:14px 0"><label for="wifi-source-select">Available Wi-Fi sources</label><select id="wifi-source-select" aria-label="Select a registered Dream Wi-Fi source" style="display:block;width:100%;max-width:520px;padding:10px;margin-top:6px"><option value="">Auto-select an available source</option></select><p class="note" id="wifi-source-list-status">Waiting for registered source endpoints…</p></div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap"><button id="wifi-refresh" type="button">Refresh readiness</button><button id="wifi-ping-source" type="button" disabled>Ping source endpoint</button><button id="wifi-test-internet" type="button" disabled>Test HTTP internet</button><button id="wifi-test-dns" type="button" disabled>Test DNS / UDP</button><a class="portal-link" href="http://quant.com/status" target="_blank" rel="noopener noreferrer">Open Quant Wi-Fi portal</a></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap"><button id="wifi-refresh" type="button">Refresh readiness</button><button id="wifi-ping-source" type="button" disabled>Ping source endpoint</button><button id="wifi-test-internet" type="button" disabled>Test HTTP internet</button><button id="wifi-test-dns" type="button" disabled>Test DNS / UDP</button><span class="note">The dashboard browser is not routed through Dream Tunnel. On the Android receiving phone, use the VPN notification's “Open Wi-Fi portal” action after a captive redirect is detected.</span></div>
       <p id="wifi-message" role="status" aria-live="polite">Verifying owner access…</p>
     </section>
     <section class="card" aria-labelledby="county-tracker-title">
       <h2 id="county-tracker-title">County Wi-Fi source tracker</h2>
       <p class="lead">Browse Wi-Fi observations reported by Dream Wi-Fi field devices. A detected network is not automatically internet-ready or remotely usable.</p>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <label for="county-radius">Search radius</label>
+        <label for="county-center">Search around</label>
+        <select id="county-center" style="padding:10px;border-radius:8px;background:#0c1220;color:#f8fafc;border:1px solid #475569">
+          <option value="near-me" selected>My current location</option>
+          <option value="kibabii">Kibabii area</option>
+          <option value="coordinates">Enter coordinates</option>
+        </select>
+        <label for="county-radius">Radius</label>
         <select id="county-radius" style="padding:10px;border-radius:8px;background:#0c1220;color:#f8fafc;border:1px solid #475569">
           <option value="10">10 km</option><option value="25" selected>25 km</option><option value="50">50 km</option><option value="100">100 km</option>
         </select>
-        <button id="county-search" type="button">Find reported sources near me</button>
+        <label for="county-latitude">Latitude</label>
+        <input id="county-latitude" type="number" step="any" min="-90" max="90" placeholder="e.g. 0.57" style="width:110px;padding:10px;border-radius:8px;background:#0c1220;color:#f8fafc;border:1px solid #475569">
+        <label for="county-longitude">Longitude</label>
+        <input id="county-longitude" type="number" step="any" min="-180" max="180" placeholder="e.g. 34.56" style="width:120px;padding:10px;border-radius:8px;background:#0c1220;color:#f8fafc;border:1px solid #475569">
+        <button id="county-search" type="button">Find reported sources</button>
       </div>
       <p id="county-status" role="status" aria-live="polite" class="note">Sign in and allow location access to search the cloud registry.</p>
       <ul id="county-results" aria-label="Reported Wi-Fi source observations"></ul>
