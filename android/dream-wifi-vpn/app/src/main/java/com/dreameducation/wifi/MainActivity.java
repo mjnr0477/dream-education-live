@@ -127,6 +127,11 @@ public final class MainActivity extends Activity {
         sourceButton.setOnClickListener(v -> showSourcePicker());
         box.addView(sourceButton);
 
+        Button scannerSignInButton = new Button(this);
+        scannerSignInButton.setText("Sign in for county Wi-Fi scanning");
+        scannerSignInButton.setOnClickListener(v -> signInForScanning());
+        box.addView(scannerSignInButton);
+
         scanButton = new Button(this);
         scanButton.setText("Scan and report nearby Wi-Fi");
         scanButton.setOnClickListener(v -> requestScanPermissionsAndScan());
@@ -167,6 +172,38 @@ public final class MainActivity extends Activity {
         status.setPadding(0, 16, 0, 0);
         box.addView(status);
         setContentView(box);
+    }
+
+    private void signInForScanning() {
+        String email = emailInput.getText().toString().trim();
+        String password = passwordInput.getText().toString();
+        if (email.isEmpty() || password.isEmpty()) {
+            status.setText("Enter your Dream Education email and password.");
+            return;
+        }
+        status.setText("Signing in for secure county Wi-Fi observations…");
+        authWorker.execute(() -> {
+            try {
+                JSONObject credentials = new JSONObject();
+                credentials.put("email", email);
+                credentials.put("password", password);
+                JSONObject login = postJson(DreamWifiRelay.BASE_URL + "/api/auth/login", credentials, null);
+                JSONObject session = login.optJSONObject("session");
+                String accessToken = session == null ? "" : session.optString("access_token", "");
+                String refreshToken = session == null ? "" : session.optString("refresh_token", "");
+                if (!login.optBoolean("success") || accessToken.isEmpty() || refreshToken.isEmpty()) {
+                    throw new Exception(login.optString("error", "Login did not return a session."));
+                }
+                runOnUiThread(() -> {
+                    pendingAccessToken = accessToken;
+                    pendingRefreshToken = refreshToken;
+                    passwordInput.setText("");
+                    status.setText("Signed in for county scanning. You can now scan and report nearby Wi-Fi.");
+                });
+            } catch (Exception error) {
+                runOnUiThread(() -> status.setText("County scanner sign-in failed: " + safe(error.getMessage())));
+            }
+        });
     }
 
     private void signInAndConnect(boolean sourceOnly) {
