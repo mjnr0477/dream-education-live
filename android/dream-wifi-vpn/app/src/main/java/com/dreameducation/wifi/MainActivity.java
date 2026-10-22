@@ -70,7 +70,7 @@ public final class MainActivity extends Activity {
         box.addView(title);
 
         TextView note = new TextView(this);
-        note.setText("Sign in with your existing Dream Education account. Connect to Quant Wi-Fi and complete its own package/payment portal first. This app does not bypass provider access controls.");
+        note.setText("Sign in with your Dream Education account, then choose an available local or remote Dream Wi-Fi source. Any source hotspot may still require its normal password or package/payment login.");
         note.setTextSize(15);
         note.setPadding(0, 18, 0, 18);
         box.addView(note);
@@ -251,7 +251,7 @@ public final class MainActivity extends Activity {
         intent.putExtra(DreamVpnService.EXTRA_SELECTED_SOURCE_ID, selectedSourceId);
         if (Build.VERSION.SDK_INT >= 26) startForegroundService(intent);
         else startService(intent);
-        status.setText("Connecting to Dream Tunnel and Quant. Internet will work only if the Quant package is active.");
+        status.setText("Connecting to Dream Tunnel and discovering registered Wi-Fi sources.");
     }
 
     private String safe(String message) {
