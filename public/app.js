@@ -4963,10 +4963,6 @@ async function openMeetings() {
         if (externalProvider) {
           try {
             externalMeetingWindow = window.open("about:blank", "_blank");
-            if (externalMeetingWindow) {
-              externalMeetingWindow.document.title = "Opening meeting…";
-              externalMeetingWindow.document.body.textContent = "Connecting to your meeting…";
-            }
           } catch {
             externalMeetingWindow = null;
           }
@@ -5004,6 +5000,7 @@ async function openMeetings() {
             }
             if (externalMeetingWindow && !externalMeetingWindow.closed) {
               externalMeetingWindow.location.replace(safeMeetingUrl);
+              externalMeetingWindow.opener = null;
             } else {
               window.open(safeMeetingUrl, "_blank", "noopener,noreferrer");
             }
