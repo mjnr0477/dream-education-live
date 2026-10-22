@@ -2110,6 +2110,7 @@ if (action === "chat") {
   window.DreamEducationUI = {
     openPanel,
     closePanel,
+    setMenuOpen,
     getAuth,
     clearAuth,
     experiences
@@ -4135,7 +4136,9 @@ async function openGeneralConnections() {
       "Find people across Dream Education and build connections with them.";
   }
 
-  setMenuOpen(false);
+  if (window.DreamEducationUI && typeof window.DreamEducationUI.setMenuOpen === "function") {
+    window.DreamEducationUI.setMenuOpen(false);
+  }
   document.body.classList.add("panel-open");
   panelElement.setAttribute("aria-hidden", "false");
 
@@ -4809,7 +4812,9 @@ async function openMeetings() {
       "Create and manage meetings with people connected to your Dream Education account.";
   }
 
-  setMenuOpen(false);
+  if (window.DreamEducationUI && typeof window.DreamEducationUI.setMenuOpen === "function") {
+    window.DreamEducationUI.setMenuOpen(false);
+  }
   document.body.classList.add("panel-open");
   panelElement.setAttribute("aria-hidden", "false");
 
