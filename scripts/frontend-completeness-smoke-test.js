@@ -99,7 +99,7 @@ for (const [asset, version] of [["style.css", "20261019a"], ["frontend-workspace
   if (!assetReference.test(index)) throw new Error("Updated cache-busting version missing for " + asset);
 }
 
-if (!index.includes("/app.js?v=20261022e")) throw new Error("Updated app.js cache-busting version missing.");
+if (!index.includes("/app.js?v=20261022f")) throw new Error("Updated app.js cache-busting version missing.");
 
 for (const token of [
   '<link rel="canonical" href="https://dream-education-live-4.onrender.com/">',
