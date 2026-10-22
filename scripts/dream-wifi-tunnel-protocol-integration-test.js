@@ -103,7 +103,7 @@ async function main() {
     source.socket.send(JSON.stringify({ type: "tcp-opened", id: openRequest.id }));
     await owner.next(m => m.type === "tcp-opened" && m.id === openRequest.id, "TCP opened acknowledgement");
 
-    const payload = "HTTP/1.1 200 OK\\r\\nContent-Length: 2\\r\\n\\r\\nOK";
+    const payload = ["HTTP/1.1 200 OK", "Content-Length: 2", "", "OK"].join("\r\n");
     source.socket.send(JSON.stringify({
       type: "tcp-data",
       id: openRequest.id,
