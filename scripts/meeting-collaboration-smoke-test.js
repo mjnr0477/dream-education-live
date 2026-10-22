@@ -25,6 +25,10 @@ assert.match(followUpRoute, /dataEngine\.saveStore\(store\)/, "Follow-up notes m
 assert.match(app, /id="meeting-agenda"/, "Meeting creation must include an optional agenda.");
 assert.match(app, /agenda: document\.getElementById\("meeting-agenda"\)/, "Meeting creation must send the agenda.");
 assert.match(app, /data-meeting-action="save-follow-up"/, "Past meetings must expose shared follow-up editing.");
+assert.match(app, /data-meeting-provider=\"\$\{escapeText\(meeting\.provider \|\| \"dream\"\)\}\"/, "Meeting join buttons must carry the provider so external tabs can be prepared before the request.");
+assert.match(app, /window\.open\(\"about:blank\", \"_blank\"\)/, "External meeting tabs must be opened during the user click to reduce popup blocking.");
+assert.match(app, /externalMeetingWindow\.location\.replace\(safeMeetingUrl\)/, "The prepared tab must navigate only to the validated meeting URL.");
+assert.match(app, /externalMeetingWindow\.close\(\)/, "Unused external tabs must close after failures or internal joins.");
 assert.match(app, /\/api\/product\/meetings\/".*\/follow-up/, "UI must save notes through the authenticated API.");
 assert.match(parent, /m\.agenda/, "Parent workspace must show meeting agendas.");
 assert.match(parent, /m\.follow_up/, "Parent workspace must show saved meeting notes.");
