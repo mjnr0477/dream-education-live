@@ -206,7 +206,12 @@ final class DreamWifiRelay {
                     String host = uri.getHost();
                     allowedRedirect = host != null && (host.equalsIgnoreCase("example.com") || host.equalsIgnoreCase("www.example.com"));
                     if (!allowedRedirect) {
-                        finishInternetProbe(id, false, "Quant captive portal redirect detected. Open the Quant portal and complete its package/payment flow.");
+                        // Keep the relay available in captive-portal mode so the receiving
+                        // phone can open the provider redirect through the selected source.
+                        // This is not a successful internet check; the package still needs
+                        // to be purchased and activated through the provider's normal flow.
+                        finishInternetProbe(id, false,
+                                "Captive portal redirect detected. VPN is starting so you can open the provider portal; public internet is not yet verified.", true);
                         return;
                     }
                 } catch (Exception ignored) {
@@ -232,16 +237,29 @@ final class DreamWifiRelay {
     }
 
     private void finishInternetProbe(String id, boolean success, String message) {
+        finishInternetProbe(id, success, message, false);
+    }
+
+    private void finishInternetProbe(String id, boolean success, String message, boolean captivePortalDetected) {
         if (id == null || !id.equals(activeProbeId)) return;
         activeProbeId = null;
         activeProbeResponse = null;
         probeInProgress.set(false);
         sendOwner(new SafeJson().putSafe("type", "tcp-close").putSafe("id", id).toString());
-        if (success && isReady()) {
+        if ((success || captivePortalDetected) && isReady()) {
             readyNotified.set(true);
             status(message);
             Listener current = listener;
             if (current != null) current.onReady();
+            if (captivePortalDetected && running.get()) {
+                // Re-test periodically so a package activation can transition the
+                // relay from portal mode to verified public internet without a restart.
+                scheduler.schedule(() -> {
+                    if (!running.get()) return;
+                    readyNotified.set(false);
+                    workers.execute(this::notifyReadyIfPossible);
+                }, 20, TimeUnit.SECONDS);
+            }
         } else {
             readyNotified.set(false);
             status(message);
