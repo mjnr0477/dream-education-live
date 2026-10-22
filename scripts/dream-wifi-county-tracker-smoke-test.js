@@ -1,0 +1,29 @@
+"use strict";
+
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+
+const page = fs.readFileSync("public/dream-wifi-page.js", "utf8");
+const html = fs.readFileSync("public/dream-wifi.html", "utf8");
+
+for (const required of [
+  'get("county-search")',
+  'navigator.geolocation.getCurrentPosition',
+  '/api/dream-wifi/registry/observations?',
+  'Authorization: "Bearer " + accessToken',
+  'radius_km: String(radius)',
+  'renderCountyObservations(result.observations)',
+  'observation.remote_access_ready === true',
+  'observation.internet_verified',
+  'textContent = observation.ssid',
+  'replaceChildren()',
+  'last seen ',
+  'not a live radio scan or proof of remote tunnel access'
+]) {
+  assert.ok(page.includes(required), "County tracker implementation is missing: " + required);
+}
+assert.ok(html.includes('id="county-search"'), "County tracker search button is missing.");
+assert.ok(html.includes('id="county-radius"'), "County tracker radius control is missing.");
+assert.ok(html.includes('id="county-results"'), "County tracker results list is missing.");
+assert.ok(!page.includes('list.innerHTML'), "Registry SSIDs must not be inserted as HTML.");
+console.log("Dream Wi-Fi county tracker UI smoke test passed.");
