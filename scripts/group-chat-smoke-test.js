@@ -45,6 +45,11 @@ for (const feature of [
 
 assert.match(ui, /selectedGroup/);
 assert.match(ui, /setInterval\(function \(\)/);
+assert.match(ui, /new AbortController\(\)/, "Chat API requests must have an abortable timeout.");
+assert.match(ui, /window\.setTimeout\(function \(\) \{ controller\.abort\(\); \}, 15000\)/, "Chat API requests must time out instead of hanging indefinitely.");
+assert.match(ui, /let pollInFlight = false;/, "Chat polling must track in-flight requests.");
+assert.match(ui, /document\.visibilityState === "hidden" \|\| pollInFlight/, "Chat must avoid overlapping background polls.");
+assert.match(ui, /finally\(function \(\) \{ pollInFlight = false; \}\)/, "Chat polling lock must be released after success or failure.");
 assert.match(ui, /textContent = message\.content/);
 assert.match(css, /de-chat-group-heading/);
 assert.match(ui, /data-panel-action="media-studio"/, "Chat should provide a direct Media Studio shortcut.");
