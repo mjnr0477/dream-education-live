@@ -51,11 +51,21 @@
       <h2 id="county-tracker-title">County Wi-Fi source tracker</h2>
       <p class="lead">Browse Wi-Fi observations reported by Dream Wi-Fi field devices. A detected network is not automatically internet-ready or remotely usable.</p>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <label for="county-radius">Search radius</label>
+        <label for="county-center">Search around</label>
+        <select id="county-center" style="padding:10px;border-radius:8px;background:#0c1220;color:#f8fafc;border:1px solid #475569">
+          <option value="near-me" selected>My current location</option>
+          <option value="kibabii">Kibabii area</option>
+          <option value="coordinates">Enter coordinates</option>
+        </select>
+        <label for="county-radius">Radius</label>
         <select id="county-radius" style="padding:10px;border-radius:8px;background:#0c1220;color:#f8fafc;border:1px solid #475569">
           <option value="10">10 km</option><option value="25" selected>25 km</option><option value="50">50 km</option><option value="100">100 km</option>
         </select>
-        <button id="county-search" type="button">Find reported sources near me</button>
+        <label for="county-latitude">Latitude</label>
+        <input id="county-latitude" type="number" step="any" min="-90" max="90" placeholder="e.g. 0.57" style="width:110px;padding:10px;border-radius:8px;background:#0c1220;color:#f8fafc;border:1px solid #475569">
+        <label for="county-longitude">Longitude</label>
+        <input id="county-longitude" type="number" step="any" min="-180" max="180" placeholder="e.g. 34.56" style="width:120px;padding:10px;border-radius:8px;background:#0c1220;color:#f8fafc;border:1px solid #475569">
+        <button id="county-search" type="button">Find reported sources</button>
       </div>
       <p id="county-status" role="status" aria-live="polite" class="note">Sign in and allow location access to search the cloud registry.</p>
       <ul id="county-results" aria-label="Reported Wi-Fi source observations"></ul>
