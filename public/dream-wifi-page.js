@@ -438,6 +438,67 @@
     }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 120000 });
   }
 
+  const sourceTicketButton = get("wifi-generate-source-ticket");
+  const copySourceTicketButton = get("wifi-copy-source-ticket");
+  const sourceTicketOutput = get("wifi-source-ticket-output");
+  const sourceTicketInput = get("wifi-source-ticket");
+  const sourceTicketStatus = get("wifi-source-ticket-status");
+
+  if (sourceTicketButton) sourceTicketButton.addEventListener("click", async function () {
+    const accessToken = token();
+    if (!accessToken) {
+      if (sourceTicketStatus) sourceTicketStatus.textContent = "Sign in with an authorized Dream Wi-Fi owner account first.";
+      return;
+    }
+    sourceTicketButton.disabled = true;
+    if (copySourceTicketButton) copySourceTicketButton.disabled = true;
+    if (sourceTicketOutput) sourceTicketOutput.hidden = true;
+    if (sourceTicketInput) sourceTicketInput.value = "";
+    if (sourceTicketStatus) sourceTicketStatus.textContent = "Requesting a short-lived source ticket…";
+    try {
+      const response = await fetch("/api/dream-wifi/source-ticket", {
+        method: "POST",
+        headers: { Authorization: "Bearer " + accessToken, Accept: "application/json" },
+        cache: "no-store"
+      });
+      const result = await response.json().catch(function () { return null; });
+      if (!response.ok || !result || result.success !== true ||
+          typeof result.token !== "string" || result.token.length < 40) {
+        if (sourceTicketStatus) sourceTicketStatus.textContent = result && result.error
+          ? String(result.error)
+          : "Could not generate a source ticket. Check owner access and try again.";
+        return;
+      }
+      if (sourceTicketInput) sourceTicketInput.value = result.token;
+      if (sourceTicketOutput) sourceTicketOutput.hidden = false;
+      if (copySourceTicketButton) copySourceTicketButton.disabled = false;
+      if (sourceTicketStatus) sourceTicketStatus.textContent = "Ticket generated. Expires " + String(result.expires_at || "in 12 hours") + ".";
+    } catch (_) {
+      if (sourceTicketStatus) sourceTicketStatus.textContent = "Source-ticket request failed. Check your connection and try again.";
+    } finally {
+      sourceTicketButton.disabled = false;
+    }
+  });
+
+  if (copySourceTicketButton) copySourceTicketButton.addEventListener("click", async function () {
+    const value = sourceTicketInput && sourceTicketInput.value;
+    if (!value) return;
+    try {
+      if (!navigator.clipboard || typeof navigator.clipboard.writeText !== "function") {
+        sourceTicketInput.focus();
+        sourceTicketInput.select();
+        if (sourceTicketStatus) sourceTicketStatus.textContent = "Ticket selected. Copy it manually; keep it private.";
+        return;
+      }
+      await navigator.clipboard.writeText(value);
+      if (sourceTicketStatus) sourceTicketStatus.textContent = "Ticket copied. Keep it private and use it only on your authorized source device.";
+    } catch (_) {
+      sourceTicketInput.focus();
+      sourceTicketInput.select();
+      if (sourceTicketStatus) sourceTicketStatus.textContent = "Ticket selected. Copy it manually; keep it private.";
+    }
+  });
+
   const countySearchButton = get("county-search");
   if (countySearchButton) countySearchButton.addEventListener("click", searchCountySources);
   window.addEventListener("dream-education-auth-changed", function () {
