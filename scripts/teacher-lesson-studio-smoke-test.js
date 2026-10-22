@@ -53,7 +53,8 @@ assert.match(teacherUI, /\}, 120000\)/, "Lesson generation needs a longer client
 assert.match(teacherUI, /Preparing lesson…/);
 assert.match(teacherUI, /controller\.abort\(\)/, "Teacher lesson requests must time out through response-body parsing.");
 assert.match(schoolWorkspaceSource, /fetchSchoolLessonJSON/, "School lesson requests must use a bounded JSON request.");
-assert.match(schoolWorkspaceSource, /did not respond within 30 seconds/, "School lesson UI must explain a stalled request.");
+assert.match(schoolWorkspaceSource, /Math\.round\(timeoutMs \/ 1000\)/, "School request timeout feedback must reflect the configured timeout.");
+assert.match(schoolWorkspaceSource, /did not respond within /, "School lesson UI must explain a stalled request.");
 assert.match(teacherUI, /data-teacher-lesson-card/, "Teacher results must have a target for automatic scrolling.");
 assert.match(teacherUI, /createdCard\.scrollIntoView/, "Teacher UI must scroll to the newly generated lesson.");
 assert.match(schoolWorkspaceSource, /renderSchoolLessonCard/, "School UI must render a lesson returned directly by the create request.");
