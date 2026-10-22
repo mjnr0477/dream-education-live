@@ -306,7 +306,7 @@ final class DreamWifiRelay {
                     }
                     Listener current = listener;
                     if (current != null) current.onSources(ids.toArray(new String[0]), names.toArray(new String[0]));
-                    workers.execute(this::notifyReadyIfPossible);
+                    workers.execute(DreamWifiRelay.this::notifyReadyIfPossible);
                 } else if ("error".equals(type)) {
                     String reason = message.optString("error", "authorization failed");
                     status("Owner channel rejected: " + reason);
