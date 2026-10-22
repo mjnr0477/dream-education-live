@@ -24,7 +24,7 @@
     });
     sourceSelect.value = list.some(function (source) { return source && source.id === previous; }) ? previous : "";
     set("wifi-source-list-status", list.length
-      ? list.length + " registered source(s). Online status comes from the tunnel; source network identity is unverified."
+      ? list.length + " registered source(s). Online status comes from the tunnel; source network identity unverified."
       : "No registered source endpoints are currently visible. A router must have an authorized client or gateway connected to Dream Tunnel.");
     if (list.length) set("wifi-source", list.filter(function (source) { return source && source.connected; }).length + " source(s) online");
   }
