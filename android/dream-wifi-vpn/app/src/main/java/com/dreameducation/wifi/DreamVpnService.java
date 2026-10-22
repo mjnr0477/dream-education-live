@@ -7,6 +7,11 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.VpnService;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.ParcelFileDescriptor;
 
@@ -27,6 +32,7 @@ public final class DreamVpnService extends VpnService {
     public static final String EXTRA_ACCESS_TOKEN = "dream_wifi_access_token";
     public static final String EXTRA_REFRESH_TOKEN = "dream_wifi_refresh_token";
     public static final String EXTRA_SOURCE_TICKET = "dream_wifi_source_ticket";
+    public static final String EXTRA_SOURCE_ONLY = "dream_wifi_source_only";
     private static final int ID = 7201;
     private static final String CHANNEL = "dream_wifi_vpn";
 
@@ -71,7 +77,15 @@ public final class DreamVpnService extends VpnService {
             return START_NOT_STICKY;
         }
 
-        relay = new DreamWifiRelay(accessToken, refreshToken, sourceTicket, new DreamWifiRelay.Listener() {
+        boolean sourceOnly = intent != null && intent.getBooleanExtra(EXTRA_SOURCE_ONLY, false);
+        Network sourceNetwork = sourceOnly ? findConnectedWifiNetwork() : null;
+        if (sourceOnly && sourceNetwork == null) {
+            updateNotification("Connect this phone to a Wi-Fi network with internet before publishing it as a source.");
+            stopSelf();
+            return START_NOT_STICKY;
+        }
+        String sourceName = sourceOnly ? getConnectedWifiName() : "Android " + Build.MODEL;
+        relay = new DreamWifiRelay(accessToken, refreshToken, sourceTicket, sourceOnly, sourceNetwork, sourceName, new DreamWifiRelay.Listener() {
             @Override public void onStatus(String message) {
                 updateNotification(message);
             }
@@ -83,6 +97,7 @@ public final class DreamVpnService extends VpnService {
                 sendBroadcast(sources);
             }
             @Override public void onReady() {
+                if (sourceOnly) return;
                 try {
                     startTunnel();
                 } catch (Exception error) {
@@ -94,6 +109,36 @@ public final class DreamVpnService extends VpnService {
         relay.setSelectedSourceId(intent == null ? "" : intent.getStringExtra(EXTRA_SELECTED_SOURCE_ID));
         relay.start();
         return START_NOT_STICKY;
+    }
+
+    private Network findConnectedWifiNetwork() {
+        ConnectivityManager manager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+        if (manager == null) return null;
+        Network active = manager.getActiveNetwork();
+        if (active != null && isInternetWifi(manager, active)) return active;
+        for (Network network : manager.getAllNetworks()) {
+            if (isInternetWifi(manager, network)) return network;
+        }
+        return null;
+    }
+
+    private boolean isInternetWifi(ConnectivityManager manager, Network network) {
+        NetworkCapabilities capabilities = manager.getNetworkCapabilities(network);
+        return capabilities != null
+                && capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
+                && capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
+    }
+
+    private String getConnectedWifiName() {
+        try {
+            WifiManager manager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
+            WifiInfo info = manager == null ? null : manager.getConnectionInfo();
+            String ssid = info == null ? "" : info.getSSID();
+            if (ssid != null && !ssid.equals("<unknown ssid>")) {
+                return ssid.replaceAll("^\\\"|\\\"$", "").trim();
+            }
+        } catch (Exception ignored) {}
+        return "Android " + Build.MODEL;
     }
 
     private synchronized void startTunnel() throws IOException {
