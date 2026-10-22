@@ -50,7 +50,6 @@ const { recordAIEvaluationEvidence } = require("./product/gli/ai_evaluation_evid
 const { recordLearningOutcomeFeedback } = require("./product/gli/learning_outcome_evaluation");
 const { buildLearningOutcomeSummary } = require("./product/gli/outcome_intelligence");
 const { createClient } = require("@supabase/supabase-js");
-const { registerDreamWifiSourceRegistryRoutes } = require("./product/dream_wifi_source_registry");
 
 const app = express();
 // Render runs behind one trusted reverse proxy in production. Do not trust
@@ -1124,7 +1123,6 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json({ limit: "1mb" }));
-registerDreamWifiSourceRegistryRoutes(app, { supabaseAuth, supabase });
 app.use(express.static(path.join(__dirname, "public")));
 // Dream Search routes are registered after payment helpers are initialized.\n// This avoids accessing the later-declared owner helper during module startup.\n
 
@@ -5680,19 +5678,12 @@ console.log("STATE-AWARE TEACHING ANALYSIS:", teachingAnalysis);
 });
 
 
-let dreamWifiTunnel = null;
-
 // Server starts after the persistent product store has hydrated.
 function startDreamEducationServer() {
   const httpServer = app.listen(PORT, () => {
     console.log("Dream Education running on http://localhost:" + PORT);
     console.log("AI mode:", process.env.AI_MODE || "development");
     console.log("Product store persistence: ready");
-  });
-  dreamWifiTunnel = require("./product/dream_wifi_tunnel_engine").attachDreamWifiTunnel(httpServer, {
-    supabaseAuth,
-    isOwnerAccount,
-    sourceToken: process.env.DREAM_WIFI_SOURCE_TOKEN
   });
 }
 
@@ -5747,162 +5738,6 @@ app.post("/api/auth/refresh", async (req, res) => {
     });
   } catch (_) {
     return res.status(401).json({ success: false, error: "Session refresh failed. Please sign in again." });
-  }
-});
-
-// Issue a short-lived source credential to the authenticated owner for the native Android client.
-app.post("/api/dream-wifi/source-ticket", async (req, res) => {
-  res.set("Cache-Control", "no-store");
-  const authorization = String(req.get("authorization") || "");
-  const match = authorization.match(/^Bearer\s+(.+)$/i);
-  if (!match) {
-    return res.status(401).json({ success: false, error: "A valid Dream Education session is required." });
-  }
-  if (!dreamWifiTunnel || typeof dreamWifiTunnel.issueSourceTicket !== "function") {
-    return res.status(503).json({ success: false, error: "Dream Wi-Fi source-ticket service is unavailable." });
-  }
-  try {
-    const { data, error } = await supabaseAuth.auth.getUser(match[1].trim());
-    const user = data && data.user ? data.user : null;
-    if (error || !user) {
-      return res.status(401).json({ success: false, error: "Your session is invalid or expired." });
-    }
-    if (!isOwnerAccount({ email: user.email })) {
-      return res.status(403).json({ success: false, error: "Owner access is required." });
-    }
-    const ticketRate = checkAuthRateLimit(req, "source-ticket");
-    if (!ticketRate.allowed) {
-      res.set("Retry-After", String(ticketRate.retryAfterSeconds));
-      return res.status(429).json({
-        success: false,
-        error: "Too many source tickets requested. Try again later.",
-        retry_after_seconds: ticketRate.retryAfterSeconds
-      });
-    }
-    const ticket = dreamWifiTunnel.issueSourceTicket(user.id);
-    return res.json({ success: true, token: ticket.token, expires_at: ticket.expires_at });
-  } catch (error) {
-    console.error("Dream Wi-Fi source ticket issue failed:", error && error.message ? error.message : "unknown error");
-    return res.status(500).json({ success: false, error: "Could not issue a source ticket." });
-  }
-});
-
-// Dream Wi-Fi owner-only readiness endpoint. Never trust client-side owner flags.
-app.get("/api/dream-wifi/owner-status", async (req, res) => {
-  res.set("Cache-Control", "no-store");
-  const authorization = String(req.get("authorization") || "");
-  const match = authorization.match(/^Bearer\s+(.+)$/i);
-
-  if (!match) {
-    return res.status(401).json({
-      success: false,
-      owner: false,
-      error: "A valid Dream Education session is required."
-    });
-  }
-
-  try {
-    const { data, error } = await supabaseAuth.auth.getUser(match[1].trim());
-    const user = data && data.user ? data.user : null;
-
-    if (error || !user) {
-      return res.status(401).json({
-        success: false,
-        owner: false,
-        error: "Your session is invalid or expired."
-      });
-    }
-
-    if (!isOwnerAccount({ email: user.email })) {
-      return res.status(403).json({
-        success: false,
-        owner: false,
-        error: "Owner access is required."
-      });
-    }
-
-    const providerName = String(process.env.DREAM_WIFI_PROVIDER || "ironwifi").trim().toLowerCase();
-    const providerBaseUrl = String(
-      process.env.DREAM_WIFI_PROVIDER_API_URL ||
-      (providerName === "ironwifi" ? "https://console.ironwifi.io" : "")
-    ).trim().replace(/\/+$/, "");
-    const providerApiKey = String(process.env.DREAM_WIFI_PROVIDER_API_KEY || "").trim();
-    const providerConfigured = Boolean(providerBaseUrl && providerApiKey);
-    let providerApiReachable = false;
-    let providerAuthValid = null;
-    let providerNetworkCount = null;
-
-    // Read-only provider check: this verifies API access, not a live Wi-Fi session or purchase.
-    if (providerConfigured) {
-      try {
-        const base = new URL(providerBaseUrl);
-        if (base.protocol === "https:" && !base.username && !base.password) {
-          for (const path of ["/api/networks", "/networks"]) {
-            const response = await fetch(base.origin + path, {
-              method: "GET",
-              headers: {
-                Accept: "application/json",
-                Authorization: "Bearer " + providerApiKey
-              },
-              cache: "no-store",
-              signal: AbortSignal.timeout(5000)
-            });
-            providerApiReachable = true;
-            if (response.status === 404 && path === "/api/networks") continue;
-            if (response.status === 401 || response.status === 403) {
-              providerAuthValid = false;
-              break;
-            }
-            if (response.ok) {
-              providerAuthValid = true;
-              const payload = await response.json().catch(() => null);
-              if (payload && Number.isFinite(Number(payload.total_items))) {
-                providerNetworkCount = Number(payload.total_items);
-              } else if (payload && payload._embedded) {
-                const collection = payload._embedded.networks || payload._embedded.items;
-                if (Array.isArray(collection)) providerNetworkCount = collection.length;
-              }
-            }
-            break;
-          }
-        }
-      } catch (_) {
-        // Keep provider failures diagnostic-only; never log or return credentials.
-      }
-    }
-    const providerVerified = providerApiReachable && providerAuthValid === true;
-
-    return res.json({
-      success: true,
-      owner: true,
-      provider_configured: providerConfigured,
-      provider_api_reachable: providerApiReachable,
-      provider_auth_valid: providerAuthValid,
-      provider_network_count: providerNetworkCount,
-      source_endpoint_configured: Boolean(process.env.DREAM_WIFI_SOURCE_TOKEN),
-      source_connected: Boolean(dreamWifiTunnel && typeof dreamWifiTunnel.sourceConnected === "function" && dreamWifiTunnel.sourceConnected()),
-      source_auth_available: Boolean(dreamWifiTunnel && typeof dreamWifiTunnel.issueSourceTicket === "function"),
-      provider: providerConfigured ? providerName : null,
-      live_access_enabled: false,
-      packages_enabled: false,
-      status: providerVerified
-        ? "provider_api_verified"
-        : providerConfigured
-          ? "provider_configured_but_not_verified"
-          : "provider_not_configured",
-      message: providerVerified
-        ? "Provider API credentials were accepted. A usable Wi-Fi network, package, payment flow, and end-to-end phone connection still require separate verification."
-        : providerConfigured
-          ? "Provider settings are present, but the provider API or credentials could not be verified."
-          : "No authorized Wi-Fi provider is configured yet. Live access and packages remain disabled."
-    });
-  } catch (error) {
-    console.error("Dream Wi-Fi status check failed:", error);
-    return res.status(503).json({
-      success: false,
-      owner: false,
-      error: "Dream Wi-Fi status is temporarily unavailable."
-    });
   }
 });
 
