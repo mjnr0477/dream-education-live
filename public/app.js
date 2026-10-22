@@ -4951,6 +4951,18 @@ async function openMeetings() {
         const button = event.target.closest('[data-meeting-action="join"]');
         if (!button) return;
 
+        // If the browser blocked the initial placeholder, let the user open
+        // the validated URL directly from a fresh click gesture.
+        const directExternalUrl = supportedMeetingUrl(button.dataset.externalUrl || "");
+        if (directExternalUrl) {
+          delete button.dataset.externalUrl;
+          const opened = window.open(directExternalUrl, "_blank", "noopener,noreferrer");
+          if (!opened) {
+            alert("Your browser blocked the meeting tab. Allow pop-ups for Dream Education and try again.");
+          }
+          return;
+        }
+
         const meetingId = button.dataset.meetingId;
 
         if (!meetingId) return;
@@ -5002,7 +5014,12 @@ async function openMeetings() {
               externalMeetingWindow.location.replace(safeMeetingUrl);
               externalMeetingWindow.opener = null;
             } else {
-              window.open(safeMeetingUrl, "_blank", "noopener,noreferrer");
+              const opened = window.open(safeMeetingUrl, "_blank", "noopener,noreferrer");
+              if (!opened) {
+                button.dataset.externalUrl = safeMeetingUrl;
+                button.disabled = false;
+                button.textContent = "Open meeting";
+              }
             }
             return;
           }
