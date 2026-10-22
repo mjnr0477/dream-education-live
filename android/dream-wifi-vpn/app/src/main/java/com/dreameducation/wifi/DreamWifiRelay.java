@@ -102,7 +102,10 @@ final class DreamWifiRelay {
                 .readTimeout(0, TimeUnit.MILLISECONDS);
         // Keep the control WebSocket on validated cellular data when available, while
         // individual destination sockets below remain bound to the Quant Wi-Fi network.
-        if (sourceOnly && controlNetwork != null) builder.socketFactory(controlNetwork.getSocketFactory());
+        if (sourceOnly && controlNetwork != null) {
+            builder.socketFactory(controlNetwork.getSocketFactory());
+            builder.dns(hostname -> Arrays.asList(controlNetwork.getAllByName(hostname)));
+        }
         this.http = builder.build();
         this.listener = listener;
     }
