@@ -25,5 +25,9 @@ create index if not exists dream_wifi_source_observations_fingerprint_idx
 
 alter table public.dream_wifi_source_observations enable row level security;
 
+-- The server uses its private service-role Supabase credential; no client roles receive access.
+grant select, insert, update, delete on table public.dream_wifi_source_observations to service_role;
+grant usage, select on sequence public.dream_wifi_source_observations_id_seq to service_role;
+
 -- Access is mediated by the Dream Education server after validating a user session.
 -- Do not add anon/public table policies; server-side credentials must remain secret.
