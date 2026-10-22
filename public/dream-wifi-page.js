@@ -353,6 +353,9 @@
   function searchCountySources() {
     const searchButton = get("county-search");
     const radiusControl = get("county-radius");
+    const centerControl = get("county-center");
+    const latitudeControl = get("county-latitude");
+    const longitudeControl = get("county-longitude");
     const status = get("county-status");
     const accessToken = token();
     if (!status) return;
@@ -360,18 +363,16 @@
       status.textContent = "Sign in to Dream Education before searching reported county Wi-Fi sources.";
       return;
     }
-    if (!window.navigator.geolocation || typeof window.navigator.geolocation.getCurrentPosition !== "function") {
-      status.textContent = "This browser cannot provide location. Allow location access in a supported browser to search nearby observations.";
+    const radius = Number(radiusControl && radiusControl.value || 25);
+    if (!Number.isFinite(radius) || radius < 1 || radius > 100) {
+      status.textContent = "Choose a search radius between 1 and 100 km.";
       return;
     }
     if (searchButton) searchButton.disabled = true;
-    status.textContent = "Getting your location…";
-    window.navigator.geolocation.getCurrentPosition(async function (position) {
+
+    async function requestObservations(latitude, longitude, label) {
       try {
-        status.textContent = "Searching reported Wi-Fi observations…";
-        const latitude = Number(position.coords.latitude);
-        const longitude = Number(position.coords.longitude);
-        const radius = Number(radiusControl && radiusControl.value || 25);
+        status.textContent = "Searching reported Wi-Fi observations around " + label + "…";
         const query = new URLSearchParams({
           latitude: String(latitude),
           longitude: String(longitude),
@@ -391,19 +392,48 @@
         }
         renderCountyObservations(result.observations);
         status.textContent = String(result.count || 0) + " reported observation(s) within " + radius +
-          " km. These are reports, not a live radio scan or proof of remote tunnel access.";
+          " km of " + label + ". These are reports, not a live radio scan or proof of remote tunnel access.";
       } catch (_) {
         status.textContent = "County Wi-Fi search failed. Check your connection and try again.";
       } finally {
         if (searchButton) searchButton.disabled = false;
       }
+    }
+
+    const center = centerControl && centerControl.value || "near-me";
+    if (center === "kibabii") {
+      // Approximate Kibabii University area; users can choose custom coordinates for another site.
+      requestObservations(0.5698, 34.5584, "the Kibabii area");
+      return;
+    }
+    if (center === "coordinates") {
+      const latitude = Number(latitudeControl && latitudeControl.value);
+      const longitude = Number(longitudeControl && longitudeControl.value);
+      if (!latitudeControl || !longitudeControl || latitudeControl.value.trim() === "" ||
+          longitudeControl.value.trim() === "" || !Number.isFinite(latitude) || latitude < -90 ||
+          latitude > 90 || !Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
+        if (searchButton) searchButton.disabled = false;
+        status.textContent = "Enter a valid latitude and longitude for the location you want to search.";
+        return;
+      }
+      requestObservations(latitude, longitude, "the selected coordinates");
+      return;
+    }
+    if (!window.navigator.geolocation || typeof window.navigator.geolocation.getCurrentPosition !== "function") {
+      if (searchButton) searchButton.disabled = false;
+      status.textContent = "This browser cannot provide location. Choose Kibabii or enter coordinates, or use a supported browser.";
+      return;
+    }
+    status.textContent = "Getting your location…";
+    window.navigator.geolocation.getCurrentPosition(function (position) {
+      requestObservations(Number(position.coords.latitude), Number(position.coords.longitude), "your current location");
     }, function (error) {
       if (searchButton) searchButton.disabled = false;
       const reason = error && error.code === 1
-        ? "Location permission was denied. Allow location access and retry."
+        ? "Location permission was denied. Allow location access and retry, or choose Kibabii/custom coordinates."
         : error && error.code === 3
-          ? "Location lookup timed out. Move to an area with a clearer location signal and retry."
-          : "Could not get your location. Enable device location and retry.";
+          ? "Location lookup timed out. Retry or choose Kibabii/custom coordinates."
+          : "Could not get your location. Enable device location or choose Kibabii/custom coordinates.";
       status.textContent = reason;
     }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 120000 });
   }
