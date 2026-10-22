@@ -159,6 +159,11 @@ const supabaseAuth = createClient(
 );
 
 
+const {
+  DEFAULT_CACHE_TTL_MS,
+  DEFAULT_MAX_CACHE_ENTRIES,
+  pruneLearningCache
+} = require("./product/learning_cache_policy");
 const CACHE_FILE = path.join(__dirname, "data", "cache.json");
 
 function buildPublicSearchLearningEvidence(publicResult, question, queryInfo) {
@@ -220,7 +225,21 @@ function loadCache() {
       fs.writeFileSync(CACHE_FILE, "{}");
     }
 
-    return JSON.parse(fs.readFileSync(CACHE_FILE, "utf8"));
+    const cache = JSON.parse(fs.readFileSync(CACHE_FILE, "utf8"));
+    if (!cache || typeof cache !== "object" || Array.isArray(cache)) return {};
+
+    const { removed } = pruneLearningCache(cache, {
+      ttlMs: DEFAULT_CACHE_TTL_MS,
+      maxEntries: DEFAULT_MAX_CACHE_ENTRIES
+    });
+    if (removed > 0) {
+      try {
+        saveCache(cache);
+      } catch (error) {
+        console.error("Cache prune save error:", error.message || error);
+      }
+    }
+    return cache;
   } catch (error) {
     console.error("Cache read error:", error);
     return {};
@@ -228,6 +247,10 @@ function loadCache() {
 }
 
 function saveCache(cache) {
+  pruneLearningCache(cache, {
+    ttlMs: DEFAULT_CACHE_TTL_MS,
+    maxEntries: DEFAULT_MAX_CACHE_ENTRIES
+  });
   fs.writeFileSync(
     CACHE_FILE,
     JSON.stringify(cache, null, 2),
@@ -1570,7 +1593,7 @@ app.post("/api/learn", async (req, res) => {
     if (
       cache[cacheKey] &&
       cache[cacheKey].createdAt &&
-      Date.now() - new Date(cache[cacheKey].createdAt).getTime() < 60000
+      Date.now() - new Date(cache[cacheKey].createdAt).getTime() < DEFAULT_CACHE_TTL_MS
     ) {
       console.log("5. CACHE HIT (< 60 seconds)");
       if (cache[cacheKey].answer_contract === "verified-v1") {
