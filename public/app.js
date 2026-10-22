@@ -4887,7 +4887,7 @@ async function openMeetings() {
     }
 
     const providerLabel = provider => ({
-      dream: "Dream Education",
+      dream: "Dream Education room (video powered by Jitsi)",
       jitsi: "Jitsi Meet",
       "google-meet": "Google Meet",
       teams: "Microsoft Teams"
@@ -4948,6 +4948,19 @@ async function openMeetings() {
           return;
         }
 
+        const openRoomButton = event.target.closest('[data-meeting-action="open-room"]');
+        if (openRoomButton) {
+          const safeUrl = supportedMeetingUrl(openRoomButton.dataset.meetingUrl || "");
+          if (!safeUrl) {
+            alert("The live meeting link is unavailable. Please close this panel and try joining again.");
+            return;
+          }
+          const opened = window.open(safeUrl, "_blank");
+          if (opened) opened.opener = null;
+          else alert("Your browser blocked the meeting tab. Allow pop-ups for Dream Education and try again.");
+          return;
+        }
+
         const button = event.target.closest('[data-meeting-action="join"]');
         if (!button) return;
 
@@ -4956,8 +4969,12 @@ async function openMeetings() {
         const directExternalUrl = supportedMeetingUrl(button.dataset.externalUrl || "");
         if (directExternalUrl) {
           delete button.dataset.externalUrl;
-          const opened = window.open(directExternalUrl, "_blank", "noopener,noreferrer");
-          if (!opened) {
+          // Avoid the noopener feature string here: some browsers return null for
+          // a successfully opened tab when that feature is requested.
+          const opened = window.open(directExternalUrl, "_blank");
+          if (opened) {
+            opened.opener = null;
+          } else {
             alert("Your browser blocked the meeting tab. Allow pop-ups for Dream Education and try again.");
           }
           return;
@@ -4970,7 +4987,7 @@ async function openMeetings() {
         // Open external meeting tabs synchronously from the click gesture so
         // browsers are less likely to block navigation after the API request.
         const provider = button.dataset.meetingProvider || "dream";
-        const externalProvider = ["jitsi", "google-meet", "teams"].includes(provider);
+        const externalProvider = ["dream", "jitsi", "google-meet", "teams"].includes(provider);
         let externalMeetingWindow = null;
         if (externalProvider) {
           try {
@@ -5033,21 +5050,13 @@ async function openMeetings() {
           } else {
             panelBodyElement.innerHTML = `
               <section class="panel-card">
-                <div class="teacher-dashboard-card-label">
-                  MEETING ROOM
-                </div>
-                <h3>${escapeText(data.meeting.title)}</h3>
-                <p>Room is ready.</p>
-                <p class="teacher-dashboard-card-label">
-                  Room ID: ${escapeText(data.room.room_id)}
-                </p>
+                <div class="teacher-dashboard-card-label">MEETING ROOM</div>
+                <h3>${escapeText(data.meeting.title || "Meeting")}</h3>
+                <p>Your meeting room is ready, but this page could not open the live meeting window.</p>
+                <p class="teacher-dashboard-card-label">Room ID: ${escapeText(data.room.room_id)}</p>
                 <div class="panel-actions">
-                  <button
-                    class="panel-action secondary"
-                    type="button"
-                    data-action="close">
-                    Close
-                  </button>
+                  <button class="panel-action" type="button" data-meeting-action="open-room" data-meeting-url="${escapeText(data.meeting.external_url || "")}">Open live meeting ↗</button>
+                  <button class="panel-action secondary" type="button" data-action="close">Close</button>
                 </div>
               </section>
             `;
