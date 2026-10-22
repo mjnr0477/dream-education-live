@@ -53,6 +53,7 @@ assert.ok(service.includes("sourceOnly ? findConnectedWifiNetwork() : null"), "S
 assert.ok(service.includes("findAlternateControlNetwork(sourceNetwork)"), "Source-only mode should prefer a separate validated cellular control route.");
 assert.ok(service.includes("NET_CAPABILITY_VALIDATED"), "Alternate control network must be validated.");
 assert.ok(relay.includes("builder.socketFactory(controlNetwork.getSocketFactory())"), "Tunnel control WebSocket must use the alternate control route when available.");
+assert.ok(relay.includes("builder.dns(hostname -> Arrays.asList(controlNetwork.getAllByName(hostname)))"), "Tunnel control DNS must use the alternate control route.");
 assert.ok(relay.includes("sourceNetwork.bindSocket(socket)"), "Source TCP destinations must still be routed through the selected Wi-Fi network.");
 assert.ok(relay.includes("controlNetwork.openConnection(url)"), "Source session refresh must use the control route when available.");
 assert.ok(relay.includes("Captive portal redirect detected"), "A captive portal must be detected without claiming public internet is verified.");
