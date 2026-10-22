@@ -38,6 +38,7 @@ assert.match(app, /supportedMeetingUrl\(button\.dataset\.externalUrl \|\| \"\"\)
 assert.match(app, /button\.dataset\.externalUrl = safeMeetingUrl/, "When popups are blocked, the join control must offer a direct follow-up click.");
 assert.match(app, /\["dream", "jitsi", "google-meet", "teams"\]\.includes\(provider\)/, "Dream Education room joins must open the live video room.");
 assert.match(app, /window\.open\(directExternalUrl, "_blank"\)/, "The popup fallback must not use the noopener feature string that can make successful opens look blocked.");
+assert.match(app, /window\.open\(safeMeetingUrl, "_blank"\)/, "The first fallback attempt must reliably detect whether the meeting tab opened.");
 assert.match(app, /data-meeting-action="open-room"/, "The internal fallback must offer a direct action to open the live meeting.");
 assert.match(app, /app\.js\?v=20261022c/, "Meeting popup fallback must reference the refreshed app script.");
 assert.match(app, /\/api\/product\/meetings\/".*\/follow-up/, "UI must save notes through the authenticated API.");
