@@ -12,7 +12,22 @@ Install the Dream Wi-Fi Android app on a phone that is authorized to share the c
 
 The repository contains `scripts/dream-wifi-source-agent.js`, which can run in Termux on an Android phone or on a Linux gateway. It uses a short-lived owner-issued source ticket in the `DREAM_WIFI_SOURCE_TOKEN` setting, a `wss://` tunnel URL, and an explicit process started by the device operator. An authorized owner can generate the ticket from the Dream Wi-Fi dashboard using **Generate temporary source ticket**. The ticket is valid for 12 hours, is scoped to that owner account, and should be treated like a password. Never put the token in a public page, a client bundle, screenshots, or a public repository.
 
-For an ordinary Wi-Fi connection that already has working internet, the operator can install Node.js in Termux, place the approved source-agent script on the device, configure the tunnel URL, source ticket, and source name in a private local shell/session, and run the script. Stop the process to withdraw the source. The ticket endpoint is owner-authenticated and rate-limited. Do not paste the token into support chats.
+For an ordinary Wi-Fi connection that already has working internet, an authorized operator can use Termux like this after generating the ticket on the Dream Wi-Fi dashboard:
+
+```sh
+pkg update
+pkg install nodejs-lts curl
+mkdir -p ~/dream-wifi && cd ~/dream-wifi
+curl -fsSL https://raw.githubusercontent.com/mjnr0477/dream-education-live/main/scripts/dream-wifi-source-agent.js -o dream-wifi-source-agent.js
+read -rsp "Paste temporary source ticket: " DREAM_WIFI_SOURCE_TOKEN
+echo
+export DREAM_WIFI_SOURCE_TOKEN
+export DREAM_WIFI_TUNNEL_URL='wss://dream-education-live-4.onrender.com/api/dream-education/dream-wifi/tunnel'
+export DREAM_WIFI_SOURCE_NAME='Authorized Wi-Fi source'
+node ./dream-wifi-source-agent.js
+```
+
+Stop the process with `Ctrl+C` to withdraw the source. The ticket endpoint is owner-authenticated and rate-limited. The hidden `read -s` prompt avoids echoing the ticket or putting it directly in shell history; do not paste the token into support chats or public places.
 
 **Important limitation:** the standalone Node agent uses the operating system's default network route. It does not bind sockets to a specific Android Wi-Fi network. Do not use it to claim captive-portal or remote-package purchasing works while cellular data and a captive Wi-Fi are both present. Use native Android source mode for that case, then verify with a real provider portal and a live end-to-end test.
 
