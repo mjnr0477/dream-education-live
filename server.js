@@ -50,6 +50,7 @@ const { recordAIEvaluationEvidence } = require("./product/gli/ai_evaluation_evid
 const { recordLearningOutcomeFeedback } = require("./product/gli/learning_outcome_evaluation");
 const { buildLearningOutcomeSummary } = require("./product/gli/outcome_intelligence");
 const { createClient } = require("@supabase/supabase-js");
+const { registerDreamWifiSourceRegistryRoutes } = require("./product/dream_wifi_source_registry");
 
 const app = express();
 // Render runs behind one trusted reverse proxy in production. Do not trust
@@ -142,6 +143,8 @@ const supabaseAuth = createClient(
     }
   }
 );
+
+registerDreamWifiSourceRegistryRoutes(app, { supabaseAuth, supabase });
 
 const CACHE_FILE = path.join(__dirname, "data", "cache.json");
 
