@@ -86,7 +86,7 @@ async function main() {
     assert.equal(wss.getSources().length, 2);
     console.log("Dream Wi-Fi multi-source selection smoke test passed.");
   } finally {
-    for (const socket of [owner, sourceA, sourceB]) if (socket) socket.close();
+    for (const socket of [owner, sourceA, sourceB]) if (socket) socket.terminate();
     wss.close();
     await new Promise(resolve => server.close(resolve));
   }
