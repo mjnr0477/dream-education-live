@@ -6,6 +6,14 @@ const path = require("node:path");
 const { rateLimit, requestId } = require("../product/gli/production_security");
 
 const serverSource = fs.readFileSync(path.join(__dirname, "..", "server.js"), "utf8");
+assert.match(serverSource, /const MAX_AUTH_RATE_LIMIT_ENTRIES = 20_000;/,
+  "authentication rate-limit storage must have a fixed upper bound");
+assert.match(serverSource, /function makeAuthRateLimitRoom\(now = Date\.now\(\)\)/,
+  "authentication rate-limit storage must make room before accepting new client keys");
+assert.match(serverSource, /if \(!existing\) makeAuthRateLimitRoom\(now\);/,
+  "new authentication rate-limit keys must pass through the capacity guard");
+assert.match(serverSource, /function pruneAuthRateLimitStore\(now = Date\.now\(\)\)/,
+  "expired authentication rate-limit entries must be pruned");
 const apiControlsIndex = serverSource.indexOf('app.use("/api/v1", requestId, rateLimit');
 const firstApiV1RouteIndex = ["app.get(\"/api/v1", "app.post(\"/api/v1", "app.put(\"/api/v1", "app.patch(\"/api/v1", "app.delete(\"/api/v1"].map(route => serverSource.indexOf(route)).filter(index => index >= 0).sort((a, b) => a - b)[0] ?? -1;
 assert.ok(apiControlsIndex >= 0, "API-wide rate limiting middleware must exist");
