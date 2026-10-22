@@ -5,6 +5,10 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const root = path.join(__dirname, "..");
+const learnerScript = fs.readFileSync(path.join(root, "public/frontend-workspace.js"), "utf8");
+assert.match(learnerScript, /setTimeout\(function \(\) \{\s*controller\.abort\(\);\s*\}, 8000\)/, "learner workspace requests must have a bounded timeout.");
+assert.match(learnerScript, /Learning request timed out after 8 seconds/, "learner workspace must explain timeout failures clearly.");
+
 const schoolScript = fs.readFileSync(path.join(root, "public/school-workspace.js"), "utf8");
 assert.match(schoolScript, /school-workspace\.css\?v=20261013b/, "school workspace loader must use the current cache-busting version.");
 
