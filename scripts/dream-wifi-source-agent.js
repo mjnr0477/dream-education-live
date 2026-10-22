@@ -5,10 +5,13 @@
 const dns = require("node:dns").promises;
 const net = require("node:net");
 const dgram = require("node:dgram");
+const os = require("node:os");
 const { WebSocket } = require("ws");
 
 const tunnelUrl = String(process.env.DREAM_WIFI_TUNNEL_URL || "").trim();
 const sourceToken = String(process.env.DREAM_WIFI_SOURCE_TOKEN || "");
+const sourceName = String(process.env.DREAM_WIFI_SOURCE_NAME || os.hostname() || "Dream Wi-Fi source").trim().slice(0, 80) || "Dream Wi-Fi source";
+const sourceId = String(process.env.DREAM_WIFI_SOURCE_ID || os.hostname() || "source").replace(/[^a-zA-Z0-9_-]/g, "-").slice(0, 80) || "source";
 const MAX_CHUNK = 12 * 1024;
 const MAX_WS_BUFFERED_BYTES = 1024 * 1024;
 const streams = new Map();
@@ -186,7 +189,7 @@ function connect() {
         currentSocket.terminate();
       }
     }, 25000);
-    currentSocket.send(JSON.stringify({ type: "register", role: "source", sourceToken }));
+    currentSocket.send(JSON.stringify({ type: "register", role: "source", sourceToken, sourceId, sourceName }));
   });
   currentSocket.on("message", raw => {
     let message;
