@@ -7386,6 +7386,25 @@ app.post("/api/product/meetings", async (req, res) => {
       });
     }
 
+    const scheduledDateText = String(scheduled_date);
+    const scheduledTimeText = String(scheduled_time);
+    const dateFormatIsValid = /^\\d{4}-\\d{2}-\\d{2}$/.test(scheduledDateText);
+    const parsedScheduledDate = dateFormatIsValid
+      ? new Date(scheduledDateText + "T00:00:00.000Z")
+      : null;
+    const calendarDateIsValid = Boolean(
+      parsedScheduledDate &&
+      !Number.isNaN(parsedScheduledDate.getTime()) &&
+      parsedScheduledDate.toISOString().slice(0, 10) === scheduledDateText
+    );
+    const timeFormatIsValid = /^(?:[01]\\d|2[0-3]):[0-5]\\d$/.test(scheduledTimeText);
+    if (!calendarDateIsValid || !timeFormatIsValid) {
+      return res.status(400).json({
+        success: false,
+        error: "scheduled_date must be a real date in YYYY-MM-DD format and scheduled_time must be a valid 24-hour time in HH:MM format."
+      });
+    }
+
     const allowedTypes = [
       "learning",
       "teaching",
