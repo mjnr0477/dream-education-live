@@ -28,12 +28,12 @@ function waitMessage(socket, predicate, timeoutMs = 2500) {
     socket.on("message", onMessage);
   });
 }
-async function registerSource(url, sourceId, sourceName) {
+async function registerSource(url, sourceId, sourceName, sourceToken = "shared-test-token") {
   const socket = new WebSocket(url);
   await waitOpen(socket);
   const registered = waitMessage(socket, message => message.type === "registered");
   socket.send(JSON.stringify({
-    type: "register", role: "source", sourceToken: "shared-test-token", sourceId, sourceName
+    type: "register", role: "source", sourceToken, sourceId, sourceName
   }));
   const result = await registered;
   assert.equal(result.sourceId, sourceId);
@@ -56,7 +56,8 @@ async function main() {
   let sourceA, sourceB, owner;
   try {
     sourceA = await registerSource(url, "source-a", "Local test router");
-    sourceB = await registerSource(url, "source-b", "Remote test gateway");
+    const sourceTicket = wss.issueSourceTicket("owner-1");
+    sourceB = await registerSource(url, "source-b", "Remote test gateway", sourceTicket.token);
     owner = new WebSocket(url);
     await waitOpen(owner);
     const registered = waitMessage(owner, message => message.type === "registered" && message.role === "owner");
@@ -67,6 +68,18 @@ async function main() {
     assert.deepEqual(available.sources.map(source => source.id).sort(), ["source-a", "source-b"]);
     assert.equal(available.sources.find(source => source.id === "source-a").name, "Local test router");
     assert.equal(available.sources.find(source => source.id === "source-b").name, "Remote test gateway");
+
+    const spoof = new WebSocket(url);
+    await waitOpen(spoof);
+    const spoofDenied = waitMessage(spoof, message => message.type === "error");
+    spoof.send(JSON.stringify({
+      type: "register", role: "source", sourceToken: "shared-test-token",
+      sourceId: "source-b", sourceName: "Spoofed source"
+    }));
+    assert.match((await spoofDenied).error, /different authorization scope/i);
+    assert.equal(sourceB.readyState, WebSocket.OPEN, "Cross-scope source ID collision must not evict the registered owner source.");
+    assert.equal(wss.getSources().length, 2);
+    spoof.terminate();
 
     const sourcePing = waitMessage(sourceB, message => message.type === "ping");
     const pingResult = waitMessage(owner, message => message.type === "ping-result");
