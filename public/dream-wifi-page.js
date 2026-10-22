@@ -296,6 +296,127 @@
       : String(error || "No valid DNS response returned through the UDP relay."));
   }
 
+
+  function formatObservationAge(value) {
+    const observed = Date.parse(value || "");
+    if (!Number.isFinite(observed)) return "time unknown";
+    const minutes = Math.max(0, Math.floor((Date.now() - observed) / 60000));
+    if (minutes < 1) return "just now";
+    if (minutes < 60) return minutes + " min ago";
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return hours + " hr ago";
+    return Math.floor(hours / 24) + " day(s) ago";
+  }
+
+  function renderCountyObservations(observations) {
+    const list = get("county-results");
+    if (!list) return;
+    list.replaceChildren();
+    const rows = Array.isArray(observations) ? observations : [];
+    const seen = new Set();
+    rows.forEach(function (observation) {
+      if (!observation || typeof observation.ssid !== "string") return;
+      const key = observation.ssid + "|" + observation.latitude + "|" + observation.longitude;
+      if (seen.has(key)) return;
+      seen.add(key);
+      const item = document.createElement("li");
+      const details = document.createElement("span");
+      const name = document.createElement("strong");
+      const meta = document.createElement("span");
+      const state = document.createElement("strong");
+      name.textContent = observation.ssid;
+      const distance = Number(observation.distance_km);
+      const distanceText = Number.isFinite(distance) ? distance.toFixed(1) + " km away" : "distance unknown";
+      const networkState = observation.internet_verified
+        ? "Internet worked when reported"
+        : observation.gateway_detected
+          ? "Gateway detected; internet unverified"
+          : "Wi-Fi detected only";
+      meta.textContent = distanceText + " · " + networkState + " · last seen " + formatObservationAge(observation.observed_at);
+      state.textContent = observation.remote_access_ready === true
+        ? "Remote access marked ready"
+        : "Observation only — no remote tunnel";
+      details.appendChild(name);
+      details.appendChild(document.createTextNode(" "));
+      details.appendChild(meta);
+      item.appendChild(details);
+      item.appendChild(state);
+      list.appendChild(item);
+    });
+    if (!list.children.length) {
+      const empty = document.createElement("li");
+      empty.textContent = "No reported Wi-Fi observations were found within this radius.";
+      list.appendChild(empty);
+    }
+  }
+
+  function searchCountySources() {
+    const searchButton = get("county-search");
+    const radiusControl = get("county-radius");
+    const status = get("county-status");
+    const accessToken = token();
+    if (!status) return;
+    if (!accessToken) {
+      status.textContent = "Sign in to Dream Education before searching reported county Wi-Fi sources.";
+      return;
+    }
+    if (!window.navigator.geolocation || typeof window.navigator.geolocation.getCurrentPosition !== "function") {
+      status.textContent = "This browser cannot provide location. Allow location access in a supported browser to search nearby observations.";
+      return;
+    }
+    if (searchButton) searchButton.disabled = true;
+    status.textContent = "Getting your location…";
+    window.navigator.geolocation.getCurrentPosition(async function (position) {
+      try {
+        status.textContent = "Searching reported Wi-Fi observations…";
+        const latitude = Number(position.coords.latitude);
+        const longitude = Number(position.coords.longitude);
+        const radius = Number(radiusControl && radiusControl.value || 25);
+        const query = new URLSearchParams({
+          latitude: String(latitude),
+          longitude: String(longitude),
+          radius_km: String(radius)
+        });
+        const response = await fetch("/api/dream-wifi/registry/observations?" + query.toString(), {
+          headers: { Accept: "application/json", Authorization: "Bearer " + accessToken },
+          cache: "no-store"
+        });
+        const result = await response.json().catch(function () { return null; });
+        if (!response.ok || !result || result.success !== true) {
+          status.textContent = result && result.error
+            ? String(result.error)
+            : "Could not retrieve county Wi-Fi observations. Check your sign-in and try again.";
+          renderCountyObservations([]);
+          return;
+        }
+        renderCountyObservations(result.observations);
+        status.textContent = String(result.count || 0) + " reported observation(s) within " + radius +
+          " km. These are reports, not a live radio scan or proof of remote tunnel access.";
+      } catch (_) {
+        status.textContent = "County Wi-Fi search failed. Check your connection and try again.";
+      } finally {
+        if (searchButton) searchButton.disabled = false;
+      }
+    }, function (error) {
+      if (searchButton) searchButton.disabled = false;
+      const reason = error && error.code === 1
+        ? "Location permission was denied. Allow location access and retry."
+        : error && error.code === 3
+          ? "Location lookup timed out. Move to an area with a clearer location signal and retry."
+          : "Could not get your location. Enable device location and retry.";
+      status.textContent = reason;
+    }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 120000 });
+  }
+
+  const countySearchButton = get("county-search");
+  if (countySearchButton) countySearchButton.addEventListener("click", searchCountySources);
+  window.addEventListener("dream-education-auth-changed", function () {
+    const status = get("county-status");
+    if (status) status.textContent = token()
+      ? "Signed in. Search for Wi-Fi observations reported by field devices."
+      : "Sign in and allow location access to search the cloud registry.";
+  });
+
   if (button) button.addEventListener("click", refresh);
   if (dnsButton) dnsButton.addEventListener("click", function () {
     if (!ownerChannelReady || !tunnelSocket || tunnelSocket.readyState !== WebSocket.OPEN || activeUdpProbe) return;
