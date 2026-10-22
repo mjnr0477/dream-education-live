@@ -344,13 +344,14 @@ public final class MainActivity extends Activity {
                     lines.add("NOT SAVED · " + ssid + " — " + safe(error.getMessage()));
                 }
             }
-            final String report = "Nearby Wi-Fi observations\nSubmitted: " + submitted + " · Not saved: " + skipped
+            final int savedCount = submitted;
+            final String report = "Nearby Wi-Fi observations\nSubmitted: " + savedCount + " · Not saved: " + skipped
                     + "\nOnly the Wi-Fi currently connected to this phone can be checked for internet. Other networks are listed as detected, not verified.\n\n"
                     + String.join("\n", lines);
             runOnUiThread(() -> {
                 scanResultsText.setText(report);
-                status.setText(submitted > 0
-                        ? "Reported " + submitted + " nearby Wi-Fi observation(s) to the cloud registry."
+                status.setText(savedCount > 0
+                        ? "Reported " + savedCount + " nearby Wi-Fi observation(s) to the cloud registry."
                         : "No observations were saved. Check sign-in, permissions, and database setup.");
                 scanButton.setEnabled(true);
                 scanInProgress = false;
