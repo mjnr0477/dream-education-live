@@ -8,6 +8,9 @@ on:
       - "public/dream-wifi.html"
       - "public/dream-wifi-page.js"
       - "scripts/dream-wifi-*.js"
+      - "product/dream_wifi_source_discovery.js"
+      - "package.json"
+      - "docs/dream-wifi-multi-source.md"
       - "android/dream-wifi-vpn/**"
       - ".github/workflows/dream-wifi-end-to-end-verification.yml"
   workflow_dispatch:
@@ -35,9 +38,16 @@ jobs:
           node --check scripts/dream-wifi-source-agent.js
           node --check scripts/dream-wifi-proxy-client.js
           node --check scripts/dream-wifi-tunnel-control-smoke-test.js
+          node --check scripts/dream-wifi-multi-source-smoke-test.js
+          node --check scripts/dream-wifi-source-discovery-smoke-test.js
+          node --check scripts/dream-wifi-source-diagnostic.js
           node --check scripts/dream-wifi-android-vpn-smoke-test.js
       - name: Verify authenticated TCP and UDP relay behavior
         run: node scripts/dream-wifi-tunnel-control-smoke-test.js
+      - name: Verify multiple named source registration and selected routing
+        run: node scripts/dream-wifi-multi-source-smoke-test.js
+      - name: Verify local gateway and internet reachability discovery
+        run: node scripts/dream-wifi-source-discovery-smoke-test.js
       - name: Verify Android VPN and dashboard readiness safeguards
         run: node scripts/dream-wifi-android-vpn-smoke-test.js
       - name: Run existing platform regression suite
