@@ -44,7 +44,7 @@
         <li><span>Remote phone test</span><strong id="wifi-phone">Not tested</strong></li>
       </ul>
       <div style="margin:14px 0"><label for="wifi-source-select">Available Wi-Fi sources</label><select id="wifi-source-select" aria-label="Select a registered Dream Wi-Fi source" style="display:block;width:100%;max-width:520px;padding:10px;margin-top:6px"><option value="">Auto-select an available source</option></select><p class="note" id="wifi-source-list-status">Waiting for registered source endpoints…</p></div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap"><button id="wifi-refresh" type="button">Refresh readiness</button><button id="wifi-ping-source" type="button" disabled>Ping source endpoint</button><button id="wifi-test-internet" type="button" disabled>Test HTTP internet</button><button id="wifi-test-dns" type="button" disabled>Test DNS / UDP</button><a class="portal-link" href="http://quant.com/status" target="_blank" rel="noopener noreferrer">Open Quant Wi-Fi portal</a></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap"><button id="wifi-refresh" type="button">Refresh readiness</button><button id="wifi-ping-source" type="button" disabled>Ping source endpoint</button><button id="wifi-test-internet" type="button" disabled>Test HTTP internet</button><button id="wifi-test-dns" type="button" disabled>Test DNS / UDP</button><span class="note">The dashboard browser is not routed through Dream Tunnel. On the Android receiving phone, use the VPN notification's “Open Wi-Fi portal” action after a captive redirect is detected.</span></div>
       <p id="wifi-message" role="status" aria-live="polite">Verifying owner access…</p>
     </section>
     <section class="card" aria-labelledby="county-tracker-title">
