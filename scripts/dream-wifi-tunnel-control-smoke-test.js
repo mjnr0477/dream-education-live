@@ -34,6 +34,7 @@ async function main() {
   const address = server.address();
   const wss = attachDreamWifiTunnel(server, {
     sourceToken: "test-source-secret",
+    sourceTicketTtlMs: 250,
     supabaseAuth: {
       auth: {
         async getUser(token) {
@@ -120,6 +121,14 @@ async function main() {
     const ticketRegistered = waitMessage(nativeSource, m => m.type === "registered");
     nativeSource.send(JSON.stringify({ type: "register", role: "source", sourceToken: ticket.token }));
     assert.equal((await ticketRegistered).role, "source");
+    const ticketExpired = await waitMessage(nativeSource, m => m.type === "error" && /Source ticket expired/.test(m.error));
+    assert.match(ticketExpired.error, /expired/);
+    await new Promise((resolve, reject) => {
+      if (nativeSource.readyState === WebSocket.CLOSED) return resolve();
+      const timer = setTimeout(() => reject(new Error("Ticket-expired source socket remained connected.")), 1500);
+      nativeSource.once("close", () => { clearTimeout(timer); resolve(); });
+    });
+    assert.equal(nativeSource.readyState, WebSocket.CLOSED, "Expired source ticket must close the active source socket.");
 
     legacy = new WebSocket(url);
     await waitOpen(legacy);
