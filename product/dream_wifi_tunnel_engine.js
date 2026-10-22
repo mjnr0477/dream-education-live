@@ -188,6 +188,12 @@ function attachDreamWifiTunnel(server, options = {}) {
             ? proposedId
             : crypto.createHash("sha256").update(sourceName + "|" + (sourceAuth.ownerId || "static")).digest("hex").slice(0, 24);
           const previous = sources.get(sourceId);
+          if (previous && previous !== socket &&
+              (previous.dreamSourceOwnerId !== sourceAuth.ownerId ||
+               previous.dreamSourceAuth !== sourceAuth.kind)) {
+            reject(socket, "Source ID is already registered to a different authorization scope.");
+            return;
+          }
           if (previous && previous !== socket) {
             try { previous.close(1012, "Source endpoint replaced"); } catch (_) {}
           }
