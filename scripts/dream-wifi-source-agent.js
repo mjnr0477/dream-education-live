@@ -58,7 +58,7 @@ async function detectSourceName() {
   for (const attempt of attempts) {
     try {
       const { stdout } = await execFileAsync(attempt.command, attempt.args, { timeout: 1200, maxBuffer: 4096 });
-      const name = String(attempt.parse(stdout) || "").trim().replace(/[<>\\x00-\\x1f]/g, "").slice(0, 80);
+      const name = String(attempt.parse(stdout) || "").trim().replace(/[<>\x00-\x1f]/g, "").slice(0, 80);
       if (name && name.toLowerCase() !== "<unknown ssid>") return name;
     } catch (_) {}
   }
@@ -222,7 +222,7 @@ function connect() {
       currentSocket.send(JSON.stringify({ type: "register", role: "source", sourceToken, sourceId, sourceName }));
     }).catch(() => {
       if (!stopped && currentSocket === socket && currentSocket.readyState === WebSocket.OPEN) {
-        currentSocket.send(JSON.stringify({ type: "register", role: "source", sourceToken, sourceId, sourceName: os.hostname() });
+        currentSocket.send(JSON.stringify({ type: "register", role: "source", sourceToken, sourceId, sourceName: os.hostname() }));
       }
     });
   });
