@@ -11,7 +11,7 @@ On an authorized source device connected to the intended internet network, confi
 - `DREAM_WIFI_SOURCE_NAME` to optionally override the friendly name shown in the app
 - `DREAM_WIFI_SOURCE_ID` to a stable, unique ID for that source (letters, digits, underscore and hyphen)
 
-Then run `npm run dream-wifi:source`. Multiple agents can be online at once; do not reuse a source ID for different active endpoints. When no source name is configured, the Node source agent tries Termux Wi-Fi connection info, `iwgetid`, and `nmcli` to discover the connected SSID; it falls back to the host name if those tools are unavailable. The Android source app registers a per-session source ID automatically and currently labels it with the Android device model.
+For an interactive Termux setup, run `bash scripts/dream-wifi-source-setup.sh` from the repository root. It asks for the hosted tunnel URL, reads the source token without echoing it, and does not save the token to a file. The token must already be configured as `DREAM_WIFI_SOURCE_TOKEN` on the hosted service. Keep the terminal process running while the source should be available. Alternatively, set the environment variables and run `npm run dream-wifi:source`. Multiple agents can be online at once; do not reuse a source ID for different active endpoints. When no source name is configured, the Node source agent tries Termux Wi-Fi connection info, `iwgetid`, and `nmcli` to discover the connected SSID; it falls back to the host name if those tools are unavailable. The Android source app registers a per-session source ID automatically and currently labels it with the Android device model.
 
 ## Select a source
 
