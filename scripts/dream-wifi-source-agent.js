@@ -6,11 +6,14 @@ const dns = require("node:dns").promises;
 const net = require("node:net");
 const dgram = require("node:dgram");
 const os = require("node:os");
+const { execFile } = require("node:child_process");
+const { promisify } = require("node:util");
 const { WebSocket } = require("ws");
+const execFileAsync = promisify(execFile);
 
 const tunnelUrl = String(process.env.DREAM_WIFI_TUNNEL_URL || "").trim();
 const sourceToken = String(process.env.DREAM_WIFI_SOURCE_TOKEN || "");
-const sourceName = String(process.env.DREAM_WIFI_SOURCE_NAME || os.hostname() || "Dream Wi-Fi source").trim().slice(0, 80) || "Dream Wi-Fi source";
+const configuredSourceName = String(process.env.DREAM_WIFI_SOURCE_NAME || "").trim().slice(0, 80);
 const sourceId = String(process.env.DREAM_WIFI_SOURCE_ID || os.hostname() || "source").replace(/[^a-zA-Z0-9_-]/g, "-").slice(0, 80) || "source";
 const MAX_CHUNK = 12 * 1024;
 const MAX_WS_BUFFERED_BYTES = 1024 * 1024;
@@ -36,6 +39,31 @@ let reconnectTimer = null;
 let heartbeatTimer = null;
 let reconnectDelayMs = 5000;
 
+async function detectSourceName() {
+  if (configuredSourceName) return configuredSourceName;
+  const attempts = [
+    { command: "termux-wifi-connectioninfo", args: [], parse: output => {
+      try {
+        const data = JSON.parse(output);
+        const ssid = String(data.ssid || "").trim().replace(/^"(.*)"$/, "$1");
+        return ssid && ssid.toLowerCase() !== "<unknown ssid>" ? ssid : "";
+      } catch (_) { return ""; }
+    } },
+    { command: "iwgetid", args: ["-r"], parse: output => output.trim().replace(/^"(.*)"$/, "$1") },
+    { command: "nmcli", args: ["-t", "-f", "active,ssid", "dev", "wifi"], parse: output => {
+      const match = output.match(/^yes:(.*)$/m);
+      return match ? match[1].replace(/\\:/g, ":").trim() : "";
+    } }
+  ];
+  for (const attempt of attempts) {
+    try {
+      const { stdout } = await execFileAsync(attempt.command, attempt.args, { timeout: 1200, maxBuffer: 4096 });
+      const name = String(attempt.parse(stdout) || "").trim().replace(/[<>\\x00-\\x1f]/g, "").slice(0, 80);
+      if (name && name.toLowerCase() !== "<unknown ssid>") return name;
+    } catch (_) {}
+  }
+  return String(os.hostname() || "Dream Wi-Fi source").trim().slice(0, 80) || "Dream Wi-Fi source";
+}
 function send(payload) {
   if (socket && socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify(payload));
 }
@@ -189,7 +217,14 @@ function connect() {
         currentSocket.terminate();
       }
     }, 25000);
-    currentSocket.send(JSON.stringify({ type: "register", role: "source", sourceToken, sourceId, sourceName }));
+    detectSourceName().then(sourceName => {
+      if (stopped || currentSocket !== socket || currentSocket.readyState !== WebSocket.OPEN) return;
+      currentSocket.send(JSON.stringify({ type: "register", role: "source", sourceToken, sourceId, sourceName }));
+    }).catch(() => {
+      if (!stopped && currentSocket === socket && currentSocket.readyState === WebSocket.OPEN) {
+        currentSocket.send(JSON.stringify({ type: "register", role: "source", sourceToken, sourceId, sourceName: os.hostname() });
+      }
+    });
   });
   currentSocket.on("message", raw => {
     let message;
