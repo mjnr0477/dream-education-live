@@ -37,6 +37,12 @@ assert.ok(html.includes('Open Wi-Fi portal'), "Explain how to open the portal th
 assert.ok(html.includes('id="county-results"'), "County tracker results list is missing.");
 assert.ok(html.includes("cannot identify phones connected to a remote router"), "Tracker must not imply it can identify connected devices.");
 assert.ok(html.includes("github.com/mjnr0477/dream-education-live/blob/main/docs/dream-wifi-source-agent-without-app.md"), "Standalone source-agent limitations must be linked.");
+assert.ok(html.includes('id="wifi-generate-source-ticket"'), "Standalone source ticket button is missing.");
+assert.ok(html.includes('id="wifi-source-ticket-output"'), "Temporary source ticket output is missing.");
+assert.ok(html.includes("Treat this like a password"), "Source ticket handling warning is missing.");
+assert.ok(page.includes('fetch("/api/dream-wifi/source-ticket"'), "Dashboard must request tickets from the authenticated endpoint.");
+assert.ok(page.includes("navigator.clipboard.writeText(value)"), "Source ticket copy action is missing.");
+assert.ok(page.includes("sourceTicketOutput.hidden = true"), "Previous source ticket must be hidden before generating a replacement.");
 const sourceAgentDocs = fs.readFileSync("docs/dream-wifi-source-agent-without-app.md", "utf8");
 assert.ok(sourceAgentDocs.includes("informed opt-in"), "Source agent documentation must require informed opt-in.");
 assert.ok(sourceAgentDocs.includes("does not bind sockets to a specific Android Wi-Fi network"), "Standalone agent routing limitation must be documented.");
