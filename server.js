@@ -5770,6 +5770,15 @@ app.post("/api/dream-wifi/source-ticket", async (req, res) => {
     if (!isOwnerAccount({ email: user.email })) {
       return res.status(403).json({ success: false, error: "Owner access is required." });
     }
+    const ticketRate = checkAuthRateLimit(req, "source-ticket");
+    if (!ticketRate.allowed) {
+      res.set("Retry-After", String(ticketRate.retryAfterSeconds));
+      return res.status(429).json({
+        success: false,
+        error: "Too many source tickets requested. Try again later.",
+        retry_after_seconds: ticketRate.retryAfterSeconds
+      });
+    }
     const ticket = dreamWifiTunnel.issueSourceTicket(user.id);
     return res.json({ success: true, token: ticket.token, expires_at: ticket.expires_at });
   } catch (error) {

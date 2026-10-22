@@ -9,6 +9,10 @@ const client = fs.readFileSync(path.join(root, "public", "dream-wifi.js"), "utf8
 const tunnelPage = fs.readFileSync(path.join(root, "public", "dream-wifi.html"), "utf8");
 
 assert.match(server, /app\.get\(["']\/api\/dream-wifi\/owner-status["']/);
+assert.match(server, /app\.post\(["']\/api\/dream-wifi\/source-ticket["']/);
+assert.match(server, /checkAuthRateLimit\(req, "source-ticket"\)/);
+assert.match(server, /Too many source tickets requested/);
+assert.match(server, /issueSourceTicket\(user\.id\)/);
 assert.match(server, /supabaseAuth\.auth\.getUser\(match\[1\]\.trim\(\)\)/);
 assert.match(server, /isOwnerAccount\(\{ email: user\.email \}\)/);
 assert.match(server, /status\(401\)\.json/);
@@ -22,6 +26,8 @@ assert.match(page, /class=["\x27]dream-wifi-nav-link/);
 assert.match(page, /class=["\x27]dream-wifi-nav-link/);
 assert.match(tunnelPage, /full-device Android routing and provider package access still require separate validation/i);
 assert.match(tunnelPage, /id="wifi-test-internet"/);
+assert.match(tunnelPage, /id="wifi-generate-source-ticket"/);
+assert.match(tunnelPage, /id="wifi-source-ticket-output"/);
 assert.match(fs.readFileSync(path.join(root, "public", "dream-wifi-page.js"), "utf8"), /host: "example.com", port: 80/);
 const tunnelClient = fs.readFileSync(path.join(root, "public", "dream-wifi-page.js"), "utf8");
 assert.match(tunnelClient, /Quant-to-Dream-to-public-internet test passed/);

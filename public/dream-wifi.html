@@ -46,6 +46,21 @@
       <div style="margin:14px 0"><label for="wifi-source-select">Available Wi-Fi sources</label><select id="wifi-source-select" aria-label="Select a registered Dream Wi-Fi source" style="display:block;width:100%;max-width:520px;padding:10px;margin-top:6px"><option value="">Auto-select an available source</option></select><p class="note" id="wifi-source-list-status">Waiting for registered source endpoints…</p></div>
       <div style="display:flex;gap:10px;flex-wrap:wrap"><button id="wifi-refresh" type="button">Refresh readiness</button><button id="wifi-ping-source" type="button" disabled>Ping source endpoint</button><button id="wifi-test-internet" type="button" disabled>Test HTTP internet</button><button id="wifi-test-dns" type="button" disabled>Test DNS / UDP</button><span class="note">The dashboard browser is not routed through Dream Tunnel. On the Android receiving phone, use the VPN notification's “Open Wi-Fi portal” action after a captive redirect is detected.</span></div>
       <p id="wifi-message" role="status" aria-live="polite">Verifying owner access…</p>
+      <div class="source-agent-panel" style="margin-top:18px;padding-top:16px;border-top:1px solid #334155">
+        <h3>Use a source phone without the Dream Wi-Fi app</h3>
+        <p class="note">For a phone you own or have permission to administer, generate a temporary source ticket and run the standalone Node agent in Termux. The phone still needs the agent running and must explicitly opt in; this cannot activate a paid Wi-Fi package or reliably bind to captive Wi-Fi while cellular data carries the control connection.</p>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <button id="wifi-generate-source-ticket" type="button">Generate temporary source ticket</button>
+          <button id="wifi-copy-source-ticket" type="button" disabled>Copy ticket</button>
+        </div>
+        <p id="wifi-source-ticket-status" class="note" role="status" aria-live="polite">Ticket not generated.</p>
+        <div id="wifi-source-ticket-output" hidden>
+          <label for="wifi-source-ticket">Temporary source ticket (expires in 12 hours)</label>
+          <textarea id="wifi-source-ticket" rows="3" readonly spellcheck="false" autocomplete="off" style="display:block;width:100%;box-sizing:border-box;margin-top:6px;padding:10px"></textarea>
+          <p class="note">Treat this like a password. It authorizes a source endpoint for your owner account. Do not post or share it publicly. The standalone agent uses the server's default network route; use native Android source mode for any test that needs Wi-Fi/cellular network separation.</p>
+          <p><a href="https://github.com/mjnr0477/dream-education-live/blob/main/docs/dream-wifi-source-agent-without-app.md">Standalone agent setup and limitations</a></p>
+        </div>
+      </div>
     </section>
     <section class="card" aria-labelledby="county-tracker-title">
       <h2 id="county-tracker-title">County Wi-Fi source tracker</h2>
