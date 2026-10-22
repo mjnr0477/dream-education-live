@@ -12,6 +12,9 @@ const css = read("public/meetings-workspace.css");
 const pkg = JSON.parse(read("package.json"));
 
 assert.match(server, /agenda: String\(agenda \|\| ""\)\.trim\(\)\.slice\(0, 2000\)/, "Meeting agenda must be bounded and stored.");
+assert.match(server, /parsedScheduledDate\.toISOString\(\)\.slice\(0, 10\) === scheduledDateText/, "Meeting creation must reject impossible calendar dates.");
+assert.match(server, /timeFormatIsValid/, "Meeting creation must validate 24-hour times server-side.");
+assert.match(server, /scheduled_date must be a real date in YYYY-MM-DD format/, "Invalid meeting schedules must return a clear validation error.");
 assert.match(server, /app\.post\("\/api\/product\/meetings\/:meeting_id\/follow-up"/, "Shared meeting follow-up route must exist.");
 const routeStart = server.indexOf('app.post("/api/product/meetings/:meeting_id/follow-up"');
 const routeEnd = server.indexOf('DREAM EDUCATION MEETING JOIN API', routeStart);
