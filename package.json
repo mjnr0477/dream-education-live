@@ -14,7 +14,9 @@
     "test:frontend-completeness": "node scripts/frontend-completeness-smoke-test.js",
     "test:evidence-ledger": "node scripts/evidence-ledger-smoke-test.js",
     "dream-wifi:source": "node scripts/dream-wifi-source-agent.js",
-    "dream-wifi:proxy": "node scripts/dream-wifi-proxy-client.js"
+    "dream-wifi:proxy": "node scripts/dream-wifi-proxy-client.js",
+    "test:dream-wifi-multi-source": "node scripts/dream-wifi-multi-source-smoke-test.js",
+    "test:dream-wifi-source-discovery": "node scripts/dream-wifi-source-discovery-smoke-test.js"
   },
   "keywords": [],
   "author": "",
