@@ -1199,7 +1199,7 @@ app.post("/api/learn", async (req, res) => {
     debugLearning(
       "0. Authentication result:",
       auth.success,
-      auth.success ? auth.account?.email : auth.error
+      auth.success ? auth.account?.role : auth.error
     );
 
     if (!auth.success) {
