@@ -9,6 +9,8 @@ on:
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/dependency-audit-diagnosis.yml"
+  schedule:
+    - cron: "17 6 * * 1"
   workflow_dispatch:
 
 permissions:
