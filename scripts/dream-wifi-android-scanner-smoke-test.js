@@ -55,6 +55,10 @@ assert.ok(service.includes("NET_CAPABILITY_VALIDATED"), "Alternate control netwo
 assert.ok(relay.includes("builder.socketFactory(controlNetwork.getSocketFactory())"), "Tunnel control WebSocket must use the alternate control route when available.");
 assert.ok(relay.includes("sourceNetwork.bindSocket(socket)"), "Source TCP destinations must still be routed through the selected Wi-Fi network.");
 assert.ok(relay.includes("controlNetwork.openConnection(url)"), "Source session refresh must use the control route when available.");
+assert.ok(relay.includes("Captive portal redirect detected"), "A captive portal must be detected without claiming public internet is verified.");
+assert.ok(relay.includes("finishInternetProbe(id, false,") && relay.includes("}, true);"), "Captive-portal mode must start the VPN for portal access and retry internet verification.");
+assert.ok(service.includes('Uri.parse("http://example.com")'), "Notification must offer an HTTP request that can trigger a captive-portal redirect through the VPN.");
+assert.ok(service.includes('builder.addAction(android.R.drawable.ic_menu_view, "Open Wi-Fi portal", portalPending)'), "The receiving phone must have a direct portal-open action when captive portal mode is detected.");
 assert.ok(relay.includes("sourceNetwork.bindSocket(socket)"), "Source TCP traffic must use the selected Wi-Fi network.");
 assert.ok(relay.includes("sourceNetwork.bindSocket(socket);"), "Source DNS/UDP traffic must use the selected Wi-Fi network.");
 assert.ok(relay.includes("if (!sourceOnly) {\n            workers.execute(this::serveSocks);\n            connectOwner();"), "A source-only phone must not start the owner VPN/SOCKS path.");
