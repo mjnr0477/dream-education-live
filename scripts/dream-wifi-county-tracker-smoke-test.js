@@ -27,6 +27,7 @@ for (const required of [
   assert.ok(page.includes(required), "County tracker implementation is missing: " + required);
 }
 assert.ok(html.includes('id="county-search"'), "County tracker search button is missing.");
+assert.ok(html.includes('src="/dream-wifi-page.js?v=20261022d"'), "Dashboard script cache-bust version must be updated when the tracker changes.");
 assert.ok(html.includes('id="county-radius"'), "County tracker radius control is missing.");
 assert.ok(html.includes('id="county-center"'), "County tracker search center selector is missing.");
 assert.ok(html.includes('id="county-latitude"'), "County tracker custom latitude input is missing.");
