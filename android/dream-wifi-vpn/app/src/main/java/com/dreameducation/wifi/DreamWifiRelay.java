@@ -538,7 +538,7 @@ final class DreamWifiRelay {
                 association.endpoint = new InetSocketAddress(packet.getAddress(), packet.getPort());
                 sendOwner(new SafeJson().putSafe("type", "udp-send").putSafe("id", association.id)
                         .putSafe("host", parsed.host).putSafe("port", parsed.port)
-                        .putSafe("data", Base64.encodeToString(parsed.data, Base64.NO_WRAP)).toString());
+                        .putSafe("data", Base64.encodeToString(parsed.data, Base64.NO_WRAP)).putSafe("sourceId", selectedSourceId).toString());
             } catch (IOException error) {
                 if (!association.socket.isClosed()) status("Local DNS relay error: " + safeReason(error.getMessage()));
                 break;
