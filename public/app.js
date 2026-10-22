@@ -5031,8 +5031,13 @@ async function openMeetings() {
               externalMeetingWindow.location.replace(safeMeetingUrl);
               externalMeetingWindow.opener = null;
             } else {
-              const opened = window.open(safeMeetingUrl, "_blank", "noopener,noreferrer");
-              if (!opened) {
+              // Open from the original click gesture, then sever opener access.
+              // The noopener feature string can make window.open return null even
+              // when the browser did create the tab, breaking the retry button flow.
+              const opened = window.open(safeMeetingUrl, "_blank");
+              if (opened) {
+                opened.opener = null;
+              } else {
                 button.dataset.externalUrl = safeMeetingUrl;
                 button.disabled = false;
                 button.textContent = "Open meeting";
