@@ -46,7 +46,7 @@ public final class MainActivity extends Activity {
     private boolean statusReceiverRegistered = false;
     private final BroadcastReceiver statusReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
-            if (ACTION_SOURCES.equals(intent.getAction())) {
+            if (DreamVpnService.ACTION_SOURCES.equals(intent.getAction())) {
                 String[] ids = intent.getStringArrayExtra("ids");
                 String[] names = intent.getStringArrayExtra("names");
                 availableSourceIds = ids == null ? new String[0] : ids;
