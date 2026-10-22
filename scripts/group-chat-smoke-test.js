@@ -56,7 +56,7 @@ assert.match(css, /de-chat-group-heading/);
 assert.match(ui, /data-panel-action="media-studio"/, "Chat should provide a direct Media Studio shortcut.");
 assert.match(ui, /data-panel-action="meetings"/, "Chat should provide a direct Meetings shortcut.");
 assert.match(css, /de-chat-quick-actions/, "Chat learning shortcuts must be styled responsively.");
-assert.match(index, /chat-workspace\.js\?v=20261022b/);
+assert.match(index, /chat-workspace\.js\?v=20261022c/);
 
 execFileSync(process.execPath, ["--check", serverPath]);
 execFileSync(process.execPath, ["--check", uiPath]);
