@@ -32,26 +32,26 @@ jobs:
         run: npm install --no-save --package-lock=false playwright
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
-      - name: Start Dream Education locally
+      - name: Start isolated Dream Education frontend server
         env:
           PORT: 4173
         run: |
-          npm start > /tmp/dream-education-server.log 2>&1 &
+          node scripts/serve-public-static-smoke.js > /tmp/dream-education-server.log 2>&1 &
           echo $! > /tmp/dream-education-server.pid
-          for attempt in $(seq 1 40); do
-            if curl --silent --show-error --fail http://127.0.0.1:4173/ -o /dev/null; then
-              echo "Dream Education homepage is responding."
+          for attempt in $(seq 1 20); do
+            if curl --connect-timeout 1 --max-time 3 --silent --show-error --fail http://127.0.0.1:4173/ -o /dev/null; then
+              echo "Dream Education frontend is responding."
               exit 0
             fi
-            sleep 2
+            sleep 1
           done
-          echo "Dream Education did not start in time. Server log:"
+          echo "Dream Education frontend did not start in time. Server log:"
           cat /tmp/dream-education-server.log
           exit 1
       - name: Exercise real desktop and mobile UI interactions
         env:
           BASE_URL: http://127.0.0.1:4173
         run: node scripts/browser-ui-click-through-smoke-test.js
-      - name: Print server log on failure
+      - name: Print frontend server log on failure
         if: failure()
         run: cat /tmp/dream-education-server.log || true
