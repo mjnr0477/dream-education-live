@@ -3200,3 +3200,123 @@ body.panel-open .experience-panel{
     transition-duration: .01ms !important;
   }
 }
+
+/* Dream Education polish: consistent, accessible interactions without changing feature logic. */
+:root {
+  --de-focus-ring: rgba(158, 231, 255, .9);
+  --de-card-border: rgba(255, 255, 255, .12);
+  --de-card-hover: rgba(255, 255, 255, .075);
+}
+
+:where(button, [role="button"], input, select, textarea, a):focus-visible {
+  outline: 3px solid var(--de-focus-ring);
+  outline-offset: 3px;
+}
+
+button,
+[role="button"] {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+button:disabled,
+[role="button"][aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: .58;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.nav-center button,
+.nav-login,
+.mobile-drawer button,
+.panel-action,
+.school-nav-button,
+.de-landing-destinations button {
+  transition: color .18s ease, background-color .18s ease, border-color .18s ease,
+    box-shadow .18s ease, transform .18s ease;
+}
+
+.panel-card {
+  border-color: var(--de-card-border);
+  transition: border-color .18s ease, background-color .18s ease, transform .18s ease;
+}
+
+.panel-card-action {
+  cursor: pointer;
+}
+
+.panel-card-action:hover {
+  border-color: rgba(223, 255, 99, .34);
+  background-color: var(--de-card-hover);
+}
+
+.panel-card-action:focus-visible {
+  outline: 3px solid var(--de-focus-ring);
+  outline-offset: 3px;
+}
+
+.panel-input,
+input,
+select,
+textarea {
+  accent-color: var(--accent);
+}
+
+.panel-input:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  border-color: var(--de-focus-ring);
+  box-shadow: 0 0 0 3px rgba(158, 231, 255, .13);
+}
+
+.dream-search-box,
+.dream-search-results,
+.experience-panel,
+.panel-card,
+.teacher-stat-card,
+.school-stat-card {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 650px) {
+  .navbar {
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+  }
+
+  .hero-actions > button,
+  .panel-actions > button,
+  .dream-search-box button,
+  .mobile-drawer button {
+    min-height: 44px;
+  }
+
+  .experience-panel {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .panel-scroll {
+    overscroll-behavior: contain;
+  }
+
+  .dream-search-box {
+    gap: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}
