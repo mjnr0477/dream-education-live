@@ -89,13 +89,13 @@ for (const route of requiredServerRoutes) {
 
 for (const token of [
   "/nextgen-visual.js?v=20261011a",
-  "/frontend-workspace.js?v=20261022a"
+  "/frontend-workspace.js?v=20261025c"
 ]) {
   if (!index.includes(token)) throw new Error("Required frontend script missing: " + token);
 }
 
 
-for (const [asset, version] of [["style.css", "20261025b"], ["frontend-workspace.js", "20261022a"]]) {
+for (const [asset, version] of [["style.css", "20261025b"], ["frontend-workspace.js", "20261025c"]]) {
   const assetReference = new RegExp("/" + asset.replace(".", "\\.") + "\\?v=" + version);
   if (!assetReference.test(index)) throw new Error("Updated cache-busting version missing for " + asset);
 }
