@@ -6363,8 +6363,16 @@ app.post("/api/auth/refresh", async (req, res) => {
   }
 });
 
-app.post("/api/product/learner", (req, res) => {
+app.post("/api/product/learner", async (req, res) => {
   try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    const requestedLearnerId = String(req.body?.learner_id || "");
+    if (auth.account.owner_account !== true &&
+        (auth.account.role !== "learner" || !auth.account.learner_id ||
+         String(auth.account.learner_id) !== requestedLearnerId)) {
+      return res.status(403).json({ success: false, error: "You may only create or update your own learner profile." });
+    }
     const existingLearner = req.body.learner_id
       ? getLearner(req.body.learner_id)
       : null;
@@ -6554,8 +6562,14 @@ const {
   getTeacher
 } = require("./product/data_engine");
 
-app.post("/api/product/teacher", (req, res) => {
+app.post("/api/product/teacher", async (req, res) => {
   try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    if (auth.account.owner_account !== true &&
+        (auth.account.role !== "teacher" || String(auth.account.teacher_id || "") !== String(req.body?.teacher_id || ""))) {
+      return res.status(403).json({ success: false, error: "You may only create or update your own teacher profile." });
+    }
     const teacher = createTeacherProfile({
       teacher_id: req.body.teacher_id,
       name: req.body.name,
@@ -7972,8 +7986,14 @@ const {
   getParent
 } = require("./product/data_engine");
 
-app.post("/api/product/parent", (req, res) => {
+app.post("/api/product/parent", async (req, res) => {
   try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    if (auth.account.owner_account !== true &&
+        (auth.account.role !== "parent" || String(auth.account.parent_id || "") !== String(req.body?.parent_id || ""))) {
+      return res.status(403).json({ success: false, error: "You may only create or update your own parent profile." });
+    }
     const parent = createParentProfile({
       parent_id: req.body.parent_id,
       name: req.body.name,
@@ -8080,8 +8100,14 @@ const {
   getSchool
 } = require("./product/data_engine");
 
-app.post("/api/product/school", (req, res) => {
+app.post("/api/product/school", async (req, res) => {
   try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    if (auth.account.owner_account !== true &&
+        (auth.account.role !== "school" || String(auth.account.school_id || "") !== String(req.body?.school_id || ""))) {
+      return res.status(403).json({ success: false, error: "You may only create or update your own school profile." });
+    }
     const school = createSchoolProfile({
       school_id: req.body.school_id,
       name: req.body.name,
@@ -8201,8 +8227,16 @@ const {
   getClass
 } = require("./product/data_engine");
 
-app.post("/api/product/class", (req, res) => {
+app.post("/api/product/class", async (req, res) => {
   try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    const requestedTeacherId = String(req.body?.teacher_id || "");
+    const requestedSchoolId = String(req.body?.school_id || "");
+    const allowed = auth.account.owner_account === true ||
+      (auth.account.role === "teacher" && String(auth.account.teacher_id || "") === requestedTeacherId) ||
+      (auth.account.role === "school" && String(auth.account.school_id || "") === requestedSchoolId);
+    if (!allowed) return res.status(403).json({ success: false, error: "You may only create classes for your own teaching or school account." });
     const classData = createClass({
       class_id: req.body.class_id,
       name: req.body.name,
@@ -8280,11 +8314,28 @@ const {
   getResults
 } = require("./product/data_engine");
 
-app.post("/api/product/results", (req, res) => {
+app.post("/api/product/results", async (req, res) => {
   try {
-    const results = Array.isArray(req.body.results)
-      ? req.body.results.map(result => recordResult(result))
-      : [];
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    const requestedResults = Array.isArray(req.body?.results) ? req.body.results : [];
+    if (auth.account.owner_account !== true) {
+      if (auth.account.role !== "teacher") {
+        return res.status(403).json({ success: false, error: "Only a teacher or verified platform owner can record class results." });
+      }
+      const store = require("./product/data_engine").loadStore();
+      const teacherId = String(auth.account.teacher_id || "");
+      const unauthorizedResult = requestedResults.some(result => {
+        const classData = store.classes?.[String(result?.class_id || "")];
+        return !classData || String(classData.teacher_id || "") !== teacherId ||
+          !result?.learner_id || !Array.isArray(classData.learners) ||
+          !classData.learners.some(id => String(id) === String(result.learner_id));
+      });
+      if (unauthorizedResult) {
+        return res.status(403).json({ success: false, error: "Results may only be recorded for learners in your assigned classes." });
+      }
+    }
+    const results = requestedResults.map(result => recordResult(result));
 
     const analysis = analyzeResults(results);
 
