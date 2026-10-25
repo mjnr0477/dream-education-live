@@ -1172,13 +1172,16 @@ app.use(express.static(path.join(__dirname, "public")));
 // Dream Search routes are registered after payment helpers are initialized.\n// This avoids accessing the later-declared owner helper during module startup.\n
 
 app.get("/api/health", (req, res) => {
+  const supabaseConfigured = Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_KEY);
   res.json({
     success: true,
+    status: "ok",
     app: "Dream Education",
     cache: "enabled",
-    supabase: "enabled",
+    // Configuration status is not a live connectivity check.
+    supabase: supabaseConfigured ? "configured" : "not_configured",
     ai_mode: AI_MODE,
-    learning_history: "enabled"
+    learning_history: supabaseConfigured ? "configured" : "not_configured"
   });
 });
 
