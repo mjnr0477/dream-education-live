@@ -15,7 +15,7 @@ for (const route of routes) {
   const marker = 'app.get("' + route + '", async (req, res) => {';
   const start = source.indexOf(marker);
   assert.notStrictEqual(start, -1, "Missing protected route " + route);
-  const end = source.indexOf("\\napp.", start + marker.length);
+  const end = source.indexOf("\napp.", start + marker.length);
   const body = source.slice(start, end < 0 ? source.length : end);
   assert.ok(body.includes("getAuthenticatedAccount(req)"), route + " must authenticate.");
   assert.ok(body.includes("canAccessLearnerRecord(auth.account, req.params.learner_id, accessStore)"), route + " must enforce learner relationship access.");
