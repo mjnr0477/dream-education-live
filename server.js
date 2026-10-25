@@ -4708,6 +4708,12 @@ app.get("/api/intelligence/:learner_id", async (req, res) => {
 // ==========================================
 app.get("/api/adaptive-question/:learner_id", async (req, res) => {
   try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    if (auth.account.owner_account !== true &&
+        (auth.account.role !== "learner" || String(auth.account.learner_id || "") !== String(req.params.learner_id || ""))) {
+      return res.status(403).json({ success: false, error: "You are not authorized to access this learner's adaptive history." });
+    }
     const { learner_id } = req.params;
 
     if (!learner_id) {
