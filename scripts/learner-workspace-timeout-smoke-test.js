@@ -9,5 +9,5 @@ const index = fs.readFileSync(path.join(root, "public/index.html"), "utf8");
 
 assert.match(workspace, /setTimeout\(function \(\) \{\s*controller\.abort\(\);\s*\}, 8000\)/);
 assert.match(workspace, /Learning request timed out after 8 seconds/);
-assert.match(index, /frontend-workspace\.js\?v=20261022a/);
+assert.match(index, /frontend-workspace\.js\?v=20261025c/);
 console.log("Learner workspace timeout smoke test passed.");
