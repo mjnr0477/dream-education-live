@@ -6511,8 +6511,14 @@ app.get("/api/product/learner/:learner_id", async (req, res) => {
   }
 });
 
-app.post("/api/product/learner/:learner_id/preferences", (req, res) => {
+app.post("/api/product/learner/:learner_id/preferences", async (req, res) => {
   try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    if (auth.account.owner_account !== true &&
+        (auth.account.role !== "learner" || String(auth.account.learner_id || "") !== String(req.params.learner_id || ""))) {
+      return res.status(403).json({ success: false, error: "Only this learner or the verified platform owner can change learning preferences." });
+    }
     const learner = getLearner(req.params.learner_id);
 
     if (!learner) {
@@ -8273,9 +8279,43 @@ app.post("/api/product/class", async (req, res) => {
   }
 });
 
-app.get("/api/product/class/:class_id", (req, res) => {
+function canAccessClassRecord(account, classData, store) {
+  if (account?.owner_account === true) return true;
+  if (!account || !classData) return false;
+
+  if (account.role === "teacher") {
+    return String(account.teacher_id || "") === String(classData.teacher_id || "");
+  }
+  if (account.role === "school") {
+    return String(account.school_id || "") === String(classData.school_id || "");
+  }
+
+  const learners = Array.isArray(classData.learners)
+    ? classData.learners.map(id => String(id))
+    : [];
+  if (account.role === "learner") {
+    return learners.includes(String(account.learner_id || ""));
+  }
+  if (account.role === "parent") {
+    const parent = store?.parents?.[String(account.parent_id || "")];
+    return Array.isArray(parent?.children) &&
+      parent.children.some(childId => learners.includes(String(childId)));
+  }
+  return false;
+}
+
+app.get("/api/product/class/:class_id", async (req, res) => {
   try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    const store = require("./product/data_engine").loadStore();
     const classData = getClass(req.params.class_id);
+    if (!classData) {
+      return res.status(404).json({ success: false, error: "Class not found" });
+    }
+    if (!canAccessClassRecord(auth.account, classData, store)) {
+      return res.status(403).json({ success: false, error: "You are not authorized to view this class." });
+    }
 
     if (!classData) {
       return res.status(404).json({
