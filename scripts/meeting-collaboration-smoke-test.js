@@ -42,8 +42,8 @@ assert.match(app, /Meetings could not open/, "Missing Meetings workspace handler
 assert.match(app, /window\.DreamEducationConnections = \{/, "General Connections workspace must be exposed to the main navigation dispatcher.");
 assert.match(app, /window\.DreamEducationConnections\s*=\s*\{[\s\S]*?open:\s*openGeneralConnections/, "General Connections workspace must export its handler for external navigation.");
 assert.match(app, /if \(action === "general-connections"\) \{[\s\S]*?window\.DreamEducationConnections\s*&&[\s\S]*?typeof window\.DreamEducationConnections\.open === "function"[\s\S]*?window\.DreamEducationConnections\.open\(\);/, "Stay Connected General Connections action must invoke the exported workspace handler across IIFE scope.");
-assert.match(app, /if \(action === "meetings"\) \{[\s\S]*?openMeetings\(\);/, "Connect Open Meetings must directly invoke the workspace function.");
-assert.match(app, /if \(action === "general-connections"\) \{[\s\S]*?openGeneralConnections\(\);/, "Connect Open General Connections must directly invoke the workspace function.");
+assert.match(app, /if \(action === "meetings"\) \{[\s\S]*?window\.DreamEducationMeetings\.open\(\);/, "Connect Open Meetings must invoke the exported workspace function.");
+assert.match(app, /if \(action === "general-connections"\) \{[\s\S]*?window\.DreamEducationConnections\.open\(\);/, "Connect Open General Connections must invoke the exported workspace function.");
 assert.match(app, /General Connections could not open/, "Missing General Connections handler must show visible feedback instead of silently doing nothing.");
 assert.match(read("public/index.html"), /app\.js\?v=20261022g/, "Workspace navigation fix must use a refreshed app script asset.");
 assert.match(app, /id="meeting-agenda"/, "Meeting creation must include an optional agenda.");
