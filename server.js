@@ -146,6 +146,15 @@ const client = new OpenAI({
   maxRetries: 0
 });
 
+// Code generation is a long-running operation and must not inherit the
+// five-second timeout used by latency-sensitive API requests.
+const codeGenerationClient = new OpenAI({
+  apiKey: process.env.AI_API_KEY,
+  baseURL: process.env.AI_BASE_URL,
+  timeout: 120000,
+  maxRetries: 1
+});
+
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_KEY
@@ -2631,7 +2640,7 @@ Return valid JSON only.
     debugLearning("Mode:", mode);
     debugLearning("Request length:", generation.request.length);
 
-    const response = await client.chat.completions.create({
+    const response = await codeGenerationClient.chat.completions.create({
       model: process.env.AI_MODEL || "gemini-3.8-flash",
       messages: [
         {
