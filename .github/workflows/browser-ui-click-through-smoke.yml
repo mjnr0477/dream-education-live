@@ -1,0 +1,57 @@
+name: Browser UI click-through smoke
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: "30 7 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: browser-ui-smoke-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install locked project dependencies
+        run: npm ci
+      - name: Install isolated Playwright test dependency
+        run: npm install --no-save --package-lock=false playwright
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Start isolated Dream Education frontend server
+        env:
+          PORT: 4173
+        run: |
+          node scripts/serve-public-static-smoke.js > /tmp/dream-education-server.log 2>&1 &
+          echo $! > /tmp/dream-education-server.pid
+          for attempt in $(seq 1 20); do
+            if curl --connect-timeout 1 --max-time 3 --silent --show-error --fail http://127.0.0.1:4173/ -o /dev/null; then
+              echo "Dream Education frontend is responding."
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Dream Education frontend did not start in time. Server log:"
+          cat /tmp/dream-education-server.log
+          exit 1
+      - name: Exercise real desktop and mobile UI interactions
+        env:
+          BASE_URL: http://127.0.0.1:4173
+        run: node scripts/browser-ui-click-through-smoke-test.js
+      - name: Print frontend server log on failure
+        if: failure()
+        run: cat /tmp/dream-education-server.log || true
