@@ -8328,8 +8328,8 @@ app.post("/api/product/results", async (req, res) => {
       const unauthorizedResult = requestedResults.some(result => {
         const classData = store.classes?.[String(result?.class_id || "")];
         return !classData || String(classData.teacher_id || "") !== teacherId ||
-          (result?.learner_id && Array.isArray(classData.learners) &&
-           !classData.learners.some(id => String(id) === String(result.learner_id)));
+          !result?.learner_id || !Array.isArray(classData.learners) ||
+          !classData.learners.some(id => String(id) === String(result.learner_id));
       });
       if (unauthorizedResult) {
         return res.status(403).json({ success: false, error: "Results may only be recorded for learners in your assigned classes." });
