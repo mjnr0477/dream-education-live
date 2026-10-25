@@ -37,11 +37,11 @@ assert.match(app, /window\.DreamEducationUI = \{[\s\S]*?setMenuOpen,/, "The shar
 assert.match(app, /async function openGeneralConnections\(\)[\s\S]*?window\.DreamEducationUI\.setMenuOpen\(false\)/, "General Connections must use the exported menu helper instead of a private binding.");
 assert.match(app, /async function openMeetings\(\)[\s\S]*?window\.DreamEducationUI\.setMenuOpen\(false\)/, "Meetings must use the exported menu helper instead of a private binding.");
 assert.match(app, /window\.DreamEducationMeetings\s*=\s*\{[\s\S]*?open:\s*openMeetings/, "Meetings workspace must export its handler for external navigation.");
-assert.match(app, /if \(action === "meetings"\) \{[\s\S]*?if \(typeof openMeetings === "function"\) \{\s*openMeetings\(\);/, "Stay Connected Open Meetings action must invoke the declared workspace handler.");
+assert.match(app, /if \(action === "meetings"\) \{[\s\S]*?window\.DreamEducationMeetings\s*&&[\s\S]*?typeof window\.DreamEducationMeetings\.open === "function"[\s\S]*?window\.DreamEducationMeetings\.open\(\);/, "Stay Connected Open Meetings action must invoke the exported workspace handler across IIFE scope.");
 assert.match(app, /Meetings could not open/, "Missing Meetings workspace handler must show visible feedback instead of silently doing nothing.");
 assert.match(app, /window\.DreamEducationConnections = \{/, "General Connections workspace must be exposed to the main navigation dispatcher.");
 assert.match(app, /window\.DreamEducationConnections\s*=\s*\{[\s\S]*?open:\s*openGeneralConnections/, "General Connections workspace must export its handler for external navigation.");
-assert.match(app, /if \(action === "general-connections"\) \{[\s\S]*?if \(typeof openGeneralConnections === "function"\) \{\s*openGeneralConnections\(\);/, "Stay Connected General Connections action must invoke the declared workspace handler.");
+assert.match(app, /if \(action === "general-connections"\) \{[\s\S]*?window\.DreamEducationConnections\s*&&[\s\S]*?typeof window\.DreamEducationConnections\.open === "function"[\s\S]*?window\.DreamEducationConnections\.open\(\);/, "Stay Connected General Connections action must invoke the exported workspace handler across IIFE scope.");
 assert.match(app, /if \(action === "meetings"\) \{[\s\S]*?openMeetings\(\);/, "Connect Open Meetings must directly invoke the workspace function.");
 assert.match(app, /if \(action === "general-connections"\) \{[\s\S]*?openGeneralConnections\(\);/, "Connect Open General Connections must directly invoke the workspace function.");
 assert.match(app, /General Connections could not open/, "Missing General Connections handler must show visible feedback instead of silently doing nothing.");
