@@ -3642,6 +3642,13 @@ app.get("/api/profile/:learner_id", async (req, res) => {
 
 app.get("/api/adaptive/:learner_id", async (req, res) => {
   try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    const accessStore = require("./product/data_engine").loadStore();
+    if (!canAccessLearnerRecord(auth.account, req.params.learner_id, accessStore)) {
+      return res.status(403).json({ success: false, error: "You are not authorized to access this learner's adaptive data." });
+    }
+
     const learnerId = req.params.learner_id;
 
     debugLearning("=== ADAPTIVE REQUEST ===");
@@ -3715,6 +3722,13 @@ app.get("/api/adaptive/:learner_id", async (req, res) => {
 
 app.get("/api/next-question/:learner_id", async (req, res) => {
   try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    const accessStore = require("./product/data_engine").loadStore();
+    if (!canAccessLearnerRecord(auth.account, req.params.learner_id, accessStore)) {
+      return res.status(403).json({ success: false, error: "You are not authorized to access this learner's adaptive data." });
+    }
+
     const learnerId = req.params.learner_id;
 
     debugLearning("=== NEXT QUESTION REQUEST ===");
@@ -3916,6 +3930,13 @@ app.post("/api/assess", async (req, res) => {
 
 app.get("/api/difficulty/:learner_id", async (req, res) => {
   try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    const accessStore = require("./product/data_engine").loadStore();
+    if (!canAccessLearnerRecord(auth.account, req.params.learner_id, accessStore)) {
+      return res.status(403).json({ success: false, error: "You are not authorized to access this learner's adaptive data." });
+    }
+
     const learnerId = req.params.learner_id;
 
     debugLearning("=== DIFFICULTY REQUEST ===");
@@ -4562,6 +4583,13 @@ app.get("/api/v1/role/:role/intelligence", async (req, res) => {
 // ==========================================
 app.get("/api/intelligence/:learner_id", async (req, res) => {
   try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    const accessStore = require("./product/data_engine").loadStore();
+    if (!canAccessLearnerRecord(auth.account, req.params.learner_id, accessStore)) {
+      return res.status(403).json({ success: false, error: "You are not authorized to access this learner's adaptive data." });
+    }
+
     const { learner_id } = req.params;
 
     if (!learner_id) {
@@ -5021,6 +5049,13 @@ app.post("/api/teach", async (req, res) => {
 
 app.get("/api/mastery/:learner_id/:topic", async (req, res) => {
   try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    const accessStore = require("./product/data_engine").loadStore();
+    if (!canAccessLearnerRecord(auth.account, req.params.learner_id, accessStore)) {
+      return res.status(403).json({ success: false, error: "You are not authorized to access this learner's adaptive data." });
+    }
+
     const { learner_id, topic } = req.params;
 
     debugLearning("=== MASTERY REQUEST ===");
