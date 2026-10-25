@@ -30,6 +30,11 @@ assert.ok(css.includes("height:min(76svh,780px)"), "The media feed should use a 
 assert.ok(workspace.includes("de-feed-experiment"), "Interactive experiments must render inline.");
 assert.ok(workspace.includes("data-resource-check"), "Learners must be able to check understanding.");
 assert.ok(css.includes(".de-learning-feed"), "Feed container styles are required.");
+assert.ok(workspace.includes("data-feed-playback-status"), "Direct-video cards must provide an accessible playback recovery status.");
+assert.ok(workspace.includes("Playback was blocked. Tap to retry."), "Autoplay rejection must provide a learner-controlled retry.");
+assert.ok(workspace.includes('video.addEventListener("error"'), "Failed media loads must be surfaced instead of failing silently.");
+assert.ok(workspace.includes("video.dataset.feedRecoveryWired"), "Playback recovery handlers must not be duplicated.");
+assert.ok(css.includes(".de-feed-playback-status[hidden]"), "Playback status must respect its hidden state.");
 assert.ok(css.includes("scroll-snap-type:y mandatory"), "Feed should snap vertically between items.");
 assert.ok(css.includes(".de-learn-hub-grid"), "Button-first Learn layout styles are required.");
 
