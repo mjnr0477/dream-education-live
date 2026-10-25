@@ -3320,3 +3320,11 @@ textarea:focus-visible {
     transition-duration: .01ms !important;
   }
 }
+
+
+/* Learning feed playback recovery: keep failures visible and give learners a retry path. */
+.de-feed-media { position:relative; }
+.de-feed-playback-status { position:absolute; z-index:2; left:12px; right:12px; bottom:12px; display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:10px; padding:12px 14px; border:1px solid rgba(255,255,255,.25); border-radius:12px; color:#fff; background:rgba(10,15,24,.94); text-align:center; font-size:.9rem; }
+.de-feed-playback-status[hidden] { display:none; }
+.de-feed-playback-retry { border:1px solid rgba(255,255,255,.55); border-radius:999px; padding:8px 13px; color:#fff; background:rgba(255,255,255,.12); font:inherit; font-weight:700; cursor:pointer; }
+.de-feed-playback-retry:focus-visible { outline:2px solid currentColor; outline-offset:3px; }
