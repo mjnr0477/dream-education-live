@@ -170,7 +170,7 @@
     let media = "";
 
     if (type === "image" && mediaUrl) {
-      media = '<div class="de-feed-media de-feed-image-stage"><img class="de-feed-image" src="' + escapeHTML(mediaUrl) + '" alt="' + escapeHTML(title) + '" loading="lazy" referrerpolicy="no-referrer"></div>';
+      media = '<div class="de-feed-media de-feed-image-stage"><img class="de-feed-image" src="' + escapeHTML(mediaUrl) + '" alt="' + escapeHTML(title) + '" loading="lazy" referrerpolicy="no-referrer"><div class="de-feed-image-status" data-feed-image-status role="status" aria-live="polite" hidden></div></div>';
     } else if (type === "video" && embedUrl) {
       media = '<div class="de-feed-media"><iframe src="' + escapeHTML(embedUrl) + '" title="' + escapeHTML(title) + '" loading="lazy" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>';
     } else if (type === "video" && mediaUrl) {
@@ -260,6 +260,36 @@
       });
       video.addEventListener("play", function () {
         const status = card.querySelector("[data-feed-playback-status]");
+        if (status) status.hidden = true;
+      });
+    });
+
+    const images = feed.querySelectorAll("img.de-feed-image");
+    images.forEach(function (image) {
+      if (image.dataset.feedImageRecoveryWired === "true") return;
+      image.dataset.feedImageRecoveryWired = "true";
+      image.addEventListener("error", function () {
+        const stage = image.closest(".de-feed-image-stage");
+        const status = stage && stage.querySelector("[data-feed-image-status]");
+        if (!status) return;
+        status.replaceChildren();
+        const message = document.createElement("span");
+        message.textContent = "This image could not load. Check your connection or try another resource.";
+        status.appendChild(message);
+        const retry = document.createElement("button");
+        retry.type = "button";
+        retry.className = "de-feed-playback-retry";
+        retry.textContent = "Retry image";
+        retry.addEventListener("click", function () {
+          status.hidden = true;
+          image.src = image.src;
+        });
+        status.appendChild(retry);
+        status.hidden = false;
+      });
+      image.addEventListener("load", function () {
+        const stage = image.closest(".de-feed-image-stage");
+        const status = stage && stage.querySelector("[data-feed-image-status]");
         if (status) status.hidden = true;
       });
     });
