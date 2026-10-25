@@ -30,6 +30,8 @@ assert.ok(css.includes("height:min(76svh,780px)"), "The media feed should use a 
 assert.ok(workspace.includes("de-feed-experiment"), "Interactive experiments must render inline.");
 assert.ok(workspace.includes("data-resource-check"), "Learners must be able to check understanding.");
 assert.ok(css.includes(".de-learning-feed"), "Feed container styles are required.");
+assert.ok(workspace.includes("data-feed-image-status"), "Image cards must expose an accessible recovery message when media fails.");
+assert.ok(workspace.includes("feedImageRecoveryWired"), "Image recovery handlers must not be duplicated.");
 assert.ok(workspace.includes("data-feed-playback-status"), "Direct-video cards must provide an accessible playback recovery status.");
 assert.ok(workspace.includes("Playback was blocked. Tap to retry."), "Autoplay rejection must provide a learner-controlled retry.");
 assert.ok(workspace.includes('video.addEventListener("error"'), "Failed media loads must be surfaced instead of failing silently.");
