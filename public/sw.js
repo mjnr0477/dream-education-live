@@ -3,7 +3,7 @@
 const CACHE_PREFIX = "dream-education-";
 const CACHE = "dream-education-shell-v2";
 const APP_SHELL = ["/", "/index.html", "/style.css", "/app.js"];
-const STATIC_EXTENSIONS = /\\.(?:css|js|mjs|png|jpe?g|webp|gif|svg|ico|woff2?|ttf|otf)$/i;
+const STATIC_EXTENSIONS = /\.(?:css|js|mjs|png|jpe?g|webp|gif|svg|ico|woff2?|ttf|otf)$/i;
 
 function isCacheableStaticRequest(request, url) {
   if (request.method !== "GET" || url.origin !== self.location.origin) return false;
@@ -15,7 +15,7 @@ function isCacheableStaticRequest(request, url) {
 function isCacheableResponse(response) {
   if (!response || !response.ok || response.type !== "basic") return false;
   const control = String(response.headers.get("cache-control") || "").toLowerCase();
-  return !/\\b(?:private|no-store)\\b/.test(control) &&
+  return !/\b(?:private|no-store)\b/.test(control) &&
     !response.headers.has("set-cookie");
 }
 
