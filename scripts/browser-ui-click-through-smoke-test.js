@@ -133,6 +133,26 @@ const baseUrl = (process.env.BASE_URL || "http://127.0.0.1:4173").replace(/\/$/,
     await mobile.waitForFunction(() => document.querySelector("#panel-title")?.textContent.trim() === "General Connections");
     assert(await mobile.locator("#general-connection-search-form").isVisible(), "Mobile General Connections must render its search form");
 
+    async function openMobileDestination(panelName, expectedTitle) {
+      await mobile.locator(".experience-panel .panel-close").click();
+      await mobile.waitForFunction(() => !document.body.classList.contains("panel-open"));
+      await mobile.locator(".mobile-menu").click();
+      await mobile.waitForFunction(() => document.body.classList.contains("menu-open"));
+      await mobile.locator('#mobile-drawer [data-panel="' + panelName + '"]').click();
+      await mobile.waitForFunction(() => document.body.classList.contains("panel-open"));
+      assert.equal((await mobile.locator("#panel-title").innerText()).trim(), expectedTitle,
+        "Mobile drawer " + panelName + " destination must open the expected panel");
+    }
+
+    await openMobileDestination("explore", "More than learning.");
+    assert((await mobile.locator("#panel-body").innerText()).length > 0, "Mobile Explore must render content");
+    await openMobileDestination("books", "Discover your next read.");
+    assert((await mobile.locator("#panel-body").innerText()).length > 0, "Mobile Books must render content");
+    await openMobileDestination("signin", "Sign in.");
+    assert(await mobile.locator('[data-auth-form="login"]').isVisible(), "Mobile Sign in must render the login form");
+    await openMobileDestination("join", "Get started.");
+    assert(await mobile.locator('[data-auth-form="register"]').isVisible(), "Mobile Get started must render registration");
+
     assert.deepEqual(errors, [], "Browser interaction must not produce uncaught JavaScript errors: " + errors.join(" | "));
     console.log("Browser UI click-through smoke test passed: desktop navigation, About tour, Books, sign-in, registration, learner CTA, Meetings, General Connections, and mobile drawer.");
   } finally {
