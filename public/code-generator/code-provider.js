@@ -58,10 +58,18 @@
       }
 
       if (!response.ok || !data || data.success !== true) {
+        const message = data && data.message
+          ? data.message
+          : "The code-generation service failed.";
+        // The backend diagnostic is returned only by this authenticated,
+        // owner-only endpoint. Surface it instead of hiding the root cause.
+        const diagnostic = data && typeof data.debug === "string"
+          ? data.debug.trim().slice(0, 500)
+          : "";
         throw new Error(
-          data && data.message
-            ? data.message
-            : "The code-generation service failed."
+          diagnostic && !message.includes(diagnostic)
+            ? message + " Details: " + diagnostic
+            : message
         );
       }
 
