@@ -15,15 +15,15 @@ permissions:
 jobs:
   health-check:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 4
     steps:
-      - name: Check live Dream Education health endpoint
+      - name: Check live API, homepage, and critical Connect workspaces
         env:
-          HEALTH_URL: https://dream-education-live-4.onrender.com/api/health
+          BASE_URL: https://dream-education-live-4.onrender.com
         run: |
           node <<'NODE'
-          const url = process.env.HEALTH_URL;
-          const required = {
+          const base = process.env.BASE_URL.replace(/\/$/, '');
+          const requiredHealth = {
             success: true,
             app: 'Dream Education',
             cache: 'enabled',
@@ -31,27 +31,59 @@ jobs:
             learning_history: 'enabled'
           };
 
-          async function check() {
+          async function fetchText(url) {
             const response = await fetch(url, {
               signal: AbortSignal.timeout(10000),
-              headers: { accept: 'application/json' }
+              headers: { accept: 'text/html,application/javascript,application/json' }
             });
             if (!response.ok) {
-              throw new Error(`Health endpoint returned HTTP ${response.status}`);
+              throw new Error(`${url} returned HTTP ${response.status}`);
             }
+            return { response, text: await response.text() };
+          }
 
-            const body = await response.json();
-            for (const [key, expected] of Object.entries(required)) {
-              if (body[key] !== expected) {
-                throw new Error(`Health check failed: expected ${key}=${JSON.stringify(expected)}, got ${JSON.stringify(body[key])}`);
+          async function check() {
+            const healthResult = await fetchText(`${base}/api/health`);
+            let health;
+            try {
+              health = JSON.parse(healthResult.text);
+            } catch {
+              throw new Error('Health endpoint did not return valid JSON');
+            }
+            for (const [key, expected] of Object.entries(requiredHealth)) {
+              if (health[key] !== expected) {
+                throw new Error(`Health check failed: expected ${key}=${JSON.stringify(expected)}, got ${JSON.stringify(health[key])}`);
               }
             }
-            console.log('Production health check passed:', JSON.stringify({
-              app: body.app,
-              cache: body.cache,
-              supabase: body.supabase,
-              ai_mode: body.ai_mode,
-              learning_history: body.learning_history
+
+            const home = await fetchText(base + '/');
+            const appAssetMatch = home.text.match(/<script[^>]+src=["']([^"']*\/app\.js(?:\?[^"']*)?)["']/i);
+            if (!appAssetMatch) {
+              throw new Error('Homepage does not reference the main app.js asset');
+            }
+            const appAssetUrl = new URL(appAssetMatch[1], base).toString();
+            const app = await fetchText(appAssetUrl);
+            const requiredUiContracts = [
+              ['Meetings workspace export', /window\.DreamEducationMeetings\s*=\s*\{/],
+              ['General Connections workspace export', /window\.DreamEducationConnections\s*=\s*\{/],
+              ['Meetings click dispatcher', /if\s*\(action\s*===\s*"meetings"\)/],
+              ['General Connections click dispatcher', /if\s*\(action\s*===\s*"general-connections"\)/],
+              ['shared mobile menu helper', /window\.DreamEducationUI\s*=\s*\{[\s\S]*?setMenuOpen/]
+            ];
+            for (const [label, pattern] of requiredUiContracts) {
+              if (!pattern.test(app.text)) {
+                throw new Error(`Production app asset is missing: ${label}`);
+              }
+            }
+
+            console.log('Production smoke check passed:', JSON.stringify({
+              app: health.app,
+              cache: health.cache,
+              supabase: health.supabase,
+              learning_history: health.learning_history,
+              homepage_status: home.response.status,
+              app_asset: new URL(appAssetUrl).pathname + new URL(appAssetUrl).search,
+              connect_workspaces: 'Meetings and General Connections handlers present'
             }));
           }
 
@@ -63,13 +95,13 @@ jobs:
                 return;
               } catch (error) {
                 lastError = error;
-                console.error(`Health check attempt ${attempt}/3 failed:`, error.message);
+                console.error(`Production smoke check attempt ${attempt}/3 failed:`, error.message);
                 if (attempt < 3) {
                   await new Promise(resolve => setTimeout(resolve, 5000));
                 }
               }
             }
-            console.error('Production health check failed after 3 attempts.');
+            console.error('Production smoke check failed after 3 attempts.');
             console.error(lastError?.message || 'Unknown health check error');
             process.exitCode = 1;
           })();
