@@ -35,7 +35,8 @@ const authHelperStart = server.indexOf("async function getAuthenticatedAccount")
 const authHelperEnd = server.indexOf("\n}\n", authHelperStart);
 const authHelperSource = server.slice(authHelperStart, authHelperEnd);
 assert.match(authHelperSource, /isOwnerAccount\(\{ email: verifiedEmail \}\)/, "Owner status must be resolved from the verified Supabase email, not stale stored flags.");
-assert.match(authHelperSource, /owner_account: true/, "Verified owner authentication must normalize the owner flag for protected routes.");
+assert.match(authHelperSource, /owner_account: ownerAccount/, "Owner privileges must be set from verified identity for all protected routes.");
+assert.match(authHelperSource, /free_forever: ownerAccount/, "Permanent-free access must be derived from verified owner identity.");
 assert.match(server, /const connectedLearners = isOwner\s*\? Object\.values\(store\.learners \|\| \{\}\)/, "Owner Lesson Studio must list learner profiles for owner assignment.");
 assert.match(server, /Only a teacher or the project owner can assign a lesson/, "Owner may assign lessons through the owner workspace.");
 assert.match(server, /Only a teacher or the project owner can grade lesson submissions/, "Owner may review lesson submissions.");

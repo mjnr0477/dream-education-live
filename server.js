@@ -9152,16 +9152,24 @@ async function getAuthenticatedAccount(req) {
   // role/flag metadata stored in the product account record.
   const verifiedEmail = String(userData.user.email || storedAccount.email || "").trim().toLowerCase();
   const ownerAccount = isOwnerAccount({ email: verifiedEmail });
-  const account = ownerAccount
-    ? {
-        ...storedAccount,
-        email: verifiedEmail,
-        owner_account: true,
-        plan_type: "owner",
-        free_forever: true,
-        subscription_status: "active"
-      }
-    : storedAccount;
+  const account = {
+    ...storedAccount,
+    email: verifiedEmail,
+    // Never inherit owner privileges from persisted account metadata.
+    owner_account: ownerAccount,
+    free_forever: ownerAccount,
+    ...(ownerAccount
+      ? {
+          plan_type: "owner",
+          subscription_status: "active"
+        }
+      : storedAccount.plan_type === "owner"
+        ? {
+            // A stale "owner" label must not survive verified non-owner auth.
+            plan_type: storedAccount.subscription_status === "trial" ? "trial" : "paid"
+          }
+        : {})
+  };
 
   return {
     success: true,
