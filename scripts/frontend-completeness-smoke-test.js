@@ -94,7 +94,7 @@ for (const token of [
 }
 
 
-for (const [asset, version] of [["style.css", "20261019a"], ["frontend-workspace.js", "20261022a"]]) {
+for (const [asset, version] of [["style.css", "20261025b"], ["frontend-workspace.js", "20261022a"]]) {
   const assetReference = new RegExp("/" + asset.replace(".", "\\.") + "\\?v=" + version);
   if (!assetReference.test(index)) throw new Error("Updated cache-busting version missing for " + asset);
 }
@@ -216,6 +216,22 @@ if (app.includes('data-answer-resource-type="image"') || app.includes('data-answ
 }
 if (app.includes("<a ") || workspace.includes("<a ")) {
   throw new Error("Learner-facing frontend must not render anchor links.");
+}
+
+
+
+for (const token of [
+  ":focus-visible",
+  "prefers-reduced-motion: reduce",
+  "min-height: 44px",
+  "panel-card-action:focus-visible"
+]) {
+  if (!css.includes(token)) {
+    throw new Error("Accessible frontend polish is missing: " + token);
+  }
+}
+if (!index.includes("/style.css?v=20261025b")) {
+  throw new Error("Frontend polish stylesheet cache-busting version is missing.");
 }
 
 console.log("Frontend completeness smoke test passed.");
