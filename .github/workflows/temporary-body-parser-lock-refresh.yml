@@ -27,7 +27,8 @@ jobs:
           node <<'NODE'
           const lock = require('./package-lock.json');
           const item = lock.packages && lock.packages['node_modules/body-parser'];
-          if (!item || !/^2\\.(4|[5-9]|[1-9][0-9]+)\\./.test(item.version)) {
+          const [major, minor] = String(item && item.version || "").split(".").map(Number);
+          if (!item || major !== 2 || minor < 4) {
             console.error('Expected body-parser 2.4.0 or newer in the 2.x line; found:', item && item.version);
             process.exit(1);
           }
