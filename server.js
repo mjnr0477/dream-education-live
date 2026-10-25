@@ -3449,7 +3449,18 @@ app.post("/api/chat/messages", async (req, res) => {
 
 app.get("/api/progress/:learner_id", async (req, res) => {
   try {
-    const learnerId = req.params.learner_id;
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) {
+      return res.status(auth.status).json({ success: false, message: auth.error });
+    }
+
+    const learnerId = String(req.params.learner_id || "");
+    if (
+      auth.account.owner_account !== true &&
+      (auth.account.role !== "learner" || String(auth.account.learner_id || "") !== learnerId)
+    ) {
+      return res.status(403).json({ success: false, message: "You are not authorized to view this learner data." });
+    }
 
     if (!learnerId) {
       return res.status(400).json({
@@ -3507,7 +3518,18 @@ app.get("/api/progress/:learner_id", async (req, res) => {
 
 app.get("/api/profile/:learner_id", async (req, res) => {
   try {
-    const learnerId = req.params.learner_id;
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) {
+      return res.status(auth.status).json({ success: false, message: auth.error });
+    }
+
+    const learnerId = String(req.params.learner_id || "");
+    if (
+      auth.account.owner_account !== true &&
+      (auth.account.role !== "learner" || String(auth.account.learner_id || "") !== learnerId)
+    ) {
+      return res.status(403).json({ success: false, message: "You are not authorized to view this learner data." });
+    }
 
     if (!learnerId) {
       return res.status(400).json({
