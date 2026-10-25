@@ -47,11 +47,11 @@ for (const file of [
 }
 
 const serviceWorker = fs.readFileSync(path.join(root, "public/sw.js"), "utf8");
-assert.match(serviceWorker, /url\\.pathname\\.startsWith\\("\/api\/"\\)/, "Service worker must never cache API responses.");
-assert.match(serviceWorker, /request\\.headers\\.has\\("authorization"\\)/, "Service worker must bypass authorization-bearing requests.");
-assert.match(serviceWorker, /STATIC_EXTENSIONS\\.test\\(url\\.pathname\\)/, "Service worker must limit dynamic caching to static asset paths.");
+assert.match(serviceWorker, /url\.pathname\.startsWith\("\/api\/"\)/, "Service worker must never cache API responses.");
+assert.match(serviceWorker, /request\.headers\.has\("authorization"\)/, "Service worker must bypass authorization-bearing requests.");
+assert.match(serviceWorker, /STATIC_EXTENSIONS\.test\(url\.pathname\)/, "Service worker must limit dynamic caching to static asset paths.");
 assert.match(serviceWorker, /cache-control[\\s\\S]*private\\|no-store/, "Service worker must not cache private or no-store responses.");
-assert.match(serviceWorker, /keys[\\s\\S]*startsWith\\(CACHE_PREFIX\\)/, "Service worker must clean up obsolete Dream Education caches.");
+assert.match(serviceWorker, /keys[\\s\\S]*startsWith\(CACHE_PREFIX\)/, "Service worker must clean up obsolete Dream Education caches.");
 
 const manifest = require(path.join(root, "product/gli/platform_manifest"));
 const platform = manifest.getPlatformManifest();
