@@ -7884,8 +7884,16 @@ app.get("/api/product/meetings/:meeting_id/join", async (req, res) => {
   }
 });
 
-app.get("/api/product/teacher/:teacher_id", (req, res) => {
+app.get("/api/product/teacher/:teacher_id", async (req, res) => {
   try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    if (
+      auth.account.owner_account !== true &&
+      (auth.account.role !== "teacher" || String(auth.account.teacher_id || "") !== String(req.params.teacher_id || ""))
+    ) {
+      return res.status(403).json({ success: false, error: "You are not authorized to view this teacher profile." });
+    }
     const teacher = getTeacher(req.params.teacher_id);
 
     if (!teacher) {
@@ -7982,8 +7990,16 @@ app.post("/api/product/parent", (req, res) => {
   }
 });
 
-app.get("/api/product/parent/:parent_id", (req, res) => {
+app.get("/api/product/parent/:parent_id", async (req, res) => {
   try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    if (
+      auth.account.owner_account !== true &&
+      (auth.account.role !== "parent" || String(auth.account.parent_id || "") !== String(req.params.parent_id || ""))
+    ) {
+      return res.status(403).json({ success: false, error: "You are not authorized to view this parent profile." });
+    }
     const parent = getParent(req.params.parent_id);
 
     if (!parent) {
@@ -8082,8 +8098,16 @@ app.post("/api/product/school", (req, res) => {
   }
 });
 
-app.get("/api/product/school/:school_id", (req, res) => {
+app.get("/api/product/school/:school_id", async (req, res) => {
   try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    if (
+      auth.account.owner_account !== true &&
+      (auth.account.role !== "school" || String(auth.account.school_id || "") !== String(req.params.school_id || ""))
+    ) {
+      return res.status(403).json({ success: false, error: "You are not authorized to view this school profile." });
+    }
     const school = getSchool(req.params.school_id);
 
     if (!school) {
