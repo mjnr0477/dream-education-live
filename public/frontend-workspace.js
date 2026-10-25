@@ -174,7 +174,7 @@
     } else if (type === "video" && embedUrl) {
       media = '<div class="de-feed-media"><iframe src="' + escapeHTML(embedUrl) + '" title="' + escapeHTML(title) + '" loading="lazy" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>';
     } else if (type === "video" && mediaUrl) {
-      media = '<div class="de-feed-media"><video controls muted playsinline preload="metadata" src="' + escapeHTML(mediaUrl) + '" data-resource-media="video" aria-label="' + escapeHTML(title) + '"></video></div>';
+      media = '<div class="de-feed-media"><video controls muted playsinline preload="metadata" src="' + escapeHTML(mediaUrl) + '" data-resource-media="video" aria-label="' + escapeHTML(title) + '"></video><div class="de-feed-playback-status" data-feed-playback-status role="status" aria-live="polite" hidden></div></div>';
     } else if (type === "experiment" && embedUrl) {
       media = '<div class="de-feed-media de-feed-experiment"><iframe src="' + escapeHTML(embedUrl) + '" title="' + escapeHTML(title) + '" loading="lazy" allow="fullscreen; accelerometer; clipboard-write" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>';
     }
@@ -212,7 +212,58 @@
     if (!feed) return;
 
     if (window.__dreamFeedObserver) window.__dreamFeedObserver.disconnect();
+
+    function playbackStatus(card, message, allowRetry, video) {
+      const status = card.querySelector("[data-feed-playback-status]");
+      if (!status) return;
+      status.replaceChildren();
+      const text = document.createElement("span");
+      text.textContent = message;
+      status.appendChild(text);
+      if (allowRetry && video) {
+        const retry = document.createElement("button");
+        retry.type = "button";
+        retry.className = "de-feed-playback-retry";
+        retry.textContent = "Tap to retry";
+        retry.addEventListener("click", function () {
+          status.hidden = true;
+          try {
+            video.load();
+            const playback = video.play();
+            if (playback && typeof playback.catch === "function") {
+              playback.catch(function () {
+                if (card.getAttribute("data-feed-active") === "true") {
+                  playbackStatus(card, "Playback was blocked. Tap to retry.", true, video);
+                }
+              });
+            }
+          } catch (error) {
+            playbackStatus(card, "This video could not start. Tap to retry.", true, video);
+          }
+        });
+        status.appendChild(retry);
+      }
+      status.hidden = false;
+    }
+
     const videos = feed.querySelectorAll('video[data-resource-media="video"]');
+    videos.forEach(function (video) {
+      const card = video.closest(".de-feed-card");
+      if (!card || video.dataset.feedRecoveryWired === "true") return;
+      video.dataset.feedRecoveryWired = "true";
+      video.addEventListener("playing", function () {
+        const status = card.querySelector("[data-feed-playback-status]");
+        if (status) status.hidden = true;
+      });
+      video.addEventListener("error", function () {
+        playbackStatus(card, "This video could not load. Check your connection or try another lesson.", true, video);
+      });
+      video.addEventListener("play", function () {
+        const status = card.querySelector("[data-feed-playback-status]");
+        if (status) status.hidden = true;
+      });
+    });
+
     if (!("IntersectionObserver" in window)) return;
 
     window.__dreamFeedObserver = new IntersectionObserver(function (entries) {
@@ -223,13 +274,25 @@
           feed.querySelectorAll('video[data-resource-media="video"]').forEach(function (other) {
             if (other !== video) other.pause();
           });
-          video.muted = true;
-          const playback = video.play();
-          if (playback && typeof playback.catch === "function") playback.catch(function () {});
           entry.target.setAttribute("data-feed-active", "true");
+          video.muted = true;
+          try {
+            const playback = video.play();
+            if (playback && typeof playback.catch === "function") {
+              playback.catch(function () {
+                if (entry.target.getAttribute("data-feed-active") === "true") {
+                  playbackStatus(entry.target, "Playback was blocked. Tap to retry.", true, video);
+                }
+              });
+            }
+          } catch (error) {
+            playbackStatus(entry.target, "This video could not start. Tap to retry.", true, video);
+          }
         } else {
           video.pause();
           entry.target.removeAttribute("data-feed-active");
+          const status = entry.target.querySelector("[data-feed-playback-status]");
+          if (status) status.hidden = true;
         }
       });
     }, { root: feed, threshold: [0, 0.35, 0.65, 0.9] });
