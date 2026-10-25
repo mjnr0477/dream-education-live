@@ -1769,10 +1769,13 @@ document.addEventListener("click", function (event) {
     }
 
     if (action === "meetings") {
-      // Call the declared workspace function directly instead of relying on
-      // a window export that may not have initialized.
-      if (typeof openMeetings === "function") {
-        openMeetings();
+      // The workspace is defined in a separate IIFE, so dispatch through its
+      // explicit window export rather than an out-of-scope local function.
+      if (
+        window.DreamEducationMeetings &&
+        typeof window.DreamEducationMeetings.open === "function"
+      ) {
+        window.DreamEducationMeetings.open();
       } else {
         console.error("Dream Education Meetings workspace is not available.");
         const panelTitle = document.getElementById("panel-title");
@@ -1799,10 +1802,13 @@ document.addEventListener("click", function (event) {
     }
 
     if (action === "general-connections") {
-      // Use the declared function directly so this action does not depend
-      // on a late-created window property.
-      if (typeof openGeneralConnections === "function") {
-        openGeneralConnections();
+      // The workspace is defined in a separate IIFE, so use its explicit
+      // window export and keep visible feedback when it is unavailable.
+      if (
+        window.DreamEducationConnections &&
+        typeof window.DreamEducationConnections.open === "function"
+      ) {
+        window.DreamEducationConnections.open();
       } else {
         console.error("Dream Education General Connections workspace is not available.");
         const panelTitle = document.getElementById("panel-title");
