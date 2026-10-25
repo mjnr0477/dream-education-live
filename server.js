@@ -7917,8 +7917,14 @@ app.get("/api/product/teacher/:teacher_id", async (req, res) => {
   }
 });
 
-app.post("/api/product/teacher/:teacher_id/analytics", (req, res) => {
+app.post("/api/product/teacher/:teacher_id/analytics", async (req, res) => {
   try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    if (auth.account.owner_account !== true &&
+        (auth.account.role !== "teacher" || String(auth.account.teacher_id || "") !== String(req.params.teacher_id || ""))) {
+      return res.status(403).json({ success: false, error: "You are not authorized to update this teacher analytics." });
+    }
     const teacher = getTeacher(req.params.teacher_id);
 
     if (!teacher) {
@@ -8131,8 +8137,14 @@ app.get("/api/product/school/:school_id", async (req, res) => {
   }
 });
 
-app.post("/api/product/school/:school_id/analytics", (req, res) => {
+app.post("/api/product/school/:school_id/analytics", async (req, res) => {
   try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    if (auth.account.owner_account !== true &&
+        (auth.account.role !== "school" || String(auth.account.school_id || "") !== String(req.params.school_id || ""))) {
+      return res.status(403).json({ success: false, error: "You are not authorized to update this school analytics." });
+    }
     const school = getSchool(req.params.school_id);
 
     if (!school) {
@@ -8324,8 +8336,17 @@ app.get("/api/product/results/learner/:learner_id", async (req, res) => {
   }
 });
 
-app.get("/api/product/results/class/:class_id", (req, res) => {
+app.get("/api/product/results/class/:class_id", async (req, res) => {
   try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    const store = require("./product/data_engine").loadStore();
+    const classData = store.classes?.[req.params.class_id];
+    if (!classData) return res.status(404).json({ success: false, error: "Class not found." });
+    const allowed = auth.account.owner_account === true ||
+      (auth.account.role === "teacher" && String(auth.account.teacher_id || "") === String(classData.teacher_id || "")) ||
+      (auth.account.role === "school" && String(auth.account.school_id || "") === String(classData.school_id || ""));
+    if (!allowed) return res.status(403).json({ success: false, error: "You are not authorized to view these class results." });
     const results = getResults({
       class_id: req.params.class_id
     });
@@ -8348,8 +8369,14 @@ app.get("/api/product/results/class/:class_id", (req, res) => {
   }
 });
 
-app.get("/api/product/results/school/:school_id", (req, res) => {
+app.get("/api/product/results/school/:school_id", async (req, res) => {
   try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    if (auth.account.owner_account !== true &&
+        (auth.account.role !== "school" || String(auth.account.school_id || "") !== String(req.params.school_id || ""))) {
+      return res.status(403).json({ success: false, error: "You are not authorized to view these school results." });
+    }
     const store = require("./product/data_engine").loadStore();
 
     const results = (store.results || []).filter(result => {
@@ -8377,8 +8404,14 @@ app.get("/api/product/results/school/:school_id", (req, res) => {
   }
 });
 
-app.get("/api/product/results/teacher/:teacher_id", (req, res) => {
+app.get("/api/product/results/teacher/:teacher_id", async (req, res) => {
   try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    if (auth.account.owner_account !== true &&
+        (auth.account.role !== "teacher" || String(auth.account.teacher_id || "") !== String(req.params.teacher_id || ""))) {
+      return res.status(403).json({ success: false, error: "You are not authorized to view these teacher results." });
+    }
     const store = require("./product/data_engine").loadStore();
     const teacher = store.teachers?.[req.params.teacher_id];
 
