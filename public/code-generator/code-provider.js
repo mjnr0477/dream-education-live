@@ -23,10 +23,26 @@
     async generate(request) {
       validateRequest(request);
 
+      let auth;
+      try {
+        auth = JSON.parse(localStorage.getItem("dream_education_auth") || "null");
+      } catch (error) {
+        auth = null;
+      }
+
+      const token = auth && auth.success === true && auth.session
+        ? String(auth.session.access_token || "").trim()
+        : "";
+
+      if (!token) {
+        throw new Error("Dream Education sign-in is missing or expired. Return to Dream Education, sign in to the owner account again, then reopen Code Generator.");
+      }
+
       const response = await fetch(this.endpoint, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + token
         },
         body: JSON.stringify(request)
       });
