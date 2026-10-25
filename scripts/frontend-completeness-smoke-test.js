@@ -11,6 +11,7 @@ const app = read("public/app.js");
 const workspace = read("public/frontend-workspace.js");
 const nextgen = read("public/nextgen-visual.js");
 const css = read("public/nextgen-visual.css");
+const style = read("public/style.css");
 const server = read("server.js");
 
 const requiredFiles = [
@@ -226,7 +227,7 @@ for (const token of [
   "min-height: 44px",
   "panel-card-action:focus-visible"
 ]) {
-  if (!css.includes(token)) {
+  if (!style.includes(token)) {
     throw new Error("Accessible frontend polish is missing: " + token);
   }
 }
