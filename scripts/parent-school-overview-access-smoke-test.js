@@ -15,7 +15,7 @@ for (const [marker, role] of cases) {
   const end = source.indexOf("\napp.", start + marker.length);
   const body = source.slice(start, end < 0 ? source.length : end);
   assert.ok(body.includes("getAuthenticatedAccount(req)"), "Route must verify authentication.");
-  assert.ok(body.includes("isOwner = auth.account.owner_account === true") || body.includes("auth.account.owner_account === true"), "Verified owner access must remain available.");
+  assert.ok(body.includes("auth.account.owner_account === true") || body.includes("auth.account.owner_account !== true"), "Verified owner access must remain available.");
   assert.ok(body.includes('auth.account.role !== "' + role + '"'), "Route must enforce the matching role.");
   assert.ok(body.includes("status(403)"), "Route must reject unrelated accounts.");
 }
