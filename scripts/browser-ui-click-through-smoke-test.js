@@ -32,13 +32,15 @@ const baseUrl = (process.env.BASE_URL || "http://127.0.0.1:4173").replace(/\/$/,
       return title;
     }
 
-    async function waitForConnectActionToLeave(actionLabel) {
-      await page.waitForFunction(label => {
+    async function waitForConnectWorkspace(actionLabel, expectedTitle) {
+      await page.waitForFunction(({ label, title }) => {
         const body = document.querySelector("#panel-body");
-        if (!body) return false;
-        return !Array.from(body.querySelectorAll("button"))
+        const panelTitle = document.querySelector("#panel-title");
+        if (!body || !panelTitle) return false;
+        const actionStillVisible = Array.from(body.querySelectorAll("button"))
           .some(button => button.textContent.trim() === label);
-      }, actionLabel, { timeout: 10000 });
+        return !actionStillVisible && panelTitle.textContent.trim() === title;
+      }, { label: actionLabel, title: expectedTitle }, { timeout: 10000 });
       assert(await page.locator("body").evaluate(el => el.classList.contains("panel-open")),
         actionLabel + " must keep a visible workspace/panel");
     }
@@ -73,13 +75,13 @@ const baseUrl = (process.env.BASE_URL || "http://127.0.0.1:4173").replace(/\/$/,
     assert(await page.getByRole("button", { name: "Open Meetings", exact: true }).isVisible(), "Connect must expose Open Meetings");
     assert(await page.getByRole("button", { name: "Open General Connections", exact: true }).isVisible(), "Connect must expose Open General Connections");
     await page.getByRole("button", { name: "Open Meetings", exact: true }).click();
-    await waitForConnectActionToLeave("Open Meetings");
+    await waitForConnectWorkspace("Open Meetings", "Meetings");
     assert(!/Meetings unavailable/i.test(await page.locator("#panel-title").innerText()), "Open Meetings must not fall back to unavailable state");
 
     await closePanel();
     await openPanel('[data-panel="connect"]', "Stay connected.");
     await page.getByRole("button", { name: "Open General Connections", exact: true }).click();
-    await waitForConnectActionToLeave("Open General Connections");
+    await waitForConnectWorkspace("Open General Connections", "General Connections");
     assert(!/General Connections unavailable/i.test(await page.locator("#panel-title").innerText()), "General Connections must not fall back to unavailable state");
 
     const mobile = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
