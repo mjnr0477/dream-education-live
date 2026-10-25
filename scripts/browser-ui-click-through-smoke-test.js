@@ -61,14 +61,14 @@ const baseUrl = (process.env.BASE_URL || "http://127.0.0.1:4173").replace(/\/$/,
     await openPanel('[data-panel="connect"]', "Stay connected.");
     assert(await page.getByRole("button", { name: "Open Meetings", exact: true }).isVisible(), "Connect must expose Open Meetings");
     assert(await page.getByRole("button", { name: "Open General Connections", exact: true }).isVisible(), "Connect must expose Open General Connections");
-    await page.getByRole("button", { name: "Open Meetings" }).click();
+    await page.getByRole("button", { name: "Open Meetings", exact: true }).click();
     await page.waitForTimeout(300);
     assert(await page.locator("body").evaluate(el => el.classList.contains("panel-open")), "Open Meetings must keep a visible workspace/panel");
     assert(!/Meetings unavailable/i.test(await page.locator("#panel-title").innerText()), "Open Meetings must not fall back to unavailable state");
 
     await closePanel();
     await openPanel('[data-panel="connect"]', "Stay connected.");
-    await page.getByRole("button", { name: "Open General Connections" }).click();
+    await page.getByRole("button", { name: "Open General Connections", exact: true }).click();
     await page.waitForTimeout(300);
     assert(await page.locator("body").evaluate(el => el.classList.contains("panel-open")), "Open General Connections must keep a visible workspace/panel");
     assert(!/General Connections unavailable/i.test(await page.locator("#panel-title").innerText()), "General Connections must not fall back to unavailable state");
