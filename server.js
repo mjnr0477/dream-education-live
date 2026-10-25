@@ -2482,10 +2482,13 @@ app.post("/api/code-generator", async (req, res) => {
       });
     }
 
-    if (!["learner", "teacher", "parent", "school"].includes(auth.account.role)) {
+    // The code generator is an owner-only workspace. Owner privileges
+    // come from the verified Supabase identity in getAuthenticatedAccount,
+    // never from the browser's local password gate or stored role label.
+    if (auth.account.owner_account !== true) {
       return res.status(403).json({
         success: false,
-        message: "Your account is not authorized to use the code generator."
+        message: "Owner account required to use the code generator."
       });
     }
 
