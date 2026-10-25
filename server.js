@@ -8317,12 +8317,6 @@ app.get("/api/product/class/:class_id", async (req, res) => {
       return res.status(403).json({ success: false, error: "You are not authorized to view this class." });
     }
 
-    if (!classData) {
-      return res.status(404).json({
-        success: false,
-        error: "Class not found"
-      });
-    }
 
     res.json({
       success: true,
