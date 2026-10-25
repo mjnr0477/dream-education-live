@@ -12,6 +12,18 @@ const baseUrl = (process.env.BASE_URL || "http://127.0.0.1:4173").replace(/\/$/,
     const page = await browser.newPage({ viewport: { width: 1365, height: 900 } });
     page.on("pageerror", error => errors.push(error.message));
 
+    // Keep workspace rendering deterministic without contacting live user data.
+    await page.route("**/api/product/meetings", route => route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ success: true, upcoming: [], past: [] })
+    }));
+    await page.route("**/api/product/connections*", route => route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ success: true, connections: [] })
+    }));
+
     const response = await page.goto(baseUrl + "/", { waitUntil: "domcontentloaded", timeout: 30000 });
     assert(response && response.ok(), "Homepage must load successfully");
     await page.locator("#experience-panel").waitFor({ state: "attached" });
@@ -77,12 +89,16 @@ const baseUrl = (process.env.BASE_URL || "http://127.0.0.1:4173").replace(/\/$/,
     await page.getByRole("button", { name: "Open Meetings", exact: true }).click();
     await waitForConnectWorkspace("Open Meetings", "Meetings");
     assert(!/Meetings unavailable/i.test(await page.locator("#panel-title").innerText()), "Open Meetings must not fall back to unavailable state");
+    await page.locator("#meeting-title").waitFor({ state: "visible", timeout: 10000 });
+    assert(await page.locator("#create-meeting-button").isVisible(), "Meetings workspace must render its create-meeting action");
 
     await closePanel();
     await openPanel('[data-panel="connect"]', "Stay connected.");
     await page.getByRole("button", { name: "Open General Connections", exact: true }).click();
     await waitForConnectWorkspace("Open General Connections", "General Connections");
     assert(!/General Connections unavailable/i.test(await page.locator("#panel-title").innerText()), "General Connections must not fall back to unavailable state");
+    assert(await page.locator("#general-connection-search-form").isVisible(), "General Connections must render the people-search form");
+    assert(await page.locator("#general-connection-search").isVisible(), "General Connections must render the search input");
 
     const mobile = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
     mobile.on("pageerror", error => errors.push(error.message));
