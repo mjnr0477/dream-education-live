@@ -102,6 +102,16 @@ const baseUrl = (process.env.BASE_URL || "http://127.0.0.1:4173").replace(/\/$/,
 
     const mobile = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
     mobile.on("pageerror", error => errors.push(error.message));
+    await mobile.route("**/api/product/meetings", route => route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ success: true, upcoming: [], past: [] })
+    }));
+    await mobile.route("**/api/product/connections*", route => route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ success: true, connections: [] })
+    }));
     const mobileResponse = await mobile.goto(baseUrl + "/", { waitUntil: "domcontentloaded", timeout: 30000 });
     assert(mobileResponse && mobileResponse.ok(), "Mobile homepage must load");
     await mobile.locator(".mobile-menu").click();
@@ -111,6 +121,17 @@ const baseUrl = (process.env.BASE_URL || "http://127.0.0.1:4173").replace(/\/$/,
     await mobile.waitForFunction(() => document.body.classList.contains("panel-open"));
     assert.equal(await mobile.locator("#panel-title").innerText(), "Why Dream?", "Mobile drawer navigation must open the selected destination");
     assert(!await mobile.locator("body").evaluate(el => el.classList.contains("menu-open")), "Choosing a mobile destination must close the drawer");
+
+    await mobile.locator(".experience-panel .panel-close").click();
+    await mobile.waitForFunction(() => !document.body.classList.contains("panel-open"));
+    await mobile.locator(".mobile-menu").click();
+    await mobile.waitForFunction(() => document.body.classList.contains("menu-open"));
+    await mobile.locator('#mobile-drawer [data-panel="connect"]').click();
+    await mobile.waitForFunction(() => document.body.classList.contains("panel-open"));
+    assert.equal((await mobile.locator("#panel-title").innerText()).trim(), "Stay connected.", "Mobile Connect navigation must open its panel");
+    await mobile.getByRole("button", { name: "Open General Connections", exact: true }).click();
+    await mobile.waitForFunction(() => document.querySelector("#panel-title")?.textContent.trim() === "General Connections");
+    assert(await mobile.locator("#general-connection-search-form").isVisible(), "Mobile General Connections must render its search form");
 
     assert.deepEqual(errors, [], "Browser interaction must not produce uncaught JavaScript errors: " + errors.join(" | "));
     console.log("Browser UI click-through smoke test passed: desktop navigation, About tour, Books, sign-in, registration, learner CTA, Meetings, General Connections, and mobile drawer.");
