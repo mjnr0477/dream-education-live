@@ -16,6 +16,14 @@ assert(!server.includes("activeChatConnection("), "Open chat must not require an
 assert(app.includes('"/api/product/meetings"'));
 assert(app.includes('"/api/product/meetings/"'));
 assert(app.includes('function openMeetings()'));
+assert.match(app, /if \(typeof openMeetings === "function"\)\s*\{\s*openMeetings\(\);/,
+  "Meetings action must call the actual top-level workspace function.");
+assert.match(app, /if \(typeof openGeneralConnections === "function"\)\s*\{\s*openGeneralConnections\(\);/,
+  "General Connections action must call the actual top-level workspace function.");
+assert.doesNotMatch(app, /window\.DreamEducationMeetings\.open/,
+  "Meetings routing must not depend on an unregistered window export.");
+assert.doesNotMatch(app, /window\.DreamEducationConnections\.open/,
+  "General Connections routing must not depend on an unregistered window export.");
 assert(app.includes('function openParentSpace()'));
 assert(app.includes('function openTeacherDashboard()'));
 assert(app.includes('function openSchoolDashboard()'));
