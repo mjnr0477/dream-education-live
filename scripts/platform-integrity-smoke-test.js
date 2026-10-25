@@ -46,6 +46,13 @@ for (const file of [
   assert.strictEqual(result.status, 0, "Syntax check failed: " + file + "\n" + result.stderr);
 }
 
+const serviceWorker = fs.readFileSync(path.join(root, "public/sw.js"), "utf8");
+assert.ok(serviceWorker.includes('url.pathname.startsWith("/api/")'), "Service worker must never cache API responses.");
+assert.ok(serviceWorker.includes('request.headers.has("authorization")'), "Service worker must bypass authorization-bearing requests.");
+assert.ok(serviceWorker.includes("STATIC_EXTENSIONS.test(url.pathname)"), "Service worker must limit dynamic caching to static asset paths.");
+assert.ok(serviceWorker.includes("private|no-store"), "Service worker must not cache private or no-store responses.");
+assert.ok(serviceWorker.includes("keys => Promise.all(keys"), "Service worker must clean up obsolete Dream Education caches.");
+
 const manifest = require(path.join(root, "product/gli/platform_manifest"));
 const platform = manifest.getPlatformManifest();
 assert.ok(Array.isArray(platform.protected_engines));
