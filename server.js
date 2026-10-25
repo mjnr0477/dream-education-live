@@ -6432,8 +6432,54 @@ app.post("/api/product/learner", (req, res) => {
   }
 });
 
-app.get("/api/product/learner/:learner_id", (req, res) => {
+function canAccessLearnerRecord(account, learnerId, store) {
+  if (account?.owner_account === true) return true;
+  const targetId = String(learnerId || "");
+  if (!targetId || !account) return false;
+
+  if (account.role === "learner") {
+    return String(account.learner_id || "") === targetId;
+  }
+
+  if (account.role === "parent") {
+    const parent = store?.parents?.[String(account.parent_id || "")];
+    return Array.isArray(parent?.children) &&
+      parent.children.some(childId => String(childId) === targetId);
+  }
+
+  if (account.role === "teacher") {
+    const teacherId = String(account.teacher_id || "");
+    if (!teacherId) return false;
+    const connected = chatGroupConnectionExists(store, "teacher", teacherId, "learner", targetId);
+    const assigned = Object.values(store?.classes || {}).some(classData =>
+      String(classData?.teacher_id || "") === teacherId &&
+      Array.isArray(classData?.learners) &&
+      classData.learners.some(learnerId => String(learnerId) === targetId)
+    );
+    return connected || assigned;
+  }
+
+  if (account.role === "school") {
+    const schoolId = String(account.school_id || "");
+    if (!schoolId) return false;
+    return Object.values(store?.classes || {}).some(classData =>
+      String(classData?.school_id || "") === schoolId &&
+      Array.isArray(classData?.learners) &&
+      classData.learners.some(learnerId => String(learnerId) === targetId)
+    );
+  }
+
+  return false;
+}
+
+app.get("/api/product/learner/:learner_id", async (req, res) => {
   try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    const store = require("./product/data_engine").loadStore();
+    if (!canAccessLearnerRecord(auth.account, req.params.learner_id, store)) {
+      return res.status(403).json({ success: false, error: "You are not authorized to view this learner." });
+    }
     const learner = getLearner(req.params.learner_id);
 
     if (!learner) {
@@ -8224,8 +8270,14 @@ app.post("/api/product/results", (req, res) => {
   }
 });
 
-app.get("/api/product/results/learner/:learner_id", (req, res) => {
+app.get("/api/product/results/learner/:learner_id", async (req, res) => {
   try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    const store = require("./product/data_engine").loadStore();
+    if (!canAccessLearnerRecord(auth.account, req.params.learner_id, store)) {
+      return res.status(403).json({ success: false, error: "You are not authorized to view this learner's results." });
+    }
     const results = getResults({
       learner_id: req.params.learner_id
     });
@@ -8765,9 +8817,14 @@ app.get("/api/product/teacher/learner/:learner_id", async (req, res) => {
   }
 });
 
-app.get("/api/product/learner/:learner_id/overview", (req, res) => {
+app.get("/api/product/learner/:learner_id/overview", async (req, res) => {
   try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
     const store = require("./product/data_engine").loadStore();
+    if (!canAccessLearnerRecord(auth.account, req.params.learner_id, store)) {
+      return res.status(403).json({ success: false, error: "You are not authorized to view this learner overview." });
+    }
     const learner = store.learners?.[req.params.learner_id];
 
     if (!learner) {
