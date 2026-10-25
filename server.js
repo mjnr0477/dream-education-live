@@ -4708,6 +4708,12 @@ app.get("/api/intelligence/:learner_id", async (req, res) => {
 // ==========================================
 app.get("/api/adaptive-question/:learner_id", async (req, res) => {
   try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    if (auth.account.owner_account !== true &&
+        (auth.account.role !== "learner" || String(auth.account.learner_id || "") !== String(req.params.learner_id || ""))) {
+      return res.status(403).json({ success: false, error: "You are not authorized to access this learner's adaptive history." });
+    }
     const { learner_id } = req.params;
 
     if (!learner_id) {
@@ -8055,8 +8061,15 @@ app.get("/api/product/parent/:parent_id", async (req, res) => {
   }
 });
 
-app.post("/api/product/parent/:parent_id/child-progress", (req, res) => {
+app.post("/api/product/parent/:parent_id/child-progress", async (req, res) => {
   try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    const isOwner = auth.account.owner_account === true;
+    if (!isOwner &&
+        (auth.account.role !== "parent" || String(auth.account.parent_id || "") !== String(req.params.parent_id || ""))) {
+      return res.status(403).json({ success: false, error: "You are not authorized to access this parent progress view." });
+    }
     const parent = getParent(req.params.parent_id);
 
     if (!parent) {
@@ -8066,13 +8079,26 @@ app.post("/api/product/parent/:parent_id/child-progress", (req, res) => {
       });
     }
 
-    const learner = req.body.learner || {};
-    const progress = buildChildProgress(learner);
-
-    if (
-      progress.learner_id &&
-      !parent.children.includes(progress.learner_id)
-    ) {
+    const requestedLearnerId = String(req.body?.learner?.learner_id || req.body?.learner_id || "").trim();
+    if (!requestedLearnerId) {
+      return res.status(400).json({ success: false, error: "Learner ID is required." });
+    }
+    const store = require("./product/data_engine").loadStore();
+    const learnerRecord = store.learners?.[requestedLearnerId];
+    if (!learnerRecord) {
+      return res.status(404).json({ success: false, error: "Learner not found." });
+    }
+    const alreadyLinked = Array.isArray(parent.children) &&
+      parent.children.some(childId => String(childId) === requestedLearnerId);
+    const activeConnection = chatGroupConnectionExists(
+      store, "parent", String(parent.parent_id), "learner", requestedLearnerId
+    );
+    if (!isOwner && !alreadyLinked && !activeConnection) {
+      return res.status(403).json({ success: false, error: "This learner is not linked to your parent account." });
+    }
+    const progress = buildChildProgress(learnerRecord);
+    if (progress.learner_id && !alreadyLinked && (isOwner || activeConnection)) {
+      if (!Array.isArray(parent.children)) parent.children = [];
       parent.children.push(progress.learner_id);
       saveParent(parent);
     }
@@ -8548,8 +8574,14 @@ app.get("/api/product/results/teacher/:teacher_id", async (req, res) => {
   teachers, classes, learners and results.
 */
 
-app.get("/api/product/school/:school_id/overview", (req, res) => {
+app.get("/api/product/school/:school_id/overview", async (req, res) => {
   try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) return res.status(auth.status).json({ success: false, error: auth.error });
+    if (auth.account.owner_account !== true &&
+        (auth.account.role !== "school" || String(auth.account.school_id || "") !== String(req.params.school_id || ""))) {
+      return res.status(403).json({ success: false, error: "You are not authorized to view this school overview." });
+    }
     const store = require("./product/data_engine").loadStore();
     const schoolId = req.params.school_id;
     const school = store.schools?.[schoolId];
