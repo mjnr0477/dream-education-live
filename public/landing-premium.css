@@ -566,3 +566,38 @@
   .app-shell > main .dream-destination-icon { flex: 0 0 28px !important; width: 28px !important; height: 28px !important; }
   .app-shell > main .dream-destination-label { font-size: 13px !important; }
 }
+
+
+/* Make all landing-page action and destination buttons consistently green. */
+.app-shell > main .hero-actions > .hero-primary,
+.app-shell > main .hero-actions > .hero-secondary,
+.app-shell > main .dream-search-box > button,
+.app-shell > main .dream-search-modes > button,
+.app-shell > main .dream-destination-card {
+  color: #fff !important;
+  background: #087647 !important;
+  border-color: #087647 !important;
+}
+.app-shell > main .hero-actions > .hero-secondary:hover,
+.app-shell > main .dream-search-modes > button:hover,
+.app-shell > main .dream-destination-card:hover {
+  color: #fff !important;
+  background: #06613a !important;
+  border-color: #06613a !important;
+}
+.app-shell > main .dream-destination-label,
+.app-shell > main .dream-destination-description,
+.app-shell > main .dream-destination-arrow {
+  color: #fff !important;
+}
+.app-shell > main .dream-destination-icon {
+  color: #087647 !important;
+  background: #fff !important;
+}
+.app-shell > main .hero-actions > button:focus-visible,
+.app-shell > main .dream-search-box button:focus-visible,
+.app-shell > main .dream-search-modes > button:focus-visible,
+.app-shell > main .dream-destination-card:focus-visible {
+  outline: 3px solid #9ee6ba !important;
+  outline-offset: 3px !important;
+}
