@@ -1,0 +1,192 @@
+/* Dream Education landing-page art direction.
+   Presentation-only overrides for the existing landing page; all controls and handlers remain untouched. */
+.app-shell > main {
+  background: #fbfcf8;
+  color: #123d35;
+}
+.app-shell > main .hero {
+  position: relative;
+  isolation: isolate;
+  min-height: clamp(500px, 67vw, 690px);
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 78% 35%, rgba(139, 205, 153, .32), transparent 34%),
+    radial-gradient(ellipse at 66% 86%, rgba(214, 239, 211, .82), transparent 38%),
+    linear-gradient(115deg, #fbfcf7 0%, #f3f9f0 53%, #e4f4e5 100%);
+  border-bottom: 1px solid #e1eee3;
+}
+.app-shell > main .hero-background {
+  inset: 0 0 0 45%;
+  opacity: .85;
+  pointer-events: none;
+}
+.app-shell > main .orb {
+  border: 1px solid rgba(21, 133, 83, .12);
+  background: linear-gradient(135deg, rgba(255,255,255,.42), rgba(120,195,145,.08));
+  box-shadow: 0 24px 80px rgba(25, 110, 72, .08);
+}
+.app-shell > main .orb-a { width: min(38vw, 490px); height: min(38vw, 490px); }
+.app-shell > main .orb-b { width: min(25vw, 320px); height: min(25vw, 320px); }
+.app-shell > main .orb-c { width: min(15vw, 190px); height: min(15vw, 190px); }
+.app-shell > main .grid-floor {
+  opacity: .13;
+  mask-image: linear-gradient(90deg, transparent, #000);
+}
+.app-shell > main .hero-content {
+  width: min(100% - 56px, 1240px);
+  margin: 0 auto;
+  padding: clamp(56px, 8vw, 105px) 0;
+}
+.app-shell > main .status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #08784a;
+  background: #e8f7e9;
+  border: 1px solid #cdebd2;
+  border-radius: 999px;
+  padding: 10px 15px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .09em;
+}
+.app-shell > main .status-dot { background: #15945a; box-shadow: 0 0 0 4px rgba(21,148,90,.12); }
+.app-shell > main .hero h1 {
+  max-width: 780px;
+  margin: 25px 0 18px;
+  color: #103f36;
+  font-size: clamp(3rem, 7.4vw, 6.3rem);
+  line-height: .99;
+  font-weight: 850;
+  letter-spacing: -.065em;
+}
+.app-shell > main .hero h1 span {
+  display: block;
+  color: #0a8a50;
+  background: linear-gradient(100deg, #07864e, #39a66a);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+.app-shell > main .hero-copy {
+  max-width: 570px;
+  color: #46665d;
+  font-size: clamp(1rem, 1.45vw, 1.18rem);
+  line-height: 1.75;
+}
+.app-shell > main .hero-primary {
+  min-height: 50px;
+  padding: 0 23px;
+  color: #fff;
+  border: 1px solid #0b8a50;
+  background: linear-gradient(110deg, #079653, #087647);
+  box-shadow: 0 10px 24px rgba(8, 125, 71, .18);
+}
+.app-shell > main .hero-secondary {
+  min-height: 50px;
+  padding: 0 22px;
+  color: #11634a;
+  background: rgba(255,255,255,.78);
+  border: 1px solid #b9dfc5;
+}
+.app-shell > main .hero-secondary:hover {
+  color: #075d3b;
+  background: #fff;
+  border-color: #68b98a;
+}
+.app-shell > main .hero-note {
+  color: #41675b;
+  font-size: 12px;
+}
+.app-shell > main .hero-note i { background: #8dbca0; }
+.app-shell > main .dream-search-section {
+  padding: clamp(42px, 6vw, 76px) 24px;
+  background: linear-gradient(180deg, #fbfcf8, #f1f7ef);
+}
+.app-shell > main .dream-search-shell {
+  width: min(100%, 1100px);
+  margin: 0 auto;
+  padding: clamp(25px, 5vw, 54px);
+  border: 1px solid #dfebdf;
+  border-radius: 28px;
+  color: #153f35;
+  background:
+    radial-gradient(ellipse at 100% 0%, rgba(207,239,211,.55), transparent 45%),
+    linear-gradient(145deg, #fff, #f6faf3);
+  box-shadow: 0 22px 60px rgba(29, 76, 47, .07);
+}
+.app-shell > main .dream-search-kicker {
+  display: inline-block;
+  color: #0b8650;
+  font-weight: 800;
+  letter-spacing: .13em;
+}
+.app-shell > main .dream-search-title {
+  color: #123f35;
+  font-size: clamp(2.1rem, 4.5vw, 3.8rem);
+  line-height: 1.06;
+  letter-spacing: -.055em;
+}
+.app-shell > main .dream-search-title em {
+  color: #0a8c50;
+  font-style: normal;
+}
+.app-shell > main .dream-search-copy { color: #577168; line-height: 1.7; }
+.app-shell > main .dream-search-box {
+  display: flex;
+  gap: 10px;
+  padding: 8px;
+  border: 1px solid #d4e5d7;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 8px 28px rgba(29,76,47,.07);
+}
+.app-shell > main .dream-search-box input {
+  color: #163f35;
+  background: transparent;
+}
+.app-shell > main .dream-search-box input::placeholder { color: #82998c; }
+.app-shell > main .dream-search-button {
+  min-height: 46px;
+  padding: 0 22px;
+  color: #fff;
+  background: linear-gradient(110deg, #079653, #087647);
+  border-radius: 12px;
+  box-shadow: none;
+}
+.app-shell > main .dream-search-modes { margin-top: 14px; }
+.app-shell > main .dream-search-modes button {
+  color: #176c4c;
+  border: 1px solid #c8e4cf;
+  background: #edf8ed;
+}
+.app-shell > main .dream-search-status { color: #587367; }
+.app-shell > main .dream-search-result {
+  color: #153f35;
+  background: #fff;
+  border-color: #dfebdf;
+}
+@media (min-width: 900px) {
+  .app-shell > main .hero-content { padding-right: 38%; }
+  .app-shell > main .hero-background { inset-left: 42%; }
+}
+@media (max-width: 760px) {
+  .app-shell > main .hero { min-height: 0; }
+  .app-shell > main .hero-content {
+    width: calc(100% - 36px);
+    padding: 56px 0 48px;
+  }
+  .app-shell > main .hero-background { inset: 0; opacity: .45; }
+  .app-shell > main .hero h1 { font-size: clamp(2.65rem, 13vw, 4.4rem); }
+  .app-shell > main .hero-copy { font-size: 1rem; }
+  .app-shell > main .hero-actions { align-items: stretch; }
+  .app-shell > main .hero-actions button { min-height: 48px; }
+  .app-shell > main .dream-search-section { padding: 30px 16px; }
+  .app-shell > main .dream-search-shell { padding: 24px 18px; border-radius: 22px; }
+  .app-shell > main .dream-search-box { align-items: stretch; }
+  .app-shell > main .dream-search-button { padding: 0 15px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-shell > main .hero *, .app-shell > main .dream-search-section * { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
