@@ -441,3 +441,92 @@
   .app-shell > main .dream-destinations-grid { grid-template-columns: 1fr; }
   .app-shell > main .dream-destination-card { min-height: 140px; }
 }
+
+
+/* Compact landing correction: put the five product entry points immediately
+   below the navbar, keep them visible, and stop Public Search dominating the page. */
+.app-shell > main {
+  display: flex;
+  flex-direction: column;
+}
+.app-shell > main > .dream-destinations { order: 0; }
+.app-shell > main > .hero { order: 1; }
+.app-shell > main > .dream-search-section { order: 2; }
+
+.app-shell > main .dream-destinations {
+  padding: 12px 20px;
+}
+.app-shell > main .dream-destinations-kicker,
+.app-shell > main .dream-destinations h2,
+.app-shell > main .dream-destinations-copy {
+  display: none;
+}
+.app-shell > main .dream-destinations-inner {
+  width: min(100%, 1180px);
+}
+.app-shell > main .dream-destinations-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+.app-shell > main .dream-destination-card {
+  min-height: 58px;
+  padding: 9px 12px;
+  flex-direction: row;
+  align-items: center;
+  gap: 9px;
+  border-radius: 12px;
+  box-shadow: none;
+}
+.app-shell > main .dream-destination-icon {
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  font-size: 16px;
+}
+.app-shell > main .dream-destination-label {
+  font-size: 14px;
+  line-height: 1.2;
+}
+.app-shell > main .dream-destination-description,
+.app-shell > main .dream-destination-arrow {
+  display: none;
+}
+
+.app-shell > main .dream-search-section {
+  padding: 24px 16px;
+}
+.app-shell > main .dream-search-shell {
+  width: min(100%, 760px);
+  padding: 22px 24px;
+  border-radius: 18px;
+}
+.app-shell > main .dream-search-title {
+  font-size: clamp(1.6rem, 3.5vw, 2.5rem);
+  margin: 8px 0 10px;
+}
+.app-shell > main .dream-search-copy {
+  margin: 0 0 14px;
+}
+.app-shell > main .dream-search-box {
+  padding: 5px;
+  gap: 7px;
+}
+.app-shell > main .dream-search-box input,
+.app-shell > main .dream-search-box > button {
+  min-height: 42px;
+}
+@media (max-width: 760px) {
+  .app-shell > main .dream-destinations { padding: 10px 12px; }
+  .app-shell > main .dream-destinations-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .app-shell > main .dream-destination-card {
+    min-height: 48px;
+    padding: 8px 10px;
+  }
+  .app-shell > main .dream-destination-label { font-size: 13px; }
+  .app-shell > main .dream-search-section { padding: 18px 12px; }
+  .app-shell > main .dream-search-shell { padding: 18px 14px; }
+}
