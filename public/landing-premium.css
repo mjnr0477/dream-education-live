@@ -680,3 +680,19 @@
   color: #7c3aed !important;
   background: #ffffff !important;
 }
+
+
+/* Strong neutral background makes the purple navigation buttons stand out. */
+.app-shell > main .dream-destinations {
+  background: #f1f5f9 !important;
+}
+.app-shell > main .dream-destinations-grid > button.dream-destination-card[data-panel="learn"],
+.app-shell > main .dream-destinations-grid > button.dream-destination-card[data-panel="teach"],
+.app-shell > main .dream-destinations-grid > button.dream-destination-card[data-panel="tools"],
+.app-shell > main .dream-destinations-grid > button.dream-destination-card[data-panel="connect"],
+.app-shell > main .dream-destinations-grid > button.dream-destination-card[data-panel="about"] {
+  background: linear-gradient(115deg, #6d28d9 0%, #9333ea 30%, #c026d3 58%, #7c3aed 80%, #4f46e5 100%) !important;
+  border-color: #6d28d9 !important;
+  box-shadow: 0 5px 16px rgba(76,29,149,.28) !important;
+  opacity: 1 !important;
+}
