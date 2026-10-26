@@ -480,3 +480,89 @@
   .app-shell > main .dream-destinations-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .app-shell > main .dream-destination-card { min-height: 48px; }
 }
+
+
+/* Mobile-first landing repair: compact search at top, actions in middle, destinations at bottom. */
+@media (max-width: 760px) {
+  .app-shell > main {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  .app-shell > main > .dream-search-section { order: 0 !important; padding: 10px 12px 14px !important; }
+  .app-shell > main > .hero { order: 1 !important; min-height: 0 !important; }
+  .app-shell > main > .dream-destinations { order: 2 !important; padding: 14px 12px 22px !important; }
+  .app-shell > main .dream-search-shell {
+    width: 100% !important;
+    padding: 12px !important;
+    border-radius: 14px !important;
+    box-shadow: none !important;
+  }
+  .app-shell > main .dream-search-title { display: none !important; }
+  .app-shell > main .dream-search-copy { margin: 3px 0 9px !important; font-size: 12px !important; line-height: 1.35 !important; }
+  .app-shell > main .dream-search-box {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 5px !important;
+    border-radius: 12px !important;
+  }
+  .app-shell > main .dream-search-box input {
+    display: block !important;
+    flex: 1 1 auto !important;
+    width: 1% !important;
+    height: 42px !important;
+    min-height: 42px !important;
+    max-height: 42px !important;
+    padding: 0 10px !important;
+    font-size: 14px !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+  .app-shell > main .dream-search-box > button {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-width: 76px !important;
+    height: 42px !important;
+    min-height: 42px !important;
+    padding: 0 12px !important;
+  }
+  .app-shell > main .dream-search-modes,
+  .app-shell > main .dream-search-status { display: none !important; }
+  .app-shell > main .hero-content {
+    width: calc(100% - 32px) !important;
+    padding: 24px 0 22px !important;
+  }
+  .app-shell > main .status-pill,
+  .app-shell > main .hero-note { display: none !important; }
+  .app-shell > main .hero h1 {
+    margin: 0 0 10px !important;
+    font-size: clamp(2.1rem, 9vw, 3rem) !important;
+    line-height: 1.02 !important;
+  }
+  .app-shell > main .hero-copy { margin: 0 0 14px !important; font-size: 14px !important; line-height: 1.45 !important; }
+  .app-shell > main .hero-actions { gap: 8px !important; }
+  .app-shell > main .hero-actions > button {
+    min-height: 44px !important;
+    height: auto !important;
+    padding: 11px 14px !important;
+    border-radius: 12px !important;
+    font-size: 14px !important;
+  }
+  .app-shell > main .dream-destinations-kicker,
+  .app-shell > main .dream-destinations h2,
+  .app-shell > main .dream-destinations-copy { display: none !important; }
+  .app-shell > main .dream-destinations-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px !important; }
+  .app-shell > main .dream-destination-card {
+    display: flex !important;
+    min-height: 48px !important;
+    height: auto !important;
+    padding: 8px 10px !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 8px !important;
+    border-radius: 10px !important;
+  }
+  .app-shell > main .dream-destination-icon { flex: 0 0 28px !important; width: 28px !important; height: 28px !important; }
+  .app-shell > main .dream-destination-label { font-size: 13px !important; }
+}
