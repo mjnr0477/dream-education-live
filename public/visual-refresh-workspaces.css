@@ -1,0 +1,118 @@
+/* Dream Education workspace polish — shared visual language, styles only. */
+:root {
+  --de-panel-bg: rgba(18, 34, 30, .88);
+  --de-panel-bg-raised: rgba(25, 46, 40, .9);
+  --de-panel-border: rgba(178, 220, 198, .17);
+  --de-panel-accent: #8ce0b4;
+  --de-panel-muted: #b7c8c0;
+  --de-panel-radius: 20px;
+}
+:where(.experience-panel, .panel-scroll, #panel-body) { color: #f4f5ef; }
+:where(#panel-body) :where(h1,h2,h3,h4) { letter-spacing: -.025em; text-wrap: balance; }
+:where(#panel-body) :where(p, .hint, small) { line-height: 1.65; }
+:where(#panel-body) :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+  border-radius: 12px;
+  border-color: rgba(190,224,207,.22);
+  background-color: rgba(6,17,14,.55);
+  color: #f4f5ef;
+  min-height: 42px;
+}
+:where(#panel-body) :where(input,select,textarea)::placeholder { color: #8fa69b; }
+:where(#panel-body) :where(input,select,textarea):focus-visible {
+  outline: 3px solid rgba(140,224,180,.34);
+  outline-offset: 1px;
+  border-color: #8ce0b4;
+}
+:where(#panel-body) :where(button, .panel-action, .panel-button, .school-module-action, .books-reading-primary, .books-reading-link) {
+  border-radius: 12px;
+  min-height: 40px;
+  transition: transform .16s ease, filter .16s ease, border-color .16s ease, box-shadow .16s ease;
+}
+:where(#panel-body) :where(button, .panel-action, .panel-button, .school-module-action, .books-reading-primary, .books-reading-link):hover {
+  filter: brightness(1.07);
+}
+:where(#panel-body) :where(button, .panel-action, .panel-button, .school-module-action, .books-reading-primary, .books-reading-link):active {
+  transform: translateY(1px);
+}
+:where(.teacher-dashboard-card, .teacher-stat-card, .school-module-card, .school-module-list-item,
+       .parent-workspace .parent-card, .de-meeting-stat, .de-meeting-create, .de-meeting-schedule,
+       .de-meeting-tools, .de-meeting-card, .books-reading-card, .de-chat-workspace .de-chat-card,
+       .de-media-result, .dream-search-result, .di-equity-panel, .de-feature-card, .de-role-card) {
+  border-color: var(--de-panel-border);
+  border-radius: var(--de-panel-radius);
+  box-shadow: 0 10px 30px rgba(0,0,0,.13);
+}
+:where(.teacher-dashboard-card, .teacher-stat-card, .school-module-card, .school-module-list-item,
+       .parent-workspace .parent-card, .de-meeting-stat, .de-meeting-create, .de-meeting-schedule,
+       .de-meeting-tools, .de-meeting-card, .books-reading-card, .de-chat-workspace .de-chat-card,
+       .de-media-result, .dream-search-result, .di-equity-panel, .de-feature-card, .de-role-card):hover {
+  border-color: rgba(140,224,180,.34);
+}
+.teacher-dashboard-header, .school-workspace-topline, .de-meetings-hero, .books-reading-intro {
+  border-radius: 22px;
+}
+:where(.teacher-dashboard-section-heading, .school-module-card h4, .de-meeting-section-heading,
+       .books-reading-section-heading, .de-chat-group-heading) :where(h2,h3,h4) {
+  letter-spacing: -.025em;
+}
+.teacher-stat-card strong, .de-meeting-stat strong { font-variant-numeric: tabular-nums; }
+.teacher-stat-grid, .school-module-grid, .de-meeting-stats, .books-reading-grid, .de-feature-grid {
+  align-items: stretch;
+}
+:where(.teacher-dashboard-card, .school-module-card, .de-meeting-card, .books-reading-card, .de-feature-card) {
+  min-width: 0;
+}
+.school-module-nav button, .de-meeting-tab {
+  border-radius: 999px;
+  transition: background .18s ease, color .18s ease, border-color .18s ease;
+}
+.school-module-nav button.active, .de-meeting-tab.is-active {
+  box-shadow: 0 5px 18px rgba(30,139,104,.18);
+}
+:where(.school-module-table-wrap, .de-meeting-list, .teacher-results-list, .de-chat-message-list) {
+  scrollbar-color: #376c58 transparent;
+}
+.school-module-table { border-collapse: separate; border-spacing: 0; overflow: hidden; }
+.school-module-table th { letter-spacing: .045em; text-transform: uppercase; font-size: .76rem; }
+.school-module-table th, .school-module-table td { border-color: rgba(190,224,207,.13); }
+.teacher-result-row, .school-module-list-item, .de-meeting-card-top {
+  gap: 12px;
+}
+.teacher-learner-card, .teacher-result-row, .school-module-list-item {
+  border-radius: 14px;
+}
+.de-chat-quick-actions button { border-radius: 999px; }
+.de-chat-workspace textarea { min-height: 48px; }
+.books-reading-card-mark, .school-module-icon, .de-meeting-stat-icon {
+  border-radius: 14px;
+}
+.dream-search-result h3 { letter-spacing: -.02em; }
+.dream-search-result p { line-height: 1.65; }
+.dream-search-source { border-radius: 999px; }
+.de-media-result-image, .de-media-result-video, .de-media-result-audio {
+  border-radius: 16px;
+  overflow: hidden;
+}
+:where(.parent-workspace, .school-space-enhanced, .teacher-connections, .de-chat-workspace, .de-meetings, .books-reading-workspace, .de-media-studio, .dream-invest) {
+  color: #f4f5ef;
+}
+:where(.parent-workspace, .school-space-enhanced, .teacher-connections, .de-chat-workspace, .de-meetings, .books-reading-workspace, .de-media-studio, .dream-invest) :where(a, button):focus-visible {
+  outline: 3px solid #f4bd67;
+  outline-offset: 3px;
+}
+@media (max-width: 640px) {
+  :where(.teacher-dashboard-card, .teacher-stat-card, .school-module-card, .school-module-list-item,
+         .de-meeting-stat, .de-meeting-create, .de-meeting-schedule, .de-meeting-tools,
+         .de-meeting-card, .books-reading-card, .dream-search-result, .de-feature-card, .de-role-card) {
+    border-radius: 16px;
+  }
+  :where(#panel-body) :where(button, .panel-action, .panel-button, .school-module-action) {
+    min-height: 44px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :where(#panel-body) *, :where(.teacher-connections, .school-space-enhanced, .parent-workspace, .de-chat-workspace, .de-meetings, .books-reading-workspace, .de-media-studio, .dream-invest) * {
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+  }
+}
