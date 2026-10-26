@@ -601,3 +601,48 @@
   outline: 3px solid #9ee6ba !important;
   outline-offset: 3px !important;
 }
+
+
+/* Rainbow-purple accent for Learn, Teach, AI Lab, Connect and About Dream. */
+.app-shell > main .dream-destination-card[data-panel="learn"],
+.app-shell > main .dream-destination-card[data-panel="teach"],
+.app-shell > main .dream-destination-card[data-panel="tools"],
+.app-shell > main .dream-destination-card[data-panel="connect"],
+.app-shell > main .dream-destination-card[data-panel="about"] {
+  color: #fff !important;
+  background: linear-gradient(120deg, #6d28d9 0%, #9333ea 28%, #c026d3 55%, #7c3aed 78%, #4f46e5 100%) !important;
+  border: 1px solid rgba(255,255,255,.35) !important;
+  box-shadow: 0 5px 16px rgba(124,58,237,.22) !important;
+}
+.app-shell > main .dream-destination-card[data-panel="learn"] .dream-destination-label,
+.app-shell > main .dream-destination-card[data-panel="teach"] .dream-destination-label,
+.app-shell > main .dream-destination-card[data-panel="tools"] .dream-destination-label,
+.app-shell > main .dream-destination-card[data-panel="connect"] .dream-destination-label,
+.app-shell > main .dream-destination-card[data-panel="about"] .dream-destination-label,
+.app-shell > main .dream-destination-card[data-panel="learn"] .dream-destination-description,
+.app-shell > main .dream-destination-card[data-panel="teach"] .dream-destination-description,
+.app-shell > main .dream-destination-card[data-panel="tools"] .dream-destination-description,
+.app-shell > main .dream-destination-card[data-panel="connect"] .dream-destination-description,
+.app-shell > main .dream-destination-card[data-panel="about"] .dream-destination-description,
+.app-shell > main .dream-destination-card[data-panel="learn"] .dream-destination-arrow,
+.app-shell > main .dream-destination-card[data-panel="teach"] .dream-destination-arrow,
+.app-shell > main .dream-destination-card[data-panel="tools"] .dream-destination-arrow,
+.app-shell > main .dream-destination-card[data-panel="connect"] .dream-destination-arrow,
+.app-shell > main .dream-destination-card[data-panel="about"] .dream-destination-arrow {
+  color: #fff !important;
+}
+.app-shell > main .dream-destination-card[data-panel="learn"] .dream-destination-icon,
+.app-shell > main .dream-destination-card[data-panel="teach"] .dream-destination-icon,
+.app-shell > main .dream-destination-card[data-panel="tools"] .dream-destination-icon,
+.app-shell > main .dream-destination-card[data-panel="connect"] .dream-destination-icon,
+.app-shell > main .dream-destination-card[data-panel="about"] .dream-destination-icon {
+  color: #7c3aed !important;
+  background: #fff !important;
+}
+.app-shell > main .dream-destination-card[data-panel="learn"]:hover,
+.app-shell > main .dream-destination-card[data-panel="teach"]:hover,
+.app-shell > main .dream-destination-card[data-panel="tools"]:hover,
+.app-shell > main .dream-destination-card[data-panel="connect"]:hover,
+.app-shell > main .dream-destination-card[data-panel="about"]:hover {
+  filter: brightness(1.08);
+}
