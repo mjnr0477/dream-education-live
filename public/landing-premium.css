@@ -696,3 +696,58 @@
   box-shadow: 0 5px 16px rgba(76,29,149,.28) !important;
   opacity: 1 !important;
 }
+
+
+/* Landing navigation contrast repair: opaque section, readable labels on phones. */
+.app-shell > main .dream-destinations {
+  background: #e2e8f0 !important;
+  background-image: none !important;
+  opacity: 1 !important;
+  filter: none !important;
+  isolation: isolate;
+}
+.app-shell > main .dream-destinations-grid {
+  opacity: 1 !important;
+  filter: none !important;
+}
+.app-shell > main .dream-destinations-grid > button.dream-destination-card {
+  min-height: 112px !important;
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  color: #fff !important;
+  border-radius: 16px !important;
+  text-shadow: none !important;
+}
+.app-shell > main .dream-destinations-grid > button.dream-destination-card .dream-destination-label {
+  color: #fff !important;
+  font-weight: 800 !important;
+  opacity: 1 !important;
+}
+.app-shell > main .dream-destinations-grid > button.dream-destination-card .dream-destination-description,
+.app-shell > main .dream-destinations-grid > button.dream-destination-card .dream-destination-arrow {
+  color: #fff !important;
+  opacity: 1 !important;
+}
+.app-shell > main .dream-destinations-grid > button.dream-destination-card[data-panel="school"] {
+  background: #087647 !important;
+  border: 2px solid #087647 !important;
+  box-shadow: 0 5px 14px rgba(8,118,71,.22) !important;
+}
+@media (max-width: 700px) {
+  .app-shell > main .dream-destinations {
+    padding: 18px 14px 24px !important;
+    margin-top: 18px !important;
+    border-radius: 20px !important;
+  }
+  .app-shell > main .dream-destinations-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+  }
+  .app-shell > main .dream-destinations-grid > button.dream-destination-card {
+    min-width: 0 !important;
+    min-height: 116px !important;
+    padding: 14px !important;
+  }
+}
