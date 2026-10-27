@@ -1,0 +1,12 @@
+{
+  "id": "/",
+  "name": "Dream Education",
+  "short_name": "Dream Education",
+  "description": "An intelligent learning platform for learners, teachers, parents and schools.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#07080d",
+  "theme_color": "#07080d",
+  "categories": ["education"]
+}
