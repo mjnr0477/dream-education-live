@@ -8,6 +8,13 @@ const register = read("public/offline-support.js");
 const html = read("public/index.html");
 const offline = read("public/offline.html");
 const manifest = JSON.parse(read("public/manifest.webmanifest"));
+const shellMatch = worker.match(/const SHELL_URLS = (\[[\s\S]*?\]);/);
+assert.ok(shellMatch, "service worker should define an explicit app-shell cache list");
+const shellUrls = JSON.parse(shellMatch[1]);
+const localAssets = [...html.matchAll(/(?:src|href)="(\/[^"]+\.(?:css|js)(?:\\?[^"]*)?)"/g)].map((match) => match[1]);
+for (const asset of localAssets) {
+  assert.ok(shellUrls.includes(asset), `app-shell asset must be cached for offline use: ${asset}`);
+}
 
 assert.match(worker, /addAll\(SHELL_URLS\)/, "public app shell should be precached");
 assert.match(worker, /url\.pathname\.startsWith\("\/api\/"\)/, "API routes must bypass caching");
