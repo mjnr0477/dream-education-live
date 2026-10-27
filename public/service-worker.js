@@ -45,7 +45,7 @@ self.addEventListener("fetch", (event) => {
           caches.open(CACHE_VERSION).then((cache) => cache.put("/", copy)).catch(() => {});
         }
         return response;
-      }).catch(async () => (await caches.match(request)) || (await caches.match("/")) || (await caches.match("/offline.html"))
+      }).catch(async () => (await caches.match(request)) || (await caches.match("/")) || (await caches.match("/offline.html")))
     );
     return;
   }
