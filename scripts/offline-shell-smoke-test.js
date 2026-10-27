@@ -13,7 +13,7 @@ assert.ok(shellMatch, "service worker should define an explicit app-shell cache 
 const shellUrls = JSON.parse(shellMatch[1]);
 const localAssets = [...html.matchAll(/(?:src|href)="(\/[^"]+\.(?:css|js)(?:\?[^\"]*)?)"/g)].map((match) => match[1]);
 for (const asset of localAssets) {
-  assert.ok(shellUrls.includes(asset), \`app-shell asset must be cached for offline use: \${asset}\`);
+  assert.ok(shellUrls.includes(asset), "app-shell asset must be cached for offline use: " + asset);
 }
 
 assert.match(worker, /addAll\(SHELL_URLS\)/, "public app shell should be precached");
