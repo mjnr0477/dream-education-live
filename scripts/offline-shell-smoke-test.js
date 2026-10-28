@@ -16,6 +16,15 @@ for (const asset of localAssets) {
   assert.ok(shellUrls.includes(asset), "app-shell asset must be cached for offline use: " + asset);
 }
 
+// Cache.addAll is atomic: one missing URL can prevent the entire new service
+// worker from installing. Verify every precache URL maps to a real public file.
+for (const assetUrl of shellUrls) {
+  const pathname = assetUrl.split("?")[0];
+  const relativePath = pathname === "/" ? "index.html" : pathname.replace(/^\//, "");
+  const filePath = path.join(__dirname, "..", "public", relativePath);
+  assert.ok(fs.existsSync(filePath), "precache asset must exist before deployment: " + assetUrl);
+}
+
 assert.match(worker, /addAll\(SHELL_URLS\)/, "public app shell should be precached");
 assert.match(worker, /url\.pathname\.startsWith\("\/api\/"\)/, "API routes must bypass caching");
 assert.match(worker, /request\.mode === "navigate"/, "navigation should have an offline fallback");
