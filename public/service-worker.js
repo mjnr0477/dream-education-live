@@ -56,10 +56,9 @@ self.addEventListener("fetch", (event) => {
   if (request.mode === "navigate") {
     event.respondWith(
       fetch(request).then((response) => {
-        if (response && response.ok) {
-          const copy = response.clone();
-          caches.open(CACHE_VERSION).then((cache) => cache.put("/", copy)).catch(() => {});
-        }
+        // Keep the root cache entry bound to the precached public shell.
+        // Never replace it with an arbitrary navigation response, which may
+        // contain personalized HTML from a route not yet classified as private.
         return response;
       }).catch(async () => (await caches.match(request)) || (await caches.match("/")) || (await caches.match("/offline.html")))
     );
