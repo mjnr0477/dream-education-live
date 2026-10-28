@@ -19,6 +19,7 @@ for (const asset of localAssets) {
 assert.match(worker, /addAll\(SHELL_URLS\)/, "public app shell should be precached");
 assert.match(worker, /url\.pathname\.startsWith\("\/api\/"\)/, "API routes must bypass caching");
 assert.match(worker, /request\.mode === "navigate"/, "navigation should have an offline fallback");
+assert.doesNotMatch(worker, /cache\.put\(["']\/["'],\s*copy\)/, "navigation responses must never overwrite the public root shell cache");
 assert.match(worker, /caches\.match\("\/offline\.html"\)/, "offline fallback page should be available");
 assert.match(register, /register\("\/service-worker\.js"\)/, "service worker must be registered");
 assert.match(register, /addEventListener\("offline"/, "offline state should be announced");
