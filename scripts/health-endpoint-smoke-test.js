@@ -32,6 +32,12 @@ assert.doesNotMatch(monitor, /supabase:\s*'enabled'/, "monitor must not confuse 
 assert.match(monitor, /\/offline\.html/, "production monitor must verify the offline fallback");
 assert.match(monitor, /\/service-worker\.js/, "production monitor must verify the service worker");
 assert.match(monitor, /\/manifest\.webmanifest/, "production monitor must verify the install manifest");
+assert.match(monitor, /expectUnauthenticatedDenied/, "production monitor must test unauthenticated private API denial");
+assert.match(monitor, /\/api\/progress\/production-monitor-probe/, "production monitor must check learner progress access");
+assert.match(monitor, /\/api\/product\/teacher\/production-monitor-probe/, "production monitor must check teacher profile access");
+assert.match(monitor, /\/api\/product\/results\/learner\/production-monitor-probe/, "production monitor must check learner results access");
+assert.match(monitor, /\/api\/v1\/learning\/resources\/progress/, "production monitor must check learner resource-progress writes");
+assert.match(monitor, /response\.status !== 401 && response\.status !== 403/, "private API probes must require explicit unauthorized/forbidden responses");
 assert.ok(monitor.includes('/addAll\\(SHELL_URLS\\)/'), "production monitor must use a correctly escaped app-shell precache pattern");
 assert.ok(monitor.includes('/request\\.mode === "navigate"/'), "production monitor must use a correctly escaped navigation pattern");
 assert.ok(monitor.includes('/caches\\.match\\("\\/offline\\.html"\\)/'), "production monitor must use a correctly escaped offline-cache pattern");
