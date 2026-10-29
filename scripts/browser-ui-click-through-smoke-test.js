@@ -61,6 +61,32 @@ const baseUrl = (process.env.BASE_URL || "http://127.0.0.1:4173").replace(/\/$/,
     assert((await page.locator("#panel-body").innerText()).length > 0, "Explore panel must render content");
     await closePanel();
 
+    // Verify every primary destination card opens its intended working panel.
+    for (const [panelName, expectedTitle] of [
+      ["learn", "Start learning."],
+      ["teach", "Teach with purpose."],
+      ["school", "Education, together."],
+      ["tools", "Powerful tools."],
+      ["connect", "Stay connected."],
+      ["about", "Why Dream?"]
+    ]) {
+      await openPanel('.dream-destination-card[data-panel="' + panelName + '"]', expectedTitle);
+      assert((await page.locator("#panel-body").innerText()).trim().length > 0,
+        "Landing destination " + panelName + " must render useful content");
+      await closePanel();
+    }
+
+    // Verify the pricing CTA opens real plan choices without starting a payment.
+    await page.locator('.de-subscribe-cta[data-panel-action="subscription"]').click();
+    await page.waitForFunction(() =>
+      document.body.classList.contains("panel-open") &&
+      document.querySelector("#panel-title")?.textContent.trim() === "Subscription"
+    );
+    assert(await page.locator('[data-subscription-plan="daily"]').isVisible(), "View plans must show the daily plan");
+    assert(await page.locator('[data-subscription-plan="monthly"]').isVisible(), "View plans must show the monthly plan");
+    assert(await page.locator('[data-payment-method="paypal"]').isVisible(), "Subscription checkout must offer PayPal");
+    await closePanel();
+
     await openPanel('.nav-center [data-panel="about"]', "Why Dream?");
     assert(await page.locator("[data-about-workspace]").count() >= 5, "About tour buttons should render");
     await closePanel();
