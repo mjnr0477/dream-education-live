@@ -5832,7 +5832,7 @@ const {
 
 
 // Refresh a Supabase session using its rotating refresh token for native clients.
-app.post("/api/auth/refresh", async (req, res) => {
+app.post("/api/auth/refresh", (req, res, next) => {
   res.set("Cache-Control", "no-store");
   const rateLimit = checkAuthRateLimit(req, "refresh");
   if (!rateLimit.allowed) {
@@ -5842,26 +5842,10 @@ app.post("/api/auth/refresh", async (req, res) => {
       retry_after_seconds: rateLimit.retryAfterSeconds
     });
   }
-  const refreshToken = String(req.body && req.body.refresh_token || "").trim();
-  if (!refreshToken) {
-    return res.status(400).json({ success: false, error: "A refresh token is required." });
-  }
-  try {
-    const { data, error } = await supabaseAuth.auth.refreshSession({ refresh_token: refreshToken });
-    const session = data && data.session;
-    if (error || !session || !session.access_token || !session.refresh_token) {
-      return res.status(401).json({ success: false, error: "Session refresh failed. Please sign in again." });
-    }
-    return res.json({
-      success: true,
-      session: {
-        access_token: session.access_token,
-        refresh_token: session.refresh_token
-      }
-    });
-  } catch (_) {
-    return res.status(401).json({ success: false, error: "Session refresh failed. Please sign in again." });
-  }
+
+  // Continue to the account-aware refresh handler below. Refresh tokens are
+  // single-use/rotating, so this middleware must not consume one itself.
+  return next();
 });
 
 registerDreamInvestAccessRoutes(app, { getAuthenticatedAccount });
