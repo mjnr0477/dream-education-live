@@ -25,10 +25,12 @@ jobs:
           const base = process.env.BASE_URL.replace(/\/$/, '');
           const requiredHealth = {
             success: true,
+            status: 'ok',
             app: 'Dream Education',
             cache: 'enabled',
-            supabase: 'enabled',
-            learning_history: 'enabled'
+            // The endpoint reports configuration, not a live Supabase connectivity check.
+            supabase: 'configured',
+            learning_history: 'configured'
           };
 
           async function fetchText(url) {
