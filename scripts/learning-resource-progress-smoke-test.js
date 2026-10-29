@@ -38,7 +38,7 @@ const serverSource = fs.readFileSync(path.join(__dirname, "..", "server.js"), "u
 const routeMarker = 'app.post("/api/v1/learning/resources/progress", async (req, res) => {';
 const routeStart = serverSource.indexOf(routeMarker);
 assert.notStrictEqual(routeStart, -1, "Resource progress endpoint must exist");
-const routeEnd = serverSource.indexOf("\\napp.", routeStart + routeMarker.length);
+const routeEnd = serverSource.indexOf("\napp.", routeStart + routeMarker.length);
 const route = serverSource.slice(routeStart, routeEnd < 0 ? serverSource.length : routeEnd);
 assert.ok(route.includes("getAuthenticatedAccount(req)"), "Resource progress must require authenticated account");
 assert.ok(route.includes('auth.account.role === "learner" && auth.account.learner_id === event.learner_id'),
