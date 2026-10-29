@@ -87,9 +87,9 @@ jobs:
             if (!/need an internet connection/i.test(offlinePage.text)) {
               throw new Error('Offline fallback page is missing its connection guidance');
             }
-            if (!/addAll\\(SHELL_URLS\\)/.test(serviceWorker.text) ||
-                !/request\\.mode === "navigate"/.test(serviceWorker.text) ||
-                !/caches\\.match\\("\\/offline\\.html"\\)/.test(serviceWorker.text)) {
+            if (!/addAll\(SHELL_URLS\)/.test(serviceWorker.text) ||
+                !/request\.mode === "navigate"/.test(serviceWorker.text) ||
+                !/caches\.match\("\/offline\.html"\)/.test(serviceWorker.text)) {
               throw new Error('Production service worker is missing app-shell precache or navigation fallback behavior');
             }
             let manifest;
