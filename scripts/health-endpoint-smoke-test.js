@@ -32,7 +32,7 @@ assert.doesNotMatch(monitor, /supabase:\s*'enabled'/, "monitor must not confuse 
 assert.match(monitor, /\/offline\.html/, "production monitor must verify the offline fallback");
 assert.match(monitor, /\/service-worker\.js/, "production monitor must verify the service worker");
 assert.match(monitor, /\/manifest\.webmanifest/, "production monitor must verify the install manifest");
-assert.match(monitor, /addAll\\\\?\(SHELL_URLS\)/, "production monitor must check app-shell precaching");
-assert.match(monitor, /request\\\\?\.mode === \"navigate\"/, "production monitor must check navigation fallback behavior");
-assert.match(monitor, /caches\\\\?\.match/, "production monitor must check offline cache fallback");
+assert.ok(monitor.includes('/addAll\\(SHELL_URLS\\)/'), "production monitor must use a correctly escaped app-shell precache pattern");
+assert.ok(monitor.includes('/request\\.mode === "navigate"/'), "production monitor must use a correctly escaped navigation pattern");
+assert.ok(monitor.includes('/caches\\.match\\("\\/offline\\.html"\\)/'), "production monitor must use a correctly escaped offline-cache pattern");
 console.log("Health endpoint and production-monitor contract smoke test passed.");
