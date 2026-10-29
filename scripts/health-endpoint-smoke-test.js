@@ -22,4 +22,17 @@ assert.doesNotMatch(
   /process\.env|SUPABASE_KEY|OPENAI_API_KEY|API_KEY|secret|token/i,
   "public health payload must not expose environment variables or credential fields"
 );
-console.log("Health endpoint configuration-report smoke test passed.");
+
+// Keep the live production monitor aligned with the endpoint's documented contract.
+const monitor = fs.readFileSync(".github/workflows/production-health-monitor.yml", "utf8");
+assert.match(monitor, /status:\s*'ok'/, "production monitor must check the API status");
+assert.match(monitor, /supabase:\s*'configured'/, "production monitor must check configuration, not claim live connectivity");
+assert.match(monitor, /learning_history:\s*'configured'/, "production monitor must match the health endpoint contract");
+assert.doesNotMatch(monitor, /supabase:\s*'enabled'/, "monitor must not confuse configuration with live connectivity");
+assert.match(monitor, /\/offline\.html/, "production monitor must verify the offline fallback");
+assert.match(monitor, /\/service-worker\.js/, "production monitor must verify the service worker");
+assert.match(monitor, /\/manifest\.webmanifest/, "production monitor must verify the install manifest");
+assert.match(monitor, /addAll\\\\?\(SHELL_URLS\)/, "production monitor must check app-shell precaching");
+assert.match(monitor, /request\\\\?\.mode === \"navigate\"/, "production monitor must check navigation fallback behavior");
+assert.match(monitor, /caches\\\\?\.match/, "production monitor must check offline cache fallback");
+console.log("Health endpoint and production-monitor contract smoke test passed.");
