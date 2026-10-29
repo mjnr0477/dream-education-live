@@ -11695,7 +11695,7 @@ app.post("/api/v1/learning/resources/progress", async (req, res) => {
 
     const event = normalizeResourceEvent(req.body || {});
     const isOwner = auth.account.owner_account === true;
-    const isSelf = auth.account.learner_id === event.learner_id;
+    const isSelf = auth.account.role === "learner" && auth.account.learner_id === event.learner_id;
     if (!isOwner && !isSelf) {
       return res.status(403).json({ success: false, error: "Learner resource progress access denied." });
     }
