@@ -78,6 +78,30 @@ jobs:
               }
             }
 
+            // Check the offline recovery assets as well as the online app shell.
+            const [offlinePage, serviceWorker, manifestResult] = await Promise.all([
+              fetchText(base + '/offline.html'),
+              fetchText(base + '/service-worker.js'),
+              fetchText(base + '/manifest.webmanifest')
+            ]);
+            if (!/need an internet connection/i.test(offlinePage.text)) {
+              throw new Error('Offline fallback page is missing its connection guidance');
+            }
+            if (!/addAll\(SHELL_URLS\)/.test(serviceWorker.text) ||
+                !/request\.mode === "navigate"/.test(serviceWorker.text) ||
+                !/caches\.match\("\/offline\.html"\)/.test(serviceWorker.text)) {
+              throw new Error('Production service worker is missing app-shell precache or navigation fallback behavior');
+            }
+            let manifest;
+            try {
+              manifest = JSON.parse(manifestResult.text);
+            } catch {
+              throw new Error('Production web manifest did not return valid JSON');
+            }
+            if (manifest.start_url !== '/' || manifest.display !== 'standalone') {
+              throw new Error('Production web manifest has unexpected install/start settings');
+            }
+
             console.log('Production smoke check passed:', JSON.stringify({
               app: health.app,
               cache: health.cache,
@@ -85,6 +109,9 @@ jobs:
               learning_history: health.learning_history,
               homepage_status: home.response.status,
               app_asset: new URL(appAssetUrl).pathname + new URL(appAssetUrl).search,
+              offline_fallback: offlinePage.response.status,
+              service_worker: serviceWorker.response.status,
+              install_manifest: manifestResult.response.status,
               connect_workspaces: 'Meetings and General Connections handlers present'
             }));
           }
