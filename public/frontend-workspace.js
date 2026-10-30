@@ -159,6 +159,41 @@
     return ({ video: "Video", audio: "Audio", text: "Text" })[type] || "Learning material";
   }
 
+  function getPublicResourceShareUrl(resource) {
+    if (!resource || typeof resource !== "object") return "";
+    const candidates = [resource.canonical_url, resource.original_url, resource.source_url, resource.url, resource.embed_url, resource.media_url];
+    for (const candidate of candidates) {
+      if (typeof candidate !== "string" || !candidate.trim()) continue;
+      let parsed;
+      try { parsed = new URL(candidate.trim(), window.location.origin); } catch (_) { continue; }
+      if (parsed.protocol !== "https:" && parsed.protocol !== "http:") continue;
+      const host = parsed.hostname.toLowerCase();
+      if (!host || host === "localhost" || host.endsWith(".localhost") || host === "0.0.0.0" || host === "::1" || host === "[::1]" || /^127\./.test(host) || /^10\./.test(host) || /^192\.168\./.test(host) || /^169\.254\./.test(host) || /^172\.(1[6-9]|2\d|3[01])\./.test(host) || host.endsWith(".local")) continue;
+      const youtubeEmbed = parsed.href.match(/^https?:\/\/www\.youtube\.com\/embed\/([A-Za-z0-9_-]{6,20})/);
+      if (youtubeEmbed) return "https://www.youtube.com/watch?v=" + youtubeEmbed[1];
+      return parsed.href;
+    }
+    return "";
+  }
+
+  function copyShareUrl(url) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function () {
+        window.alert("Public video link copied. You can now share it.");
+      }).catch(function () { window.prompt("Copy this public learning link:", url); });
+    } else { window.prompt("Copy this public learning link:", url); }
+  }
+
+  function shareLearningResource(resource) {
+    const url = getPublicResourceShareUrl(resource);
+    if (!url) { window.alert("This resource does not have a safe public link to share yet."); return; }
+    const title = String(resource.title || "Learning resource").slice(0, 200);
+    const shareData = { title: title, text: title, url: url };
+    if (navigator.share) {
+      navigator.share(shareData).catch(function (error) { if (error && error.name !== "AbortError") copyShareUrl(url); });
+    } else { copyShareUrl(url); }
+  }
+
   function renderResource(resource, index) {
     const type = resource.type || "video";
     const title = resource.title || "Learning material";
@@ -187,7 +222,7 @@
       '<div class="de-feed-card-body"><h3>' + escapeHTML(title) + '</h3>' +
       (description ? '<p>' + escapeHTML(description.slice(0, 300)) + '</p>' : '') +
       (attribution ? '<small class="de-muted">' + escapeHTML(attribution) + '</small>' : '') +
-      '<div class="de-feed-actions"><button type="button" class="de-action" data-resource-complete="' + index + '">Mark complete</button><button type="button" class="de-action" data-resource-check="' + index + '">Check understanding</button></div></div></article>';
+      '<div class="de-feed-actions"><button type="button" class="de-action" data-resource-share="' + index + '">Share online link</button><button type="button" class="de-action" data-resource-complete="' + index + '">Mark complete</button><button type="button" class="de-action" data-resource-check="' + index + '">Check understanding</button></div></div></article>';
   }
 
   function wireResourceMediaCompletion(container) {
@@ -504,7 +539,12 @@
       search();
     });
     results.addEventListener("click", function (event) {
-      if (event.target.closest("[data-feed-retry]")) search();
+      if (event.target.closest("[data-feed-retry]")) { search(); return; }
+      const shareButton = event.target.closest("[data-resource-share]");
+      if (!shareButton) return;
+      const index = Number(shareButton.getAttribute("data-resource-share"));
+      const resource = (window.__dreamResourceResults || [])[index];
+      if (resource) shareLearningResource(resource);
     });
     if (initialQuery) search();
   }
