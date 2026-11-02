@@ -80,3 +80,48 @@ body{background:var(--de-night);color:var(--de-text)}
  body{padding-bottom:calc(66px + env(safe-area-inset-bottom,0px))}
 }
 @media(prefers-reduced-motion:reduce){.hero *, .dream-destinations *, .dream-search-section *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+
+/* Specificity bridge: the pre-existing landing layer intentionally owns these surfaces. */
+body .app-shell > header.navbar{background:linear-gradient(180deg,#040a20ed,#07143d80);border-bottom:1px solid #54cfff20}
+body .app-shell > header.navbar .nav-center button,body .app-shell > header.navbar .nav-login{color:#d4e6ff}
+body .app-shell > header.navbar .nav-join{background:#ffd21a;color:#08143b;border-color:#ffe777}
+body .app-shell > main .hero{min-height:680px;height:min(88vh,920px);max-height:920px;justify-content:flex-start;padding:110px clamp(22px,7vw,110px) 72px;background:radial-gradient(ellipse at 76% 42%,#103eaa 0%,#0a225f 24%,transparent 52%),linear-gradient(115deg,#050b24 0%,#071b58 66%,#06113a 100%);border-bottom:1px solid #32cfff35}
+body .app-shell > main .hero-background{inset:0;opacity:1;background:radial-gradient(circle at 76% 42%,#0e55c955,transparent 32%),linear-gradient(90deg,transparent,#06194a55)}
+body .app-shell > main .hero-content{width:min(620px,62%);margin:0;text-align:left}
+body .app-shell > main .hero h1{margin:28px 0 18px;color:#fff;font-size:clamp(3.4rem,7vw,6.2rem);line-height:.98;letter-spacing:-.07em}
+body .app-shell > main .hero h1 span{color:#19c8ff;background:linear-gradient(100deg,#fff,#42d9ff 60%,#a3f7ff);-webkit-background-clip:text;background-clip:text;-webkit-text-stroke:0}
+body .app-shell > main .hero-copy{margin:0;max-width:510px;color:#d0e3ff;font-size:clamp(1rem,1.4vw,1.2rem)}
+body .app-shell > main .status-pill{color:#a9f5ff;background:#0b347b99;border-color:#35cfff70}
+body .app-shell > main .status-dot{background:#49e7ff;box-shadow:0 0 16px #49e7ff}
+body .app-shell > main .hero-primary{background:#ffd21a;color:#09143b;border:1px solid #ffe777;border-radius:14px}
+body .app-shell > main .hero-secondary{background:#0d2b70b8;color:#effaff;border:1px solid #4bcfff88;border-radius:14px}
+body .app-shell > main .hero-note{justify-content:flex-start;color:#b5d5ff}
+body .app-shell > main .dream-destinations{background:linear-gradient(180deg,#07143d,#081b50);color:#f4f8ff;border-bottom:1px solid #42cfff25}
+body .app-shell > main .dream-destinations-kicker{color:#55e5ff}
+body .app-shell > main .dream-destinations h2{color:#fff}
+body .app-shell > main .dream-destinations-copy{color:#b9cdec}
+body .app-shell > main .dream-destinations-grid{grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+body .app-shell > main .dream-destination-card{background:linear-gradient(145deg,#102c70,#091a49);border:1px solid #3e8fdc66;color:#fff}
+body .app-shell > main .dream-destination-card:hover{background:linear-gradient(145deg,#16428f,#0c235b);border-color:#43dfff}
+body .app-shell > main .dream-destination-icon{background:linear-gradient(135deg,#16baff,#225de3);color:#fff}
+body .app-shell > main .dream-destination-label{color:#fff}
+body .app-shell > main .dream-destination-description{color:#c1d6f6}
+body .app-shell > main .dream-destination-arrow{color:#65e9ff}
+body .app-shell > main .dream-search-section{background:#050b24}
+body .app-shell > main .dream-search-shell{color:#f4f8ff;background:linear-gradient(145deg,#0c245e,#07143a);border-color:#2b8dd866}
+body .app-shell > main .dream-search-kicker,body .app-shell > main .dream-search-title em{color:#52dfff}
+body .app-shell > main .dream-search-title{color:#fff}
+body .app-shell > main .dream-search-copy{color:#bfd0ef}
+body .app-shell > main .dream-search-box{background:#071338;border-color:#3a8dce}
+body .app-shell > main .dream-search-box input{color:#fff;background:transparent}
+body .app-shell > main .dream-search-box input::placeholder{color:#9cb4dc}
+body .app-shell > main .dream-search-box .dream-search-button{background:#ffd21a;color:#07143b}
+@media(max-width:760px){
+ body .app-shell > main .hero{height:auto;min-height:0;padding:106px 0 42px;align-items:flex-start}
+ body .app-shell > main .hero-content{width:calc(100% - 38px);margin:0 auto;text-align:left}
+ body .app-shell > main .hero h1{font-size:clamp(3.05rem,13vw,4.6rem)}
+ body .app-shell > main .hero-copy{max-width:440px}
+ body .app-shell > main .hero-actions{flex-direction:column;align-items:stretch;width:min(100%,390px)}
+ body .app-shell > main .dream-destinations-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+}
