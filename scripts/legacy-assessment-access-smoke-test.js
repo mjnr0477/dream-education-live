@@ -6,7 +6,7 @@ const path = require("node:path");
 
 const root = path.join(__dirname, "..");
 const server = fs.readFileSync(path.join(root, "server.js"), "utf8");
-const sql = fs.readFileSync(path.join(root, "database/security/lock_down_learner_records.sql"), "utf8");
+const sql = fs.readFileSync(path.join(root, "supabase/migrations/20261102063433_lock_down_learner_records.sql"), "utf8");
 
 function routeSource(route) {
   const marker = 'app.post("' + route + '", async (req, res) => {';
