@@ -3825,6 +3825,15 @@ app.get("/api/next-question/:learner_id", async (req, res) => {
 
 app.post("/api/assess", async (req, res) => {
   try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) {
+      return res.status(auth.status || 401).json({ success: false, error: auth.error || "Authentication required." });
+    }
+    const accessStore = require("./product/data_engine").loadStore();
+    if (!canAccessLearnerRecord(auth.account, req.body?.learner_id, accessStore)) {
+      return res.status(403).json({ success: false, error: "You are not authorized to submit an assessment for this learner." });
+    }
+
     const {
       learner_id,
       question,
@@ -4027,6 +4036,15 @@ app.get("/api/difficulty/:learner_id", async (req, res) => {
 // ==========================================
 app.post("/api/learning-cycle", async (req, res) => {
   try {
+    const auth = await getAuthenticatedAccount(req);
+    if (!auth.success) {
+      return res.status(auth.status || 401).json({ success: false, error: auth.error || "Authentication required." });
+    }
+    const accessStore = require("./product/data_engine").loadStore();
+    if (!canAccessLearnerRecord(auth.account, req.body?.learner_id, accessStore)) {
+      return res.status(403).json({ success: false, error: "You are not authorized to run a learning cycle for this learner." });
+    }
+
     const {
       learner_id,
       name,
