@@ -27,3 +27,10 @@ const searchCss = fs.readFileSync('public/dream-search.css', 'utf8');
 assert.match(searchCss, /\.dream-search-page-shell\{max-width:1440px;width:100%\}/, 'results view should use a wider content shell');
 assert.match(searchCss, /\.dream-search-page-results\{width:100%;grid-template-columns:minmax\(0,1fr\)/, 'public search answers should use the full available frame width');
 assert.match(searchCss, /max-height:480px/, 'evidence media should use more of the available results space');
+
+assert.match(search, /let activeSearchController = null;/, 'Dream Search should keep one active request at a time');
+assert.match(search, /if \(activeSearchController\) activeSearchController\.abort\(\)/, 'A newer search should cancel an older search');
+assert.match(search, /signal: controller\.signal/, 'Dream Search requests must support cancellation');
+assert.match(search, /window\.setTimeout\(function \(\) \{\s*controller\.abort\(\);\s*\}, 75000\)/, 'Search must have a bounded cold-start timeout');
+assert.match(search, /window\.clearTimeout\(timeout\)/, 'The search timeout must be cleared after completion');
+assert.match(search, /Dream Search timed out after 75 seconds/, 'Timeout feedback must be clear to the learner');
