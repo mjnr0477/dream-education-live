@@ -89,13 +89,13 @@ for (const route of requiredServerRoutes) {
 
 for (const token of [
   "/nextgen-visual.js?v=20261011a",
-  "/frontend-workspace.js?v=20261111a"
+  "/frontend-workspace.js?v=20261111b"
 ]) {
   if (!index.includes(token)) throw new Error("Required frontend script missing: " + token);
 }
 
 
-for (const [asset, version] of [["style.css", "20261111a"], ["frontend-workspace.js", "20261111a"]]) {
+for (const [asset, version] of [["style.css", "20261111b"], ["frontend-workspace.js", "20261111b"]]) {
   const assetReference = new RegExp("/" + asset.replace(".", "\\.") + "\\?v=" + version);
   if (!assetReference.test(index)) throw new Error("Updated cache-busting version missing for " + asset);
 }
@@ -231,7 +231,7 @@ for (const token of [
     throw new Error("Accessible frontend polish is missing: " + token);
   }
 }
-if (!index.includes("/style.css?v=20261111a")) {
+if (!index.includes("/style.css?v=20261111b")) {
   throw new Error("Frontend polish stylesheet cache-busting version is missing.");
 }
 

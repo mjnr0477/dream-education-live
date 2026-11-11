@@ -3368,3 +3368,13 @@ textarea:focus-visible {
 }
 .de-feed-media-deferred p { max-width: 34rem; margin: 0; color: var(--de-muted, #b7c6e7); }
 .de-feed-media-deferred button { min-height: 42px; }
+
+
+/* On-device study notes library. */
+.de-offline-notes-list { display: grid; gap: 12px; margin-top: 14px; }
+.de-offline-notes-item { display: grid; gap: 10px; padding: 14px; border: 1px solid rgba(25, 200, 255, .24); border-radius: 14px; background: rgba(7, 27, 88, .28); }
+.de-offline-notes-item h4 { margin: 0 0 5px; overflow-wrap: anywhere; }
+.de-offline-notes-item p { margin: 3px 0; }
+.de-offline-notes-item .de-actions { margin: 0; }
+.de-offline-notes-item button { min-height: 42px; }
+@media (min-width: 640px) { .de-offline-notes-item { grid-template-columns: minmax(0,1fr) auto; align-items: center; } }
