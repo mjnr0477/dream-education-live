@@ -4,6 +4,14 @@ const assert = require("node:assert/strict");
 const { registerFreeAiMediaRoutes } = require("../product/free_ai_media_engine");
 
 async function main() {
+
+  const mediaUi = require("node:fs").readFileSync(require("node:path").join(__dirname, "..", "public/media-studio.js"), "utf8");
+  assert.match(mediaUi, /new AbortController\(\)/, "Media Studio generation must be cancellable.");
+  assert.match(mediaUi, /signal: controller\.signal/, "Media Studio must pass its abort signal to fetch.");
+  assert.match(mediaUi, /75000/, "Media Studio must allow its 60-second provider limit plus startup/network overhead.");
+  assert.match(mediaUi, /window\.clearTimeout\(timeout\)/, "Media Studio must release its timeout after completion.");
+  assert.match(mediaUi, /Media Studio timed out after 75 seconds/, "Media Studio must show a clear timeout message.");
+
   const routes = { get: {}, post: {} };
   const app = {
     get(path, handler) { routes.get[path] = handler; },
