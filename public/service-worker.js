@@ -1,9 +1,9 @@
 "use strict";
 
-const CACHE_VERSION = "dream-education-shell-v2";
+const CACHE_VERSION = "dream-education-shell-v3";
 const SHELL_URLS = [
   "/", "/index.html", "/offline.html", "/manifest.webmanifest",
-  "/style.css?v=20261025b", "/books-reading.css?v=20261018a",
+  "/style.css?v=20261111a", "/books-reading.css?v=20261018a",
   "/teacher-workspace.css?v=20261012a", "/meetings-workspace.css?v=20261012a",
   "/dream-search.css?v=20261011d", "/nextgen-visual.css?v=20261011a",
   "/school-workspace.css?v=20261015a", "/parent-workspace.css?v=20261013b",
@@ -13,7 +13,7 @@ const SHELL_URLS = [
   "/landing-premium.css?v=20261026g", "/dream-neon-refresh.css?v=20261102a",
   "/offline-support.js?v=20261027a", "/app.js?v=20261025b",
   "/books-reading.js?v=20261018a", "/dream-search.js?v=20261011b",
-  "/frontend-workspace.js?v=20261025c", "/nextgen-visual.js?v=20261011a",
+  "/frontend-workspace.js?v=20261111a", "/nextgen-visual.js?v=20261011a",
   "/school-workspace.js?v=20261022a", "/parent-workspace.js?v=20261012a",
   "/chat-workspace.js?v=20261022c", "/media-studio.js?v=20261013b",
   "/dream-invest.js?v=20261015e", "/dream-invest-betting-ui.js?v=20261014j"
