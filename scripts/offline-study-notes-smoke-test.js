@@ -18,7 +18,7 @@ assert.ok(workspace.includes("function saveOfflineStudyNote") && workspace.inclu
 assert.ok(workspace.includes("function listOfflineStudyNotes") && workspace.includes('index("learner_id").getAll(String(learnerId))'), "Learners must be able to retrieve only their own saved notes.");
 assert.ok(workspace.includes("function deleteOfflineStudyNote") && workspace.includes("record.learner_id === String(learnerId)"), "Delete must verify the learner owner before removing a note.");
 assert.ok(workspace.includes('id="de-notes-save-offline"') && workspace.includes('id="de-offline-notes-open"'), "Notes UI must expose save and reopen controls.");
-assert.ok(workspace.includes("Saved offline ✓") && workspace.includes("not synced to other devices"), "The interface must clearly explain local-only storage.");
+assert.ok(workspace.includes("Saved offline ✓") && workspace.includes("not encrypted") && workspace.includes("not synced"), "The interface must clearly explain local-only and unencrypted storage.");
 assert.ok(workspace.includes("formatOfflineStudyNote"), "Saved notes must be rendered using escaped text.");
 assert.ok(style.includes(".de-offline-notes-list") && style.includes(".de-offline-notes-item"), "The local notes library must have readable responsive styling.");
 assert.ok(index.includes("/frontend-workspace.js?v=20261111b"), "The new workspace script version must be referenced by the app.");
