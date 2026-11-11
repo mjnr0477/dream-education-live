@@ -25,13 +25,26 @@
   }
 
   async function api(url, options) {
-    const response = await fetch(url, Object.assign({
-      credentials: "same-origin",
-      headers: authHeaders(Boolean(options && options.body))
-    }, options || {}));
-    const data = await response.json().catch(function () { return {}; });
-    if (!response.ok || data.success === false) throw new Error(data.error || "Dream Invest request failed.");
-    return data;
+    const controller = new AbortController();
+    const timeout = window.setTimeout(function () {
+      controller.abort();
+    }, 75000);
+    try {
+      const response = await fetch(url, Object.assign({
+        credentials: "same-origin",
+        headers: authHeaders(Boolean(options && options.body))
+      }, options || {}, { signal: controller.signal }));
+      const data = await response.json().catch(function () { return {}; });
+      if (!response.ok || data.success === false) throw new Error(data.error || "Dream Invest request failed.");
+      return data;
+    } catch (error) {
+      if (error && error.name === "AbortError") {
+        throw new Error("Dream Invest request did not respond within 75 seconds. Check your connection and try again.");
+      }
+      throw error;
+    } finally {
+      window.clearTimeout(timeout);
+    }
   }
 
   function openPanel(kicker, title, description, body) {
