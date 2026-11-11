@@ -11,7 +11,7 @@ const SHELL_URLS = [
   "/dream-invest.css?v=20261014c", "/dream-invest-betting.css?v=20261014b",
   "/visual-refresh.css?v=20261026a", "/visual-refresh-workspaces.css?v=20261026a",
   "/landing-premium.css?v=20261026g", "/dream-neon-refresh.css?v=20261102a",
-  "/icons/dream-education-192.png", "/icons/dream-education-512.png", "/icons/apple-touch-icon.png", "/icons/favicon.svg",
+  "/icons/dream-education-192.png", "/icons/dream-education-512.png", "/icons/dream-education-maskable-512.png", "/icons/apple-touch-icon.png", "/icons/favicon.svg",
   "/offline-support.js?v=20261111e", "/app.js?v=20261025b",
   "/books-reading.js?v=20261018a", "/dream-search.js?v=20261011b",
   "/frontend-workspace.js?v=20261111b", "/nextgen-visual.js?v=20261011a",
