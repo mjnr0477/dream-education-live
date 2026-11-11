@@ -959,7 +959,7 @@
           result.innerHTML = '<section class="de-section"><h3>No offline notes saved yet</h3><p>Generate a set of study notes while online, then choose <strong>Save offline</strong>. They will be available here on this device.</p><div class="de-actions"><button class="de-action" type="button" data-offline-notes-back="form">Back to note generator</button></div></section>';
           return;
         }
-        result.innerHTML = '<section class="de-section"><div class="de-section-title"><h3>My offline notes</h3><span>' + savedOfflineNotes.length + ' saved</span></div><p class="de-muted">Stored on this device for this learner account only. They are not synced to other devices. Clearing this browser’s site data may remove them.</p><div class="de-offline-notes-list">' + savedOfflineNotes.map(function (note) {
+        result.innerHTML = '<section class="de-section"><div class="de-section-title"><h3>My offline notes</h3><span>' + savedOfflineNotes.length + ' saved</span></div><p class="de-muted">Stored only in this browser profile for this learner account. They are not synced or encrypted; anyone using this browser profile may be able to read them. Clearing site data may remove them.</p><div class="de-offline-notes-list">' + savedOfflineNotes.map(function (note) {
           const date = new Date(note.saved_at);
           const savedAt = Number.isFinite(date.getTime()) ? date.toLocaleString() : "Saved on this device";
           return '<article class="de-offline-notes-item"><div><h4>' + escapeHTML(note.topic) + '</h4><p class="de-muted">' + escapeHTML(note.subject) + ' · ' + escapeHTML(note.level) + '</p><small class="de-muted">Saved ' + escapeHTML(savedAt) + '</small></div><div class="de-actions"><button class="de-action primary" type="button" data-offline-note-open="' + escapeHTML(note.id) + '">Open notes</button><button class="de-action" type="button" data-offline-note-delete="' + escapeHTML(note.id) + '">Delete</button></div></article>';
@@ -1085,7 +1085,7 @@
             saveOfflineButton.textContent = "Saved offline ✓";
             const savedMessage = document.createElement("p");
             savedMessage.className = "de-success";
-            savedMessage.textContent = "Your notes are saved on this device. Open My offline notes to read them without an internet connection.";
+            savedMessage.textContent = "Your notes are saved in this browser profile only; they are not encrypted or synced. Open My offline notes to read them without an internet connection.";
             saveOfflineButton.closest(".de-section").appendChild(savedMessage);
           } catch (error) {
             saveOfflineButton.disabled = false;
