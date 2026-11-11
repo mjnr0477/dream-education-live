@@ -1399,7 +1399,7 @@ function escapeHTML(value) {
     setAuthMessage(form, "Signing in...", false);
 
     try {
-      const response = await fetch("/api/auth/login", {
+      const response = await fetchWithTimeout("/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -1408,7 +1408,7 @@ function escapeHTML(value) {
           email: email,
           password: password
         })
-      });
+      }, 75000);
 
       const data = await response.json().catch(function () {
         return {
@@ -1427,7 +1427,9 @@ function escapeHTML(value) {
       console.error("Login error:", error);
       setAuthMessage(
         form,
-        error.message || "Unable to sign in.",
+        error && error.name === "AbortError"
+          ? "Sign-in took too long. Check your connection, then try again."
+          : error.message || "Unable to sign in.",
         true
       );
       setFormBusy(form, false);
@@ -1475,13 +1477,13 @@ function escapeHTML(value) {
     setAuthMessage(form, "Creating your account...", false);
 
     try {
-      const response = await fetch("/api/auth/register", {
+      const response = await fetchWithTimeout("/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
         body: JSON.stringify(payload)
-      });
+      }, 75000);
 
       const data = await response.json().catch(function () {
         return {
@@ -1500,7 +1502,9 @@ function escapeHTML(value) {
       console.error("Registration error:", error);
       setAuthMessage(
         form,
-        error.message || "Unable to create the account.",
+        error && error.name === "AbortError"
+          ? "Account creation took too long to confirm. Try signing in with the same details before attempting to register again."
+          : error.message || "Unable to create the account.",
         true
       );
       setFormBusy(form, false);
