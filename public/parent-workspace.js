@@ -11,11 +11,25 @@
     if (token) headers.Authorization = "Bearer " + token;
     return headers;
   };
-  async function request(url, options) {
-    const response = await fetch(url, Object.assign({ credentials: "same-origin", headers: Object.assign({ Accept: "application/json" }, tokenHeaders()) }, options || {}));
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok || data.success === false) throw new Error(data.error || data.message || "The requested information could not be loaded.");
-    return data;
+  async function request(url, options, timeoutMs = 75000) {
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetch(url, Object.assign({
+        credentials: "same-origin",
+        headers: Object.assign({ Accept: "application/json" }, tokenHeaders())
+      }, options || {}, { signal: controller.signal }));
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data.success === false) throw new Error(data.error || data.message || "The requested information could not be loaded.");
+      return data;
+    } catch (error) {
+      if (error && error.name === "AbortError") {
+        throw new Error("Parent workspace request did not respond within " + Math.round(timeoutMs / 1000) + " seconds. Check your connection and try again.");
+      }
+      throw error;
+    } finally {
+      window.clearTimeout(timeout);
+    }
   }
   function selectedChild() { return state.children.find(child => String(child.learner_id) === String(state.selected)) || state.children[0] || null; }
   function safeUrl(value) { try { const url = new URL(String(value || ""), window.location.origin); return url.protocol === "https:" || url.protocol === "http:" ? url.href : ""; } catch (_) { return ""; } }
