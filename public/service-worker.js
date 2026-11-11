@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_VERSION = "dream-education-shell-v8";
+const CACHE_VERSION = "dream-education-shell-v9";
 const SHELL_URLS = [
   "/", "/index.html", "/offline.html", "/manifest.webmanifest",
   "/style.css?v=20261111c", "/books-reading.css?v=20261018a",
@@ -13,7 +13,7 @@ const SHELL_URLS = [
   "/landing-premium.css?v=20261026g", "/dream-neon-refresh.css?v=20261102a",
   "/icons/dream-education-192.png", "/icons/dream-education-512.png", "/icons/dream-education-maskable-512.png", "/icons/apple-touch-icon.png", "/icons/favicon.svg",
   "/offline-support.js?v=20261111e", "/app.js?v=20261111a",
-  "/books-reading.js?v=20261018a", "/dream-search.js?v=20261011b",
+  "/books-reading.js?v=20261018a", "/dream-search.js?v=20261111a",
   "/frontend-workspace.js?v=20261111c", "/nextgen-visual.js?v=20261011a",
   "/school-workspace.js?v=20261111a", "/parent-workspace.js?v=20261012a",
   "/chat-workspace.js?v=20261111a", "/media-studio.js?v=20261013b",
