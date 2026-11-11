@@ -4,6 +4,14 @@ const assert = require("node:assert/strict");
 const { registerDreamInvestRoutes, buildIndicators, buildBacktest, normalizeMarketBars } = require("../product/dream_invest_engine");
 
 async function main() {
+
+  const investUi = require("node:fs").readFileSync(require("node:path").join(__dirname, "..", "public/dream-invest.js"), "utf8");
+  assert.match(investUi, /new AbortController\(\)/, "Dream Invest requests must be cancellable.");
+  assert.match(investUi, /signal: controller\.signal/, "Dream Invest must pass the abort signal to fetch.");
+  assert.match(investUi, /75000/, "Dream Invest must allow for free-service cold starts.");
+  assert.match(investUi, /window\.clearTimeout\(timeout\)/, "Dream Invest must clear request timeouts.");
+  assert.match(investUi, /Dream Invest request did not respond within 75 seconds/, "Dream Invest must show clear timeout feedback.");
+
   const routes = { get: {}, post: {} };
   const app = {
     get(path, handler) { routes.get[path] = handler; },
