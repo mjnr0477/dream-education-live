@@ -42,7 +42,7 @@ if (!Array.isArray(manifest.icons) || !manifest.icons.some(icon => icon.sizes ==
   throw new Error("PWA manifest must declare 192px and 512px install icons.");
 }
 for (const icon of manifest.icons) {
-  const iconPath = "public/" + String(icon.src || "").replace(/^\\//, "");
+  const iconPath = icon.src && icon.src.startsWith("/") ? "public/" + icon.src.slice(1) : "";
   if (!icon.src || !icon.src.startsWith("/") || !fs.existsSync(iconPath)) {
     throw new Error("PWA manifest references a missing or unsafe icon asset: " + icon.src);
   }
@@ -108,7 +108,7 @@ for (const token of [
 }
 
 
-for (const [asset, version] of [["style.css", "20261111b"], ["frontend-workspace.js", "20261111b"]]) {
+for (const [asset, version] of [["style.css", "20261111c"], ["frontend-workspace.js", "20261111b"]]) {
   const assetReference = new RegExp("/" + asset.replace(".", "\\.") + "\\?v=" + version);
   if (!assetReference.test(index)) throw new Error("Updated cache-busting version missing for " + asset);
 }
@@ -244,7 +244,7 @@ for (const token of [
     throw new Error("Accessible frontend polish is missing: " + token);
   }
 }
-if (!index.includes("/style.css?v=20261111b")) {
+if (!index.includes("/style.css?v=20261111c")) {
   throw new Error("Frontend polish stylesheet cache-busting version is missing.");
 }
 
