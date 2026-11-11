@@ -206,7 +206,7 @@ const baseUrl = (process.env.BASE_URL || "http://127.0.0.1:4173").replace(/\/$/,
     }));
     const notesResponse = await notesPage.goto(baseUrl + "/", { waitUntil: "domcontentloaded", timeout: 30000 });
     assert(notesResponse && notesResponse.ok(), "Authenticated smoke learner homepage must load");
-    await notesPage.locator('.dream-destination-card[data-panel="learn"]').click();
+    await notesPage.locator('.dream-mobile-nav [data-panel="learn"]').click();
     await notesPage.locator('[data-de-action="notes"]').waitFor({ state: "visible", timeout: 10000 });
     await notesPage.locator('[data-de-action="notes"]').click();
     await notesPage.locator("#de-notes-form").waitFor({ state: "visible" });
