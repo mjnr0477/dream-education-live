@@ -179,6 +179,55 @@ const baseUrl = (process.env.BASE_URL || "http://127.0.0.1:4173").replace(/\/$/,
     await openMobileDestination("join", "Get started.");
     assert(await mobile.locator('[data-auth-form="register"]').isVisible(), "Mobile Get started must render registration");
 
+    // Exercise the on-device study-notes workflow with synthetic learner data only.
+    const notesPage = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+    notesPage.on("pageerror", error => errors.push(error.message));
+    await notesPage.addInitScript(() => {
+      localStorage.setItem("dream_education_auth", JSON.stringify({
+        success: true,
+        role: "learner",
+        account: { role: "learner", learner_id: "browser-smoke-learner", email: "smoke@example.test" },
+        profile: { learner_id: "browser-smoke-learner", name: "Smoke learner", level: "Grade 8" },
+        session: { access_token: "browser-smoke-token" }
+      }));
+    });
+    await notesPage.route("**/api/v1/learning/notes", route => route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        success: true,
+        topic: "Fractions",
+        subject: "Mathematics",
+        level: "Grade 8",
+        notes_type: "Detailed notes",
+        notes: "# Fractions\\n\\nFractions represent equal parts of a whole.\\n\\n## Equivalent fractions\\n\\n**Example:** 1/2 = 2/4.",
+        sources: [{ title: "OpenStax Mathematics" }]
+      })
+    }));
+    const notesResponse = await notesPage.goto(baseUrl + "/", { waitUntil: "domcontentloaded", timeout: 30000 });
+    assert(notesResponse && notesResponse.ok(), "Authenticated smoke learner homepage must load");
+    await notesPage.locator('.dream-destination-card[data-panel="learn"]').click();
+    await notesPage.locator('[data-de-action="notes"]').waitFor({ state: "visible", timeout: 10000 });
+    await notesPage.locator('[data-de-action="notes"]').click();
+    await notesPage.locator("#de-notes-form").waitFor({ state: "visible" });
+    await notesPage.locator("#de-notes-topic").fill("Fractions");
+    await notesPage.locator("#de-notes-subject").fill("Mathematics");
+    await notesPage.locator("#de-notes-level").fill("Grade 8");
+    await notesPage.locator('#de-notes-form button[type="submit"]').click();
+    await notesPage.locator("#de-notes-save-offline").waitFor({ state: "visible", timeout: 10000 });
+    await notesPage.locator("#de-notes-save-offline").click();
+    await notesPage.getByText("Saved offline ✓", { exact: true }).waitFor({ state: "visible", timeout: 10000 });
+    await notesPage.context().setOffline(true);
+    await notesPage.locator("#de-offline-notes-open").click();
+    await notesPage.getByRole("button", { name: "Open notes", exact: true }).waitFor({ state: "visible", timeout: 10000 });
+    await notesPage.getByRole("button", { name: "Open notes", exact: true }).click();
+    assert((await notesPage.locator("#de-notes-result .de-notes-content").innerText()).includes("Fractions represent equal parts"),
+      "A saved study note must remain readable after the browser goes offline");
+    await notesPage.locator('[data-offline-notes-back="list"]').click();
+    await notesPage.getByRole("button", { name: "Delete", exact: true }).click();
+    await notesPage.getByText("No offline notes saved yet", { exact: true }).waitFor({ state: "visible", timeout: 10000 });
+    await notesPage.context().setOffline(false);
+
     assert.deepEqual(errors, [], "Browser interaction must not produce uncaught JavaScript errors: " + errors.join(" | "));
     console.log("Browser UI click-through smoke test passed: desktop navigation, About tour, Books, sign-in, registration, learner CTA, Meetings, General Connections, and mobile drawer.");
   } finally {
