@@ -28,7 +28,7 @@ assert.match(workspace, /de-notes-copy/);
 assert.match(workspace, /de-notes-print/);
 assert.match(workspace, /function renderStudyNoteSources\(/, "Study notes should render retrieved source references.");
 assert.match(workspace, /studyNoteSourceDomain\(source && source\.url\)/, "Only safe public source domains may be attributed.");
-assert.doesNotMatch(workspace, /<a\\s+href=/, "Study notes must keep source labels embedded without material links.");
+assert.doesNotMatch(workspace, /<a\s+href=/, "Study notes must keep source labels embedded without material links.");
 assert.match(workspace, /renderStudyNoteSources\(note\.sources\)/, "Saved offline notes should retain source attribution.");
 assert.match(workspace, /domain: studyNoteSourceDomain\(source && source\.url\)/, "Offline notes should preserve only the validated source domain, not the material URL.");
 assert.match(stylesheet, /Notes & Study Materials/);
