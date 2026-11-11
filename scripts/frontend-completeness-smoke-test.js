@@ -118,8 +118,9 @@ for (const [asset, version] of [
   ["school-workspace.js", "20261111a"],
   ["chat-workspace.js", "20261111a"]
 ]) {
-  const assetReference = new RegExp("/" + asset.replace(".", "\\\\.") + "\\\\?v=" + version);
-  if (!assetReference.test(index)) throw new Error("Updated cache-busting version missing for " + asset);
+  if (!index.includes("/" + asset + "?v=" + version)) {
+    throw new Error("Updated cache-busting version missing for " + asset);
+  }
 }
 
 
