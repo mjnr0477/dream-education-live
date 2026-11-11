@@ -956,16 +956,16 @@
       try {
         savedOfflineNotes = await listOfflineStudyNotes(info.id);
         if (!savedOfflineNotes.length) {
-          result.innerHTML = '<section class="de-section"><h3>No offline notes saved yet</h3><p>Generate a set of study notes while online, then choose <strong>Save offline</strong>. They will be available here on this device.</p><div class="de-actions"><button class="de-action" type="button" data-offline-notes-back>Back to note generator</button></div></section>';
+          result.innerHTML = '<section class="de-section"><h3>No offline notes saved yet</h3><p>Generate a set of study notes while online, then choose <strong>Save offline</strong>. They will be available here on this device.</p><div class="de-actions"><button class="de-action" type="button" data-offline-notes-back="form">Back to note generator</button></div></section>';
           return;
         }
         result.innerHTML = '<section class="de-section"><div class="de-section-title"><h3>My offline notes</h3><span>' + savedOfflineNotes.length + ' saved</span></div><p class="de-muted">Stored on this device for this learner account only. They are not synced to other devices. Clearing this browser’s site data may remove them.</p><div class="de-offline-notes-list">' + savedOfflineNotes.map(function (note) {
           const date = new Date(note.saved_at);
           const savedAt = Number.isFinite(date.getTime()) ? date.toLocaleString() : "Saved on this device";
           return '<article class="de-offline-notes-item"><div><h4>' + escapeHTML(note.topic) + '</h4><p class="de-muted">' + escapeHTML(note.subject) + ' · ' + escapeHTML(note.level) + '</p><small class="de-muted">Saved ' + escapeHTML(savedAt) + '</small></div><div class="de-actions"><button class="de-action primary" type="button" data-offline-note-open="' + escapeHTML(note.id) + '">Open notes</button><button class="de-action" type="button" data-offline-note-delete="' + escapeHTML(note.id) + '">Delete</button></div></article>';
-        }).join("") + '</div><div class="de-actions"><button class="de-action" type="button" data-offline-notes-back>Back to note generator</button></div></section>';
+        }).join("") + '</div><div class="de-actions"><button class="de-action" type="button" data-offline-notes-back="form">Back to note generator</button></div></section>';
       } catch (error) {
-        result.innerHTML = '<div class="de-error"><strong>Offline notes could not be opened.</strong><p>' + escapeHTML(error.message) + '</p><button class="de-action" type="button" data-offline-notes-back>Back to note generator</button></div>';
+        result.innerHTML = '<div class="de-error"><strong>Offline notes could not be opened.</strong><p>' + escapeHTML(error.message) + '</p><button class="de-action" type="button" data-offline-notes-back="form">Back to note generator</button></div>';
       }
     }
 
@@ -975,8 +975,12 @@
     result.addEventListener("click", async function (event) {
       const backButton = event.target.closest("[data-offline-notes-back]");
       if (backButton) {
-        if (savedOfflineNotes.length) await showOfflineNotesList();
-        else result.innerHTML = "";
+        if (backButton.getAttribute("data-offline-notes-back") === "list") {
+          await showOfflineNotesList();
+        } else {
+          result.innerHTML = "";
+          result.dataset.activeOfflineNoteId = "";
+        }
         return;
       }
 
@@ -987,7 +991,7 @@
         });
         if (!note) return;
         const savedAt = new Date(note.saved_at);
-        result.innerHTML = '<section class="de-section de-notes-output"><div class="de-section-title"><h3>' + escapeHTML(note.topic) + '</h3><span>' + escapeHTML(note.level) + '</span></div><p class="de-muted">' + escapeHTML(note.subject) + ' · ' + escapeHTML(note.notes_type) + '</p><p class="de-muted">Saved offline ' + escapeHTML(Number.isFinite(savedAt.getTime()) ? savedAt.toLocaleString() : "on this device") + '</p><div class="de-notes-content">' + formatOfflineStudyNote(note.notes) + '</div><div class="de-actions"><button class="de-action" type="button" data-offline-note-copy>Copy notes</button><button class="de-action" type="button" data-offline-note-print>Print / Save PDF</button><button class="de-action" type="button" data-offline-notes-back>Back to saved notes</button></div></section>' + (note.sources && note.sources.length ? '<section class="de-section"><h3>Evidence sources</h3><ul>' + note.sources.map(function (source) { return '<li>' + escapeHTML(source) + '</li>'; }).join("") + '</ul></section>' : '');
+        result.innerHTML = '<section class="de-section de-notes-output"><div class="de-section-title"><h3>' + escapeHTML(note.topic) + '</h3><span>' + escapeHTML(note.level) + '</span></div><p class="de-muted">' + escapeHTML(note.subject) + ' · ' + escapeHTML(note.notes_type) + '</p><p class="de-muted">Saved offline ' + escapeHTML(Number.isFinite(savedAt.getTime()) ? savedAt.toLocaleString() : "on this device") + '</p><div class="de-notes-content">' + formatOfflineStudyNote(note.notes) + '</div><div class="de-actions"><button class="de-action" type="button" data-offline-note-copy>Copy notes</button><button class="de-action" type="button" data-offline-note-print>Print / Save PDF</button><button class="de-action" type="button" data-offline-notes-back="list">Back to saved notes</button></div></section>' + (note.sources && note.sources.length ? '<section class="de-section"><h3>Evidence sources</h3><ul>' + note.sources.map(function (source) { return '<li>' + escapeHTML(source) + '</li>'; }).join("") + '</ul></section>' : '');
         result.dataset.activeOfflineNoteId = note.id;
         return;
       }
