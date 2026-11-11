@@ -765,6 +765,153 @@
     }
   }
 
+  const OFFLINE_NOTES_DATABASE = "dream-education-offline-notes-v1";
+  const OFFLINE_NOTES_STORE = "notes";
+  const MAX_OFFLINE_NOTES_PER_LEARNER = 25;
+  const MAX_OFFLINE_NOTE_CHARACTERS = 80000;
+
+  function openOfflineNotesDatabase() {
+    if (!window.indexedDB) {
+      return Promise.reject(new Error("This browser does not support on-device offline note storage."));
+    }
+    return new Promise(function (resolve, reject) {
+      const request = window.indexedDB.open(OFFLINE_NOTES_DATABASE, 1);
+      request.onupgradeneeded = function () {
+        const database = request.result;
+        if (!database.objectStoreNames.contains(OFFLINE_NOTES_STORE)) {
+          const store = database.createObjectStore(OFFLINE_NOTES_STORE, { keyPath: "id" });
+          store.createIndex("learner_id", "learner_id", { unique: false });
+          store.createIndex("saved_at", "saved_at", { unique: false });
+        }
+      };
+      request.onsuccess = function () { resolve(request.result); };
+      request.onerror = function () {
+        reject(request.error || new Error("Offline note storage could not be opened."));
+      };
+      request.onblocked = function () {
+        reject(new Error("Offline note storage is busy. Close other Dream Education tabs and try again."));
+      };
+    });
+  }
+
+  function listOfflineStudyNotes(learnerId) {
+    return openOfflineNotesDatabase().then(function (database) {
+      return new Promise(function (resolve, reject) {
+        const transaction = database.transaction(OFFLINE_NOTES_STORE, "readonly");
+        const request = transaction.objectStore(OFFLINE_NOTES_STORE)
+          .index("learner_id").getAll(String(learnerId));
+        transaction.oncomplete = function () {
+          const records = Array.isArray(request.result) ? request.result : [];
+          records.sort(function (a, b) {
+            return Date.parse(b.saved_at) - Date.parse(a.saved_at);
+          });
+          database.close();
+          resolve(records);
+        };
+        transaction.onerror = function () {
+          database.close();
+          reject(transaction.error || new Error("Saved offline notes could not be read."));
+        };
+        transaction.onabort = function () {
+          database.close();
+          reject(transaction.error || new Error("Saved offline notes could not be read."));
+        };
+      });
+    });
+  }
+
+  function saveOfflineStudyNote(learnerId, payload, notes, sourceRows) {
+    const ownerId = String(learnerId || "").trim();
+    const noteText = String(notes || "").trim();
+    if (!ownerId) return Promise.reject(new Error("A learner account is required to save notes."));
+    if (!noteText) return Promise.reject(new Error("There are no notes to save."));
+    if (noteText.length > MAX_OFFLINE_NOTE_CHARACTERS) {
+      return Promise.reject(new Error("These notes are too large to save offline. Shorten them and try again."));
+    }
+    const idPart = window.crypto && typeof window.crypto.randomUUID === "function"
+      ? window.crypto.randomUUID()
+      : Date.now() + "-" + Math.random().toString(36).slice(2, 10);
+    const record = {
+      id: ownerId + "::" + idPart,
+      learner_id: ownerId,
+      topic: String(payload.topic || "").slice(0, 300),
+      subject: String(payload.subject || "").slice(0, 100),
+      level: String(payload.level || "").slice(0, 100),
+      notes_type: String(payload.notes_type || "Study notes").slice(0, 100),
+      notes: noteText,
+      sources: (Array.isArray(sourceRows) ? sourceRows : [])
+        .slice(0, 25)
+        .map(function (source) { return String(source && source.title || "Source").slice(0, 250); }),
+      saved_at: new Date().toISOString()
+    };
+
+    return openOfflineNotesDatabase().then(function (database) {
+      return new Promise(function (resolve, reject) {
+        const transaction = database.transaction(OFFLINE_NOTES_STORE, "readwrite");
+        const store = transaction.objectStore(OFFLINE_NOTES_STORE);
+        const request = store.index("learner_id").getAll(ownerId);
+        request.onsuccess = function () {
+          const existing = Array.isArray(request.result) ? request.result.slice() : [];
+          existing.sort(function (a, b) {
+            return Date.parse(a.saved_at) - Date.parse(b.saved_at);
+          });
+          while (existing.length >= MAX_OFFLINE_NOTES_PER_LEARNER) {
+            const oldest = existing.shift();
+            if (oldest && oldest.id) store.delete(oldest.id);
+          }
+          store.add(record);
+        };
+        transaction.oncomplete = function () {
+          database.close();
+          resolve(record);
+        };
+        transaction.onerror = function () {
+          database.close();
+          reject(transaction.error || new Error("These notes could not be saved on this device."));
+        };
+        transaction.onabort = function () {
+          database.close();
+          reject(transaction.error || new Error("These notes could not be saved on this device."));
+        };
+      });
+    });
+  }
+
+  function deleteOfflineStudyNote(learnerId, noteId) {
+    return openOfflineNotesDatabase().then(function (database) {
+      return new Promise(function (resolve, reject) {
+        const transaction = database.transaction(OFFLINE_NOTES_STORE, "readwrite");
+        const store = transaction.objectStore(OFFLINE_NOTES_STORE);
+        const request = store.get(String(noteId));
+        request.onsuccess = function () {
+          const record = request.result;
+          if (record && record.learner_id === String(learnerId)) store.delete(record.id);
+        };
+        transaction.oncomplete = function () {
+          database.close();
+          resolve(true);
+        };
+        transaction.onerror = function () {
+          database.close();
+          reject(transaction.error || new Error("This offline note could not be deleted."));
+        };
+        transaction.onabort = function () {
+          database.close();
+          reject(transaction.error || new Error("This offline note could not be deleted."));
+        };
+      });
+    });
+  }
+
+  function formatOfflineStudyNote(notes) {
+    return escapeHTML(String(notes || ""))
+      .replace(/^### (.*)$/gm, "<h4>$1</h4>")
+      .replace(/^## (.*)$/gm, "<h3>$1</h3>")
+      .replace(/^# (.*)$/gm, "<h2>$1</h2>")
+      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+      .replace(/\n/g, "<br>");
+  }
+
   function openStudyNotes() {
     const auth = getAuth();
     const info = accountInfo(auth);
@@ -793,7 +940,7 @@
             '<option>Exam preparation notes</option>' +
             '<option>Notes with examples and exercises</option>' +
           '</select>' +
-          '<div class="de-actions"><button class="de-action primary" type="submit">Generate my notes</button><button class="de-action" type="button" data-de-action="workspace">Back to Learn</button></div>' +
+          '<div class="de-actions"><button class="de-action primary" type="submit">Generate my notes</button><button class="de-action" id="de-offline-notes-open" type="button">My offline notes</button><button class="de-action" type="button" data-de-action="workspace">Back to Learn</button></div>' +
         '</form>' +
         '<div id="de-notes-result" aria-live="polite"></div>' +
       '</div>'
@@ -802,6 +949,79 @@
     const form = document.getElementById("de-notes-form");
     const result = document.getElementById("de-notes-result");
     if (!form || !result) return;
+
+    let savedOfflineNotes = [];
+    async function showOfflineNotesList() {
+      result.innerHTML = '<div class="de-loading"><span></span><p>Opening notes saved on this device...</p></div>';
+      try {
+        savedOfflineNotes = await listOfflineStudyNotes(info.id);
+        if (!savedOfflineNotes.length) {
+          result.innerHTML = '<section class="de-section"><h3>No offline notes saved yet</h3><p>Generate a set of study notes while online, then choose <strong>Save offline</strong>. They will be available here on this device.</p><div class="de-actions"><button class="de-action" type="button" data-offline-notes-back>Back to note generator</button></div></section>';
+          return;
+        }
+        result.innerHTML = '<section class="de-section"><div class="de-section-title"><h3>My offline notes</h3><span>' + savedOfflineNotes.length + ' saved</span></div><p class="de-muted">Stored on this device for this learner account only. They are not synced to other devices. Clearing this browser’s site data may remove them.</p><div class="de-offline-notes-list">' + savedOfflineNotes.map(function (note) {
+          const date = new Date(note.saved_at);
+          const savedAt = Number.isFinite(date.getTime()) ? date.toLocaleString() : "Saved on this device";
+          return '<article class="de-offline-notes-item"><div><h4>' + escapeHTML(note.topic) + '</h4><p class="de-muted">' + escapeHTML(note.subject) + ' · ' + escapeHTML(note.level) + '</p><small class="de-muted">Saved ' + escapeHTML(savedAt) + '</small></div><div class="de-actions"><button class="de-action primary" type="button" data-offline-note-open="' + escapeHTML(note.id) + '">Open notes</button><button class="de-action" type="button" data-offline-note-delete="' + escapeHTML(note.id) + '">Delete</button></div></article>';
+        }).join("") + '</div><div class="de-actions"><button class="de-action" type="button" data-offline-notes-back>Back to note generator</button></div></section>';
+      } catch (error) {
+        result.innerHTML = '<div class="de-error"><strong>Offline notes could not be opened.</strong><p>' + escapeHTML(error.message) + '</p><button class="de-action" type="button" data-offline-notes-back>Back to note generator</button></div>';
+      }
+    }
+
+    const offlineNotesButton = document.getElementById("de-offline-notes-open");
+    if (offlineNotesButton) offlineNotesButton.addEventListener("click", showOfflineNotesList);
+
+    result.addEventListener("click", async function (event) {
+      const backButton = event.target.closest("[data-offline-notes-back]");
+      if (backButton) {
+        if (savedOfflineNotes.length) await showOfflineNotesList();
+        else result.innerHTML = "";
+        return;
+      }
+
+      const openButton = event.target.closest("[data-offline-note-open]");
+      if (openButton) {
+        const note = savedOfflineNotes.find(function (item) {
+          return item.id === openButton.getAttribute("data-offline-note-open") && item.learner_id === String(info.id);
+        });
+        if (!note) return;
+        const savedAt = new Date(note.saved_at);
+        result.innerHTML = '<section class="de-section de-notes-output"><div class="de-section-title"><h3>' + escapeHTML(note.topic) + '</h3><span>' + escapeHTML(note.level) + '</span></div><p class="de-muted">' + escapeHTML(note.subject) + ' · ' + escapeHTML(note.notes_type) + '</p><p class="de-muted">Saved offline ' + escapeHTML(Number.isFinite(savedAt.getTime()) ? savedAt.toLocaleString() : "on this device") + '</p><div class="de-notes-content">' + formatOfflineStudyNote(note.notes) + '</div><div class="de-actions"><button class="de-action" type="button" data-offline-note-copy>Copy notes</button><button class="de-action" type="button" data-offline-note-print>Print / Save PDF</button><button class="de-action" type="button" data-offline-notes-back>Back to saved notes</button></div></section>' + (note.sources && note.sources.length ? '<section class="de-section"><h3>Evidence sources</h3><ul>' + note.sources.map(function (source) { return '<li>' + escapeHTML(source) + '</li>'; }).join("") + '</ul></section>' : '');
+        result.dataset.activeOfflineNoteId = note.id;
+        return;
+      }
+
+      const deleteButton = event.target.closest("[data-offline-note-delete]");
+      if (deleteButton) {
+        const noteId = deleteButton.getAttribute("data-offline-note-delete");
+        deleteButton.disabled = true;
+        try {
+          await deleteOfflineStudyNote(info.id, noteId);
+          await showOfflineNotesList();
+        } catch (error) {
+          deleteButton.disabled = false;
+          result.insertAdjacentHTML("beforeend", '<p class="de-error">' + escapeHTML(error.message) + '</p>');
+        }
+        return;
+      }
+
+      const copyButton = event.target.closest("[data-offline-note-copy]");
+      if (copyButton) {
+        const note = savedOfflineNotes.find(function (item) { return item.id === result.dataset.activeOfflineNoteId && item.learner_id === String(info.id); });
+        const activeText = note ? note.notes : (result.querySelector(".de-notes-content")?.textContent || "");
+        try {
+          await navigator.clipboard.writeText(activeText);
+          copyButton.textContent = "Copied ✓";
+        } catch (_) {
+          window.prompt("Copy your saved notes:", activeText);
+        }
+        return;
+      }
+
+      const printButton = event.target.closest("[data-offline-note-print]");
+      if (printButton) { window.print(); }
+    });
 
     form.addEventListener("submit", async function (event) {
       event.preventDefault();
@@ -831,7 +1051,7 @@
         if (!response.ok || data.success !== true) throw new Error(data.error || "Notes could not be generated.");
 
         const notes = String(data.notes || "");
-        const safeNotes = escapeHTML(notes).replace(/^### (.*)$/gm, '<h4>$1</h4>').replace(/^## (.*)$/gm, '<h3>$1</h3>').replace(/^# (.*)$/gm, '<h2>$1</h2>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+        const safeNotes = formatOfflineStudyNote(notes);
         const sourceRows = Array.isArray(data.sources) ? data.sources : [];
         const sourceHTML = sourceRows.length
           ? '<section class="de-section"><h3>Evidence sources</h3><ul>' + sourceRows.map(function (source) {
@@ -840,7 +1060,7 @@
             }).join("") + '</ul><p class="de-muted">Sources are shown for transparency; check them for further detail.</p></section>'
           : '<p class="de-muted">No source links were returned with this evidence packet.</p>';
 
-        result.innerHTML = '<section class="de-section de-notes-output"><div class="de-section-title"><h3>' + escapeHTML(data.topic) + '</h3><span>' + escapeHTML(data.level) + '</span></div><p class="de-muted">' + escapeHTML(data.subject) + ' · ' + escapeHTML(data.notes_type) + '</p><div class="de-notes-content">' + safeNotes + '</div><div class="de-actions"><button class="de-action" type="button" id="de-notes-copy">Copy notes</button><button class="de-action" type="button" id="de-notes-print">Print / Save PDF</button><button class="de-action" type="button" data-de-action="notes">Make another set</button></div></section>' + sourceHTML;
+        result.innerHTML = '<section class="de-section de-notes-output"><div class="de-section-title"><h3>' + escapeHTML(data.topic) + '</h3><span>' + escapeHTML(data.level) + '</span></div><p class="de-muted">' + escapeHTML(data.subject) + ' · ' + escapeHTML(data.notes_type) + '</p><div class="de-notes-content">' + safeNotes + '</div><div class="de-actions"><button class="de-action" type="button" id="de-notes-copy">Copy notes</button><button class="de-action" type="button" id="de-notes-print">Print / Save PDF</button><button class="de-action primary" type="button" id="de-notes-save-offline">Save offline</button><button class="de-action" type="button" data-de-action="notes">Make another set</button></div></section>' + sourceHTML;
         const copyButton = document.getElementById("de-notes-copy");
         if (copyButton) copyButton.addEventListener("click", async function () {
           try {
@@ -852,6 +1072,26 @@
         });
         const printButton = document.getElementById("de-notes-print");
         if (printButton) printButton.addEventListener("click", function () { window.print(); });
+        const saveOfflineButton = document.getElementById("de-notes-save-offline");
+        if (saveOfflineButton) saveOfflineButton.addEventListener("click", async function () {
+          saveOfflineButton.disabled = true;
+          saveOfflineButton.textContent = "Saving on this device...";
+          try {
+            await saveOfflineStudyNote(info.id, payload, notes, sourceRows);
+            saveOfflineButton.textContent = "Saved offline ✓";
+            const savedMessage = document.createElement("p");
+            savedMessage.className = "de-success";
+            savedMessage.textContent = "Your notes are saved on this device. Open My offline notes to read them without an internet connection.";
+            saveOfflineButton.closest(".de-section").appendChild(savedMessage);
+          } catch (error) {
+            saveOfflineButton.disabled = false;
+            saveOfflineButton.textContent = "Save offline";
+            const saveError = document.createElement("p");
+            saveError.className = "de-error";
+            saveError.textContent = error.message || "These notes could not be saved offline.";
+            saveOfflineButton.closest(".de-section").appendChild(saveError);
+          }
+        });
       } catch (error) {
         result.innerHTML = '<div class="de-error"><strong>Notes were not generated.</strong><p>' + escapeHTML(error.message) + '</p><p class="de-muted">Dream does not invent notes when it cannot retrieve suitable evidence or its free providers are unavailable.</p><button class="de-action" type="button" data-notes-retry>Try again</button></div>';
         const retry = result.querySelector("[data-notes-retry]");
