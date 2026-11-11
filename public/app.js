@@ -274,7 +274,7 @@ function escapeHTML(value) {
     const controller = new AbortController();
     const timeout = setTimeout(function () {
       controller.abort();
-    }, Number(timeoutMs) || 8000);
+    }, Number(timeoutMs) || 75000);
 
     const requestOptions = Object.assign({}, options || {}, {
       signal: controller.signal
@@ -2130,7 +2130,7 @@ async function fetchWithTimeout(input, options, timeoutMs) {
   const controller = new AbortController();
   const timeout = setTimeout(function () {
     controller.abort();
-  }, Number(timeoutMs) || 8000);
+  }, Number(timeoutMs) || 75000);
 
   const requestOptions = Object.assign({}, options || {}, {
     signal: controller.signal

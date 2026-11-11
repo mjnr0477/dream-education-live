@@ -21,6 +21,6 @@ assert.ok(workspace.includes('id="de-notes-save-offline"') && workspace.includes
 assert.ok(workspace.includes("Saved offline ✓") && workspace.includes("not encrypted") && workspace.includes("not synced"), "The interface must clearly explain local-only and unencrypted storage.");
 assert.ok(workspace.includes("formatOfflineStudyNote"), "Saved notes must be rendered using escaped text.");
 assert.ok(style.includes(".de-offline-notes-list") && style.includes(".de-offline-notes-item"), "The local notes library must have readable responsive styling.");
-assert.ok(index.includes("/frontend-workspace.js?v=20261111b"), "The new workspace script version must be referenced by the app.");
-assert.ok(worker.includes("/frontend-workspace.js?v=20261111b"), "The offline shell must precache the updated workspace script.");
+assert.ok(index.includes("/frontend-workspace.js?v=20261111c"), "The new workspace script version must be referenced by the app.");
+assert.ok(worker.includes("/frontend-workspace.js?v=20261111c"), "The offline shell must precache the updated workspace script.");
 console.log("Offline study notes smoke test passed.");

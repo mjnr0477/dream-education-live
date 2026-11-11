@@ -102,18 +102,27 @@ for (const route of requiredServerRoutes) {
 
 for (const token of [
   "/nextgen-visual.js?v=20261011a",
-  "/frontend-workspace.js?v=20261111b"
+  "/frontend-workspace.js?v=20261111c"
 ]) {
   if (!index.includes(token)) throw new Error("Required frontend script missing: " + token);
 }
 
 
-for (const [asset, version] of [["style.css", "20261111c"], ["frontend-workspace.js", "20261111b"]]) {
+for (const [asset, version] of [["style.css", "20261111c"], ["frontend-workspace.js", "20261111c"]]) {
   const assetReference = new RegExp("/" + asset.replace(".", "\\.") + "\\?v=" + version);
   if (!assetReference.test(index)) throw new Error("Updated cache-busting version missing for " + asset);
 }
 
-if (!index.includes("/app.js?v=20261025b")) throw new Error("Updated app.js cache-busting version missing.");
+if (!index.includes("/app.js?v=20261111a")) throw new Error("Updated app.js cache-busting version missing.");
+for (const [asset, version] of [
+  ["school-workspace.js", "20261111a"],
+  ["chat-workspace.js", "20261111a"]
+]) {
+  if (!index.includes("/" + asset + "?v=" + version)) {
+    throw new Error("Updated cache-busting version missing for " + asset);
+  }
+}
+
 
 for (const token of [
   '<link rel="canonical" href="https://dream-education-live-4.onrender.com/">',

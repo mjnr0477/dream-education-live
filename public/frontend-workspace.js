@@ -78,7 +78,7 @@
     const controller = new AbortController();
     const timeout = setTimeout(function () {
       controller.abort();
-    }, 8000);
+    }, 75000);
 
     try {
       const response = await fetch(url, {
@@ -96,7 +96,7 @@
       return data;
     } catch (error) {
       if (error && error.name === "AbortError") {
-        throw new Error("Learning request timed out after 8 seconds. Check your connection and try again.");
+        throw new Error("Learning request timed out after 75 seconds. Check your connection and try again.");
       }
       throw error;
     } finally {
