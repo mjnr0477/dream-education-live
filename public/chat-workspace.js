@@ -48,7 +48,7 @@
 
   async function api(url, options) {
     const controller = new AbortController();
-    const timeoutId = window.setTimeout(function () { controller.abort(); }, 15000);
+    const timeoutId = window.setTimeout(function () { controller.abort(); }, 75000);
     let response;
     let data;
     try {
