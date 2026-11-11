@@ -194,6 +194,97 @@
     } else { copyShareUrl(url); }
   }
 
+  const FEED_DATA_SAVER_KEY = "dream_education_feed_data_saver";
+
+  function isFeedDataSaverEnabled() {
+    try {
+      const saved = localStorage.getItem(FEED_DATA_SAVER_KEY);
+      if (saved === "on") return true;
+      if (saved === "off") return false;
+    } catch (_) {}
+    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    return Boolean(connection && (
+      connection.saveData === true || /^(slow-2g|2g)$/i.test(String(connection.effectiveType || ""))
+    ));
+  }
+
+  function safeFeedMediaUrl(value) {
+    if (typeof value !== "string" || !value.trim()) return "";
+    try {
+      const parsed = new URL(value.trim(), window.location.origin);
+      if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return "";
+      const host = parsed.hostname.toLowerCase();
+      const pathName = parsed.pathname.toLowerCase();
+      const privatePaths = ["/api/", "/auth/", "/signin", "/sign-in", "/account", "/dashboard"];
+      if (parsed.origin === window.location.origin && privatePaths.some(prefix => pathName.startsWith(prefix))) return "";
+      if (!host || host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local") ||
+          host === "0.0.0.0" || host === "::1" || host === "[::1]" ||
+          host.startsWith("[fc") || host.startsWith("[fd") || /^\[fe[89ab]/.test(host) ||
+          /^127\./.test(host) || /^10\./.test(host) || /^192\.168\./.test(host) ||
+          /^169\.254\./.test(host) || /^172\.(1[6-9]|2\d|3[01])\./.test(host)) return "";
+      return parsed.href;
+    } catch (_) {
+      return "";
+    }
+  }
+
+  function loadDeferredFeedMedia(resource, index, button) {
+    const stage = button && button.closest(".de-feed-media-deferred");
+    const card = button && button.closest(".de-feed-card");
+    if (!resource || !stage || !card) return;
+    const type = resource.type || "video";
+    const mediaUrl = safeFeedMediaUrl(resource.media_url || resource.thumbnail || "");
+    const embedUrl = safeFeedMediaUrl(resource.embed_url || "");
+    let element = null;
+
+    if (type === "image" && mediaUrl) {
+      element = document.createElement("img");
+      element.className = "de-feed-image";
+      element.alt = String(resource.title || "Learning material").slice(0, 200);
+      element.loading = "lazy";
+      element.referrerPolicy = "no-referrer";
+      element.src = mediaUrl;
+    } else if ((type === "video" || type === "experiment") && embedUrl) {
+      element = document.createElement("iframe");
+      element.title = String(resource.title || "Learning material").slice(0, 200);
+      element.loading = "lazy";
+      element.allowFullscreen = true;
+      element.referrerPolicy = "strict-origin-when-cross-origin";
+      element.allow = type === "experiment"
+        ? "fullscreen; accelerometer; clipboard-write"
+        : "accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+      element.src = embedUrl;
+    } else if (type === "video" && mediaUrl) {
+      element = document.createElement("video");
+      element.controls = true;
+      element.muted = true;
+      element.playsInline = true;
+      element.preload = "metadata";
+      element.dataset.resourceMedia = "video";
+      element.setAttribute("aria-label", String(resource.title || "Learning video").slice(0, 200));
+      element.src = mediaUrl;
+      const status = document.createElement("div");
+      status.className = "de-feed-playback-status";
+      status.dataset.feedPlaybackStatus = "";
+      status.setAttribute("role", "status");
+      status.setAttribute("aria-live", "polite");
+      status.hidden = true;
+      stage.replaceChildren(element, status);
+      wireResourceMediaCompletion(card);
+      const workspace = card.closest(".de-feed-workspace");
+      if (workspace) wireFeedPlayback(workspace);
+      return;
+    }
+
+    if (!element) {
+      stage.textContent = "This media does not have a safe, supported address to load.";
+      return;
+    }
+    stage.replaceChildren(element);
+    const workspace = card.closest(".de-feed-workspace");
+    if (workspace) wireFeedPlayback(workspace);
+  }
+
   function renderResource(resource, index) {
     const type = resource.type || "video";
     const title = resource.title || "Learning material";
@@ -204,7 +295,13 @@
     const provider = ({ openverse: "Openverse", openverse_audio: "Openverse Audio", wikimedia_commons: "Wikimedia Commons", internet_archive: "Internet Archive", youtube: "YouTube", nasa: "NASA", nasa_osdr: "NASA Open Science", phet: "Interactive Experiment" })[providerKey] || providerKey.replace(/_/g, " ").replace(/\b\w/g, function (letter) { return letter.toUpperCase(); });
     let media = "";
 
-    if (type === "image" && mediaUrl) {
+    const deferredMediaAvailable = (type === "image" && safeFeedMediaUrl(mediaUrl)) ||
+      (type === "video" && (safeFeedMediaUrl(embedUrl) || safeFeedMediaUrl(mediaUrl))) ||
+      (type === "experiment" && safeFeedMediaUrl(embedUrl));
+    if (isFeedDataSaverEnabled() && deferredMediaAvailable) {
+      const mediaLabel = type === "image" ? "image" : type === "experiment" ? "interactive experiment" : "video";
+      media = '<div class="de-feed-media de-feed-media-deferred"><p>Save mobile data: this ' + mediaLabel + ' is waiting until you choose to load it.</p><button type="button" class="de-action primary" data-feed-load-media="' + index + '">Load ' + mediaLabel + '</button></div>';
+    } else if (type === "image" && mediaUrl) {
       media = '<div class="de-feed-media de-feed-image-stage"><img class="de-feed-image" src="' + escapeHTML(mediaUrl) + '" alt="' + escapeHTML(title) + '" loading="lazy" referrerpolicy="no-referrer"><div class="de-feed-image-status" data-feed-image-status role="status" aria-live="polite" hidden></div></div>';
     } else if (type === "video" && embedUrl) {
       media = '<div class="de-feed-media"><iframe src="' + escapeHTML(embedUrl) + '" title="' + escapeHTML(title) + '" loading="lazy" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>';
@@ -499,6 +596,7 @@
             '<button class="de-action primary" type="submit">Search feed</button>' +
           '</div>' +
         '</form>' +
+        '<label class="de-feed-data-saver" for="de-feed-data-saver"><input id="de-feed-data-saver" type="checkbox" ' + (isFeedDataSaverEnabled() ? "checked" : "") + '><span><strong>Save mobile data</strong><small>Videos, photos and experiments load only after you tap.</small></span></label>' +
         '<div id="de-resource-results" aria-live="polite">' +
           (initialQuery ? '<div class="de-loading"><span></span><p>Finding relevant media...</p></div>' : '<div class="de-resource-empty"><strong>Search for a topic to begin.</strong><p>Your feed will contain only relevant videos, photos and interactive experiments that can be shown here.</p></div>') +
         '</div>' +
@@ -509,6 +607,18 @@
     const results = document.getElementById("de-resource-results");
     if (!form || !results) return;
     let searchSequence = 0;
+    let lastSearchData = null;
+    const dataSaverToggle = document.getElementById("de-feed-data-saver");
+    if (dataSaverToggle) {
+      dataSaverToggle.addEventListener("change", function () {
+        try { localStorage.setItem(FEED_DATA_SAVER_KEY, dataSaverToggle.checked ? "on" : "off"); } catch (_) {}
+        if (lastSearchData) {
+          results.innerHTML = renderResourceResults(lastSearchData);
+          wireResourceMediaCompletion(results);
+          wireFeedPlayback(results);
+        }
+      });
+    }
 
     async function search() {
       const query = form.elements.q.value.trim();
@@ -524,6 +634,7 @@
         });
         const data = await getJSON("/api/v1/learning/resources?" + params.toString(), auth);
         if (sequence !== searchSequence) return;
+        lastSearchData = data;
         results.innerHTML = renderResourceResults(data);
         wireResourceMediaCompletion(results);
         wireFeedPlayback(results);
@@ -540,6 +651,13 @@
     });
     results.addEventListener("click", function (event) {
       if (event.target.closest("[data-feed-retry]")) { search(); return; }
+      const loadMediaButton = event.target.closest("[data-feed-load-media]");
+      if (loadMediaButton) {
+        const index = Number(loadMediaButton.getAttribute("data-feed-load-media"));
+        const resource = (window.__dreamResourceResults || [])[index];
+        if (resource) loadDeferredFeedMedia(resource, index, loadMediaButton);
+        return;
+      }
       const shareButton = event.target.closest("[data-resource-share]");
       if (!shareButton) return;
       const index = Number(shareButton.getAttribute("data-resource-share"));
