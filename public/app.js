@@ -2551,7 +2551,7 @@ async function openTeacherLessonStudio() {
   panel.setAttribute("aria-hidden", "false");
 
   const escape = value => String(value == null ? "" : value).replace(/[&<>"']/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[character]);
-  const request = async (url, options = {}, timeoutMs = 12000) => {
+  const request = async (url, options = {}, timeoutMs = 75000) => {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
     try {
@@ -2564,7 +2564,7 @@ async function openTeacherLessonStudio() {
       return data;
     } catch (error) {
       if (error && error.name === "AbortError") {
-        throw new Error("Lesson preparation did not respond within " + Math.round(timeoutMs / 1000) + " seconds. Please try again; if this repeats, the lesson service needs investigation.");
+        throw new Error("Lesson Studio request did not respond within " + Math.round(timeoutMs / 1000) + " seconds. Please try again; if this repeats, the lesson service needs investigation.");
       }
       throw error;
     } finally {
