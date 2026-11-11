@@ -912,7 +912,8 @@
     const safeUrl = safeFeedMediaUrl(value);
     if (!safeUrl) return "";
     try {
-      return new URL(safeUrl).hostname.toLowerCase().replace(/^www\\./, "");
+      const host = new URL(safeUrl).hostname.toLowerCase();
+      return host.startsWith("www.") ? host.slice(4) : host;
     } catch (_) {
       return "";
     }
