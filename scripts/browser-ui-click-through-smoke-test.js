@@ -201,7 +201,7 @@ const baseUrl = (process.env.BASE_URL || "http://127.0.0.1:4173").replace(/\/$/,
         level: "Grade 8",
         notes_type: "Detailed notes",
         notes: "# Fractions\\n\\nFractions represent equal parts of a whole.\\n\\n## Equivalent fractions\\n\\n**Example:** 1/2 = 2/4.",
-        sources: [{ title: "OpenStax Mathematics" }]
+        sources: [{ title: "OpenStax Mathematics", url: "https://openstax.org/books/college-algebra/pages/1-1-real-numbers" }]
       })
     }));
     const notesResponse = await notesPage.goto(baseUrl + "/", { waitUntil: "domcontentloaded", timeout: 30000 });
@@ -223,6 +223,9 @@ const baseUrl = (process.env.BASE_URL || "http://127.0.0.1:4173").replace(/\/$/,
     await notesPage.getByRole("button", { name: "Open notes", exact: true }).click();
     assert((await notesPage.locator("#de-notes-result .de-notes-content").innerText()).includes("Fractions represent equal parts"),
       "A saved study note must remain readable after the browser goes offline");
+    const offlineSource = notesPage.locator('#de-notes-result a[href="https://openstax.org/books/college-algebra/pages/1-1-real-numbers"]');
+    await offlineSource.waitFor({ state: "visible", timeout: 10000 });
+    assert.equal(await offlineSource.getAttribute("rel"), "noopener noreferrer nofollow", "Offline source links must retain safe external-link attributes");
     await notesPage.locator('[data-offline-notes-back="list"]').click();
     await notesPage.getByRole("button", { name: "Delete", exact: true }).click();
     await notesPage.getByText("No offline notes saved yet", { exact: true }).waitFor({ state: "visible", timeout: 10000 });
