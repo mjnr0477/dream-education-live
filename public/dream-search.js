@@ -132,9 +132,22 @@
     `).join('');
   }
 
+  let activeSearchController = null;
+  let searchSequence = 0;
+
   async function search(query, onSuccess, statusElement, resultsElement) {
     const status = statusElement || elements().status;
     if (!query.trim()) return;
+
+    const sequence = ++searchSequence;
+    if (activeSearchController) activeSearchController.abort();
+
+    const controller = new AbortController();
+    activeSearchController = controller;
+    const timeout = window.setTimeout(function () {
+      controller.abort();
+    }, 75000);
+
     if (status) status.textContent = 'Searching…';
 
     try {
@@ -144,7 +157,9 @@
       if (state.mode === 'authorized') {
         const ownerToken = getOwnerToken();
         if (!ownerToken) {
-          if (status) status.textContent = 'Sign in with the Dream Education owner account to use Authorized Search.';
+          if (sequence === searchSequence && status) {
+            status.textContent = 'Sign in with the Dream Education owner account to use Authorized Search.';
+          }
           return;
         }
         url = '/api/dream-search/authorized';
@@ -154,10 +169,12 @@
       const response = await fetch(url, {
         method: 'POST',
         headers,
-        body: JSON.stringify({ query, limit: 10 })
+        body: JSON.stringify({ query, limit: 10 }),
+        signal: controller.signal
       });
       const data = await response.json().catch(() => ({}));
 
+      if (sequence !== searchSequence) return;
       if (!response.ok || !data.success) {
         throw new Error(data.error || 'Search failed.');
       }
@@ -170,10 +187,17 @@
           : 'Public Search';
       }
     } catch (error) {
-      if (status) status.textContent = error.message || 'Search failed.';
+      if (sequence !== searchSequence) return;
+      if (status) {
+        status.textContent = error && error.name === 'AbortError'
+          ? 'Dream Search timed out after 75 seconds. Check your connection and try again.'
+          : (error.message || 'Search failed.');
+      }
+    } finally {
+      window.clearTimeout(timeout);
+      if (activeSearchController === controller) activeSearchController = null;
     }
   }
-
 
   function closeResultsPage() {
     const page = state.resultsPage || document.getElementById('dream-search-results-page');
