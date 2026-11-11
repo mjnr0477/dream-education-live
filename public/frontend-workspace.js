@@ -214,10 +214,11 @@
       const parsed = new URL(value.trim(), window.location.origin);
       if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return "";
       const host = parsed.hostname.toLowerCase();
+      if (parsed.origin === window.location.origin && /^\\/(?:api|auth|signin|sign-in|account|dashboard)(?:\\/|$)/i.test(parsed.pathname)) return "";
       if (!host || host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local") ||
-          host === "0.0.0.0" || host === "::1" || host === "[::1]" || /^127\\./.test(host) ||
-          /^10\\./.test(host) || /^192\\.168\\./.test(host) || /^169\\.254\\./.test(host) ||
-          /^172\\.(1[6-9]|2\\d|3[01])\\./.test(host)) return "";
+          host === "0.0.0.0" || host === "::1" || host === "[::1]" || /^127\./.test(host) ||
+          /^10\./.test(host) || /^192\.168\./.test(host) || /^169\.254\./.test(host) ||
+          /^172\.(1[6-9]|2\d|3[01])\./.test(host)) return "";
       return parsed.href;
     } catch (_) {
       return "";
