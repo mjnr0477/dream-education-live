@@ -2063,27 +2063,55 @@ if (action === "chat") {
       });
       const data = await response.json().catch(function () { return {}; });
 
+      // A different tab may have signed out or rotated this session while this
+      // request was in flight. Never overwrite a newer login with an older result.
+      const latestAuth = getAuth();
+      const latestRefreshToken = latestAuth && latestAuth.session
+        ? latestAuth.session.refresh_token
+        : null;
+      if (latestRefreshToken !== auth.session.refresh_token) {
+        scheduleSavedSessionRefresh(latestAuth);
+        return;
+      }
+
       if (response.ok && data.success && data.session && data.session.access_token && data.session.refresh_token) {
         saveAuth(data);
         scheduleSavedSessionRefresh(data);
         return;
       }
 
-      // Only clear a session when the server explicitly rejects the refresh token
-      // or confirms that this account is no longer linked. Keep it on transient failures.
+      // Only clear the exact session that this request attempted to renew.
+      // A stale 401/403 from another tab must not erase a newer saved session.
       if (response.status === 400 || response.status === 401 || response.status === 403) {
         clearAuth();
         return;
       }
 
-      scheduleSavedSessionRefresh(auth, 60000);
+      scheduleSavedSessionRefresh(latestAuth || auth, 60000);
     } catch (error) {
       console.warn("Dream Education session refresh will be retried:", error);
-      scheduleSavedSessionRefresh(auth, 60000);
+      const latestAuth = getAuth();
+      const latestRefreshToken = latestAuth && latestAuth.session
+        ? latestAuth.session.refresh_token
+        : null;
+      if (latestRefreshToken !== auth.session.refresh_token) {
+        scheduleSavedSessionRefresh(latestAuth);
+      } else {
+        scheduleSavedSessionRefresh(latestAuth || auth, 60000);
+      }
     } finally {
       sessionRefreshInFlight = false;
     }
   }
+
+  // localStorage changes in another tab do not emit the custom event above.
+  // Follow the shared token so all open Dream Education tabs stay in sync.
+  window.addEventListener("storage", function (event) {
+    if (event.key !== AUTH_KEY) return;
+    const latestAuth = getAuth();
+    scheduleSavedSessionRefresh(latestAuth);
+    window.dispatchEvent(new CustomEvent("dream-education-auth-changed"));
+  });
 
   function initializePersistentSession() {
     const auth = getAuth();

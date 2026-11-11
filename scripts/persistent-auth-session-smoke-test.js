@@ -47,4 +47,12 @@ assert.match(refreshHandler, /getAccount\(authData\.user\.id\)/,
 assert.match(refreshHandler, /account,\s*role,\s*profile,/,
   "refresh response must preserve account, role, and profile when saved auth is replaced");
 
+
+assert.match(app, /latestRefreshToken !== auth\.session\.refresh_token/,
+  "a stale refresh response must not overwrite or clear a newer saved session");
+assert.match(app, /window\.addEventListener\(["']storage["']/,
+  "other tabs must synchronize their saved-session refresh schedule");
+assert.match(app, /scheduleSavedSessionRefresh\(latestAuth\)/,
+  "session synchronization must follow the latest value saved by another tab");
+
 console.log("Persistent authentication session smoke test passed.");
