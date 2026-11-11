@@ -32,7 +32,7 @@ assert.doesNotMatch(worker, /cache\.put\(["']\/["'],\s*copy\)/, "navigation resp
 assert.match(worker, /caches\.match\("\/offline\.html"\)/, "offline fallback page should be available");
 assert.match(register, /register\("\/service-worker\.js"\)/, "service worker must be registered");
 assert.match(register, /addEventListener\("offline"/, "offline state should be announced");
-assert.match(register, /matchMedia\("\\(max-width: 760px\\)"\)/, "mobile status notice should detect phone-sized screens");
+assert.ok(register.includes('window.matchMedia("(max-width: 760px)")'), "mobile status notice should detect phone-sized screens");
 assert.match(register, /calc\(76px \+ env\(safe-area-inset-bottom, 0px\)\)/, "mobile status notice must sit above the bottom navigation and safe area");
 assert.match(register, /addEventListener\("resize", positionStatus/, "status notice position should update when the viewport rotates or resizes");
 assert.ok(html.includes("/offline-support.js?v=20261111c"), "updated offline support script must bypass old browser cache");
