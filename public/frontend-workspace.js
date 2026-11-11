@@ -281,6 +281,8 @@
       return;
     }
     stage.replaceChildren(element);
+    const workspace = card.closest(".de-feed-workspace");
+    if (workspace) wireFeedPlayback(workspace);
   }
 
   function renderResource(resource, index) {
