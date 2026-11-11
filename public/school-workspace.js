@@ -12,7 +12,7 @@
     link.id = STYLE_ID; link.rel = "stylesheet"; link.href = "/school-workspace.css?v=20261013b";
     document.head.appendChild(link);
   }
-  async function fetchSchoolLessonJSON(url, options, timeoutMs = 30000) {
+  async function fetchSchoolLessonJSON(url, options, timeoutMs = 75000) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
     try {
