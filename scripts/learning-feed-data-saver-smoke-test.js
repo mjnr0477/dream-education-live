@@ -20,6 +20,6 @@ assert.ok(workspace.includes("safeFeedMediaUrl"), "Deferred media URLs must be c
 assert.ok(workspace.includes('stage.replaceChildren(element)'), "Media should be inserted only after the user requests it.");
 assert.ok(workspace.includes('if (workspace) wireFeedPlayback(workspace)'), "Deferred images must retain the feed media recovery handlers.");
 assert.ok(style.includes(".de-feed-data-saver") && style.includes(".de-feed-media-deferred"), "Data saver controls must have responsive styling.");
-assert.ok(index.includes("/frontend-workspace.js?v=20261111a"), "The updated feed script must bypass older browser caches.");
-assert.ok(worker.includes("/frontend-workspace.js?v=20261111a"), "The offline shell must precache the updated feed script.");
+assert.ok(index.includes("/frontend-workspace.js?v=20261111b"), "The updated feed script must bypass older browser caches.");
+assert.ok(worker.includes("/frontend-workspace.js?v=20261111b"), "The offline shell must precache the updated feed script.");
 console.log("Learning Feed data saver smoke test passed.");
