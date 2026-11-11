@@ -28,6 +28,39 @@ const baseUrl = (process.env.BASE_URL || "http://127.0.0.1:4173").replace(/\/$/,
     assert(response && response.ok(), "Homepage must load successfully");
     await page.locator("#experience-panel").waitFor({ state: "attached" });
 
+    const manifestResponse = await page.request.get(baseUrl + "/manifest.webmanifest");
+    assert(manifestResponse.ok(), "PWA manifest must be served successfully");
+    const manifest = await manifestResponse.json();
+    assert.equal(manifest.display, "standalone", "Installed Dream Education should open as a standalone app");
+    assert(manifest.icons.some(icon => icon.sizes === "192x192"), "PWA manifest must offer a 192px icon");
+    assert(manifest.icons.some(icon => icon.sizes === "512x512" && String(icon.purpose || "").includes("maskable")), "PWA manifest must offer a maskable 512px icon");
+    const maskableIcon = manifest.icons.find(icon => icon.purpose === "maskable");
+    assert(maskableIcon && maskableIcon.src.includes("maskable"), "Maskable install icon must use the dedicated safe-area artwork");
+    for (const iconPath of [...new Set(manifest.icons.map(icon => icon.src))]) {
+      const iconResponse = await page.request.get(baseUrl + iconPath);
+      assert(iconResponse.ok(), "PWA install icon must load: " + iconPath);
+      assert.match(iconResponse.headers()["content-type"] || "", /image\/png/i, "PWA icon should be served as PNG: " + iconPath);
+    }
+    const faviconResponse = await page.request.get(baseUrl + "/icons/favicon.svg");
+    assert(faviconResponse.ok(), "Dream Education SVG favicon must load");
+    const appleIconResponse = await page.request.get(baseUrl + "/icons/apple-touch-icon.png");
+    assert(appleIconResponse.ok(), "Apple touch icon must load");
+
+    assert(await page.locator('.nav-right [data-dream-install]').isHidden(), "Install action must remain hidden until a browser supports installation");
+    const installEventWasPrevented = await page.evaluate(() => {
+      const event = new Event("beforeinstallprompt", { cancelable: true });
+      event.prompt = async () => { window.__dreamInstallPromptCalled = true; };
+      event.userChoice = Promise.resolve({ outcome: "accepted", platform: "web" });
+      window.dispatchEvent(event);
+      return event.defaultPrevented;
+    });
+    assert.equal(installEventWasPrevented, true, "Dream Education should defer the native install prompt until the learner taps");
+    await page.locator('.nav-right [data-dream-install]').waitFor({ state: "visible", timeout: 10000 });
+    await page.locator('.nav-right [data-dream-install]').click();
+    await page.waitForFunction(() => window.__dreamInstallPromptCalled === true);
+    await page.waitForFunction(() => Array.from(document.querySelectorAll("[data-dream-install]")).every(button => button.hidden));
+
+
     async function closePanel() {
       const close = page.locator(".experience-panel .panel-close");
       if (await close.isVisible()) await close.click();

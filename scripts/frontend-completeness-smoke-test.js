@@ -13,6 +13,7 @@ const nextgen = read("public/nextgen-visual.js");
 const css = read("public/nextgen-visual.css");
 const style = read("public/style.css");
 const server = read("server.js");
+const manifest = JSON.parse(read("public/manifest.webmanifest"));
 
 const requiredFiles = [
   "public/index.html",
@@ -36,6 +37,18 @@ for (const asset of declaredLocalAssets) {
   if (!fs.existsSync(localPath)) {
     throw new Error("Landing page references a missing local asset: " + asset);
   }
+}
+if (!Array.isArray(manifest.icons) || !manifest.icons.some(icon => icon.sizes === "192x192") || !manifest.icons.some(icon => icon.sizes === "512x512")) {
+  throw new Error("PWA manifest must declare 192px and 512px install icons.");
+}
+for (const icon of manifest.icons) {
+  const iconPath = icon.src && icon.src.startsWith("/") ? "public/" + icon.src.slice(1) : "";
+  if (!icon.src || !icon.src.startsWith("/") || !fs.existsSync(iconPath)) {
+    throw new Error("PWA manifest references a missing or unsafe icon asset: " + icon.src);
+  }
+}
+if (!index.includes('rel="icon" href="/icons/favicon.svg"') || !index.includes('rel="apple-touch-icon"')) {
+  throw new Error("Browser and Apple touch icon links are missing.");
 }
 if (declaredLocalAssets.length === 0) {
   throw new Error("No local stylesheet or script assets were discovered in the landing HTML.");
@@ -95,7 +108,7 @@ for (const token of [
 }
 
 
-for (const [asset, version] of [["style.css", "20261111b"], ["frontend-workspace.js", "20261111b"]]) {
+for (const [asset, version] of [["style.css", "20261111c"], ["frontend-workspace.js", "20261111b"]]) {
   const assetReference = new RegExp("/" + asset.replace(".", "\\.") + "\\?v=" + version);
   if (!assetReference.test(index)) throw new Error("Updated cache-busting version missing for " + asset);
 }
@@ -231,7 +244,7 @@ for (const token of [
     throw new Error("Accessible frontend polish is missing: " + token);
   }
 }
-if (!index.includes("/style.css?v=20261111b")) {
+if (!index.includes("/style.css?v=20261111c")) {
   throw new Error("Frontend polish stylesheet cache-busting version is missing.");
 }
 

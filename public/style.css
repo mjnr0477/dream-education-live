@@ -3378,3 +3378,24 @@ textarea:focus-visible {
 .de-offline-notes-item .de-actions { margin: 0; }
 .de-offline-notes-item button { min-height: 42px; }
 @media (min-width: 640px) { .de-offline-notes-item { grid-template-columns: minmax(0,1fr) auto; align-items: center; } }
+
+
+/* Browser-native PWA install action; hidden until the platform offers installation. */
+.dream-install-app {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 8px 13px;
+  border: 1px solid rgba(25, 200, 255, .55);
+  border-radius: 12px;
+  background: rgba(7, 27, 88, .78);
+  color: #dffaff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.dream-install-app:hover { border-color: #75f1ff; background: rgba(13, 50, 113, .92); }
+.dream-install-app:focus-visible { outline: 3px solid #ffd21a; outline-offset: 3px; }
+.dream-install-app[hidden] { display: none !important; }
+.mobile-drawer .dream-install-app { width: 100%; min-height: 46px; text-align: left; }

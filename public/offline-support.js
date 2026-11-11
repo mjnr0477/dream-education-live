@@ -34,6 +34,45 @@
     }
   }
 
+  // Keep the install action hidden unless the browser offers a real install prompt.
+  let deferredInstallPrompt = null;
+  const installButtons = Array.from(document.querySelectorAll("[data-dream-install]"));
+
+  function showInstallButtons(visible) {
+    installButtons.forEach(function (button) {
+      button.hidden = !visible;
+    });
+  }
+
+  window.addEventListener("beforeinstallprompt", function (event) {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+    showInstallButtons(true);
+  });
+
+  installButtons.forEach(function (button) {
+    button.addEventListener("click", async function () {
+      if (!deferredInstallPrompt) return;
+      const promptEvent = deferredInstallPrompt;
+      deferredInstallPrompt = null;
+      showInstallButtons(false);
+      try {
+        await promptEvent.prompt();
+        const choice = await promptEvent.userChoice;
+        if (choice && choice.outcome === "accepted") {
+          button.textContent = "Install requested";
+        }
+      } catch (error) {
+        console.warn("Dream Education install prompt could not be opened.", error);
+      }
+    });
+  });
+
+  window.addEventListener("appinstalled", function () {
+    deferredInstallPrompt = null;
+    showInstallButtons(false);
+  });
+
   window.addEventListener("offline", announceConnection);
   window.addEventListener("online", announceConnection);
   if (!navigator.onLine) window.addEventListener("DOMContentLoaded", announceConnection, { once: true });
