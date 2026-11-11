@@ -24,7 +24,7 @@ for (const [name, handler, endpoint] of [
   ["login", login, "/api/auth/login"],
   ["registration", register, "/api/auth/register"]
 ]) {
-  assert.match(handler, new RegExp("fetchWithTimeout\\(\\s*[\"']" + endpoint.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&") + "[\"']"), 
+  assert.ok(handler.includes('fetchWithTimeout("' + endpoint + '"'),
     name + " must use the bounded shared request helper");
   assert.match(handler, /\},\s*75000\s*\)/,
     name + " must use the 75-second cold-start-aware limit");
