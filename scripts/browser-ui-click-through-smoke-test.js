@@ -34,6 +34,8 @@ const baseUrl = (process.env.BASE_URL || "http://127.0.0.1:4173").replace(/\/$/,
     assert.equal(manifest.display, "standalone", "Installed Dream Education should open as a standalone app");
     assert(manifest.icons.some(icon => icon.sizes === "192x192"), "PWA manifest must offer a 192px icon");
     assert(manifest.icons.some(icon => icon.sizes === "512x512" && String(icon.purpose || "").includes("maskable")), "PWA manifest must offer a maskable 512px icon");
+    const maskableIcon = manifest.icons.find(icon => icon.purpose === "maskable");
+    assert(maskableIcon && maskableIcon.src.includes("maskable"), "Maskable install icon must use the dedicated safe-area artwork");
     for (const iconPath of [...new Set(manifest.icons.map(icon => icon.src))]) {
       const iconResponse = await page.request.get(baseUrl + iconPath);
       assert(iconResponse.ok(), "PWA install icon must load: " + iconPath);
