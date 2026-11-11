@@ -223,9 +223,12 @@ const baseUrl = (process.env.BASE_URL || "http://127.0.0.1:4173").replace(/\/$/,
     await notesPage.getByRole("button", { name: "Open notes", exact: true }).click();
     assert((await notesPage.locator("#de-notes-result .de-notes-content").innerText()).includes("Fractions represent equal parts"),
       "A saved study note must remain readable after the browser goes offline");
-    const offlineSource = notesPage.locator('#de-notes-result a[href="https://openstax.org/books/college-algebra/pages/1-1-real-numbers"]');
+    const offlineSource = notesPage.locator('#de-notes-result .de-section').filter({ hasText: "Evidence sources" }).locator("li").first();
     await offlineSource.waitFor({ state: "visible", timeout: 10000 });
-    assert.equal(await offlineSource.getAttribute("rel"), "noopener noreferrer nofollow", "Offline source links must retain safe external-link attributes");
+    const offlineSourceLabel = await offlineSource.innerText();
+    assert.match(offlineSourceLabel, /OpenStax Mathematics/);
+    assert.match(offlineSourceLabel, /openstax.org/);
+    assert.equal(await offlineSource.locator("a").count(), 0, "Evidence must remain an embedded source label, not a material link");
     await notesPage.locator('[data-offline-notes-back="list"]').click();
     await notesPage.getByRole("button", { name: "Delete", exact: true }).click();
     await notesPage.getByText("No offline notes saved yet", { exact: true }).waitFor({ state: "visible", timeout: 10000 });
