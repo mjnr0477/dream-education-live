@@ -296,7 +296,8 @@
     let media = "";
 
     const deferredMediaAvailable = (type === "image" && safeFeedMediaUrl(mediaUrl)) ||
-      ((type === "video" || type === "experiment") && (safeFeedMediaUrl(embedUrl) || safeFeedMediaUrl(mediaUrl)));
+      (type === "video" && (safeFeedMediaUrl(embedUrl) || safeFeedMediaUrl(mediaUrl))) ||
+      (type === "experiment" && safeFeedMediaUrl(embedUrl));
     if (isFeedDataSaverEnabled() && deferredMediaAvailable) {
       const mediaLabel = type === "image" ? "image" : type === "experiment" ? "interactive experiment" : "video";
       media = '<div class="de-feed-media de-feed-media-deferred"><p>Save mobile data: this ' + mediaLabel + ' is waiting until you choose to load it.</p><button type="button" class="de-action primary" data-feed-load-media="' + index + '">Load ' + mediaLabel + '</button></div>';
