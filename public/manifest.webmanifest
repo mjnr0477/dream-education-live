@@ -25,7 +25,7 @@
       "purpose": "any"
     },
     {
-      "src": "/icons/dream-education-512.png",
+      "src": "/icons/dream-education-maskable-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
