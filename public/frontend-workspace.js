@@ -841,7 +841,12 @@
       notes: noteText,
       sources: (Array.isArray(sourceRows) ? sourceRows : [])
         .slice(0, 25)
-        .map(function (source) { return String(source && source.title || "Source").slice(0, 250); }),
+        .map(function (source) {
+          return {
+            title: String(source && source.title || "Source").slice(0, 250),
+            url: safeFeedMediaUrl(source && source.url) || null
+          };
+        }),
       saved_at: new Date().toISOString()
     };
 
@@ -901,6 +906,20 @@
         };
       });
     });
+  }
+
+  function renderStudyNoteSources(sources) {
+    const rows = Array.isArray(sources) ? sources.slice(0, 25) : [];
+    if (!rows.length) return "";
+    const items = rows.map(function (source) {
+      const legacyTitle = typeof source === "string" ? source : "";
+      const title = escapeHTML(legacyTitle || source && source.title || "Retrieved source");
+      const url = safeFeedMediaUrl(source && typeof source === "object" ? source.url : "");
+      return url
+        ? '<li><a href="' + escapeHTML(url) + '" target="_blank" rel="noopener noreferrer nofollow">' + title + '</a></li>'
+        : '<li>' + title + '</li>';
+    }).join("");
+    return '<section class="de-section"><h3>Evidence sources</h3><ul>' + items + '</ul><p class="de-muted">Open the source to inspect the retrieved material behind these notes.</p></section>';
   }
 
   function formatOfflineStudyNote(notes) {
@@ -991,7 +1010,7 @@
         });
         if (!note) return;
         const savedAt = new Date(note.saved_at);
-        result.innerHTML = '<section class="de-section de-notes-output"><div class="de-section-title"><h3>' + escapeHTML(note.topic) + '</h3><span>' + escapeHTML(note.level) + '</span></div><p class="de-muted">' + escapeHTML(note.subject) + ' · ' + escapeHTML(note.notes_type) + '</p><p class="de-muted">Saved offline ' + escapeHTML(Number.isFinite(savedAt.getTime()) ? savedAt.toLocaleString() : "on this device") + '</p><div class="de-notes-content">' + formatOfflineStudyNote(note.notes) + '</div><div class="de-actions"><button class="de-action" type="button" data-offline-note-copy>Copy notes</button><button class="de-action" type="button" data-offline-note-print>Print / Save PDF</button><button class="de-action" type="button" data-offline-notes-back="list">Back to saved notes</button></div></section>' + (note.sources && note.sources.length ? '<section class="de-section"><h3>Evidence sources</h3><ul>' + note.sources.map(function (source) { return '<li>' + escapeHTML(source) + '</li>'; }).join("") + '</ul></section>' : '');
+        result.innerHTML = '<section class="de-section de-notes-output"><div class="de-section-title"><h3>' + escapeHTML(note.topic) + '</h3><span>' + escapeHTML(note.level) + '</span></div><p class="de-muted">' + escapeHTML(note.subject) + ' · ' + escapeHTML(note.notes_type) + '</p><p class="de-muted">Saved offline ' + escapeHTML(Number.isFinite(savedAt.getTime()) ? savedAt.toLocaleString() : "on this device") + '</p><div class="de-notes-content">' + formatOfflineStudyNote(note.notes) + '</div><div class="de-actions"><button class="de-action" type="button" data-offline-note-copy>Copy notes</button><button class="de-action" type="button" data-offline-note-print>Print / Save PDF</button><button class="de-action" type="button" data-offline-notes-back="list">Back to saved notes</button></div></section>' + renderStudyNoteSources(note.sources);
         result.dataset.activeOfflineNoteId = note.id;
         return;
       }
@@ -1058,10 +1077,7 @@
         const safeNotes = formatOfflineStudyNote(notes);
         const sourceRows = Array.isArray(data.sources) ? data.sources : [];
         const sourceHTML = sourceRows.length
-          ? '<section class="de-section"><h3>Evidence sources</h3><ul>' + sourceRows.map(function (source) {
-              const title = escapeHTML(source.title || "Source");
-              return '<li>' + title + '</li>';
-            }).join("") + '</ul><p class="de-muted">Sources are shown for transparency; check them for further detail.</p></section>'
+          ? renderStudyNoteSources(sourceRows)
           : '<p class="de-muted">No source links were returned with this evidence packet.</p>';
 
         result.innerHTML = '<section class="de-section de-notes-output"><div class="de-section-title"><h3>' + escapeHTML(data.topic) + '</h3><span>' + escapeHTML(data.level) + '</span></div><p class="de-muted">' + escapeHTML(data.subject) + ' · ' + escapeHTML(data.notes_type) + '</p><div class="de-notes-content">' + safeNotes + '</div><div class="de-actions"><button class="de-action" type="button" id="de-notes-copy">Copy notes</button><button class="de-action" type="button" id="de-notes-print">Print / Save PDF</button><button class="de-action primary" type="button" id="de-notes-save-offline">Save offline</button><button class="de-action" type="button" data-de-action="notes">Make another set</button></div></section>' + sourceHTML;
