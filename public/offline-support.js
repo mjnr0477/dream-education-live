@@ -19,7 +19,7 @@
       document.body.appendChild(status);
     }
     if (!navigator.onLine) {
-      status.textContent = "You’re offline. Cached learning pages may still open; sign-in, AI, sync and live features need internet.";
+      status.textContent = "You’re offline. Saved notes: Learn → Notes & Study Materials → My offline notes. AI, sign-in, live content and syncing need internet.";
       status.style.background = "#fff1cf";
       status.style.color = "#573b00";
       status.style.display = "block";
