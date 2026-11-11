@@ -18,6 +18,7 @@ assert.ok(workspace.includes("data-feed-load-media"), "Deferred media must load 
 assert.ok(workspace.includes("loadDeferredFeedMedia(resource, index, loadMediaButton)"), "The explicit load action must use the matching resource.");
 assert.ok(workspace.includes("safeFeedMediaUrl"), "Deferred media URLs must be checked before assigning them to media elements.");
 assert.ok(workspace.includes('stage.replaceChildren(element)'), "Media should be inserted only after the user requests it.");
+assert.ok(workspace.includes('if (workspace) wireFeedPlayback(workspace)'), "Deferred images must retain the feed media recovery handlers.");
 assert.ok(style.includes(".de-feed-data-saver") && style.includes(".de-feed-media-deferred"), "Data saver controls must have responsive styling.");
 assert.ok(index.includes("/frontend-workspace.js?v=20261111a"), "The updated feed script must bypass older browser caches.");
 assert.ok(worker.includes("/frontend-workspace.js?v=20261111a"), "The offline shell must precache the updated feed script.");
