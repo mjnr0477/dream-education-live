@@ -37,7 +37,7 @@ const baseUrl = (process.env.BASE_URL || "http://127.0.0.1:4173").replace(/\/$/,
     for (const iconPath of [...new Set(manifest.icons.map(icon => icon.src))]) {
       const iconResponse = await page.request.get(baseUrl + iconPath);
       assert(iconResponse.ok(), "PWA install icon must load: " + iconPath);
-      assert.match(iconResponse.headers()["content-type"] || "", /image\\/png/i, "PWA icon should be served as PNG: " + iconPath);
+      assert.match(iconResponse.headers()["content-type"] || "", /image\/png/i, "PWA icon should be served as PNG: " + iconPath);
     }
     const faviconResponse = await page.request.get(baseUrl + "/icons/favicon.svg");
     assert(faviconResponse.ok(), "Dream Education SVG favicon must load");
