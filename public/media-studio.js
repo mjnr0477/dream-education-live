@@ -229,12 +229,17 @@
       status.textContent = "Working…";
       result.replaceChildren();
       try {
+        const controller = new AbortController();
+        const timeout = window.setTimeout(function () {
+          controller.abort();
+        }, 75000);
         const response = await fetch("/api/media-studio/generate", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: "Bearer " + token
           },
+          signal: controller.signal,
           body: JSON.stringify({
             action,
             prompt: action === "image" ? value : undefined,
@@ -252,8 +257,11 @@
         renderResult(result, action, data);
         status.textContent = action === "freetts" ? "Speech and subtitle files are ready. Audio links expire after one hour." : "Request completed by Free.ai.";
       } catch (error) {
-        status.textContent = error.message || "Media request failed.";
+        status.textContent = error && error.name === "AbortError"
+          ? "Media Studio timed out after 75 seconds. Check your connection and try again."
+          : (error.message || "Media request failed.");
       } finally {
+        window.clearTimeout(timeout);
         submit.disabled = false;
       }
     });
