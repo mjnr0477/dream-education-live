@@ -113,7 +113,7 @@ for (const [asset, version] of [["style.css", "20261111c"], ["frontend-workspace
   if (!assetReference.test(index)) throw new Error("Updated cache-busting version missing for " + asset);
 }
 
-if (!index.includes("/app.js?v=20261111a")) throw new Error("Updated app.js cache-busting version missing.");
+if (!index.includes("/app.js?v=20261111b")) throw new Error("Updated app.js cache-busting version missing.");
 for (const [asset, version] of [
   ["school-workspace.js", "20261111a"],
   ["chat-workspace.js", "20261111a"]
