@@ -844,7 +844,7 @@
         .map(function (source) {
           return {
             title: String(source && source.title || "Source").slice(0, 250),
-            url: safeFeedMediaUrl(source && source.url) || null
+            domain: studyNoteSourceDomain(source && source.url)
           };
         }),
       saved_at: new Date().toISOString()
@@ -908,18 +908,29 @@
     });
   }
 
+  function studyNoteSourceDomain(value) {
+    const safeUrl = safeFeedMediaUrl(value);
+    if (!safeUrl) return "";
+    try {
+      return new URL(safeUrl).hostname.toLowerCase().replace(/^www\\./, "");
+    } catch (_) {
+      return "";
+    }
+  }
+
   function renderStudyNoteSources(sources) {
     const rows = Array.isArray(sources) ? sources.slice(0, 25) : [];
     if (!rows.length) return "";
     const items = rows.map(function (source) {
       const legacyTitle = typeof source === "string" ? source : "";
       const title = escapeHTML(legacyTitle || source && source.title || "Retrieved source");
-      const url = safeFeedMediaUrl(source && typeof source === "object" ? source.url : "");
-      return url
-        ? '<li><a href="' + escapeHTML(url) + '" target="_blank" rel="noopener noreferrer nofollow">' + title + '</a></li>'
-        : '<li>' + title + '</li>';
+      const storedDomain = source && typeof source === "object" && /^[a-z0-9.-]+$/i.test(String(source.domain || ""))
+        ? String(source.domain).toLowerCase()
+        : "";
+      const domain = storedDomain || studyNoteSourceDomain(source && typeof source === "object" ? source.url : "");
+      return '<li>' + title + (domain ? ' <small class="de-muted">· ' + escapeHTML(domain) + '</small>' : '') + '</li>';
     }).join("");
-    return '<section class="de-section"><h3>Evidence sources</h3><ul>' + items + '</ul><p class="de-muted">Open the source to inspect the retrieved material behind these notes.</p></section>';
+    return '<section class="de-section"><h3>Evidence sources</h3><ul>' + items + '</ul><p class="de-muted">Source labels identify the retrieved material used to prepare these notes.</p></section>';
   }
 
   function formatOfflineStudyNote(notes) {
