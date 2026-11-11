@@ -17,7 +17,7 @@ assert.equal((app.match(/Number\(timeoutMs\) \|\| 75000/g) || []).length, 2,
   "Both shared app request helpers must allow for a free-service cold start.");
 assert.match(school, /timeoutMs = 75000/,
   "School lesson requests must allow for a free-service cold start.");
-assert.match(index, /app\.js\?v=20261111b/);
+assert.match(index, /app\.js\?v=20261111c/);
 assert.match(index, /frontend-workspace\.js\?v=20261111c/);
 assert.match(index, /school-workspace\.js\?v=20261111a/);
 console.log("Learner and shared-workspace cold-start timeout smoke test passed.");
