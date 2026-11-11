@@ -36,7 +36,7 @@ assert.ok(register.includes('window.matchMedia("(max-width: 760px)")'), "mobile 
 assert.match(register, /calc\(76px \+ env\(safe-area-inset-bottom, 0px\)\)/, "mobile status notice must sit above the bottom navigation and safe area");
 assert.match(register, /addEventListener\("resize", positionStatus/, "status notice position should update when the viewport rotates or resizes");
 assert.ok(html.includes("/offline-support.js?v=20261111e"), "updated offline support script must bypass old browser cache");
-assert.ok(worker.includes("/offline-support.js?v=20261111e") && worker.includes("dream-education-shell-v9"), "offline shell must precache the install prompt code under a fresh cache");
+assert.ok(worker.includes("/offline-support.js?v=20261111e") && worker.includes("dream-education-shell-v10"), "offline shell must precache the install prompt code under a fresh cache");
 assert.match(register, /Saved notes: Learn → Notes & Study Materials → My offline notes/, "offline toast should tell learners where to reopen saved notes");
 assert.match(offline, /Notes you explicitly saved while signed in on this device can be reopened from Learn → Notes & Study Materials → My offline notes/i, "offline page should explain how to reopen previously saved notes");
 assert.match(html, /rel="manifest" href="\/manifest\.webmanifest"/, "manifest should be linked");
