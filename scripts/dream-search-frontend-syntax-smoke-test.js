@@ -21,7 +21,7 @@ assert.match(search, /data-dream-search-back/g, 'results page should expose Back
 assert.match(search, /dream-search-page-results/, 'results should render inside the dedicated results view');
 assert.match(search, /search\(cleanQuery, null, state\.resultsStatus, state\.resultsHost\)/, 'public results should use the existing search function');
 
-console.log('DREAM SEARCH FRONTEND SYNTAX SMOKE TEST: PASS');
+
 
 const searchCss = fs.readFileSync('public/dream-search.css', 'utf8');
 assert.match(searchCss, /\.dream-search-page-shell\{max-width:1440px;width:100%\}/, 'results view should use a wider content shell');
@@ -34,3 +34,5 @@ assert.match(search, /signal: controller\.signal/, 'Dream Search requests must s
 assert.match(search, /window\.setTimeout\(function \(\) \{\s*controller\.abort\(\);\s*\}, 75000\)/, 'Search must have a bounded cold-start timeout');
 assert.match(search, /window\.clearTimeout\(timeout\)/, 'The search timeout must be cleared after completion');
 assert.match(search, /Dream Search timed out after 75 seconds/, 'Timeout feedback must be clear to the learner');
+
+console.log('DREAM SEARCH FRONTEND SYNTAX SMOKE TEST: PASS');
