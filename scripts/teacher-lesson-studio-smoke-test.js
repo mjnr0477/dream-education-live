@@ -50,6 +50,8 @@ assert.match(server, /connection\.status === "active"|status: "active"/);
 assert.match(teacherUI, /teacher-lesson-studio/);
 assert.match(teacherUI, /Lesson Plans & Assessments/);
 assert.match(teacherUI, /Prepare lesson with Dream/);
+assert.match(teacherUI, /const request = async \(url, options = \{\}, timeoutMs = 75000\)/, "Teacher Lesson Studio ordinary requests must survive free-service cold starts.");
+assert.match(teacherUI, /Lesson Studio request did not respond within /, "Teacher timeout feedback must describe any Lesson Studio request accurately.");
 assert.match(teacherUI, /\}, 120000\)/, "Lesson generation needs a longer client timeout than normal API requests.");
 assert.match(teacherUI, /Preparing lesson…/);
 assert.match(teacherUI, /controller\.abort\(\)/, "Teacher lesson requests must time out through response-body parsing.");
