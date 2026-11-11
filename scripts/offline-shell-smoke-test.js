@@ -35,8 +35,10 @@ assert.match(register, /addEventListener\("offline"/, "offline state should be a
 assert.ok(register.includes('window.matchMedia("(max-width: 760px)")'), "mobile status notice should detect phone-sized screens");
 assert.match(register, /calc\(76px \+ env\(safe-area-inset-bottom, 0px\)\)/, "mobile status notice must sit above the bottom navigation and safe area");
 assert.match(register, /addEventListener\("resize", positionStatus/, "status notice position should update when the viewport rotates or resizes");
-assert.ok(html.includes("/offline-support.js?v=20261111c"), "updated offline support script must bypass old browser cache");
-assert.ok(worker.includes("/offline-support.js?v=20261111c") && worker.includes("dream-education-shell-v5"), "offline shell must precache the new notice code under a fresh cache");
+assert.ok(html.includes("/offline-support.js?v=20261111d"), "updated offline support script must bypass old browser cache");
+assert.ok(worker.includes("/offline-support.js?v=20261111d") && worker.includes("dream-education-shell-v6"), "offline shell must precache the saved-notes guidance under a fresh cache");
+assert.match(register, /Saved notes: Learn → Notes & Study Materials → My offline notes/, "offline toast should tell learners where to reopen saved notes");
+assert.match(offline, /Notes you explicitly saved while signed in on this device can be reopened from Learn → Notes & Study Materials → My offline notes/i, "offline page should explain how to reopen previously saved notes");
 assert.match(html, /rel="manifest" href="\/manifest\.webmanifest"/, "manifest should be linked");
 assert.match(html, /offline-support\.js/, "registration script should be loaded");
 assert.match(offline, /need an internet connection/i, "offline limitations should be explained honestly");

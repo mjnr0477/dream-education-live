@@ -218,6 +218,9 @@ const baseUrl = (process.env.BASE_URL || "http://127.0.0.1:4173").replace(/\/$/,
     await notesPage.locator("#de-notes-save-offline").click();
     await notesPage.getByText("Saved offline ✓", { exact: true }).waitFor({ state: "visible", timeout: 10000 });
     await notesPage.context().setOffline(true);
+    await notesPage.locator("#dream-offline-status").waitFor({ state: "visible", timeout: 10000 });
+    assert.match(await notesPage.locator("#dream-offline-status").innerText(), /Learn → Notes & Study Materials → My offline notes/,
+      "Offline notice must show learners where saved notes are stored");
     await notesPage.locator("#de-offline-notes-open").click();
     await notesPage.getByRole("button", { name: "Open notes", exact: true }).waitFor({ state: "visible", timeout: 10000 });
     await notesPage.getByRole("button", { name: "Open notes", exact: true }).click();
