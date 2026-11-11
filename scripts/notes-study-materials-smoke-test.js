@@ -26,6 +26,10 @@ assert.match(workspace, /\/api\/v1\/learning\/notes/);
 assert.match(workspace, /Notes &amp; Study Materials/);
 assert.match(workspace, /de-notes-copy/);
 assert.match(workspace, /de-notes-print/);
+assert.match(workspace, /function renderStudyNoteSources\(/, "Study notes should render retrieved source references.");
+assert.match(workspace, /safeFeedMediaUrl\(source && source\.url\)/, "Only safe public source URLs may be linked or saved.");
+assert.match(workspace, /noopener noreferrer nofollow/, "External source links must be isolated from the opener.");
+assert.match(workspace, /renderStudyNoteSources\(note\.sources\)/, "Saved offline notes should retain clickable source references.");
 assert.match(stylesheet, /Notes & Study Materials/);
 
 console.log("Notes & Study Materials smoke test passed.");
