@@ -3,7 +3,7 @@
 const CACHE_VERSION = "dream-education-shell-v7";
 const SHELL_URLS = [
   "/", "/index.html", "/offline.html", "/manifest.webmanifest",
-  "/style.css?v=20261111b", "/books-reading.css?v=20261018a",
+  "/style.css?v=20261111c", "/books-reading.css?v=20261018a",
   "/teacher-workspace.css?v=20261012a", "/meetings-workspace.css?v=20261012a",
   "/dream-search.css?v=20261011d", "/nextgen-visual.css?v=20261011a",
   "/school-workspace.css?v=20261015a", "/parent-workspace.css?v=20261013b",
