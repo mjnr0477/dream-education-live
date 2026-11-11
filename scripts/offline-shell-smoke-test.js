@@ -46,7 +46,7 @@ assert.equal(manifest.start_url, "/", "manifest should start at the app root");
 assert.equal(manifest.display, "standalone", "manifest should support standalone install mode");
 assert.ok(Array.isArray(manifest.icons) && manifest.icons.length >= 3, "PWA manifest should declare standard install icons");
 for (const [size, purpose] of [["192x192", "any"], ["512x512", "any"], ["512x512", "maskable"]]) {
-  assert.ok(manifest.icons.some(icon => icon.sizes === size && String(icon.purpose || "").split(/\\s+/).includes(purpose)),
+  assert.ok(manifest.icons.some(icon => icon.sizes === size && String(icon.purpose || "").split(" ").includes(purpose)),
     "PWA manifest should include a " + purpose + " icon at " + size);
 }
 for (const icon of manifest.icons) {
