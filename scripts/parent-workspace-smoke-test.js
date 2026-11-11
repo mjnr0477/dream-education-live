@@ -9,6 +9,14 @@ const parent = fs.readFileSync("public/parent-workspace.js", "utf8");
 const css = fs.readFileSync("public/parent-workspace.css", "utf8");
 const server = fs.readFileSync("server.js", "utf8");
 assert(index.includes("/parent-workspace.js"), "Parent workspace script must be loaded.");
+
+assert.match(parent, /async function request\(url, options, timeoutMs = 75000\)/, "Parent workspace API requests must have a bounded cold-start timeout.");
+assert.match(parent, /new AbortController\(\)/, "Parent requests must be cancellable.");
+assert.match(parent, /signal: controller\.signal/, "Parent requests must pass their abort signal to fetch.");
+assert.match(parent, /Math\.round\(timeoutMs \/ 1000\)/, "Parent timeout feedback must reflect the configured timeout.");
+assert.match(parent, /window\.clearTimeout\(timeout\)/, "Parent requests must clear timeout handles after completion.");
+assert.match(parent, /Parent workspace request did not respond within /, "Parent users must see clear timeout feedback.");
+
 assert(index.includes("/parent-workspace.css"), "Parent workspace styles must be loaded.");
 assert(workspace.includes("DreamParentWorkspace.open"), "Existing workspace must hand parent accounts to the dedicated portal.");
 for (const label of ["My children", "Lessons & home learning", "AI Parent Guide", "Achievements", "Teachers & meetings"]) assert(parent.includes(label), "Missing parent section: " + label);
