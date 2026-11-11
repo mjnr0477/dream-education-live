@@ -17,7 +17,7 @@ concurrency:
 jobs:
   browser-smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
@@ -31,7 +31,7 @@ jobs:
       - name: Install isolated Playwright test dependency
         run: npm install --no-save --package-lock=false playwright
       - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium --only-shell
       - name: Start isolated Dream Education frontend server
         env:
           PORT: 4173
