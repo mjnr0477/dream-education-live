@@ -89,18 +89,18 @@ for (const route of requiredServerRoutes) {
 
 for (const token of [
   "/nextgen-visual.js?v=20261011a",
-  "/frontend-workspace.js?v=20261025c"
+  "/frontend-workspace.js?v=20261111a"
 ]) {
   if (!index.includes(token)) throw new Error("Required frontend script missing: " + token);
 }
 
 
-for (const [asset, version] of [["style.css", "20261025b"], ["frontend-workspace.js", "20261025c"]]) {
+for (const [asset, version] of [["style.css", "20261111a"], ["frontend-workspace.js", "20261111a"]]) {
   const assetReference = new RegExp("/" + asset.replace(".", "\\.") + "\\?v=" + version);
   if (!assetReference.test(index)) throw new Error("Updated cache-busting version missing for " + asset);
 }
 
-if (!index.includes("/app.js?v=20261025b")) throw new Error("Updated app.js cache-busting version missing.");
+if (!index.includes("/app.js?v=20261111a")) throw new Error("Updated app.js cache-busting version missing.");
 
 for (const token of [
   '<link rel="canonical" href="https://dream-education-live-4.onrender.com/">',
@@ -231,7 +231,7 @@ for (const token of [
     throw new Error("Accessible frontend polish is missing: " + token);
   }
 }
-if (!index.includes("/style.css?v=20261025b")) {
+if (!index.includes("/style.css?v=20261111a")) {
   throw new Error("Frontend polish stylesheet cache-busting version is missing.");
 }
 
