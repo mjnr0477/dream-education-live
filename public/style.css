@@ -3330,3 +3330,41 @@ textarea:focus-visible {
 .de-feed-playback-status[hidden] { display:none; }
 .de-feed-playback-retry { border:1px solid rgba(255,255,255,.55); border-radius:999px; padding:8px 13px; color:#fff; background:rgba(255,255,255,.12); font:inherit; font-weight:700; cursor:pointer; }
 .de-feed-playback-retry:focus-visible { outline:2px solid currentColor; outline-offset:3px; }
+
+
+/* Learning Feed: clear, compact controls for metered connections. */
+.de-feed-data-saver {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin: 12px 0 16px;
+  padding: 12px 14px;
+  border: 1px solid rgba(25, 200, 255, .28);
+  border-radius: 14px;
+  background: rgba(7, 27, 88, .42);
+  color: var(--de-text, #f4f8ff);
+  cursor: pointer;
+}
+.de-feed-data-saver input {
+  flex: 0 0 auto;
+  width: 19px;
+  height: 19px;
+  min-height: 19px;
+  accent-color: #19c8ff;
+}
+.de-feed-data-saver span { display: grid; gap: 2px; }
+.de-feed-data-saver small { color: var(--de-muted, #b7c6e7); line-height: 1.4; }
+.de-feed-media-deferred {
+  display: grid;
+  min-height: 150px;
+  align-content: center;
+  justify-items: center;
+  gap: 12px;
+  padding: 22px;
+  border: 1px dashed rgba(25, 200, 255, .36);
+  border-radius: 14px;
+  background: rgba(5, 11, 36, .58);
+  text-align: center;
+}
+.de-feed-media-deferred p { max-width: 34rem; margin: 0; color: var(--de-muted, #b7c6e7); }
+.de-feed-media-deferred button { min-height: 42px; }
