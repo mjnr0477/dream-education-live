@@ -9,7 +9,13 @@
       status.id = "dream-offline-status";
       status.setAttribute("role", "status");
       status.setAttribute("aria-live", "polite");
-      status.style.cssText = "position:fixed;z-index:99999;left:12px;right:12px;bottom:12px;padding:10px 14px;border-radius:12px;font:500 14px/1.4 system-ui,sans-serif;box-shadow:0 4px 20px #0002;display:none";
+      status.style.cssText = "position:fixed;z-index:99999;left:12px;right:12px;padding:10px 14px;border-radius:12px;font:500 14px/1.4 system-ui,sans-serif;box-shadow:0 4px 20px #0002;display:none";
+      function positionStatus() {
+        const isMobile = typeof window.matchMedia === "function" && window.matchMedia("(max-width: 760px)").matches;
+        status.style.bottom = isMobile ? "calc(76px + env(safe-area-inset-bottom, 0px))" : "12px";
+      }
+      positionStatus();
+      window.addEventListener("resize", positionStatus, { passive: true });
       document.body.appendChild(status);
     }
     if (!navigator.onLine) {
