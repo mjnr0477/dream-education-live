@@ -137,12 +137,12 @@ for (const [asset, version] of [
 
 
 for (const token of [
-  '<link rel="canonical" href="https://dream-education-live-4.onrender.com/">',
+  '<link rel="canonical" href="https://dream-education-live-4-spjt.onrender.com/">',
   '<meta property="og:type" content="website">',
   '<meta property="og:site_name" content="Dream Education">',
   '<meta property="og:title" content="Dream Education — Learn without limits">',
   '<meta property="og:description" content="One intelligent space for learners, teachers, parents and schools. Discover knowledge, build mastery and create your future.">',
-  '<meta property="og:url" content="https://dream-education-live-4.onrender.com/">',
+  '<meta property="og:url" content="https://dream-education-live-4-spjt.onrender.com/">',
   '<meta name="twitter:card" content="summary">',
   '<meta name="twitter:title" content="Dream Education — Learn without limits">',
   '<meta name="twitter:description" content="One intelligent space for learners, teachers, parents and schools. Discover knowledge, build mastery and create your future.">'
