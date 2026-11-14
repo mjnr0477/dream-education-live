@@ -71,7 +71,7 @@ if (!index.includes('<link rel="canonical" href="' + productionOrigin + '/">') |
 if (!neon.match(/body \.app-shell > main > \.dream-destinations\s*\{\s*display:\s*none\s*!important;/)) {
   throw new Error("Mobile home must use the fixed bottom navigation instead of duplicating the destination-card strip.");
 }
-if (!/class="dream-mobile-nav"[\\s\\S]*?data-panel="about"[^>]*><span aria-hidden="true">ⓘ<\\/span><span>About Dream<\\/span>/.test(index)) {
+if (!index.includes('data-panel="about"><span aria-hidden="true">ⓘ</span><span>About Dream</span>')) {
   throw new Error("The mobile navigation must retain the full About Dream destination label.");
 }
 
