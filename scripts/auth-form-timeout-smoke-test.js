@@ -38,7 +38,7 @@ for (const [name, handler, endpoint] of [
 
 assert.match(index, /\/app\.js\?v=20261111c/,
   "HTML must reference the refreshed app bundle");
-assert.match(serviceWorker, /dream-education-shell-v12/,
+assert.match(serviceWorker, /dream-education-shell-v13/,
   "offline shell cache must be versioned for the updated app");
 assert.match(serviceWorker, /\/app\.js\?v=20261111c/,
   "offline shell must precache the refreshed app bundle");
