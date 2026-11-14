@@ -173,6 +173,11 @@ const baseUrl = (process.env.BASE_URL || "http://127.0.0.1:4173").replace(/\/$/,
     }));
     const mobileResponse = await mobile.goto(baseUrl + "/", { waitUntil: "domcontentloaded", timeout: 30000 });
     assert(mobileResponse && mobileResponse.ok(), "Mobile homepage must load");
+    assert(await mobile.locator(".dream-mobile-nav").isVisible(), "The fixed mobile destination navigation must be visible.");
+    assert.equal(await mobile.locator(".dream-mobile-nav button").count(), 6, "Mobile navigation must expose the six primary Dream Education destinations.");
+    assert.equal(await mobile.locator(".dream-mobile-nav button").last().locator("span").nth(1).innerText(), "About Dream", "The final mobile destination must be labelled About Dream.");
+    assert(await mobile.locator(".app-shell > main > .dream-destinations").isHidden(), "Mobile must not repeat the same destinations above the fixed bottom navigation.");
+    assert(await mobile.locator("#dream-search-form").isVisible() && await mobile.locator("#dream-search-input").isVisible(), "The compact learning search must remain available on the mobile home screen.");
     await mobile.locator(".mobile-menu").click();
     await mobile.waitForFunction(() => document.body.classList.contains("menu-open"));
     assert.equal(await mobile.locator(".mobile-menu").getAttribute("aria-expanded"), "true", "Mobile menu must expose expanded state");

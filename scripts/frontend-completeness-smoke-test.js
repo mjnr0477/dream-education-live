@@ -12,6 +12,7 @@ const workspace = read("public/frontend-workspace.js");
 const nextgen = read("public/nextgen-visual.js");
 const css = read("public/nextgen-visual.css");
 const style = read("public/style.css");
+const neon = read("public/dream-neon-refresh.css");
 const server = read("server.js");
 const manifest = JSON.parse(read("public/manifest.webmanifest"));
 
@@ -56,11 +57,22 @@ if (declaredLocalAssets.length === 0) {
 
 const robots = read("public/robots.txt");
 const sitemap = read("public/sitemap.xml");
-if (!robots.includes("User-agent: *") || !robots.includes("Sitemap: https://dream-education-live-4.onrender.com/sitemap.xml")) {
-  throw new Error("Crawler guidance must allow public crawling and advertise the sitemap.");
+const productionOrigin = "https://dream-education-live-4-spjt.onrender.com";
+if (!robots.includes("User-agent: *") || !robots.includes("Sitemap: " + productionOrigin + "/sitemap.xml")) {
+  throw new Error("Crawler guidance must advertise the active production sitemap URL.");
 }
-if (!sitemap.includes("<loc>https://dream-education-live-4.onrender.com/</loc>") || !sitemap.includes("<urlset")) {
-  throw new Error("Sitemap must contain the canonical public landing page.");
+if (!sitemap.includes("<loc>" + productionOrigin + "/</loc>") || !sitemap.includes("<urlset")) {
+  throw new Error("Sitemap must contain the active production landing page.");
+}
+if (!index.includes('<link rel="canonical" href="' + productionOrigin + '/">') ||
+    !index.includes('<meta property="og:url" content="' + productionOrigin + '/">')) {
+  throw new Error("Canonical and social-share URLs must match the active production service.");
+}
+if (!neon.match(/body \.app-shell > main > \.dream-destinations\s*\{\s*display:\s*none\s*!important;/)) {
+  throw new Error("Mobile home must use the fixed bottom navigation instead of duplicating the destination-card strip.");
+}
+if (!index.includes('data-panel="about"><span aria-hidden="true">ⓘ</span><span>About Dream</span>')) {
+  throw new Error("The mobile navigation must retain the full About Dream destination label.");
 }
 
 const requiredFrontendRoutes = [
@@ -125,12 +137,12 @@ for (const [asset, version] of [
 
 
 for (const token of [
-  '<link rel="canonical" href="https://dream-education-live-4.onrender.com/">',
+  '<link rel="canonical" href="https://dream-education-live-4-spjt.onrender.com/">',
   '<meta property="og:type" content="website">',
   '<meta property="og:site_name" content="Dream Education">',
   '<meta property="og:title" content="Dream Education — Learn without limits">',
   '<meta property="og:description" content="One intelligent space for learners, teachers, parents and schools. Discover knowledge, build mastery and create your future.">',
-  '<meta property="og:url" content="https://dream-education-live-4.onrender.com/">',
+  '<meta property="og:url" content="https://dream-education-live-4-spjt.onrender.com/">',
   '<meta name="twitter:card" content="summary">',
   '<meta name="twitter:title" content="Dream Education — Learn without limits">',
   '<meta name="twitter:description" content="One intelligent space for learners, teachers, parents and schools. Discover knowledge, build mastery and create your future.">'
